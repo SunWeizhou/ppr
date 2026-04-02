@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Large binary files
+*.pkl
+*.sqlite
+*.db
+*.pdf
+
+# Cache files (but keep user data)
+cache/pdfs/
+cache/*.pkl
+cache/*.sqlite
+
+# Logs (can be regenerated)
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Sensitive data (if any)
+.env
+secrets.json
+credentials.json

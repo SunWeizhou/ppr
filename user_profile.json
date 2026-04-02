@@ -1,0 +1,244 @@
+{
+  "version": 2,
+  "keywords": {
+    "statistical learning theory": {
+      "weight": 4.5,
+      "category": "core"
+    },
+    "conditional density estimation": {
+      "weight": 3.5,
+      "category": "core"
+    },
+    "excess risk": {
+      "weight": 4.5,
+      "category": "core"
+    },
+    "conformal prediction": {
+      "weight": 5.0,
+      "category": "core"
+    },
+    "nonparametric estimation": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "generalization bound": {
+      "weight": 4.5,
+      "category": "core"
+    },
+    "minimax": {
+      "weight": 4.5,
+      "category": "core"
+    },
+    "minimax optimal": {
+      "weight": 4.5,
+      "category": "core"
+    },
+    "minimax rate": {
+      "weight": 4.5,
+      "category": "core"
+    },
+    "lower bound": {
+      "weight": 4.5,
+      "category": "core"
+    },
+    "upper bound": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "optimal rate": {
+      "weight": 4.5,
+      "category": "core"
+    },
+    "asymptotic": {
+      "weight": 3.5,
+      "category": "core"
+    },
+    "non-asymptotic": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "sample complexity": {
+      "weight": 4.5,
+      "category": "core"
+    },
+    "in-context learning": {
+      "weight": 5.0,
+      "category": "core"
+    },
+    "convergence rate": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "finite-sample": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "statistical inference": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "high-dimensional statistics": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "rademacher complexity": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "vc dimension": {
+      "weight": 3.5,
+      "category": "core"
+    },
+    "pac-bayes": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "uniform convergence": {
+      "weight": 3.5,
+      "category": "secondary"
+    },
+    "algorithmic stability": {
+      "weight": 3.0,
+      "category": "secondary"
+    },
+    "empirical risk minimization": {
+      "weight": 3.0,
+      "category": "secondary"
+    },
+    "concentration inequalities": {
+      "weight": 3.5,
+      "category": "secondary"
+    },
+    "learning theory": {
+      "weight": 3.0,
+      "category": "secondary"
+    },
+    "transformer": {
+      "weight": 1.5,
+      "category": "secondary"
+    },
+    "transformer theory": {
+      "weight": 3.5,
+      "category": "secondary"
+    },
+    "estimation": {
+      "weight": 0.5,
+      "category": "secondary"
+    },
+    "risk": {
+      "weight": 2.5,
+      "category": "secondary"
+    },
+    "GPU": {
+      "weight": -1.5,
+      "category": "demote"
+    },
+    "inference speed": {
+      "weight": -1.0,
+      "category": "demote"
+    },
+    "real-time": {
+      "weight": -0.5,
+      "category": "demote"
+    },
+    "deployment": {
+      "weight": -1.0,
+      "category": "demote"
+    },
+    "compression": {
+      "weight": -0.5,
+      "category": "demote"
+    },
+    "quantization": {
+      "weight": -0.5,
+      "category": "demote"
+    },
+    "acceleration": {
+      "weight": -0.5,
+      "category": "demote"
+    },
+    "federated learning": {
+      "weight": -2.0,
+      "category": "dislike"
+    },
+    "benchmark": {
+      "weight": -1.5,
+      "category": "dislike"
+    },
+    "real-world application": {
+      "weight": -1.0,
+      "category": "dislike"
+    },
+    "image generation": {
+      "weight": -1.5,
+      "category": "dislike"
+    },
+    "face generation": {
+      "weight": -2.0,
+      "category": "dislike"
+    },
+    "handwriting": {
+      "weight": -1.5,
+      "category": "dislike"
+    }
+  },
+  "theory_keywords": [
+    "generalization bound",
+    "excess risk",
+    "sample complexity",
+    "convergence rate",
+    "minimax optimal",
+    "lower bound",
+    "upper bound",
+    "theorem",
+    "proof",
+    "asymptotic"
+  ],
+  "settings": {
+    "papers_per_day": 20,
+    "lookback_days": 14,
+    "pdf_auto_download_score": 2.5,
+    "max_papers_per_author": 22,
+    "recency_bonus_days": 7,
+    "recency_bonus": 0.3,
+    "prefer_theory": true,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2"
+  },
+  "sources": {
+    "arxiv_enabled": true,
+    "journal_enabled": true,
+    "scholar_enabled": false,
+    "lookback_days": 14
+  },
+  "zotero": {
+    "database_path": "",
+    "auto_detect": true,
+    "enabled": true
+  },
+  "venue_priority": {
+    "statistics_journals": [
+      "Annals of Statistics",
+      "JASA",
+      "Biometrika",
+      "JRSS-B"
+    ],
+    "ml_journals": [
+      "JMLR"
+    ],
+    "top_conferences": [
+      "NeurIPS",
+      "ICML",
+      "ICLR",
+      "COLT",
+      "AISTATS"
+    ],
+    "theory_conferences": [
+      "COLT",
+      "AISTATS"
+    ],
+    "statistics_bonus": 1.0,
+    "ml_journal_bonus": 0.8,
+    "conference_bonus": 0.5,
+    "theory_conference_bonus": 1.0
+  }
+}

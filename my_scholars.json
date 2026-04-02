@@ -1,0 +1,32 @@
+{
+  "scholars": [
+    {
+      "name": "Lixing Zhu",
+      "affiliation": "Verified email at bnu.edu.cn",
+      "focus": "",
+      "google_scholar": "https://scholar.google.com/citations?user=4YWHRfQAAAAJ&hl=en",
+      "website": "",
+      "arxiv": "https://arxiv.org/search/?searchtype=author&query=Lixing%20Zhu",
+      "added_at": "2026-04-01T22:33:36.953650"
+    },
+    {
+      "name": "Peter Bartlett",
+      "affiliation": "",
+      "focus": "",
+      "google_scholar": "https://scholar.google.com/citations?user=yQNhFGUAAAAJ&hl=en",
+      "website": "",
+      "arxiv": "https://arxiv.org/search/?searchtype=author&query=Peter%20Bartlett",
+      "added_at": "2026-04-01T22:34:38.656275"
+    },
+    {
+      "name": "Emmanuel Candes",
+      "affiliation": "",
+      "focus": "",
+      "google_scholar": "https://scholar.google.com/citations?user=nRQi4O8AAAAJ&hl=en",
+      "website": "",
+      "arxiv": "https://arxiv.org/search/?searchtype=author&query=Emmanuel%20Candes",
+      "added_at": "2026-04-01T22:51:13.603980"
+    }
+  ],
+  "description": "用户自定义关注的学者列表"
+}
