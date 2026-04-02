@@ -11,5 +11,18 @@
     "categories": [],
     "date_added": "2026-04-02 14:57:35",
     "date_published": "2026-04-02"
+  },
+  "2603.29725v1": {
+    "id": "2603.29725v1",
+    "title": "Unbounded Density Ratio Estimation and Its Application to Covariate Shift Adaptation",
+    "authors": "Ren-Rui Liu, Jun Fan, Lei Shi, Zheng-Chu Guo",
+    "abstract": "This paper focuses on the problem of unbounded density ratio estimation -- an understudied yet critical challenge in statistical learning -- and its application to covariate shift adaptation.. Much of...",
+    "summary": "This paper focuses on the problem of unbounded density ratio estimation -- an understudied yet critical challenge in statistical learning -- and its application to covariate shift adaptation.. Much of...",
+    "link": "https://arxiv.org/abs/2603.29725v1",
+    "score": 4.2,
+    "relevance": "命中核心主题: asymptotic; 近2天新论文; 包含理论贡献: bound, convergence",
+    "categories": [],
+    "date_added": "2026-04-02 21:18:03",
+    "date_published": "2026-04-02"
   }
 }
