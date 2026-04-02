@@ -1,0 +1,15 @@
+{
+  "2603.29415v1": {
+    "id": "2603.29415v1",
+    "title": "Concentration of the bootstrap empirical process, with applications to statistical inference",
+    "authors": "Guillaume Maillard, Adrien Saumard",
+    "abstract": "Considering a general framework of bootstrap with exchangeable weights, we show some concentration inequalities for the supremum of the bootstrap empirical process.. On the one hand, we discuss the co...",
+    "summary": "Considering a general framework of bootstrap with exchangeable weights, we show some concentration inequalities for the supremum of the bootstrap empirical process.. On the one hand, we discuss the co...",
+    "link": "https://arxiv.org/abs/2603.29415v1",
+    "score": 6.5,
+    "relevance": "命中核心主题: asymptotic; 近2天新论文; 包含理论贡献: bound, convergence",
+    "categories": [],
+    "date_added": "2026-04-02 14:57:35",
+    "date_published": "2026-04-02"
+  }
+}
