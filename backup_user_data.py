@@ -22,7 +22,6 @@ from datetime import datetime
 USER_DATA_FILES = [
     'cache/user_feedback.json',
     'cache/favorite_papers.json',
-    'cache/my_scholars.json',
     'my_scholars.json',
     'user_profile.json',
     'cache/recommendation_history.json',

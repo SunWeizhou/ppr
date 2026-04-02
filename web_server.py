@@ -3449,22 +3449,11 @@ def refresh_recommendations():
 @app.route('/api/status')
 def get_status():
     """Get recommendation status for today."""
-    import sys
-    sys.path.insert(0, BASE_DIR)
-
     try:
-        # Load the recommendation data directly from cache file
-        cache_file = os.path.join(BASE_DIR, 'cache', 'daily_recommendation.json')
-        today = datetime.now().strftime('%Y-%m-%d')
+        from arxiv_recommender_v5 import load_daily_recommendation, CONFIG as PIPELINE_CONFIG
 
-        if os.path.exists(cache_file):
-            with open(cache_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                cached_papers = data.get('papers', []) if data.get('date') == today else None
-                cached_themes = data.get('themes', [])
-        else:
-            cached_papers = None
-            cached_themes = []
+        today = datetime.now().strftime('%Y-%m-%d')
+        cached_papers, cached_themes = load_daily_recommendation(PIPELINE_CONFIG['cache_dir'])
 
         return jsonify({
             'date': today,
@@ -3474,8 +3463,7 @@ def get_status():
             'generated_at': datetime.now().isoformat()
         })
     except Exception as e:
-        import traceback
-        logger.error(f"Status error: {e}\n{traceback.format_exc()}")
+        logger.error(f"Status error: {e}")
         return jsonify({'error': str(e)})
 
 
