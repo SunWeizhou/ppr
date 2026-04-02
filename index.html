@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arXiv Daily Digest - 2026-04-02</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh; color: #e0e0e0; padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            text-align: center; padding: 40px 20px;
+            background: rgba(255,255,255,0.03); border-radius: 24px;
+            margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.08);
+        }
+        .header h1 {
+            font-size: 2.8em;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #f472b6 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+        .date { font-size: 1.3em; color: #888; margin-bottom: 20px; }
+        .themes { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 20px 0; }
+        .theme-tag {
+            background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(0,212,255,0.3));
+            padding: 8px 18px; border-radius: 20px; font-size: 0.9em; color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .stats { display: flex; justify-content: center; gap: 50px; margin-top: 30px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .stat { text-align: center; }
+        .stat-number { font-size: 2.2em; font-weight: bold; color: #00d4ff; }
+        .stat-label { font-size: 0.85em; color: #666; margin-top: 5px; }
+        .papers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+        .paper-card {
+            background: rgba(255,255,255,0.03); border-radius: 16px; padding: 25px;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.3s ease; position: relative; overflow: hidden;
+        }
+        .paper-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed); opacity: 0; transition: opacity 0.3s;
+        }
+        .paper-card:hover { transform: translateY(-5px); border-color: rgba(0,212,255,0.3); }
+        .paper-card:hover::before { opacity: 1; }
+        .paper-title { font-size: 1.1em; font-weight: 600; color: #fff; margin-bottom: 12px; line-height: 1.5; }
+        .paper-title a { color: #fff; text-decoration: none; }
+        .paper-title a:hover { color: #00d4ff; }
+        .paper-authors { font-size: 0.85em; color: #888; margin-bottom: 15px; }
+        .paper-summary { font-size: 0.9em; color: #aaa; line-height: 1.7; margin-bottom: 15px; }
+        .paper-meta {
+            display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;
+        }
+        .meta-tag {
+            background: rgba(0,212,255,0.15); padding: 4px 10px; border-radius: 12px;
+            font-size: 0.75em; color: #00d4ff;
+        }
+        .paper-relevance {
+            background: rgba(124,58,237,0.15); padding: 12px; border-radius: 10px;
+            margin-bottom: 15px; border-left: 3px solid #7c3aed;
+        }
+        .paper-relevance-title { font-size: 0.8em; color: #7c3aed; font-weight: 600; margin-bottom: 8px; }
+        .paper-relevance-text { font-size: 0.85em; color: #ccc; }
+        .paper-relevance-items { display: flex; flex-direction: column; gap: 6px; }
+        .relevance-item {
+            display: flex; align-items: center; gap: 8px; font-size: 0.85em;
+            padding: 4px 0;
+        }
+        .relevance-icon { font-size: 1.1em; min-width: 24px; text-align: center; }
+        .relevance-text { color: #ddd; flex: 1; }
+        .relevance-location {
+            font-size: 0.8em; color: #888; background: rgba(255,255,255,0.1);
+            padding: 2px 6px; border-radius: 4px;
+        }
+        .relevance-score-impact {
+            font-size: 0.75em; color: #22c55e; font-weight: 600;
+            background: rgba(34,197,94,0.15); padding: 2px 6px; border-radius: 4px;
+        }
+        .paper-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .score-badge {
+            background: linear-gradient(135deg, #7c3aed, #00d4ff);
+            padding: 5px 14px; border-radius: 15px; font-size: 0.85em; font-weight: bold;
+        }
+        .paper-link { color: #00d4ff; text-decoration: none; font-size: 0.9em; }
+        .paper-link:hover { text-decoration: underline; }
+        .semantic-score {
+            font-size: 0.8em; color: #888; margin-left: 10px;
+        }
+        .footer { text-align: center; padding: 40px; color: #555; font-size: 0.9em; }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex; justify-content: center; gap: 12px;
+            margin-bottom: 25px; flex-wrap: wrap;
+        }
+        .nav-tab {
+            padding: 10px 20px; background: rgba(255,255,255,0.05);
+            border-radius: 10px; color: #888; text-decoration: none;
+            transition: all 0.2s; border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.9em;
+        }
+        .nav-tab:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .nav-tab.active { background: rgba(124,58,237,0.3); color: #fff; border-color: rgba(124,58,237,0.5); }
+
+        /* Keywords Management Section */
+        .keywords-section {
+            background: rgba(255,255,255,0.03); border-radius: 16px; padding: 25px;
+            margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.08);
+        }
+        .keywords-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; cursor: pointer;
+        }
+        .keywords-header h2 { font-size: 1.3em; color: #00d4ff; }
+        .keywords-toggle { font-size: 1.5em; transition: transform 0.3s; }
+        .keywords-content { display: none; }
+        .keywords-content.active { display: block; }
+        .keyword-category {
+            margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+        }
+        .keyword-category-title {
+            font-size: 0.9em; color: #7c3aed; margin-bottom: 10px; font-weight: 600;
+        }
+        .keyword-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .keyword-tag {
+            background: rgba(124,58,237,0.3); padding: 6px 12px; border-radius: 16px;
+            font-size: 0.8em; color: #fff; display: flex; align-items: center; gap: 6px;
+        }
+        .keyword-tag.secondary { background: rgba(0,212,255,0.3); }
+        .keyword-tag.theory { background: rgba(34,197,94,0.3); }
+        .keyword-tag.demote { background: rgba(239,68,68,0.3); }
+        .keyword-tag.dislike { background: rgba(107,114,128,0.3); }
+        .keyword-tag .remove-btn {
+            cursor: pointer; opacity: 0.6; font-size: 1.1em;
+        }
+        .keyword-tag .remove-btn:hover { opacity: 1; }
+        .keyword-add-form {
+            display: flex; gap: 8px; margin-top: 10px;
+        }
+        .keyword-add-form input {
+            flex: 1; padding: 8px 12px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3);
+            color: #fff; font-size: 0.85em;
+        }
+        .keyword-add-form button {
+            padding: 8px 16px; border-radius: 8px;
+            border: none; background: #7c3aed; color: #fff; cursor: pointer;
+        }
+        .keyword-add-form button:hover { background: #6d28d9; }
+        .save-keywords-btn {
+            margin-top: 20px; padding: 12px 24px; border-radius: 12px;
+            border: none; background: linear-gradient(135deg, #7c3aed, #00d4ff);
+            color: #fff; font-size: 1em; cursor: pointer; font-weight: 600;
+        }
+        .save-keywords-btn:hover { opacity: 0.9; }
+        .save-status { margin-left: 15px; font-size: 0.9em; }
+
+        /* Today's Keywords Section */
+        .today-keywords-section {
+            background: rgba(34, 197, 94, 0.1); border-radius: 16px; padding: 20px;
+            margin-bottom: 25px; border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .today-keywords-title {
+            font-size: 1.1em; color: #22c55e; margin-bottom: 15px; font-weight: 600;
+        }
+        .today-keywords-tags {
+            display: flex; flex-wrap: wrap; gap: 8px;
+        }
+        .today-keyword-tag {
+            background: linear-gradient(135deg, rgba(34,197,94,0.3), rgba(0,212,255,0.2));
+            padding: 6px 14px; border-radius: 16px; font-size: 0.85em; color: #fff;
+            border: 1px solid rgba(34,197,94,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .papers-grid { grid-template-columns: 1fr; }
+            .stats { flex-direction: column; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>arXiv Daily Digest</h1>
+            <div class="date">2026-04-02</div>
+            <div class="themes">
+                <span class="theme-tag">in-context learning</span><span class="theme-tag">minimax</span><span class="theme-tag">asymptotic</span><span class="theme-tag">sample complexity</span><span class="theme-tag">non-asymptotic</span><span class="theme-tag">minimax optimal</span><span class="theme-tag">excess risk</span><span class="theme-tag">conformal prediction</span><span class="theme-tag">optimal rate</span><span class="theme-tag">convergence rate</span>
+            </div>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number">20</div>
+                    <div class="stat-label">Papers Today</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">20</div>
+                    <div class="stat-label">Papers Seen</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">1</div>
+                    <div class="stat-label">Days Active</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <a href="/" class="nav-tab active">📅 今日推荐</a>
+            <a href="/search.html" class="nav-tab">🔍 关键词搜索</a>
+            <a href="/journal.html" class="nav-tab">📚 顶刊追踪</a>
+            <a href="/scholars.html" class="nav-tab">🎓 学者追踪</a>
+            <a href="/liked.html" class="nav-tab">❤️ 我喜欢的</a>
+            <a href="/api/refresh?force=1" class="nav-tab" onclick="return confirm('确定要刷新今日推荐吗？')">🔄 刷新</a>
+        </div>
+
+        <!-- Today's Matched Keywords -->
+        <div class="today-keywords-section">
+            <div class="today-keywords-title">📌 今日匹配关键词 (Top 10)</div>
+            <div class="today-keywords-tags">
+                <span class="today-keyword-tag">asymptotic</span><span class="today-keyword-tag">concentration inequalities</span><span class="today-keyword-tag">convergence rate</span><span class="today-keyword-tag">estimation</span><span class="today-keyword-tag">finite-sample</span><span class="today-keyword-tag">generalization bound</span><span class="today-keyword-tag">in-context learning</span><span class="today-keyword-tag">learning theory</span><span class="today-keyword-tag">lower bound</span><span class="today-keyword-tag">non-asymptotic</span>
+            </div>
+        </div>
+
+        <!-- Keywords Management Section -->
+        <div class="keywords-section">
+            <div class="keywords-header" onclick="toggleKeywords()">
+                <h2>🏷️ 关键词管理</h2>
+                <span class="keywords-toggle" id="keywords-toggle">▼</span>
+            </div>
+            <div class="keywords-content" id="keywords-content">
+                <div class="keyword-category">
+                    <div class="keyword-category-title">🔥 核心关键词 (Core Topics)</div>
+                    <div class="keyword-tags" id="core-topics-tags">
+                        <span class="keyword-tag core">statistical learning theory<span class="remove-btn" onclick="removeKeyword('core', 'statistical learning theory')">×</span></span><span class="keyword-tag core">conditional density estimation<span class="remove-btn" onclick="removeKeyword('core', 'conditional density estimation')">×</span></span><span class="keyword-tag core">excess risk<span class="remove-btn" onclick="removeKeyword('core', 'excess risk')">×</span></span><span class="keyword-tag core">conformal prediction<span class="remove-btn" onclick="removeKeyword('core', 'conformal prediction')">×</span></span><span class="keyword-tag core">nonparametric estimation<span class="remove-btn" onclick="removeKeyword('core', 'nonparametric estimation')">×</span></span><span class="keyword-tag core">generalization bound<span class="remove-btn" onclick="removeKeyword('core', 'generalization bound')">×</span></span><span class="keyword-tag core">minimax<span class="remove-btn" onclick="removeKeyword('core', 'minimax')">×</span></span><span class="keyword-tag core">minimax optimal<span class="remove-btn" onclick="removeKeyword('core', 'minimax optimal')">×</span></span><span class="keyword-tag core">minimax rate<span class="remove-btn" onclick="removeKeyword('core', 'minimax rate')">×</span></span><span class="keyword-tag core">lower bound<span class="remove-btn" onclick="removeKeyword('core', 'lower bound')">×</span></span><span class="keyword-tag core">upper bound<span class="remove-btn" onclick="removeKeyword('core', 'upper bound')">×</span></span><span class="keyword-tag core">optimal rate<span class="remove-btn" onclick="removeKeyword('core', 'optimal rate')">×</span></span><span class="keyword-tag core">asymptotic<span class="remove-btn" onclick="removeKeyword('core', 'asymptotic')">×</span></span><span class="keyword-tag core">non-asymptotic<span class="remove-btn" onclick="removeKeyword('core', 'non-asymptotic')">×</span></span><span class="keyword-tag core">sample complexity<span class="remove-btn" onclick="removeKeyword('core', 'sample complexity')">×</span></span><span class="keyword-tag core">in-context learning<span class="remove-btn" onclick="removeKeyword('core', 'in-context learning')">×</span></span><span class="keyword-tag core">convergence rate<span class="remove-btn" onclick="removeKeyword('core', 'convergence rate')">×</span></span><span class="keyword-tag core">finite-sample<span class="remove-btn" onclick="removeKeyword('core', 'finite-sample')">×</span></span><span class="keyword-tag core">statistical inference<span class="remove-btn" onclick="removeKeyword('core', 'statistical inference')">×</span></span><span class="keyword-tag core">high-dimensional statistics<span class="remove-btn" onclick="removeKeyword('core', 'high-dimensional statistics')">×</span></span><span class="keyword-tag core">rademacher complexity<span class="remove-btn" onclick="removeKeyword('core', 'rademacher complexity')">×</span></span><span class="keyword-tag core">vc dimension<span class="remove-btn" onclick="removeKeyword('core', 'vc dimension')">×</span></span><span class="keyword-tag core">pac-bayes<span class="remove-btn" onclick="removeKeyword('core', 'pac-bayes')">×</span></span>
+                    </div>
+                    <div class="keyword-add-form">
+                        <input type="text" id="new-core-topic" placeholder="添加核心关键词...">
+                        <button onclick="addKeyword('core')">添加</button>
+                    </div>
+                </div>
+
+                <div class="keyword-category">
+                    <div class="keyword-category-title">📚 次要关键词 (Secondary Topics)</div>
+                    <div class="keyword-tags" id="secondary-topics-tags">
+                        <span class="keyword-tag secondary">uniform convergence<span class="remove-btn" onclick="removeKeyword('secondary', 'uniform convergence')">×</span></span><span class="keyword-tag secondary">algorithmic stability<span class="remove-btn" onclick="removeKeyword('secondary', 'algorithmic stability')">×</span></span><span class="keyword-tag secondary">empirical risk minimization<span class="remove-btn" onclick="removeKeyword('secondary', 'empirical risk minimization')">×</span></span><span class="keyword-tag secondary">concentration inequalities<span class="remove-btn" onclick="removeKeyword('secondary', 'concentration inequalities')">×</span></span><span class="keyword-tag secondary">learning theory<span class="remove-btn" onclick="removeKeyword('secondary', 'learning theory')">×</span></span><span class="keyword-tag secondary">transformer<span class="remove-btn" onclick="removeKeyword('secondary', 'transformer')">×</span></span><span class="keyword-tag secondary">transformer theory<span class="remove-btn" onclick="removeKeyword('secondary', 'transformer theory')">×</span></span><span class="keyword-tag secondary">estimation<span class="remove-btn" onclick="removeKeyword('secondary', 'estimation')">×</span></span><span class="keyword-tag secondary">risk<span class="remove-btn" onclick="removeKeyword('secondary', 'risk')">×</span></span>
+                    </div>
+                    <div class="keyword-add-form">
+                        <input type="text" id="new-secondary-topic" placeholder="添加次要关键词...">
+                        <button onclick="addKeyword('secondary')">添加</button>
+                    </div>
+                </div>
+
+                <div class="keyword-category">
+                    <div class="keyword-category-title">🧠 理论关键词 (Theory Keywords)</div>
+                    <div class="keyword-tags" id="theory-keywords-tags">
+                        <span class="keyword-tag theory">generalization bound<span class="remove-btn" onclick="removeKeyword('theory', 'generalization bound')">×</span></span><span class="keyword-tag theory">excess risk<span class="remove-btn" onclick="removeKeyword('theory', 'excess risk')">×</span></span><span class="keyword-tag theory">sample complexity<span class="remove-btn" onclick="removeKeyword('theory', 'sample complexity')">×</span></span><span class="keyword-tag theory">convergence rate<span class="remove-btn" onclick="removeKeyword('theory', 'convergence rate')">×</span></span><span class="keyword-tag theory">minimax optimal<span class="remove-btn" onclick="removeKeyword('theory', 'minimax optimal')">×</span></span><span class="keyword-tag theory">lower bound<span class="remove-btn" onclick="removeKeyword('theory', 'lower bound')">×</span></span><span class="keyword-tag theory">upper bound<span class="remove-btn" onclick="removeKeyword('theory', 'upper bound')">×</span></span><span class="keyword-tag theory">theorem<span class="remove-btn" onclick="removeKeyword('theory', 'theorem')">×</span></span><span class="keyword-tag theory">proof<span class="remove-btn" onclick="removeKeyword('theory', 'proof')">×</span></span><span class="keyword-tag theory">asymptotic<span class="remove-btn" onclick="removeKeyword('theory', 'asymptotic')">×</span></span>
+                    </div>
+                    <div class="keyword-add-form">
+                        <input type="text" id="new-theory-keyword" placeholder="添加理论关键词...">
+                        <button onclick="addKeyword('theory')">添加</button>
+                    </div>
+                </div>
+
+                <div class="keyword-category">
+                    <div class="keyword-category-title">⬇️ 降权关键词 (Demote Topics)</div>
+                    <div class="keyword-tags" id="demote-topics-tags">
+                        <span class="keyword-tag demote">GPU<span class="remove-btn" onclick="removeKeyword('demote', 'GPU')">×</span></span><span class="keyword-tag demote">inference speed<span class="remove-btn" onclick="removeKeyword('demote', 'inference speed')">×</span></span><span class="keyword-tag demote">real-time<span class="remove-btn" onclick="removeKeyword('demote', 'real-time')">×</span></span><span class="keyword-tag demote">deployment<span class="remove-btn" onclick="removeKeyword('demote', 'deployment')">×</span></span><span class="keyword-tag demote">compression<span class="remove-btn" onclick="removeKeyword('demote', 'compression')">×</span></span><span class="keyword-tag demote">quantization<span class="remove-btn" onclick="removeKeyword('demote', 'quantization')">×</span></span><span class="keyword-tag demote">acceleration<span class="remove-btn" onclick="removeKeyword('demote', 'acceleration')">×</span></span>
+                    </div>
+                    <div class="keyword-add-form">
+                        <input type="text" id="new-demote-topic" placeholder="添加降权关键词...">
+                        <button onclick="addKeyword('demote')">添加</button>
+                    </div>
+                </div>
+
+                <div class="keyword-category">
+                    <div class="keyword-category-title">❌ 不喜欢关键词 (Dislike Topics)</div>
+                    <div class="keyword-tags" id="dislike-topics-tags">
+                        <span class="keyword-tag dislike">federated learning<span class="remove-btn" onclick="removeKeyword('dislike', 'federated learning')">×</span></span><span class="keyword-tag dislike">benchmark<span class="remove-btn" onclick="removeKeyword('dislike', 'benchmark')">×</span></span><span class="keyword-tag dislike">real-world application<span class="remove-btn" onclick="removeKeyword('dislike', 'real-world application')">×</span></span><span class="keyword-tag dislike">image generation<span class="remove-btn" onclick="removeKeyword('dislike', 'image generation')">×</span></span><span class="keyword-tag dislike">face generation<span class="remove-btn" onclick="removeKeyword('dislike', 'face generation')">×</span></span><span class="keyword-tag dislike">handwriting<span class="remove-btn" onclick="removeKeyword('dislike', 'handwriting')">×</span></span>
+                    </div>
+                    <div class="keyword-add-form">
+                        <input type="text" id="new-dislike-topic" placeholder="添加不喜欢关键词...">
+                        <button onclick="addKeyword('dislike')">添加</button>
+                    </div>
+                </div>
+
+                <button class="save-keywords-btn" onclick="saveKeywords()">
+                    💾 保存关键词并重新生成推荐
+                </button>
+                <span class="save-status" id="save-status"></span>
+            </div>
+        </div>
+
+        <div class="papers-grid">
+
+            <div class="paper-card" data-paper-id="2603.29415v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2603.29415v1" target="_blank">Concentration of the bootstrap empirical process, with applications to statistical inference</a>
+                </div>
+                <div class="paper-authors">Guillaume Maillard, Adrien Saumard</div>
+                <div class="paper-meta"><span class="meta-tag" title="math.ST">Statistics (math)</span></div>
+                <div class="paper-summary">Considering a general framework of bootstrap with exchangeable weights, we show some concentration inequalities for the supremum of the bootstrap empirical process.. On the one hand, we discuss the concentration of the bootstrap empirical process around its conditional expectation with respect to the original data, and on the other hand, the concen...</div>
+                <div id="abstract-2603.29415v1" class="full-abstract">Considering a general framework of bootstrap with exchangeable weights, we show some concentration inequalities for the supremum of the bootstrap empirical process. On the one hand, we discuss the concentration of the bootstrap empirical process around its conditional expectation with respect to the original data, and on the other hand, the concentration of the latter quantity around its mean. For the concentration conditional on data, we build on Chatterjee's exchangeable pairs approach to concentration. To attain optimal concentration rates, we develop some refined arguments for the convergence of transposition walks on the symmetric group. The conditional expectation of the bootstrap empirical process is proved to be self-bounding, thus extending a well-known property for conditional Rademacher averages. To illustrate the interest of these concentration inequalities, we provide some new results pertaining to confidence regions for the estimation of a mean vector, as well as non-asymptotic bounds for the two-sample permutation test.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: asymptotic</span>
+                    <span class="relevance-location">摘要</span>
+                    <span class="relevance-score-impact">+1.1</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近2天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">📐</span>
+                    <span class="relevance-text">包含理论贡献: bound, convergence</span>
+                    
+                    <span class="relevance-score-impact">+0.5</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2603.29415v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2603.29415v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2603.29415v1" onclick="toggleAbstract('2603.29415v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2603.29415v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 6.5</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2603.29415v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.00966v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.00966v1" target="_blank">A General Framework for Computational Lower Bounds in Nontrivial Norm Approximation</a>
+                </div>
+                <div class="paper-authors">Runshi Tang, Yuefeng Han, Anru R. Zhang</div>
+                <div class="paper-meta"><span class="meta-tag" title="math.ST">Statistics (math)</span><span class="meta-tag" title="cs.CC">cs.CC</span></div>
+                <div class="paper-summary">In this note, we propose a general framework for proving computational lower bounds in norm approximation by leveraging a reverse detection--estimation gap.. The starting point is a testing problem together with an estimator whose error is significantly smaller than the corresponding computational detection threshold.. We show that such a gap yield...</div>
+                <div id="abstract-2604.00966v1" class="full-abstract">In this note, we propose a general framework for proving computational lower bounds in norm approximation by leveraging a reverse detection--estimation gap. The starting point is a testing problem together with an estimator whose error is significantly smaller than the corresponding computational detection threshold. We show that such a gap yields a lower bound on the approximation distortion achievable by any algorithm in the underlying computational class. In this way, reverse detection--estimation gaps can be turned into a general mechanism for certifying the hardness of approximating nontrivial norms. We apply this framework to the spectral norm of order-$d$ symmetric tensors in $\mathbb{R}^{p^d}$. Using a recently established low-degree hardness result for detecting nonzero high-order cumulant tensors, together with an efficiently computable estimator whose error is below the low-degree detection threshold, we prove that any degree-$D$ low-degree algorithm with $D \le c_d(\log p)^2$ must incur distortion at least $p^{d/4-1/2}/\operatorname{polylog}(p)$ for the tensor spectral norm. Under the low-degree conjecture, the same conclusion extends to all polynomial-time algorithms. In several important settings, this lower bound matches the best known upper bounds up to polylogarithmic factors, suggesting that the exponent $d/4-1/2$ captures a genuine computational barrier. Our results provide evidence that the difficulty of approximating tensor spectral norm is not merely an artifact of existing techniques, but reflects a broader computational barrier.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: lower bound</span>
+                    <span class="relevance-location">标题</span>
+                    <span class="relevance-score-impact">+3.6</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近1天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.00966v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.00966v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.00966v1" onclick="toggleAbstract('2604.00966v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.00966v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 6.4</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.00966v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.01094v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.01094v1" target="_blank">Temporal Dependencies in In-Context Learning: The Role of Induction Heads</a>
+                </div>
+                <div class="paper-authors">Anooshka Bajaj, Deven Mahesh Mistry, Sahaj Singh Maini et al. (6 authors)</div>
+                <div class="paper-meta"><span class="meta-tag" title="cs.CL">NLP</span><span class="meta-tag" title="cs.AI">AI</span></div>
+                <div class="paper-summary">Large language models (LLMs) exhibit strong in-context learning capabilities, but how they track and retrieve information from context remains underexplored.. Drawing on the free recall paradigm in cognitive science (where participants recall list items in any order), we show that several open-source LLMs consistently display a serial-recall-like p...</div>
+                <div id="abstract-2604.01094v1" class="full-abstract">Large language models (LLMs) exhibit strong in-context learning capabilities, but how they track and retrieve information from context remains underexplored. Drawing on the free recall paradigm in cognitive science (where participants recall list items in any order), we show that several open-source LLMs consistently display a serial-recall-like pattern, assigning peak probability to tokens that immediately follow a repeated token in the input sequence. Through systematic ablation experiments, we show that induction heads, specialized attention heads that attend to the token following a previous occurrence of the current token, play an important role in this phenomenon. Removing heads with a high induction score substantially reduces the +1 lag bias, whereas ablating random heads does not reproduce the same reduction. We also show that removing heads with high induction scores impairs the performance of models prompted to do serial recall using few-shot learning to a larger extent than removing random heads. Our findings highlight a mechanistically specific connection between induction heads and temporal context processing in transformers, suggesting that these heads are especially important for ordered retrieval and serial-recall-like behavior during in-context learning.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: in-context learning</span>
+                    <span class="relevance-location">标题</span>
+                    <span class="relevance-score-impact">+4.0</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近1天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.01094v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.01094v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.01094v1" onclick="toggleAbstract('2604.01094v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.01094v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 4.4</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.01094v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2603.29725v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2603.29725v1" target="_blank">Unbounded Density Ratio Estimation and Its Application to Covariate Shift Adaptation</a>
+                </div>
+                <div class="paper-authors">Ren-Rui Liu, Jun Fan, Lei Shi et al. (4 authors)</div>
+                <div class="paper-meta"><span class="meta-tag" title="stat.ML">Machine Learning</span><span class="meta-tag" title="cs.LG">ML (cs)</span></div>
+                <div class="paper-summary">This paper focuses on the problem of unbounded density ratio estimation -- an understudied yet critical challenge in statistical learning -- and its application to covariate shift adaptation.. Much of the existing literature assumes that the density ratio is either uniformly bounded or unbounded but known exactly.. These conditions are often violat...</div>
+                <div id="abstract-2603.29725v1" class="full-abstract">This paper focuses on the problem of unbounded density ratio estimation -- an understudied yet critical challenge in statistical learning -- and its application to covariate shift adaptation. Much of the existing literature assumes that the density ratio is either uniformly bounded or unbounded but known exactly. These conditions are often violated in practice, creating a gap between theoretical guarantees and real-world applicability. In contrast, this work directly addresses unbounded density ratios and integrates them into importance weighting for effective covariate shift adaptation. We propose a three-step estimation method that leverages unlabeled data from both the source and target distributions: (1) estimating a relative density ratio; (2) applying a truncation operation to control its unboundedness; and (3) transforming the truncated estimate back into the standard density ratio. The estimated density ratio is then employed as importance weights for regression under covariate shift. We establish rigorous, non-asymptotic convergence guarantees for both the proposed density ratio estimator and the resulting regression function estimator, demonstrating optimal or near-optimal convergence rates. Our findings offer new theoretical insights into density ratio estimation and learning under covariate shift, extending classical learning theory to more practical and challenging scenarios.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: asymptotic</span>
+                    <span class="relevance-location">摘要</span>
+                    <span class="relevance-score-impact">+1.1</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近2天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">📐</span>
+                    <span class="relevance-text">包含理论贡献: bound, convergence</span>
+                    
+                    <span class="relevance-score-impact">+0.5</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2603.29725v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2603.29725v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2603.29725v1" onclick="toggleAbstract('2603.29725v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2603.29725v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 4.2</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2603.29725v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2603.29450v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2603.29450v1" target="_blank">Few-shot Writer Adaptation via Multimodal In-Context Learning</a>
+                </div>
+                <div class="paper-authors">Tom Simon, Stephane Nicolas, Pierrick Tranouez et al. (5 authors)</div>
+                <div class="paper-meta"><span class="meta-tag" title="cs.CV">Computer Vision</span><span class="meta-tag" title="cs.AI">AI</span></div>
+                <div class="paper-summary">While state-of-the-art Handwritten Text Recognition (HTR) models perform well on standard benchmarks, they frequently struggle with writers exhibiting highly specific styles that are underrepresented in the training data.. To handle unseen and atypical writers, writer adaptation techniques personalize HTR models to individual handwriting styles.. L...</div>
+                <div id="abstract-2603.29450v1" class="full-abstract">While state-of-the-art Handwritten Text Recognition (HTR) models perform well on standard benchmarks, they frequently struggle with writers exhibiting highly specific styles that are underrepresented in the training data. To handle unseen and atypical writers, writer adaptation techniques personalize HTR models to individual handwriting styles. Leading writer adaptation methods require either offline fine-tuning or parameter updates at inference time, both involving gradient computation and backpropagation, which increase computational costs and demand careful hyperparameter tuning. In this work, we propose a novel context-driven HTR framework3 inspired by multimodal in-context learning, enabling inference-time writer adaptation using only a few examples from the target writer without any parameter updates. We further demonstrate the impact of context length, design a compact 8M-parameter CNN-Transformer that enables few-shot in-context adaptation, and show that combining context-driven and standard OCR training strategies leads to complementary improvements. Experiments on IAM and RIMES validate our approach with Character Error Rates of 3.92% and 2.34%, respectively, surpassing all writer-independent HTR models without requiring any parameter updates at inference time.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: in-context learning</span>
+                    <span class="relevance-location">标题</span>
+                    <span class="relevance-score-impact">+4.0</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近2天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2603.29450v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2603.29450v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2603.29450v1" onclick="toggleAbstract('2603.29450v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2603.29450v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 3.8</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2603.29450v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.00918v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.00918v1" target="_blank">Generalization Bounds for Spectral GNNs via Fourier Domain Analysis</a>
+                </div>
+                <div class="paper-authors">Vahan A. Martirosyan, Daniele Malitesta, Hugues Talbot et al. (5 authors)</div>
+                <div class="paper-meta"><span class="meta-tag" title="cs.LG">ML (cs)</span></div>
+                <div class="paper-summary">Spectral graph neural networks learn graph filters, but their behavior with increasing depth and polynomial order is not well understood.. We analyze these models in the graph Fourier domain, where each layer becomes an element-wise frequency update, separating the fixed spectrum from trainable parameters and making depth and order explicit.. In th...</div>
+                <div id="abstract-2604.00918v1" class="full-abstract">Spectral graph neural networks learn graph filters, but their behavior with increasing depth and polynomial order is not well understood. We analyze these models in the graph Fourier domain, where each layer becomes an element-wise frequency update, separating the fixed spectrum from trainable parameters and making depth and order explicit. In this setting, we show that Gaussian complexity is invariant under the Graph Fourier Transform, which allows us to derive data-dependent, depth, and order-aware generalization bounds together with stability estimates. In the linear case, our bounds are tighter, and on real graphs, the data-dependent term correlates with the generalization gap across polynomial bases, highlighting practical choices that avoid frequency amplification across layers.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: generalization bound</span>
+                    <span class="relevance-location">标题</span>
+                    <span class="relevance-score-impact">+3.6</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近1天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.00918v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.00918v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.00918v1" onclick="toggleAbstract('2604.00918v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.00918v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 3.8</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.00918v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.00505v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.00505v1" target="_blank">Towards Initialization-dependent and Non-vacuous Generalization Bounds for Overparameterized Shallow Neural Networks</a>
+                </div>
+                <div class="paper-authors">Yunwen Lei, Yufeng Xie</div>
+                <div class="paper-meta"><span class="meta-tag" title="cs.LG">ML (cs)</span><span class="meta-tag" title="cs.AI">AI</span></div>
+                <div class="paper-summary">Overparameterized neural networks often show a benign overfitting property in the sense of achieving excellent generalization behavior despite the number of parameters exceeding the number of training examples.. A promising direction to explain benign overfitting is to relate generalization to the norm of distance from initialization, motivated by ...</div>
+                <div id="abstract-2604.00505v1" class="full-abstract">Overparameterized neural networks often show a benign overfitting property in the sense of achieving excellent generalization behavior despite the number of parameters exceeding the number of training examples. A promising direction to explain benign overfitting is to relate generalization to the norm of distance from initialization, motivated by the empirical observations that this distance is often significantly smaller than the norm itself. However, the existing initialization-dependent complexity analyses cannot fully exploit the power of initialization since the associated bounds depend on the spectral norm of the initialization matrix, which can scale as a square-root function of the width and are therefore not effective for overparameterized models. In this paper, we develop the first \emph{fully} initialization-dependent complexity bounds for shallow neural networks with general Lipschitz activation functions, which enjoys a logarithmic dependency on the width. Our bounds depend on the path-norm of the distance from initialization, which are derived by introducing a new peeling technique to handle the challenge along with the initialization-dependent constraint. We also develop a lower bound tight up to a constant factor. Finally, we conduct empirical comparisons and show that our generalization analysis implies non-vacuous bounds for overparameterized networks.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: generalization bound</span>
+                    <span class="relevance-location">标题</span>
+                    <span class="relevance-score-impact">+3.6</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近1天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.00505v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.00505v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.00505v1" onclick="toggleAbstract('2604.00505v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.00505v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 3.6</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.00505v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.00644v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.00644v1" target="_blank">Covariance Matrix Estimation for High-Dimensional Interval-Valued Data with Positive Definiteness</a>
+                </div>
+                <div class="paper-authors">Wan Tian, Wenhao Cui, Rui Zhang et al. (6 authors)</div>
+                <div class="paper-meta"><span class="meta-tag" title="stat.ME">Methodology</span></div>
+                <div class="paper-summary">In the realm of high-dimensional data analysis, the estimation of covariance matrices is a fundamental task, and this holds true for interval-valued data as well.. However, there is no unified definition for the covariance matrix of interval-valued data, let alone established estimation methods in high-dimensional settings.. This paper presents a n...</div>
+                <div id="abstract-2604.00644v1" class="full-abstract">In the realm of high-dimensional data analysis, the estimation of covariance matrices is a fundamental task, and this holds true for interval-valued data as well. However, there is no unified definition for the covariance matrix of interval-valued data, let alone established estimation methods in high-dimensional settings. This paper presents a novel approach to estimating covariance matrices for high-dimensional interval-valued data while ensuring positive definiteness. We begin by assuming that the upper and lower bounds of interval-valued variables share the same dependency structure. Based on this assumption, we extend the classical soft-thresholding covariance matrix estimator to the interval-valued scenario, referred to as the Interval-valued Soft-Thresholding (IST) estimator. Subsequently, to ensure the positive definiteness of the estimator, we impose a positive definiteness constraint on the IST estimator. We derive an alternating direction method to solve the proposed problem and establish its convergence. Under some very mild conditions, we develop a non-asymptotic statistical theory for the proposed estimator. Simulation studies and applications to high-frequency financial data from the CSI 300 Index demonstrated the effectiveness of the proposed estimator.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: lower bound</span>
+                    <span class="relevance-location">摘要</span>
+                    <span class="relevance-score-impact">+1.3</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近1天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">📐</span>
+                    <span class="relevance-text">包含理论贡献: bound, convergence</span>
+                    
+                    <span class="relevance-score-impact">+0.5</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.00644v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.00644v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.00644v1" onclick="toggleAbstract('2604.00644v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.00644v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 3.5</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.00644v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2603.29475v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2603.29475v1" target="_blank">Survival In-Context: Prior-fitted In-context Learning Tabular Foundation Model for Survival Analysis</a>
+                </div>
+                <div class="paper-authors">Dmitrii Seletkov, Paul Hager, Rickmer Braren et al. (5 authors)</div>
+                <div class="paper-meta"><span class="meta-tag" title="cs.LG">ML (cs)</span></div>
+                <div class="paper-summary">Survival analysis is crucial for many medical applications but remains challenging for modern machine learning due to limited data, censoring, and the heterogeneity of tabular covariates.. While the prior-fitted paradigm, which relies on pretraining models on large collections of synthetic datasets, has recently facilitated tabular foundation model...</div>
+                <div id="abstract-2603.29475v1" class="full-abstract">Survival analysis is crucial for many medical applications but remains challenging for modern machine learning due to limited data, censoring, and the heterogeneity of tabular covariates. While the prior-fitted paradigm, which relies on pretraining models on large collections of synthetic datasets, has recently facilitated tabular foundation models for classification and regression, its suitability for time-to-event modeling remains unclear. We propose a flexible survival data generation framework that defines a rich survival prior with explicit control over covariates and time-event distributions. Building on this prior, we introduce Survival In-Context (SIC), a prior-fitted in-context learning model for survival analysis that is pretrained exclusively on synthetic data. SIC produces individualized survival prediction in a single forward pass, requiring no task-specific training or hyperparameter tuning. Across a broad evaluation on real-world survival datasets, SIC achieves competitive or superior performance compared to classical and deep survival models, particularly in medium-sized data regimes, highlighting the promise of prior-fitted foundation models for survival analysis. The code will be made available upon publication.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: in-context learning</span>
+                    <span class="relevance-location">标题</span>
+                    <span class="relevance-score-impact">+4.0</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近2天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2603.29475v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2603.29475v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2603.29475v1" onclick="toggleAbstract('2603.29475v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2603.29475v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 3.5</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2603.29475v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2603.29440v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2603.29440v1" target="_blank">A Robbins-Monro algorithm for non-parametric estimation of NAR process with Markov-Switching: asymptotic normality</a>
+                </div>
+                <div class="paper-authors">Lisandro Fermin, Ricardo Rios, Luis-Ángel Rodríguez</div>
+                <div class="paper-meta"><span class="meta-tag" title="stat.ME">Methodology</span></div>
+                <div class="paper-summary">This paper is the second part of our study on the non-parametric estimation of MS-NAR processes started with [L.. Fermin et al.. 2017].</div>
+                <div id="abstract-2603.29440v1" class="full-abstract">This paper is the second part of our study on the non-parametric estimation of MS-NAR processes started with [L. Fermin et al. 2017]. We consider the Nadaraya-Watson type regression function estimator for non-linear autoregressive Markov switching processes. In this context the regression function estimator is interpreted as a solution of a local weighted We have introduced, in the first work, a restoration-estimation Robbins-Monro algorithm to approximate the estimator, and we proved identifiability of model and the consistency of the non-parametric estimator. In this work, we obtain the central limit theorem for the non-parametric estimator, whether the Markov chain is observed or not. Finally, we present a detailed simulation study illustrating the performances of our estimation procedure.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: asymptotic</span>
+                    <span class="relevance-location">标题</span>
+                    <span class="relevance-score-impact">+2.8</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近2天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2603.29440v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2603.29440v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2603.29440v1" onclick="toggleAbstract('2603.29440v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2603.29440v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 3.2</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2603.29440v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.01024v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.01024v1" target="_blank">Model-Based Learning of Near-Optimal Finite-Window Policies in POMDPs</a>
+                </div>
+                <div class="paper-authors">Philip Jordan, Maryam Kamgarpour</div>
+                <div class="paper-meta"><span class="meta-tag" title="cs.LG">ML (cs)</span></div>
+                <div class="paper-summary">We study model-based learning of finite-window policies in tabular partially observable Markov decision processes (POMDPs).. A common approach to learning under partial observability is to approximate unbounded history dependencies using finite action-observation windows.. This induces a finite-state Markov decision process (MDP) over histories, re...</div>
+                <div id="abstract-2604.01024v1" class="full-abstract">We study model-based learning of finite-window policies in tabular partially observable Markov decision processes (POMDPs). A common approach to learning under partial observability is to approximate unbounded history dependencies using finite action-observation windows. This induces a finite-state Markov decision process (MDP) over histories, referred to as the superstate MDP. Once a model of this superstate MDP is available, standard MDP algorithms can be used to compute optimal policies, motivating the need for sample-efficient model estimation. Estimating the superstate MDP model is challenging because trajectories are generated by interaction with the original POMDP, creating a mismatch between the sampling process and target model. We propose a model estimation procedure for tabular POMDPs and analyze its sample complexity. Our analysis exploits a connection between filter stability and concentration inequalities for weakly dependent random variables. As a result, we obtain tight sample complexity guarantees for estimating the superstate MDP model from a single trajectory. Combined with value iteration, this yields approximately optimal finite-window policies for the POMDP.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: sample complexity</span>
+                    <span class="relevance-location">摘要</span>
+                    <span class="relevance-score-impact">+1.3</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近1天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.01024v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.01024v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.01024v1" onclick="toggleAbstract('2604.01024v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.01024v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 2.9</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.01024v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.00222v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.00222v1" target="_blank">Risk-Aware Batch Testing for Performance Regression Detection</a>
+                </div>
+                <div class="paper-authors">Ali Sayedsalehi, Peter C. Rigby, Gregory Mierzwinski</div>
+                <div class="paper-meta"><span class="meta-tag" title="cs.SE">cs.SE</span><span class="meta-tag" title="cs.LG">ML (cs)</span><span class="meta-tag" title="cs.PF">cs.PF</span></div>
+                <div class="paper-summary">Performance regression testing is essential in large-scale continuous-integration (CI) systems, yet executing full performance suites for every commit is prohibitively expensive.. Prior work on performance regression prediction and batch testing has shown independent benefits, but each faces practical limitations: predictive models are rarely integ...</div>
+                <div id="abstract-2604.00222v1" class="full-abstract">Performance regression testing is essential in large-scale continuous-integration (CI) systems, yet executing full performance suites for every commit is prohibitively expensive. Prior work on performance regression prediction and batch testing has shown independent benefits, but each faces practical limitations: predictive models are rarely integrated into CI decision-making, and conventional batching strategies ignore commit-level heterogeneity.
+  We unify these strands by introducing a risk-aware framework that integrates machine-learned commit risk with adaptive batching. Using Mozilla Firefox as a case study, we construct a production-derived dataset of human-confirmed regressions aligned chronologically with Autoland, and fine-tune ModernBERT, CodeBERT, and LLaMA-3.1 variants to estimate commit-level performance regression risk, achieving up to 0.694 ROC-AUC with CodeBERT. The risk scores drive a family of risk-aware batching strategies, including Risk-Aged Priority Batching and Risk-Adaptive Stream Batching, evaluated through realistic CI simulations.
+  Across thousands of historical Firefox commits, our best overall configuration, Risk-Aged Priority Batching with linear aggregation (RAPB-la), yields a Pareto improvement over Mozilla's production-inspired baseline. RAPB-la reduces total test executions by 32.4%, decreases mean feedback time by 3.8%, maintains mean time-to-culprit at approximately the baseline level, reduces maximum time-to-culprit by 26.2%, and corresponds to an estimated annual infrastructure cost savings of approximately $491K under our cost model. These results demonstrate that risk-aware batch testing can reduce CI resource consumption while improving diagnostic timeliness. To support reproducibility and future research, we release a complete replication package containing all datasets, fine-tuning pipelines, and implementations of our batching algorithms.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">📌</span>
+                    <span class="relevance-text">相关主题: risk</span>
+                    
+                    <span class="relevance-score-impact">+0.5</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近2天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.00222v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.00222v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.00222v1" onclick="toggleAbstract('2604.00222v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.00222v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 2.8</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.00222v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.00337v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.00337v1" target="_blank">E-Values, Bayes Risk, Dual Role of Markov's Inequality</a>
+                </div>
+                <div class="paper-authors">Nicholas G. Polson, Daniel Zantedeschi</div>
+                <div class="paper-meta"><span class="meta-tag" title="math.ST">Statistics (math)</span></div>
+                <div class="paper-summary">Two approaches to hypothesis testing, e-value testing and Bayes risk minimisation, both invoke Markov's inequality to control error probabilities.. They differ in which distribution certifies the unit-moment condition: the null for Type I error, the alternative for Type II error.. The likelihood ratio is not intrinsically an e-value; it acquires th...</div>
+                <div id="abstract-2604.00337v1" class="full-abstract">Two approaches to hypothesis testing, e-value testing and Bayes risk minimisation, both invoke Markov's inequality to control error probabilities. They differ in which distribution certifies the unit-moment condition: the null for Type I error, the alternative for Type II error. The likelihood ratio is not intrinsically an e-value; it acquires that status only relative to the experiment under which its expectation is certified. This note makes the resulting role-reversal symmetry explicit, traces its asymptotic sharpening through the information-theoretic arguments of Barron and Clarke (1994), and situates the duality within the typed evidence calculus of Polson, Sokolov, and Zantedeschi (2026).</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: asymptotic</span>
+                    <span class="relevance-location">摘要</span>
+                    <span class="relevance-score-impact">+1.1</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近1天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.00337v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.00337v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.00337v1" onclick="toggleAbstract('2604.00337v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.00337v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 2.7</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.00337v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.00060v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.00060v1" target="_blank">Scaled Gradient Descent for Ill-Conditioned Low-Rank Matrix Recovery with Optimal Sampling Complexity</a>
+                </div>
+                <div class="paper-authors">Zhenxuan Li, Meng Huang</div>
+                <div class="paper-meta"><span class="meta-tag" title="stat.ML">Machine Learning</span><span class="meta-tag" title="cs.IT">Information Theory</span><span class="meta-tag" title="cs.LG">ML (cs)</span></div>
+                <div class="paper-summary">The low-rank matrix recovery problem seeks to reconstruct an unknown $n_1 \times n_2$ rank-$r$ matrix from $m$ linear measurements, where $m\ll n_1n_2$.. This problem has been extensively studied over the past few decades, leading to a variety of algorithms with solid theoretical guarantees.. Among these, gradient descent based non-convex methods h...</div>
+                <div id="abstract-2604.00060v1" class="full-abstract">The low-rank matrix recovery problem seeks to reconstruct an unknown $n_1 \times n_2$ rank-$r$ matrix from $m$ linear measurements, where $m\ll n_1n_2$. This problem has been extensively studied over the past few decades, leading to a variety of algorithms with solid theoretical guarantees. Among these, gradient descent based non-convex methods have become particularly popular due to their computational efficiency. However, these methods typically suffer from two key limitations: a sub-optimal sample complexity of $O((n_1 + n_2)r^2)$ and an iteration complexity of $O(κ\log(1/ε))$ to achieve $ε$-accuracy, resulting in slow convergence when the target matrix is ill-conditioned. Here, $κ$ denotes the condition number of the unknown matrix. Recent studies show that a preconditioned variant of GD, known as scaled gradient descent (ScaledGD), can significantly reduce the iteration complexity to $O(\log(1/ε))$. Nonetheless, its sample complexity remains sub-optimal at $O((n_1 + n_2)r^2)$. In contrast, a delicate virtual sequence technique demonstrates that the standard GD in the positive semidefinite (PSD) setting achieves the optimal sample complexity $O((n_1 + n_2)r)$, but converges more slowly with an iteration complexity $O(κ^2 \log(1/ε))$. In this paper, through a more refined analysis, we show that ScaledGD achieves both the optimal sample complexity $O((n_1 + n_2)r)$ and the improved iteration complexity $O(\log(1/ε))$. Notably, our results extend beyond the PSD setting to general low-rank matrix recovery problem. Numerical experiments further validate that ScaledGD accelerates convergence for ill-conditioned matrices with the optimal sampling complexity.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: sample complexity</span>
+                    <span class="relevance-location">摘要</span>
+                    <span class="relevance-score-impact">+1.3</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近2天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.00060v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.00060v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.00060v1" onclick="toggleAbstract('2604.00060v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.00060v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 2.6</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.00060v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.01153v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.01153v1" target="_blank">Property-Level Flood Risk Assessment Using AI-Enabled Street-View Lowest Floor Elevation Extraction and ML Imputation Across Texas</a>
+                </div>
+                <div class="paper-authors">Xiangpeng Li, Yu-Hsuan Ho, Sam D Brody et al. (4 authors)</div>
+                <div class="paper-meta"><span class="meta-tag" title="cs.LG">ML (cs)</span></div>
+                <div class="paper-summary">This paper argues that AI-enabled analysis of street-view imagery, complemented by performance-gated machine-learning imputation, provides a viable pathway for generating building-specific elevation data at regional scale for flood risk assessment.. We develop and apply a three-stage pipeline across 18 areas of interest (AOIs) in Texas that (1) ext...</div>
+                <div id="abstract-2604.01153v1" class="full-abstract">This paper argues that AI-enabled analysis of street-view imagery, complemented by performance-gated machine-learning imputation, provides a viable pathway for generating building-specific elevation data at regional scale for flood risk assessment. We develop and apply a three-stage pipeline across 18 areas of interest (AOIs) in Texas that (1) extracts LFE and the height difference between street grade and the lowest floor (HDSL) from Google Street View imagery using the Elev-Vision framework, (2) imputes missing HDSL values with Random Forest and Gradient Boosting models trained on 16 terrain, hydrologic, geographic, and flood-exposure features, and (3) integrates the resulting elevation dataset with Fathom 1-in-100 year inundation surfaces and USACE depth-damage functions to estimate property-specific interior flood depth and expected loss. Across 12,241 residential structures, street-view imagery was available for 73.4% of parcels and direct LFE/HDSL extraction was successful for 49.0% (5,992 structures). Imputation was retained for 13 AOIs where cross-validated performance was defensible, with selected models achieving R suqre values from 0.159 to 0.974; five AOIs were explicitly excluded from prediction because performance was insufficient. The results show that street-view-based elevation mapping is not universally available for every property, but it is sufficiently scalable to materially improve regional flood-risk characterization by moving beyond hazard exposure to structure-level estimates of interior inundation and expected damage. Scientifically, the study advances LFE estimation from a pilot-scale proof of concept to a regional, end-to-end workflow. Practically, it offers a replicable framework for jurisdictions that lack comprehensive Elevation Certificates but need parcel-level information to support mitigation, planning, and flood-risk management.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">📌</span>
+                    <span class="relevance-text">相关主题: estimation</span>
+                    
+                    <span class="relevance-score-impact">+0.1</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近1天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.01153v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.01153v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.01153v1" onclick="toggleAbstract('2604.01153v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.01153v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 2.6</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.01153v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.00195v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.00195v1" target="_blank">Lévy-Flow Models: Heavy-Tail-Aware Normalizing Flows for Financial Risk Management</a>
+                </div>
+                <div class="paper-authors">Rachid Drissi</div>
+                <div class="paper-meta"><span class="meta-tag" title="cs.LG">ML (cs)</span></div>
+                <div class="paper-summary">We introduce Lévy-Flows, a class of normalizing flow models that replace the standard Gaussian base distribution with Lévy process-based distributions, specifically Variance Gamma (VG) and Normal-Inverse Gaussian (NIG).. These distributions naturally capture heavy-tailed behavior while preserving exact likelihood evaluation and efficient reparamete...</div>
+                <div id="abstract-2604.00195v1" class="full-abstract">We introduce Lévy-Flows, a class of normalizing flow models that replace the standard Gaussian base distribution with Lévy process-based distributions, specifically Variance Gamma (VG) and Normal-Inverse Gaussian (NIG). These distributions naturally capture heavy-tailed behavior while preserving exact likelihood evaluation and efficient reparameterized sampling. We establish theoretical guarantees on tail behavior, showing that for regularly varying bases the tail index is preserved under asymptotically linear flow transformations, and that identity-tail Neural Spline Flow architectures preserve the base distribution's tail shape exactly outside the transformation region. Empirically, we evaluate on S&P 500 daily returns and additional assets, demonstrating substantial improvements in density estimation and risk calibration. VG-based flows reduce test negative log-likelihood by 69% relative to Gaussian flows and achieve exact 95% VaR calibration, while NIG-based flows provide the most accurate Expected Shortfall estimates. These results show that incorporating Lévy process structure into normalizing flows yields significant gains in modeling heavy-tailed data, with applications to financial risk management.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">📌</span>
+                    <span class="relevance-text">相关主题: estimation</span>
+                    
+                    <span class="relevance-score-impact">+0.1</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近2天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.00195v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.00195v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.00195v1" onclick="toggleAbstract('2604.00195v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.00195v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 2.6</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.00195v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.01160v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.01160v1" target="_blank">Machine learning methods for finite population parameter estimation in survey sampling</a>
+                </div>
+                <div class="paper-authors">Mehdi Dagdoug, David Haziza</div>
+                <div class="paper-meta"><span class="meta-tag" title="stat.ME">Methodology</span></div>
+                <div class="paper-summary">This pedagogical review examines the use of machine learning methods in finite-population inference for survey sampling, with an emphasis on design-based validity and statistical inference.. While flexible prediction tools offer substantial gains in estimation accuracy, they also introduce important challenges, primarily due to the dependence betwe...</div>
+                <div id="abstract-2604.01160v1" class="full-abstract">This pedagogical review examines the use of machine learning methods in finite-population inference for survey sampling, with an emphasis on design-based validity and statistical inference. While flexible prediction tools offer substantial gains in estimation accuracy, they also introduce important challenges, primarily due to the dependence between the fitted predictors and the sample. We focus on settings in which such predictions enter survey estimation through model-assisted estimation, item nonresponse imputation, and unit nonresponse adjustment. For model-assisted estimation and item nonresponse, we show how cross-fitting and Neyman-orthogonal estimating equations can adapt ideas from double/debiased machine learning to survey data, allowing the use of high-dimensional or nonparametric learners while preserving root-n consistency and asymptotic normality under suitable conditions. In contrast, for unit nonresponse, standard inverse-probability weighting remains outcome-agnostic and operationally attractive, but this same feature makes doubly robust and orthogonal constructions harder to deploy in official statistics. We also briefly discuss related developments in small area estimation and probability/nonprobability data integration. Overall, the paper highlights both the promise of machine learning and the fundamental inferential challenges it raises for survey practice.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: asymptotic</span>
+                    <span class="relevance-location">摘要</span>
+                    <span class="relevance-score-impact">+1.1</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近1天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.01160v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.01160v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.01160v1" onclick="toggleAbstract('2604.01160v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.01160v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 2.5</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.01160v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.00241v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.00241v1" target="_blank">Softmax gradient policy for variance minimization and risk-averse multi armed bandits</a>
+                </div>
+                <div class="paper-authors">Gabriel Turinici</div>
+                <div class="paper-meta"><span class="meta-tag" title="cs.LG">ML (cs)</span><span class="meta-tag" title="cs.AI">AI</span><span class="meta-tag" title="math.NA">Numerical Analysis</span></div>
+                <div class="paper-summary">Algorithms for the Multi-Armed Bandit (MAB) problem play a central role in sequential decision-making and have been extensively explored both theoretically and numerically.. While most classical approaches aim to identify the arm with the highest expected reward, we focus on a risk-aware setting where the goal is to select the arm with the lowest v...</div>
+                <div id="abstract-2604.00241v1" class="full-abstract">Algorithms for the Multi-Armed Bandit (MAB) problem play a central role in sequential decision-making and have been extensively explored both theoretically and numerically. While most classical approaches aim to identify the arm with the highest expected reward, we focus on a risk-aware setting where the goal is to select the arm with the lowest variance, favoring stability over potentially high but uncertain returns. To model the decision process, we consider a softmax parameterization of the policy; we propose a new algorithm to select the minimal variance (or minimal risk) arm and prove its convergence under natural conditions. The algorithm constructs an unbiased estimate of the objective by using two independent draws from the current's arm distribution. We provide numerical experiments that illustrate the practical behavior of these algorithms and offer guidance on implementation choices. The setting also covers general risk-aware problems where there is a trade-off between maximizing the average reward and minimizing its variance.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">📌</span>
+                    <span class="relevance-text">相关主题: risk</span>
+                    
+                    <span class="relevance-score-impact">+0.5</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近2天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.00241v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.00241v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.00241v1" onclick="toggleAbstract('2604.00241v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.00241v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 2.5</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.00241v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.00410v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.00410v1" target="_blank">Differentially Private One-Shot Federated Inference for Linear Mixed Models via Lossless Likelihood Reconstruction</a>
+                </div>
+                <div class="paper-authors">Keisuke Hanada, Toshio Shimokawa, Kazushi Maruo</div>
+                <div class="paper-meta"><span class="meta-tag" title="stat.ME">Methodology</span></div>
+                <div class="paper-summary">One-shot federated learning enables multi-site inference with minimal communication.. However, sharing summary statistics can still leak sensitive individual-level information when sites have only a small number of patients.. In particular, shared cross-product summaries can reveal patient-level covariate patterns under discrete covariates.</div>
+                <div id="abstract-2604.00410v1" class="full-abstract">One-shot federated learning enables multi-site inference with minimal communication. However, sharing summary statistics can still leak sensitive individual-level information when sites have only a small number of patients. In particular, shared cross-product summaries can reveal patient-level covariate patterns under discrete covariates. Motivated by this concern, this study proposes a differentially private one-shot federated inference framework for linear mixed models with a random-intercept working covariance. The method reconstructs the pooled likelihood from site-level summary statistics and applies a Gaussian mechanism to perturb these summaries, ensuring a site-level differential privacy. Cluster-robust variance estimators are developed that are computed directly from the privatized summaries. Robust variance provides valid uncertainty quantification even under covariance mis-specification. Under a multi-site asymptotic regime, the consistency and asymptotic normality of the proposed estimator are established and the leading-order statistical cost of privacy is characterized. Simulation studies show that moderate privacy noise substantially reduces reconstruction risk while maintaining competitive estimation accuracy as the number of sites increases. However, very strong privacy settings can lead to unstable standard errors when the number of sites is limited. An application using multi-site COVID-19 testing data demonstrates that meaningful privacy protection can be achieved with a modest loss of efficiency.</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: asymptotic</span>
+                    <span class="relevance-location">摘要</span>
+                    <span class="relevance-score-impact">+1.1</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近1天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.00410v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.00410v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.00410v1" onclick="toggleAbstract('2604.00410v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.00410v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 2.4</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.00410v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+            <div class="paper-card" data-paper-id="2604.00585v1">
+                <div class="paper-title">
+                    <a href="http://arxiv.org/abs/2604.00585v1" target="_blank">Empirical tail dependence functions in high dimensions: uniform linearizations and inference</a>
+                </div>
+                <div class="paper-authors">Axel Bücher, Yeonjoon Choi, Katharina Effertz et al. (4 authors)</div>
+                <div class="paper-meta"><span class="meta-tag" title="math.ST">Statistics (math)</span></div>
+                <div class="paper-summary">The analysis of extremal dependence in high dimensions has recently attracted considerable interest.. Existing methodology primarily focuses on modeling and estimation of extremal dependence structures, often supported by concentration bounds for empirical tail quantities.. However, comparatively little is known about general inferential procedures...</div>
+                <div id="abstract-2604.00585v1" class="full-abstract">The analysis of extremal dependence in high dimensions has recently attracted considerable interest. Existing methodology primarily focuses on modeling and estimation of extremal dependence structures, often supported by concentration bounds for empirical tail quantities. However, comparatively little is known about general inferential procedures in high-dimensional extremes. In this paper, we develop foundational theory enabling inference for methods based on empirical tail dependence coefficients and stable tail dependence functions. These estimators are constructed from ranks, which complicates distributional approximations since the stochastic fluctuations of the ranks interfere with those arising from the unknown tail dependence. We establish uniform linearization results for empirical stable tail dependence functions in the form of finite-sample probability bounds that quantify the error of the rank linearization uniformly over collections of coordinates. Within an asymptotic framework, these bounds allow the dimension to grow exponentially with the effective sample size while preserving the validity of the linear approximation. Moreover, we derive high-dimensional central limit theorems and establish the validity of multiplier bootstrap procedures for collections of empirical tail dependence statistics. We illustrate the usefulness of the results through two applications: uniform expansions for M-estimators of tail dependence parameters and inference for spatial isotropy based on collections of tail dependence functions..</div>
+                <div class="paper-relevance">
+                    <div class="paper-relevance-title">Why Recommended</div>
+                    <div class="paper-relevance-items">
+                <div class="relevance-item">
+                    <span class="relevance-icon">🎯</span>
+                    <span class="relevance-text">命中核心主题: asymptotic</span>
+                    <span class="relevance-location">摘要</span>
+                    <span class="relevance-score-impact">+1.1</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">🆕</span>
+                    <span class="relevance-text">近1天新论文</span>
+                    
+                    <span class="relevance-score-impact">+0.3</span>
+                </div>
+                <div class="relevance-item">
+                    <span class="relevance-icon">📐</span>
+                    <span class="relevance-text">包含理论贡献: theorem, bound</span>
+                    
+                    <span class="relevance-score-impact">+0.5</span>
+                </div></div>
+                </div>
+                <div class="feedback-btns">
+                    <button class="fb-btn like" onclick="sendFeedback('2604.00585v1', 'like')">👍 喜欢</button>
+                    <button class="fb-btn dislike" onclick="sendFeedback('2604.00585v1', 'dislike')">👎 不感兴趣</button>
+                    <button class="fb-btn abstract" id="btn-2604.00585v1" onclick="toggleAbstract('2604.00585v1')">展开摘要</button>
+                    <button class="fb-btn pdf" onclick="downloadPdf('2604.00585v1')">📄 PDF</button>
+                </div>
+                <div class="paper-footer">
+                    <div>
+                        <span class="score-badge">Score: 2.4</span>
+                        
+                    </div>
+                    <a href="http://arxiv.org/abs/2604.00585v1" class="paper-link" target="_blank">arXiv -></a>
+                </div>
+            </div>
+
+        </div>
+        <div class="footer">
+            <p>Generated by arXiv Daily Recommender v2.0 | Semantic Similarity + Multi-Source</p>
+            <p>Prioritizing: statistical learning theory, in-context learning, transformer theory, conformal prediction</p>
+        </div>
+    </div>
+
+    <script>
+        // Keywords data
+        let keywordsConfig = {"core_topics": {"statistical learning theory": 4.5, "conditional density estimation": 3.5, "excess risk": 4.5, "conformal prediction": 5.0, "nonparametric estimation": 4.0, "generalization bound": 4.5, "minimax": 4.5, "minimax optimal": 4.5, "minimax rate": 4.5, "lower bound": 4.5, "upper bound": 4.0, "optimal rate": 4.5, "asymptotic": 3.5, "non-asymptotic": 4.0, "sample complexity": 4.5, "in-context learning": 5.0, "convergence rate": 4.0, "finite-sample": 4.0, "statistical inference": 4.0, "high-dimensional statistics": 4.0, "rademacher complexity": 4.0, "vc dimension": 3.5, "pac-bayes": 4.0}, "secondary_topics": {"uniform convergence": 3.5, "algorithmic stability": 3.0, "empirical risk minimization": 3.0, "concentration inequalities": 3.5, "learning theory": 3.0, "transformer": 1.5, "transformer theory": 3.5, "estimation": 0.5, "risk": 2.5}, "theory_keywords": ["generalization bound", "excess risk", "sample complexity", "convergence rate", "minimax optimal", "lower bound", "upper bound", "theorem", "proof", "asymptotic"], "demote_topics": {"GPU": -1.5, "inference speed": -1.0, "real-time": -0.5, "deployment": -1.0, "compression": -0.5, "quantization": -0.5, "acceleration": -0.5}, "dislike_topics": ["federated learning", "benchmark", "real-world application", "image generation", "face generation", "handwriting"]};
+
+        function toggleKeywords() {
+            const content = document.getElementById('keywords-content');
+            const toggle = document.getElementById('keywords-toggle');
+            content.classList.toggle('active');
+            toggle.textContent = content.classList.contains('active') ? '▲' : '▼';
+        }
+
+        function addKeyword(type) {
+            let inputId, configKey;
+            switch(type) {
+                case 'core': inputId = 'new-core-topic'; configKey = 'core_topics'; break;
+                case 'secondary': inputId = 'new-secondary-topic'; configKey = 'secondary_topics'; break;
+                case 'theory': inputId = 'new-theory-keyword'; configKey = 'theory_keywords'; break;
+                case 'demote': inputId = 'new-demote-topic'; configKey = 'demote_topics'; break;
+                case 'dislike': inputId = 'new-dislike-topic'; configKey = 'dislike_topics'; break;
+            }
+            const input = document.getElementById(inputId);
+            const value = input.value.trim();
+            if (!value) return;
+
+            // Add to config
+            if (type === 'theory' || type === 'dislike') {
+                if (!keywordsConfig[configKey].includes(value)) {
+                    keywordsConfig[configKey].push(value);
+                }
+            } else {
+                keywordsConfig[configKey][value] = type === 'demote' ? -1.0 : 3.0;
+            }
+
+            // Refresh display
+            refreshKeywordDisplay(type);
+            input.value = '';
+        }
+
+        function removeKeyword(type, keyword) {
+            let configKey;
+            switch(type) {
+                case 'core': configKey = 'core_topics'; break;
+                case 'secondary': configKey = 'secondary_topics'; break;
+                case 'theory': configKey = 'theory_keywords'; break;
+                case 'demote': configKey = 'demote_topics'; break;
+                case 'dislike': configKey = 'dislike_topics'; break;
+            }
+            if (type === 'theory' || type === 'dislike') {
+                keywordsConfig[configKey] = keywordsConfig[configKey].filter(k => k !== keyword);
+            } else {
+                delete keywordsConfig[configKey][keyword];
+            }
+            refreshKeywordDisplay(type);
+        }
+
+        function refreshKeywordDisplay(type) {
+            let tagsId, configKey, tagClass;
+            switch(type) {
+                case 'core': tagsId = 'core-topics-tags'; configKey = 'core_topics'; tagClass = 'core'; break;
+                case 'secondary': tagsId = 'secondary-topics-tags'; configKey = 'secondary_topics'; tagClass = 'secondary'; break;
+                case 'theory': tagsId = 'theory-keywords-tags'; configKey = 'theory_keywords'; tagClass = 'theory'; break;
+                case 'demote': tagsId = 'demote-topics-tags'; configKey = 'demote_topics'; tagClass = 'demote'; break;
+                case 'dislike': tagsId = 'dislike-topics-tags'; configKey = 'dislike_topics'; tagClass = 'dislike'; break;
+            }
+            const container = document.getElementById(tagsId);
+            let html = '';
+            const data = keywordsConfig[configKey];
+            if (Array.isArray(data)) {
+                data.forEach(k => {
+                    html += `<span class="keyword-tag ${tagClass}">${k}<span class="remove-btn" onclick="removeKeyword('${type}', '${k}')">×</span></span>`;
+                });
+            } else {
+                Object.keys(data).forEach(k => {
+                    html += `<span class="keyword-tag ${tagClass}">${k}<span class="remove-btn" onclick="removeKeyword('${type}', '${k}')">×</span></span>`;
+                });
+            }
+            container.innerHTML = html;
+        }
+
+        function saveKeywords() {
+            const status = document.getElementById('save-status');
+            status.textContent = '保存中...';
+            status.style.color = '#fbbf24';
+
+            fetch('/api/keywords', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(keywordsConfig)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    status.textContent = '✓ 保存成功！正在重新生成推荐...';
+                    status.style.color = '#34d399';
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    status.textContent = '✗ 保存失败: ' + data.error;
+                    status.style.color = '#ef4444';
+                }
+            })
+            .catch(e => {
+                status.textContent = '✗ 保存失败: ' + e;
+                status.style.color = '#ef4444';
+            });
+        }
+    </script>
+</body>
+</html>
