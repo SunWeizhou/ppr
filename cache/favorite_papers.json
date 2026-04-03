@@ -24,5 +24,18 @@
     "categories": [],
     "date_added": "2026-04-02 21:18:04",
     "date_published": "2026-04-02"
+  },
+  "2604.01502v1": {
+    "id": "2604.01502v1",
+    "title": "Non-monotonicity in Conformal Risk Control",
+    "authors": "Tareq Aldirawi, Yun Li, Wenge Guo",
+    "abstract": "Conformal risk control (CRC) provides distribution-free guarantees for controlling the expected loss at a user-specified level.. Existing theory typically assumes that the loss decreases monotonically...",
+    "summary": "Conformal risk control (CRC) provides distribution-free guarantees for controlling the expected loss at a user-specified level.. Existing theory typically assumes that the loss decreases monotonically...",
+    "link": "https://arxiv.org/abs/2604.01502v1",
+    "score": 7.3,
+    "relevance": "命中核心主题: excess risk; 近1天新论文; 包含理论贡献: bound, minimax",
+    "categories": [],
+    "date_added": "2026-04-03 09:53:16",
+    "date_published": "2026-04-03"
   }
 }
