@@ -37,5 +37,18 @@
     "categories": [],
     "date_added": "2026-04-03 09:53:16",
     "date_published": "2026-04-03"
+  },
+  "2604.02094v1": {
+    "id": "2604.02094v1",
+    "title": "Importance sampling for Bayesian inference: polynomial-dimension dependent error bounds",
+    "authors": "Fabián González, Víctor Elvira, Joaquín Míguez",
+    "abstract": "Many Bayesian inference problems involve high-dimensional models where the performance of standard importance sampling (IS) methods often degrades rapidly as the dimensionality increases.. Classical a...",
+    "summary": "Many Bayesian inference problems involve high-dimensional models where the performance of standard importance sampling (IS) methods often degrades rapidly as the dimensionality increases.. Classical a...",
+    "link": "https://arxiv.org/abs/2604.02094v1",
+    "score": 1.1,
+    "relevance": "相关主题: estimation; 近4天新论文",
+    "categories": [],
+    "date_added": "2026-04-06 09:02:30",
+    "date_published": "2026-04-06"
   }
 }
