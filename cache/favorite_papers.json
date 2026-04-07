@@ -76,5 +76,18 @@
     "categories": [],
     "date_added": "2026-04-07 08:09:14",
     "date_published": "2026-04-07"
+  },
+  "2604.03146v1": {
+    "id": "2604.03146v1",
+    "title": "Characterization of Gaussian Universality Breakdown in High-Dimensional Empirical Risk Minimization",
+    "authors": "Chiheb Yaakoubi, Cosme Louart, Malik Tiomoko, Zhenyu Liao",
+    "abstract": "We study high-dimensional convex empirical risk minimization (ERM) under general non-Gaussian data designs.. By heuristically extending the Convex Gaussian Min-Max Theorem (CGMT) to non-Gaussian setti...",
+    "summary": "We study high-dimensional convex empirical risk minimization (ERM) under general non-Gaussian data designs.. By heuristically extending the Convex Gaussian Min-Max Theorem (CGMT) to non-Gaussian setti...",
+    "link": "https://arxiv.org/abs/2604.03146v1",
+    "score": 4.7,
+    "relevance": "命中核心主题: asymptotic; 近4天新论文",
+    "categories": [],
+    "date_added": "2026-04-07 08:30:25",
+    "date_published": "2026-04-07"
   }
 }
