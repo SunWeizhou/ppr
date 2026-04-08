@@ -38,12 +38,15 @@
     },
     {
       "name": "Song Mei",
-      "affiliation": "",
-      "focus": "",
+      "affiliation": "UC Berkeley",
+      "focus": "Statistics, Machine Learning",
+      "email": "Verified email at stanford.edu",
+      "website": "http://www.stat.berkeley.edu/~songmei/",
       "google_scholar": "https://scholar.google.com/citations?user=MhDyxdYAAAAJ&hl=en",
-      "website": "",
       "arxiv": "https://arxiv.org/search/?searchtype=author&query=Song%20Mei",
-      "added_at": "2026-04-02T21:19:15.050709"
+      "added_at": "2026-04-02T21:19:15.050709",
+      "citations": 7542,
+      "h_index": 7542
     },
     {
       "name": "Chuanlong Xie",
