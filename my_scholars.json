@@ -86,12 +86,15 @@
     },
     {
       "name": "Yue M. Lu",
-      "affiliation": "Harvard",
-      "focus": "ICL 统计力学视角",
-      "google_scholar": "https://scholar.google.com/citations?user=wc0FCZUAAAAJ",
-      "website": "https://yuelu-website.webflow.io/",
+      "affiliation": "Harvard University",
+      "focus": "Signal and information processing",
+      "email": "Verified email at epfl.ch",
+      "website": "http://lu.seas.harvard.edu/",
+      "google_scholar": "https://scholar.google.com/citations?user=wc0FCZUAAAAJ&hl=en",
       "arxiv": "https://arxiv.org/search/?searchtype=author&query=Lu%2C+Yue+M",
-      "added_at": "2026-04-08T10:41:04.062222"
+      "added_at": "2026-04-08T10:41:04.062222",
+      "citations": 7004,
+      "h_index": 7004
     },
     {
       "name": "Francis Bach",
