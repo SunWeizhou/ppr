@@ -71,6 +71,15 @@
       "website": "https://yuelu-website.webflow.io/",
       "arxiv": "https://arxiv.org/search/?searchtype=author&query=Lu%2C+Yue+M",
       "added_at": "2026-04-08T10:41:04.062222"
+    },
+    {
+      "name": "Francis Bach",
+      "affiliation": "INRIA/ENS",
+      "focus": "核方法与非凸优化",
+      "google_scholar": "https://scholar.google.com/citations?user=6PJWcFEAAAAJ",
+      "website": "https://www.di.ens.fr/~fbach/",
+      "arxiv": "https://arxiv.org/search/?searchtype=author&query=Bach%2C+Francis",
+      "added_at": "2026-04-08T10:41:55.088970"
     }
   ],
   "description": "用户自定义关注的学者列表"
