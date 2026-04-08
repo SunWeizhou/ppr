@@ -11,12 +11,15 @@
     },
     {
       "name": "Peter Bartlett",
-      "affiliation": "",
-      "focus": "",
+      "affiliation": "UC Berkeley",
+      "focus": "machine learning, statistical learning theory, adaptive control",
+      "email": "Verified email at cs.berkeley.edu",
+      "website": "http://www.stat.berkeley.edu/~bartlett/",
       "google_scholar": "https://scholar.google.com/citations?user=yQNhFGUAAAAJ&hl=en",
-      "website": "",
       "arxiv": "https://arxiv.org/search/?searchtype=author&query=Peter%20Bartlett",
-      "added_at": "2026-04-01T22:34:38.656275"
+      "added_at": "2026-04-01T22:34:38.656275",
+      "citations": 64680,
+      "h_index": 64680
     },
     {
       "name": "Emmanuel Candes",
