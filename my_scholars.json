@@ -26,12 +26,15 @@
     },
     {
       "name": "Emmanuel Candes",
-      "affiliation": "",
-      "focus": "",
+      "affiliation": "Stanford University",
+      "focus": "Applied mathematics, statistics, information theory, signal processing, mathematical optimization",
+      "email": "Verified email at math.ucla.edu",
+      "website": "https://candes.su.domains/",
       "google_scholar": "https://scholar.google.com/citations?user=nRQi4O8AAAAJ&hl=en",
-      "website": "",
       "arxiv": "https://arxiv.org/search/?searchtype=author&query=Emmanuel%20Candes",
-      "added_at": "2026-04-01T22:51:13.603980"
+      "added_at": "2026-04-01T22:51:13.603980",
+      "citations": 181106,
+      "h_index": 181106
     },
     {
       "name": "Song Mei",
