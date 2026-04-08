@@ -74,12 +74,15 @@
     },
     {
       "name": "Taiji Suzuki",
-      "affiliation": "",
-      "focus": "",
+      "affiliation": "University of Tokyo",
+      "focus": "Statistics, Machine learning",
+      "email": "Verified email at k.u-tokyo.ac.jp",
+      "website": "http://ibis.t.u-tokyo.ac.jp/suzuki/",
       "google_scholar": "https://scholar.google.com/citations?user=x8osrBsAAAAJ&hl=en",
-      "website": "",
       "arxiv": "https://arxiv.org/search/?searchtype=author&query=Taiji%20Suzuki",
-      "added_at": "2026-04-05T10:09:01.857176"
+      "added_at": "2026-04-05T10:09:01.857176",
+      "citations": 12452,
+      "h_index": 12452
     },
     {
       "name": "Yue M. Lu",
