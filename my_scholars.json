@@ -98,12 +98,15 @@
     },
     {
       "name": "Francis Bach",
-      "affiliation": "INRIA/ENS",
-      "focus": "核方法与非凸优化",
-      "google_scholar": "https://scholar.google.com/citations?user=6PJWcFEAAAAJ",
-      "website": "https://www.di.ens.fr/~fbach/",
+      "affiliation": "Inria",
+      "focus": "Machine Learning, Optimization",
+      "email": "Verified email at ens.fr",
+      "website": "http://www.di.ens.fr/~fbach/",
+      "google_scholar": "https://scholar.google.com/citations?user=6PJWcFEAAAAJ&hl=en",
       "arxiv": "https://arxiv.org/search/?searchtype=author&query=Bach%2C+Francis",
-      "added_at": "2026-04-08T10:41:55.088970"
+      "added_at": "2026-04-08T10:41:55.088970",
+      "citations": 75806,
+      "h_index": 75806
     }
   ],
   "description": "用户自定义关注的学者列表"
