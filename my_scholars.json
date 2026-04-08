@@ -2,12 +2,15 @@
   "scholars": [
     {
       "name": "Lixing Zhu",
-      "affiliation": "Verified email at bnu.edu.cn",
-      "focus": "",
-      "google_scholar": "https://scholar.google.com/citations?user=4YWHRfQAAAAJ&hl=en",
+      "affiliation": "Beijing Normal University",
+      "focus": "statistics",
+      "email": "Verified email at bnu.edu.cn",
       "website": "",
+      "google_scholar": "https://scholar.google.com/citations?user=4YWHRfQAAAAJ&hl=en",
       "arxiv": "https://arxiv.org/search/?searchtype=author&query=Lixing%20Zhu",
-      "added_at": "2026-04-01T22:33:36.953650"
+      "added_at": "2026-04-01T22:33:36.953650",
+      "citations": 11824,
+      "h_index": 11824
     },
     {
       "name": "Peter Bartlett",
