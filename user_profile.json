@@ -10,7 +10,7 @@
       "category": "core"
     },
     "excess risk": {
-      "weight": 4.5,
+      "weight": 4.0,
       "category": "core"
     },
     "conformal prediction": {
@@ -22,35 +22,27 @@
       "category": "core"
     },
     "generalization bound": {
-      "weight": 4.5,
+      "weight": 4.0,
       "category": "core"
     },
     "minimax": {
-      "weight": 4.5,
+      "weight": 4.0,
       "category": "core"
     },
     "minimax optimal": {
-      "weight": 4.5,
+      "weight": 4.0,
       "category": "core"
     },
     "minimax rate": {
-      "weight": 4.5,
-      "category": "core"
-    },
-    "lower bound": {
-      "weight": 4.5,
-      "category": "core"
-    },
-    "upper bound": {
       "weight": 4.0,
       "category": "core"
     },
     "optimal rate": {
-      "weight": 4.5,
+      "weight": 4.0,
       "category": "core"
     },
     "asymptotic": {
-      "weight": 3.5,
+      "weight": 4.0,
       "category": "core"
     },
     "non-asymptotic": {
@@ -58,7 +50,7 @@
       "category": "core"
     },
     "sample complexity": {
-      "weight": 4.5,
+      "weight": 3.5,
       "category": "core"
     },
     "in-context learning": {
@@ -70,7 +62,7 @@
       "category": "core"
     },
     "finite-sample": {
-      "weight": 4.0,
+      "weight": 3.0,
       "category": "core"
     },
     "statistical inference": {
@@ -81,44 +73,36 @@
       "weight": 4.0,
       "category": "core"
     },
-    "rademacher complexity": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "vc dimension": {
-      "weight": 3.5,
-      "category": "core"
-    },
     "pac-bayes": {
       "weight": 4.0,
       "category": "core"
     },
     "uniform convergence": {
-      "weight": 3.5,
+      "weight": 3.0,
       "category": "secondary"
     },
     "algorithmic stability": {
-      "weight": 3.0,
+      "weight": 2.5,
       "category": "secondary"
     },
     "empirical risk minimization": {
-      "weight": 3.0,
+      "weight": 2.0,
       "category": "secondary"
     },
     "concentration inequalities": {
-      "weight": 3.5,
-      "category": "secondary"
-    },
-    "learning theory": {
       "weight": 3.0,
       "category": "secondary"
     },
+    "learning theory": {
+      "weight": 2.5,
+      "category": "secondary"
+    },
     "transformer": {
-      "weight": 1.5,
+      "weight": 2.5,
       "category": "secondary"
     },
     "transformer theory": {
-      "weight": 3.5,
+      "weight": 2.5,
       "category": "secondary"
     },
     "estimation": {
@@ -129,40 +113,12 @@
       "weight": 2.5,
       "category": "secondary"
     },
-    "GPU": {
-      "weight": -1.5,
-      "category": "demote"
-    },
-    "inference speed": {
-      "weight": -1.0,
-      "category": "demote"
-    },
-    "real-time": {
-      "weight": -0.5,
-      "category": "demote"
-    },
-    "deployment": {
-      "weight": -1.0,
-      "category": "demote"
-    },
-    "compression": {
-      "weight": -0.5,
-      "category": "demote"
-    },
-    "quantization": {
-      "weight": -0.5,
-      "category": "demote"
-    },
-    "acceleration": {
-      "weight": -0.5,
-      "category": "demote"
-    },
     "federated learning": {
-      "weight": -2.0,
+      "weight": -1.0,
       "category": "dislike"
     },
     "benchmark": {
-      "weight": -1.5,
+      "weight": -1.0,
       "category": "dislike"
     },
     "real-world application": {
@@ -170,15 +126,15 @@
       "category": "dislike"
     },
     "image generation": {
-      "weight": -1.5,
+      "weight": -1.0,
       "category": "dislike"
     },
     "face generation": {
-      "weight": -2.0,
+      "weight": -1.0,
       "category": "dislike"
     },
     "handwriting": {
-      "weight": -1.5,
+      "weight": -1.0,
       "category": "dislike"
     }
   },
