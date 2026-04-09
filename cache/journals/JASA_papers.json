@@ -1,0 +1,5899 @@
+{
+  "journal": "Journal of the American Statistical Association",
+  "fetched_at": "2026-04-01T21:39:48.504710",
+  "from_year": 2025,
+  "count": 362,
+  "papers": [
+    {
+      "title": "Correction",
+      "authors": [],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-1",
+      "doi": "10.1080/01621459.2026.2634602",
+      "url": "https://doi.org/10.1080/01621459.2026.2634602",
+      "journal": "JASA"
+    },
+    {
+      "title": "Systemic and Systematic Risks-Driven Marginal Expected Side-effect",
+      "authors": [
+        "Liujun Chen",
+        "Deyuan Li",
+        "Zhengjun Zhang"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2026.2615848",
+      "url": "https://doi.org/10.1080/01621459.2026.2615848",
+      "journal": "JASA"
+    },
+    {
+      "title": "Contextual Dynamic Pricing: Algorithms, Optimality, and Local Differential Privacy Constraints",
+      "authors": [
+        "Zifeng Zhao",
+        "Feiyu Jiang",
+        "Yi Yu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-16",
+      "doi": "10.1080/01621459.2026.2615188",
+      "url": "https://doi.org/10.1080/01621459.2026.2615188",
+      "journal": "JASA"
+    },
+    {
+      "title": "Heterogeneous Gene Network Estimation for Single-Cell Transcriptomic Data via a Joint Regularized Deep Neural Network",
+      "authors": [
+        "Jingyuan Yang",
+        "Tao Li",
+        "Tianyi Wang",
+        "Shuangge Ma",
+        "Mengyun Wu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2026.2615185",
+      "url": "https://doi.org/10.1080/01621459.2026.2615185",
+      "journal": "JASA"
+    },
+    {
+      "title": "Bayesian Image Mediation Analysis",
+      "authors": [
+        "Yuliang Xu",
+        "Timothy D. Johnson",
+        "Mary Heitzeg",
+        "Jian Kang"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2026.2613465",
+      "url": "https://doi.org/10.1080/01621459.2026.2613465",
+      "journal": "JASA"
+    },
+    {
+      "title": "Analyzing Cross-Trait Genetic Architecture with the BIGA Cloud Computing Platform",
+      "authors": [
+        "Yujue Li",
+        "Fei Xue",
+        "Bingxuan Li",
+        "Yilin Yang",
+        "Zirui Fan",
+        "Juan Shu",
+        "Xiaochen Yang",
+        "Xiyao Wang",
+        "Jinjie Lin",
+        "Carlos Copana",
+        "Bingxin Zhao"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-9",
+      "doi": "10.1080/01621459.2026.2615068",
+      "url": "https://doi.org/10.1080/01621459.2026.2615068",
+      "journal": "JASA"
+    },
+    {
+      "title": "Efficient Analysis of Latent Spaces in Heterogeneous Networks",
+      "authors": [
+        "Yuang Tian",
+        "Jiajin Sun",
+        "Yinqiu He"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2604316",
+      "url": "https://doi.org/10.1080/01621459.2025.2604316",
+      "journal": "JASA"
+    },
+    {
+      "title": "Conditional Partial Exchangeability: A Probabilistic Framework for Multi-View Clustering",
+      "authors": [
+        "Beatrice Franzolini",
+        "Maria De Iorio",
+        "Johan Eriksson"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2609381",
+      "url": "https://doi.org/10.1080/01621459.2025.2609381",
+      "journal": "JASA"
+    },
+    {
+      "title": "Differentially Private Permutation Tests",
+      "authors": [
+        "Ilmun Kim",
+        "Antonin Schrab"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2610033",
+      "url": "https://doi.org/10.1080/01621459.2025.2610033",
+      "journal": "JASA"
+    },
+    {
+      "title": "Belted and Ensembled Neural Network for Linear and Nonlinear Sufficient Dimension Reduction",
+      "authors": [
+        "Yin Tang",
+        "Bing Li"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2590775",
+      "url": "https://doi.org/10.1080/01621459.2025.2590775",
+      "journal": "JASA"
+    },
+    {
+      "title": "Subtype-Aware Registration of Longitudinal Electronic Health Records",
+      "authors": [
+        "Xin Gai",
+        "Shiyi Jiang",
+        "Anru R. Zhang"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2026.2613464",
+      "url": "https://doi.org/10.1080/01621459.2026.2613464",
+      "journal": "JASA"
+    },
+    {
+      "title": "Differentially Private Sliced Inverse Regression in the Federated Paradigm",
+      "authors": [
+        "Shuaida He",
+        "Jiarui Zhang",
+        "Xin Chen"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2604315",
+      "url": "https://doi.org/10.1080/01621459.2025.2604315",
+      "journal": "JASA"
+    },
+    {
+      "title": "Nonparametric Bootstrap Inference for the Eigenvalues of Geophysical Tensors",
+      "authors": [
+        "Kassel L. Hingee",
+        "Janice L. Scealy",
+        "Andrew T. A. Wood"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2606381",
+      "url": "https://doi.org/10.1080/01621459.2025.2606381",
+      "journal": "JASA"
+    },
+    {
+      "title": "Structural Identification for Spatio-Temporal Dynamic Models",
+      "authors": [
+        "Rongmao Zhang",
+        "Cong Cheng",
+        "Yuan Ke",
+        "Wenyang Zhang"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2026.2612774",
+      "url": "https://doi.org/10.1080/01621459.2026.2612774",
+      "journal": "JASA"
+    },
+    {
+      "title": "Possibilistic Inferential Models: A Review",
+      "authors": [
+        "Ryan Martin"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-20",
+      "doi": "10.1080/01621459.2025.2606127",
+      "url": "https://doi.org/10.1080/01621459.2025.2606127",
+      "journal": "JASA"
+    },
+    {
+      "title": "Optimal Plug-in Gaussian Processes for Modeling Derivatives",
+      "authors": [
+        "Zejian Liu",
+        "Meng Li"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2026.2612778",
+      "url": "https://doi.org/10.1080/01621459.2026.2612778",
+      "journal": "JASA"
+    },
+    {
+      "title": "Factor Augmented Matrix Regression",
+      "authors": [
+        "Elynn Chen",
+        "Jianqing Fan",
+        "Xiaonan Zhu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2595734",
+      "url": "https://doi.org/10.1080/01621459.2025.2595734",
+      "journal": "JASA"
+    },
+    {
+      "title": "Multivariate Analysis for Multiple Network Data via Semi-Symmetric Tensor PCA",
+      "authors": [
+        "Michael Weylandt",
+        "George Michailidis"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2596288",
+      "url": "https://doi.org/10.1080/01621459.2025.2596288",
+      "journal": "JASA"
+    },
+    {
+      "title": "Estimating Multiple Structural Breaks in Large Panels With Unobserved Heterogeneity",
+      "authors": [
+        "Wenxin Huang",
+        "Yucheng Sun",
+        "Yiru Wang"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2604323",
+      "url": "https://doi.org/10.1080/01621459.2025.2604323",
+      "journal": "JASA"
+    },
+    {
+      "title": "Emerging Knowledge Trend in Statistical Research: A Content-Based Analysis Using Covariate-Assisted Dynamic Topic Model",
+      "authors": [
+        "Chenxuan He",
+        "Feifei Wang",
+        "Liping Zhu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2602833",
+      "url": "https://doi.org/10.1080/01621459.2025.2602833",
+      "journal": "JASA"
+    },
+    {
+      "title": "Localized Sparse Principal Component Analysis of Multivariate Time Series in the Frequency Domain",
+      "authors": [
+        "Jamshid Namdari",
+        "Amita Manatunga",
+        "Fabio Ferrarelli",
+        "Robert T. Krafty"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-20",
+      "doi": "10.1080/01621459.2026.2645460",
+      "url": "https://doi.org/10.1080/01621459.2026.2645460",
+      "journal": "JASA"
+    },
+    {
+      "title": "Individualized Dynamic Mediation Analysis Using Latent Factor Models",
+      "authors": [
+        "Yijiao Zhang",
+        "Yubai Yuan",
+        "Yuexia Zhang",
+        "Zhongyi Zhu",
+        "Annie Qu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-21",
+      "doi": "10.1080/01621459.2026.2641242",
+      "url": "https://doi.org/10.1080/01621459.2026.2641242",
+      "journal": "JASA"
+    },
+    {
+      "title": "Mini-batch Estimation for Deep Cox Models: Statistical Foundations and Practical Guidance",
+      "authors": [
+        "Lang Zeng",
+        "Weijing Tang",
+        "Zhao Ren",
+        "Ying Ding"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-22",
+      "doi": "10.1080/01621459.2026.2644611",
+      "url": "https://doi.org/10.1080/01621459.2026.2644611",
+      "journal": "JASA"
+    },
+    {
+      "title": "Adapting to Noise Tails in Private Linear Regression",
+      "authors": [
+        "Jinyuan Chang",
+        "Lin Yang",
+        "Mengyue Zha",
+        "Wen-Xin Zhou"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-29",
+      "doi": "10.1080/01621459.2026.2644613",
+      "url": "https://doi.org/10.1080/01621459.2026.2644613",
+      "journal": "JASA"
+    },
+    {
+      "title": "Distribution-Free Signs and Ranks via Optimal Transport under Multivariate Symmetry and Application to One-Sample Location Testing",
+      "authors": [
+        "Zhen Huang",
+        "Bodhisattva Sen"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-26",
+      "doi": "10.1080/01621459.2026.2644610",
+      "url": "https://doi.org/10.1080/01621459.2026.2644610",
+      "journal": "JASA"
+    },
+    {
+      "title": "Another Look at High-Dimensional Regression in Principal Components Space and The Blessing of Dimensionality",
+      "authors": [
+        "Yang Song",
+        "Hui Zou"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-15",
+      "doi": "10.1080/01621459.2026.2644615",
+      "url": "https://doi.org/10.1080/01621459.2026.2644615",
+      "journal": "JASA"
+    },
+    {
+      "title": "Limiting laws and consistent estimation criteria for fixed and diverging number of spiked eigenvalues",
+      "authors": [
+        "Jianwei Hu",
+        "Jingfei Zhang",
+        "Jianhua Guo",
+        "Ji Zhu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-28",
+      "doi": "10.1080/01621459.2026.2642333",
+      "url": "https://doi.org/10.1080/01621459.2026.2642333",
+      "journal": "JASA"
+    },
+    {
+      "title": "Covariance test for discretely observed functional data: when and how it works?",
+      "authors": [
+        "Yang Zhou",
+        "Jin Yang",
+        "Fang Yao"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-21",
+      "doi": "10.1080/01621459.2026.2641240",
+      "url": "https://doi.org/10.1080/01621459.2026.2641240",
+      "journal": "JASA"
+    },
+    {
+      "title": "Bayesian Phase 1-2 Designs with Adaptive Rules for Staggering Patient Entry",
+      "authors": [
+        "Shuqi Wang",
+        "Peter F. Thall",
+        "Ying Yuan",
+        "Suyu Liu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-21",
+      "doi": "10.1080/01621459.2026.2624839",
+      "url": "https://doi.org/10.1080/01621459.2026.2624839",
+      "journal": "JASA"
+    },
+    {
+      "title": "Enhancing Investment Decisions with Sentiment Analysis: A Probabilistic Ranking Framework*",
+      "authors": [
+        "Zheng Tracy Ke",
+        "Bryan Kelly",
+        "Dacheng Xiu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-26",
+      "doi": "10.1080/01621459.2026.2643001",
+      "url": "https://doi.org/10.1080/01621459.2026.2643001",
+      "journal": "JASA"
+    },
+    {
+      "title": "Inference for Deep Neural Network Estimators in Generalized Nonparametric Models",
+      "authors": [
+        "Xuran Meng",
+        "Yi Li"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-21",
+      "doi": "10.1080/01621459.2026.2637894",
+      "url": "https://doi.org/10.1080/01621459.2026.2637894",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Latent Variable Approach to Learning High-Dimensional Multivariate Longitudinal Data",
+      "authors": [
+        "Sze Ming Lee",
+        "Yunxiao Chen",
+        "Tony Sit"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2606384",
+      "url": "https://doi.org/10.1080/01621459.2025.2606384",
+      "journal": "JASA"
+    },
+    {
+      "title": "Inside-out cross-covariance for spatial multivariate data",
+      "authors": [
+        "Michele Peruzzi"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-22",
+      "doi": "10.1080/01621459.2026.2640644",
+      "url": "https://doi.org/10.1080/01621459.2026.2640644",
+      "journal": "JASA"
+    },
+    {
+      "title": "Low-Rank Online Dynamic Assortment with Dual Contextual Information",
+      "authors": [
+        "Seong Jin Lee",
+        "Will Wei Sun",
+        "Yufeng Liu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2597043",
+      "url": "https://doi.org/10.1080/01621459.2025.2597043",
+      "journal": "JASA"
+    },
+    {
+      "title": "Hyperbolic Network Latent Space Model with Learnable Curvature",
+      "authors": [
+        "Jinming Li",
+        "Gongjun Xu",
+        "Ji Zhu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-20",
+      "doi": "10.1080/01621459.2026.2635077",
+      "url": "https://doi.org/10.1080/01621459.2026.2635077",
+      "journal": "JASA"
+    },
+    {
+      "title": "Tail risk in the tail: Estimating high quantiles when a related variable is extreme",
+      "authors": [
+        "Natalia Nolde",
+        "Chen Zhou",
+        "Menglin Zhou"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-29",
+      "doi": "10.1080/01621459.2026.2640643",
+      "url": "https://doi.org/10.1080/01621459.2026.2640643",
+      "journal": "JASA"
+    },
+    {
+      "title": "Blessing from Human-AI Interaction: Super Policy Learning in Confounded Environments",
+      "authors": [
+        "Jiayi Wang",
+        "Chengchun Shi",
+        "Zhengling Qi"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2574706",
+      "url": "https://doi.org/10.1080/01621459.2025.2574706",
+      "journal": "JASA"
+    },
+    {
+      "title": "Variable Significance Testing for the Deep Cox Model",
+      "authors": [
+        "Qixian Zhong",
+        "Jonas Mueller",
+        "Jane-Ling Wang"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-10",
+      "doi": "10.1080/01621459.2026.2615850",
+      "url": "https://doi.org/10.1080/01621459.2026.2615850",
+      "journal": "JASA"
+    },
+    {
+      "title": "Deep Clustering Evaluation: How to Validate Internal Clustering Validation Measures",
+      "authors": [
+        "Zeya Wang",
+        "Chenglong Ye"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2592926",
+      "url": "https://doi.org/10.1080/01621459.2025.2592926",
+      "journal": "JASA"
+    },
+    {
+      "title": "Adaptive Debiased Lasso in High-dimensional Generalized Linear Models with Streaming Data",
+      "authors": [
+        "Ruijian Han",
+        "Lan Luo",
+        "Yuanhang Luo",
+        "Yuanyuan Lin",
+        "Jian Huang"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-19",
+      "doi": "10.1080/01621459.2026.2641199",
+      "url": "https://doi.org/10.1080/01621459.2026.2641199",
+      "journal": "JASA"
+    },
+    {
+      "title": "SurvSTAAR: A Powerful Statistical Framework for Rare Variant Analysis of Time-to-Event Traits in Large-Scale Whole-Genome Sequencing Studies",
+      "authors": [
+        "Yidan Cui",
+        "Shiyang Ma",
+        "Yuxin Yuan",
+        "Nengjie Zhu",
+        "Haifeng Chen",
+        "Ting Wei",
+        "Zilin Li",
+        "Xihao Li",
+        "Zhangsheng Yu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2606388",
+      "url": "https://doi.org/10.1080/01621459.2025.2606388",
+      "journal": "JASA"
+    },
+    {
+      "title": "Sparse Gaussianized Canonical Correlation Analysis with Applications to Portfolio Analysis",
+      "authors": [
+        "He Di",
+        "Hui Zou"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2603732",
+      "url": "https://doi.org/10.1080/01621459.2025.2603732",
+      "journal": "JASA"
+    },
+    {
+      "title": "Correction to “Partial Factor Modeling: Predictor-Dependent Shrinkage for Linear Regression”",
+      "authors": [],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-1",
+      "doi": "10.1080/01621459.2025.2608129",
+      "url": "https://doi.org/10.1080/01621459.2025.2608129",
+      "journal": "JASA"
+    },
+    {
+      "title": "Model to Meaning: How to Interpret Statistical Models with R and Python",
+      "authors": [
+        "Brenda Betancourt"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-1",
+      "doi": "10.1080/01621459.2026.2626478",
+      "url": "https://doi.org/10.1080/01621459.2026.2626478",
+      "journal": "JASA"
+    },
+    {
+      "title": "Balancing Weights for Causal Inference in Observational Factorial Studies",
+      "authors": [
+        "Ruoqi Yu",
+        "Peng Ding"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2602837",
+      "url": "https://doi.org/10.1080/01621459.2025.2602837",
+      "journal": "JASA"
+    },
+    {
+      "title": "Ball Impurity: Measuring Heterogeneity in General Metric Spaces",
+      "authors": [
+        "Menglu Che",
+        "Ting Li",
+        "Wenliang Pan",
+        "Xueqin Wang",
+        "Heping Zhang"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2595733",
+      "url": "https://doi.org/10.1080/01621459.2025.2595733",
+      "journal": "JASA"
+    },
+    {
+      "title": "Portfolio Analysis in High Dimensions with Tracking Error and Weight Constraints",
+      "authors": [
+        "Mehmet Caner",
+        "Qingliang Fan"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2602832",
+      "url": "https://doi.org/10.1080/01621459.2025.2602832",
+      "journal": "JASA"
+    },
+    {
+      "title": "Multi-Scale CUSUM Tests for Time Dependent Spherical Random Fields",
+      "authors": [
+        "Alessia Caponera",
+        "Domenico Marinucci",
+        "Anna Vidotto"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-20",
+      "doi": "10.1080/01621459.2026.2639148",
+      "url": "https://doi.org/10.1080/01621459.2026.2639148",
+      "journal": "JASA"
+    },
+    {
+      "title": "Likelihood Methods in Survival Analysis: With R Examples",
+      "authors": [
+        "Lu Mao"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-2",
+      "doi": "10.1080/01621459.2025.2605106",
+      "url": "https://doi.org/10.1080/01621459.2025.2605106",
+      "journal": "JASA"
+    },
+    {
+      "title": "Doubly robust pointwise confidence intervals for a monotonic continuous treatment effect curve",
+      "authors": [
+        "Charles R. Doss"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-20",
+      "doi": "10.1080/01621459.2026.2639735",
+      "url": "https://doi.org/10.1080/01621459.2026.2639735",
+      "journal": "JASA"
+    },
+    {
+      "title": "Z-valued smooth transition GARCH models: Specification and testing",
+      "authors": [
+        "Fukang Zhu",
+        "Nuo Xu",
+        "Qi Li",
+        "Shiqing Ling"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-26",
+      "doi": "10.1080/01621459.2026.2637673",
+      "url": "https://doi.org/10.1080/01621459.2026.2637673",
+      "journal": "JASA"
+    },
+    {
+      "title": "Provably Efficient Posterior Sampling for Sparse Linear Regression via Measure Decomposition",
+      "authors": [
+        "Andrea Montanari",
+        "Yuchen Wu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-19",
+      "doi": "10.1080/01621459.2025.2537461",
+      "url": "https://doi.org/10.1080/01621459.2025.2537461",
+      "journal": "JASA"
+    },
+    {
+      "title": "Nonparametric Causal Inference for Optogenetics: Sequential Excursion Effects for Dynamic Regimes",
+      "authors": [
+        "Gabriel Loewinger",
+        "Alexander W. Levis",
+        "Francisco Pereira"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-22",
+      "doi": "10.1080/01621459.2026.2635071",
+      "url": "https://doi.org/10.1080/01621459.2026.2635071",
+      "journal": "JASA"
+    },
+    {
+      "title": "Adaptive Selection for False Discovery Rate Control Leveraging Symmetry",
+      "authors": [
+        "Kehan Wang",
+        "Yuexin Chen",
+        "Yixin Han",
+        "Wangli Xu",
+        "Linglong Kong"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2519814",
+      "url": "https://doi.org/10.1080/01621459.2025.2519814",
+      "journal": "JASA"
+    },
+    {
+      "title": "Data-Driven Knowledge Transfer in Batch\n                    <i>Q</i>\n                    * Learning",
+      "authors": [
+        "Elynn Chen",
+        "Xi Chen",
+        "Wenbo Jing"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2603731",
+      "url": "https://doi.org/10.1080/01621459.2025.2603731",
+      "journal": "JASA"
+    },
+    {
+      "title": "Network Regression and Supervised Centrality Estimation",
+      "authors": [
+        "Junhui Cai",
+        "Dan Yang",
+        "Ran Chen",
+        "Haipeng Shen",
+        "Linda Zhao",
+        "Wu Zhu"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-26",
+      "doi": "10.1080/01621459.2026.2632866",
+      "url": "https://doi.org/10.1080/01621459.2026.2632866",
+      "journal": "JASA"
+    },
+    {
+      "title": "Introduction to Quantitative Social Science with Python",
+      "authors": [
+        "Salil Koner"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-3",
+      "doi": "10.1080/01621459.2026.2639651",
+      "url": "https://doi.org/10.1080/01621459.2026.2639651",
+      "journal": "JASA"
+    },
+    {
+      "title": "Stationarity of Manifold Time Series",
+      "authors": [
+        "Junhao Zhu",
+        "Dehan Kong",
+        "Zhaolei Zhang",
+        "Zhenhua Lin"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-23",
+      "doi": "10.1080/01621459.2026.2628344",
+      "url": "https://doi.org/10.1080/01621459.2026.2628344",
+      "journal": "JASA"
+    },
+    {
+      "title": "Theory for Identification and Inference with Synthetic Controls: A Proximal Causal Inference Framework",
+      "authors": [
+        "Xu Shi",
+        "Kendrick Qijun Li",
+        "Myeonghun Yu",
+        "Wang Miao",
+        "Arun Kumar Kuchibhotla",
+        "Mengtong Hu",
+        "Eric Tchetgen Tchetgen"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-23",
+      "doi": "10.1080/01621459.2026.2639734",
+      "url": "https://doi.org/10.1080/01621459.2026.2639734",
+      "journal": "JASA"
+    },
+    {
+      "title": "Staleness Factors and Volatility Estimation at High Frequencies",
+      "authors": [
+        "Xinbing Kong",
+        "Bin Wu",
+        "Wuyi Ye"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-27",
+      "doi": "10.1080/01621459.2026.2634436",
+      "url": "https://doi.org/10.1080/01621459.2026.2634436",
+      "journal": "JASA"
+    },
+    {
+      "title": "Testing Independence and Conditional Independence in High Dimensions via Coordinatewise Gaussianization",
+      "authors": [
+        "Jinyuan Chang",
+        "Yue Du",
+        "Jing He",
+        "Qiwei Yao"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-38",
+      "doi": "10.1080/01621459.2026.2637891",
+      "url": "https://doi.org/10.1080/01621459.2026.2637891",
+      "journal": "JASA"
+    },
+    {
+      "title": "Facilitating heterogeneous effect estimation via statistically efficient categorical modifiers",
+      "authors": [
+        "Daniel R. Kowal"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-25",
+      "doi": "10.1080/01621459.2026.2635078",
+      "url": "https://doi.org/10.1080/01621459.2026.2635078",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Burden Shared is a Burden Halved: A Fairness-Adjusted Approach to Classification",
+      "authors": [
+        "Bradley Rava",
+        "Wenguang Sun",
+        "Gareth M. James",
+        "Xin Tong"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-24",
+      "doi": "10.1080/01621459.2026.2634937",
+      "url": "https://doi.org/10.1080/01621459.2026.2634937",
+      "journal": "JASA"
+    },
+    {
+      "title": "Jump Contagion among Stock Market Indices: Evidence from Option Markets*",
+      "authors": [
+        "H. Peter Boswijk",
+        "Roger J. A. Laeven",
+        "Andrei Lalu",
+        "Evgenii Vladimirov"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-22",
+      "doi": "10.1080/01621459.2026.2635068",
+      "url": "https://doi.org/10.1080/01621459.2026.2635068",
+      "journal": "JASA"
+    },
+    {
+      "title": "Tests for principal eigenvalues and eigenvectors",
+      "authors": [
+        "Jianqing Fan",
+        "Yingying Li",
+        "Ningning Xia",
+        "Xinghua Zheng"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-18",
+      "doi": "10.1080/01621459.2026.2635769",
+      "url": "https://doi.org/10.1080/01621459.2026.2635769",
+      "journal": "JASA"
+    },
+    {
+      "title": "Correction",
+      "authors": [],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-3",
+      "doi": "10.1080/01621459.2026.2639079",
+      "url": "https://doi.org/10.1080/01621459.2026.2639079",
+      "journal": "JASA"
+    },
+    {
+      "title": "Scalable Bayesian Image-on-Scalar Regression for Population-Scale Neuroimaging Data Analysis",
+      "authors": [
+        "Yuliang Xu",
+        "Timothy D. Johnson",
+        "Thomas E. Nichols",
+        "Jian Kang"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-21",
+      "doi": "10.1080/01621459.2026.2635067",
+      "url": "https://doi.org/10.1080/01621459.2026.2635067",
+      "journal": "JASA"
+    },
+    {
+      "title": "PALAR: Estimation of Absolute Abundance Effects in Regression with Relative Abundance Predictors",
+      "authors": [
+        "Yiluan Li",
+        "Qiyu Wang",
+        "Zekang Feng",
+        "Xueqin Wang",
+        "Zheng-Zheng Tang"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-9",
+      "doi": "10.1080/01621459.2025.2596250",
+      "url": "https://doi.org/10.1080/01621459.2025.2596250",
+      "journal": "JASA"
+    },
+    {
+      "title": "Deep Discrete Encoders: Identifiable Deep Generative Models for Rich Data with Discrete Latent Layers",
+      "authors": [
+        "Seunghyun Lee",
+        "Yuqi Gu"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-15",
+      "doi": "10.1080/01621459.2025.2587922",
+      "url": "https://doi.org/10.1080/01621459.2025.2587922",
+      "journal": "JASA"
+    },
+    {
+      "title": "Reinforcement Learning with Continuous Actions Under Unmeasured Confounding",
+      "authors": [
+        "Yuhan Li",
+        "Eugene Han",
+        "Yifan Hu",
+        "Wenzhuo Zhou",
+        "Zhengling Qi",
+        "Yifan Cui",
+        "Ruoqing Zhu"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2590175",
+      "url": "https://doi.org/10.1080/01621459.2025.2590175",
+      "journal": "JASA"
+    },
+    {
+      "title": "Covariate-Adjusted Response-Adaptive Design with Delayed Outcomes",
+      "authors": [
+        "Xinwei Ma",
+        "Jingshen Wang",
+        "Waverly Wei"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-20",
+      "doi": "10.1080/01621459.2025.2604314",
+      "url": "https://doi.org/10.1080/01621459.2025.2604314",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Physics-Informed Spatiotemporal Deep Learning Framework for Turbulent Systems",
+      "authors": [
+        "Luca Menicali",
+        "Andrew Grace",
+        "David H. Richter",
+        "Stefano Castruccio"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-20",
+      "doi": "10.1080/01621459.2026.2632865",
+      "url": "https://doi.org/10.1080/01621459.2026.2632865",
+      "journal": "JASA"
+    },
+    {
+      "title": "Winner’s Curse Free Robust Mendelian Randomization with Summary Data",
+      "authors": [
+        "Zhongming Xie",
+        "Wanheng Zhang",
+        "Jingshen Wang",
+        "Chong Wu"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2587321",
+      "url": "https://doi.org/10.1080/01621459.2025.2587321",
+      "journal": "JASA"
+    },
+    {
+      "title": "High-dimensional Statistical Inference and Variable Selection Using Sufficient Dimension Association",
+      "authors": [
+        "Shangyuan Ye",
+        "Shauna Rakshe",
+        "Ye Liang"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-24",
+      "doi": "10.1080/01621459.2026.2632869",
+      "url": "https://doi.org/10.1080/01621459.2026.2632869",
+      "journal": "JASA"
+    },
+    {
+      "title": "Scalable community detection in massive networks via predictive assignment",
+      "authors": [
+        "Subhankar Bhadra",
+        "Marianna Pensky",
+        "Srijan Sengupta"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-24",
+      "doi": "10.1080/01621459.2026.2628341",
+      "url": "https://doi.org/10.1080/01621459.2026.2628341",
+      "journal": "JASA"
+    },
+    {
+      "title": "Residual Importance Weighted Transfer Learning for High-dimensional Linear Regression",
+      "authors": [
+        "Junlong Zhao",
+        "Shengbin Zheng",
+        "Chenlei Leng"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-27",
+      "doi": "10.1080/01621459.2026.2623997",
+      "url": "https://doi.org/10.1080/01621459.2026.2623997",
+      "journal": "JASA"
+    },
+    {
+      "title": "Scalable and robust regression models for continuous proportional data",
+      "authors": [
+        "Changwoo J. Lee",
+        "Benjamin K. Dahl",
+        "Otso Ovaskainen",
+        "David B. Dunson"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-22",
+      "doi": "10.1080/01621459.2026.2626081",
+      "url": "https://doi.org/10.1080/01621459.2026.2626081",
+      "journal": "JASA"
+    },
+    {
+      "title": "Spatial scale-aware tail dependence modeling for high-dimensional spatial extremes",
+      "authors": [
+        "Muyang Shi",
+        "Likun Zhang",
+        "Mark D. Risser",
+        "Benjamin A. Shaby"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-23",
+      "doi": "10.1080/01621459.2026.2627493",
+      "url": "https://doi.org/10.1080/01621459.2026.2627493",
+      "journal": "JASA"
+    },
+    {
+      "title": "Functional-SVD for Heterogeneous Trajectories: Case Studies in Health*",
+      "authors": [
+        "Jianbin Tan",
+        "Pixu Shi",
+        "Anru R. Zhang"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-27",
+      "doi": "10.1080/01621459.2026.2625441",
+      "url": "https://doi.org/10.1080/01621459.2026.2625441",
+      "journal": "JASA"
+    },
+    {
+      "title": "Nonparametric Prior Learning in Differential Equation Modeling",
+      "authors": [
+        "Junxiong Jia",
+        "Deyu Meng",
+        "Zongben Xu",
+        "Fang Yao"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-24",
+      "doi": "10.1080/01621459.2026.2625449",
+      "url": "https://doi.org/10.1080/01621459.2026.2625449",
+      "journal": "JASA"
+    },
+    {
+      "title": "When Less Is More: Binary Feedback Can Outperform Ordinal Comparisons in Ranking Recovery",
+      "authors": [
+        "Shirong Xu",
+        "Jingnan Zhang",
+        "Junhui Wang"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-21",
+      "doi": "10.1080/01621459.2026.2625509",
+      "url": "https://doi.org/10.1080/01621459.2026.2625509",
+      "journal": "JASA"
+    },
+    {
+      "title": "Bayesian Optimization for Branching and Nested Hyperparameters in Deep Learning",
+      "authors": [
+        "Jiazhao Zhang",
+        "Chung-Ching Lin",
+        "Ying Hung"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-17",
+      "doi": "10.1080/01621459.2026.2625450",
+      "url": "https://doi.org/10.1080/01621459.2026.2625450",
+      "journal": "JASA"
+    },
+    {
+      "title": "Bayesian Nonparametric Quasi Likelihood",
+      "authors": [
+        "Antonio R. Linero"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2594185",
+      "url": "https://doi.org/10.1080/01621459.2025.2594185",
+      "journal": "JASA"
+    },
+    {
+      "title": "Factorial Difference-in-Differences*",
+      "authors": [
+        "Yiqing Xu",
+        "Anqi Zhao",
+        "Peng Ding"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-23",
+      "doi": "10.1080/01621459.2026.2628343",
+      "url": "https://doi.org/10.1080/01621459.2026.2628343",
+      "journal": "JASA"
+    },
+    {
+      "title": "Scalable Estimation of Multinomial Response Models with Random Consideration Sets",
+      "authors": [
+        "Siddhartha Chib",
+        "Kenichi Shimizu"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-15",
+      "doi": "10.1080/01621459.2025.2609361",
+      "url": "https://doi.org/10.1080/01621459.2025.2609361",
+      "journal": "JASA"
+    },
+    {
+      "title": "Intrinsic Riemannian Functional Sufficient Dimension Reduction and Beyond",
+      "authors": [
+        "Baiyu Chen",
+        "Yunchen Li",
+        "Chao Ying",
+        "Zhou Yu"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-23",
+      "doi": "10.1080/01621459.2026.2624854",
+      "url": "https://doi.org/10.1080/01621459.2026.2624854",
+      "journal": "JASA"
+    },
+    {
+      "title": "Risk-Sensitive Deep RL: Variance-Constrained Actor-Critic Provably Finds Globally Optimal Policy",
+      "authors": [
+        "Han Zhong",
+        "Xun Deng",
+        "Ethan X. Fang",
+        "Zhuoran Yang",
+        "Zhaoran Wang",
+        "Runze Li"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2583501",
+      "url": "https://doi.org/10.1080/01621459.2025.2583501",
+      "journal": "JASA"
+    },
+    {
+      "title": "Adversarial Estimation of Riesz Representers",
+      "authors": [
+        "Victor Chernozhukov",
+        "Whitney K. Newey",
+        "Rahul Singh",
+        "Vasilis Syrgkanis"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2588833",
+      "url": "https://doi.org/10.1080/01621459.2025.2588833",
+      "journal": "JASA"
+    },
+    {
+      "title": "A New Construction of Evidence Factors in an Observational Study of Light Daily Alcohol Consumption and Longevity",
+      "authors": [
+        "Paul R. Rosenbaum"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-22",
+      "doi": "10.1080/01621459.2026.2624858",
+      "url": "https://doi.org/10.1080/01621459.2026.2624858",
+      "journal": "JASA"
+    },
+    {
+      "title": "Bayesian Nonparametric Spectral Analysis of Locally Stationary Processes",
+      "authors": [
+        "Yifu Tang",
+        "Claudia Kirch",
+        "Jeong Eun Lee",
+        "Renate Meyer"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2594191",
+      "url": "https://doi.org/10.1080/01621459.2025.2594191",
+      "journal": "JASA"
+    },
+    {
+      "title": "Optimized variance estimation under interference and complex experimental designs",
+      "authors": [
+        "Christopher Harshaw",
+        "Joel Middleton",
+        "Fredrik Sävje"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-25",
+      "doi": "10.1080/01621459.2026.2627027",
+      "url": "https://doi.org/10.1080/01621459.2026.2627027",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Unified Framework for Estimation of High-Dimensional Conditional Factor Models",
+      "authors": [
+        "Qihui Chen"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2591269",
+      "url": "https://doi.org/10.1080/01621459.2025.2591269",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Conditional Ordinal Stereotype Model to Estimate Police Officers’ Propensity to Escalate Force",
+      "authors": [
+        "Greg Ridgeway"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2597050",
+      "url": "https://doi.org/10.1080/01621459.2025.2597050",
+      "journal": "JASA"
+    },
+    {
+      "title": "Enhanced Power Enhancements for Testing Many Moment Equalities: Beyond the 2- and ∞-norm",
+      "authors": [
+        "Anders Bredahl Kock",
+        "David Preinerstorfer"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2591282",
+      "url": "https://doi.org/10.1080/01621459.2025.2591282",
+      "journal": "JASA"
+    },
+    {
+      "title": "Covariate-Elaborated Robust Partial Information Transfer with Conditional Spike-and-Slab Prior",
+      "authors": [
+        "Ruqian Zhang",
+        "Yijiao Zhang",
+        "Juan Shen",
+        "Zhongyi Zhu",
+        "Annie Qu"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2591232",
+      "url": "https://doi.org/10.1080/01621459.2025.2591232",
+      "journal": "JASA"
+    },
+    {
+      "title": "Perturbation Analysis of Randomized SVD and its Applications to Statistics",
+      "authors": [
+        "Yichi Zhang",
+        "Minh Tang"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-24",
+      "doi": "10.1080/01621459.2026.2624860",
+      "url": "https://doi.org/10.1080/01621459.2026.2624860",
+      "journal": "JASA"
+    },
+    {
+      "title": "The Impact of Job Stability on Monetary Poverty in Italy: Causal Small Area Estimation",
+      "authors": [
+        "Katarzyna Reluga",
+        "Dehan Kong",
+        "Setareh Ranjbar",
+        "Nicola Salvati",
+        "Mark van der Laan"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2596297",
+      "url": "https://doi.org/10.1080/01621459.2025.2596297",
+      "journal": "JASA"
+    },
+    {
+      "title": "Out-of-distribution generalization under random, dense distributional shifts",
+      "authors": [
+        "Yujin Jeong",
+        "Dominik Rothenhäusler"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-21",
+      "doi": "10.1080/01621459.2026.2624831",
+      "url": "https://doi.org/10.1080/01621459.2026.2624831",
+      "journal": "JASA"
+    },
+    {
+      "title": "Principal Component Analysis for Max-Stable Distributions",
+      "authors": [
+        "Felix Reinbott",
+        "Anja Janßen"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2595732",
+      "url": "https://doi.org/10.1080/01621459.2025.2595732",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Statistician’s Overview of Physics-Informed Neural Networks for Spatio-Temporal Data",
+      "authors": [
+        "Christopher K. Wikle",
+        "Joshua North",
+        "Giri Gopalan",
+        "Myungsoo Yoo"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-30",
+      "doi": "10.1080/01621459.2026.2625420",
+      "url": "https://doi.org/10.1080/01621459.2026.2625420",
+      "journal": "JASA"
+    },
+    {
+      "title": "Bias Control for M-Quantile-Based Small Area Estimators",
+      "authors": [
+        "Francesco Schirripa Spagnolo",
+        "Nicola Salvati",
+        "Gaia Bertarelli",
+        "David Haziza",
+        "Ray Chambers"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2587316",
+      "url": "https://doi.org/10.1080/01621459.2025.2587316",
+      "journal": "JASA"
+    },
+    {
+      "title": "Towards Interpretable Deep Generative Models via Causal Representation Learning",
+      "authors": [
+        "Gemma Moran",
+        "Bryon Aragam"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-32",
+      "doi": "10.1080/01621459.2026.2620154",
+      "url": "https://doi.org/10.1080/01621459.2026.2620154",
+      "journal": "JASA"
+    },
+    {
+      "title": "Adaptive Partition Factor Analysis",
+      "authors": [
+        "Elena Bortolato",
+        "Antonio Canale"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-18",
+      "doi": "10.1080/01621459.2026.2621517",
+      "url": "https://doi.org/10.1080/01621459.2026.2621517",
+      "journal": "JASA"
+    },
+    {
+      "title": "Maximum binomial likelihood method for multivariate mixture data",
+      "authors": [
+        "Tao Yu",
+        "Jing Qin",
+        "Pengfei Li"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-21",
+      "doi": "10.1080/01621459.2026.2624135",
+      "url": "https://doi.org/10.1080/01621459.2026.2624135",
+      "journal": "JASA"
+    },
+    {
+      "title": "The Explicative Market Microstructure Noise",
+      "authors": [
+        "Wenhao Cui"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-25",
+      "doi": "10.1080/01621459.2026.2622104",
+      "url": "https://doi.org/10.1080/01621459.2026.2622104",
+      "journal": "JASA"
+    },
+    {
+      "title": "Statistical Inference for Mediation Models with High Dimensional Exposures and Mediators",
+      "authors": [
+        "Xinyu Zhang",
+        "Wei Zhou",
+        "Jingyuan Liu",
+        "Jian Kang"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-22",
+      "doi": "10.1080/01621459.2026.2621518",
+      "url": "https://doi.org/10.1080/01621459.2026.2621518",
+      "journal": "JASA"
+    },
+    {
+      "title": "On the Identifying Power of Generalized Monotonicity for Average Treatment Effects*",
+      "authors": [
+        "Yuehao Bai",
+        "Shunzhuang Huang",
+        "Sarah Moon",
+        "Azeem M. Shaikh",
+        "Edward J. Vytlacil"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-16",
+      "doi": "10.1080/01621459.2026.2620141",
+      "url": "https://doi.org/10.1080/01621459.2026.2620141",
+      "journal": "JASA"
+    },
+    {
+      "title": "Fast and flexible emulation of spatial extremes processes via variational autoencoders",
+      "authors": [
+        "Likun Zhang",
+        "Xiaoyu Ma",
+        "Christopher K. Wikle",
+        "Raphaël Huser"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "",
+      "issue": "",
+      "pages": "1-23",
+      "doi": "10.1080/01621459.2026.2621515",
+      "url": "https://doi.org/10.1080/01621459.2026.2621515",
+      "journal": "JASA"
+    },
+    {
+      "title": "Totally Concave Regression",
+      "authors": [
+        "Dohyeong Ki",
+        "Adityanand Guntuboyina"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-22",
+      "doi": "10.1080/01621459.2026.2620145",
+      "url": "https://doi.org/10.1080/01621459.2026.2620145",
+      "journal": "JASA"
+    },
+    {
+      "title": "Semiparametric Joint Modeling for Survival Analysis with Longitudinal Covariates",
+      "authors": [
+        "Wensheng Guo",
+        "Tianhao Wang"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-20",
+      "doi": "10.1080/01621459.2026.2615849",
+      "url": "https://doi.org/10.1080/01621459.2026.2615849",
+      "journal": "JASA"
+    },
+    {
+      "title": "Double-Robust Small Area Estimation",
+      "authors": [
+        "Haiqiang Ma",
+        "Zhiyan Sheng",
+        "Jiming Jiang"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-22",
+      "doi": "10.1080/01621459.2026.2621516",
+      "url": "https://doi.org/10.1080/01621459.2026.2621516",
+      "journal": "JASA"
+    },
+    {
+      "title": "Online Statistical Inference for Contextual Bandits via Stochastic Gradient Descent",
+      "authors": [
+        "Xiangyu Chang",
+        "Xi Chen",
+        "Zehua Lai",
+        "He Li",
+        "Zhihong Liu",
+        "Yichen Zhang"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-24",
+      "doi": "10.1080/01621459.2026.2621503",
+      "url": "https://doi.org/10.1080/01621459.2026.2621503",
+      "journal": "JASA"
+    },
+    {
+      "title": "Towards Better Statistical Understanding of Watermarking LLMs",
+      "authors": [
+        "Zhongze Cai",
+        "Shang Liu",
+        "Hanzhao Wang",
+        "Huaiyang Zhong",
+        "Xiaocheng Li"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-22",
+      "doi": "10.1080/01621459.2026.2618290",
+      "url": "https://doi.org/10.1080/01621459.2026.2618290",
+      "journal": "JASA"
+    },
+    {
+      "title": "Enhanced inference for distributions and quantiles of individual treatment effects in various experiments",
+      "authors": [
+        "Zhe Chen",
+        "Xinran Li"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-26",
+      "doi": "10.1080/01621459.2026.2615997",
+      "url": "https://doi.org/10.1080/01621459.2026.2615997",
+      "journal": "JASA"
+    },
+    {
+      "title": "Translating predictive distributions into informative priors",
+      "authors": [
+        "Andrew A. Manderson",
+        "Robert J. B. Goudie"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-18",
+      "doi": "10.1080/01621459.2026.2614034",
+      "url": "https://doi.org/10.1080/01621459.2026.2614034",
+      "journal": "JASA"
+    },
+    {
+      "title": "Searching for local associations while controlling the false discovery rate",
+      "authors": [
+        "Paula Gablenz",
+        "Matteo Sesia",
+        "Tianshu Sun",
+        "Chiara Sabatti"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-22",
+      "doi": "10.1080/01621459.2026.2616856",
+      "url": "https://doi.org/10.1080/01621459.2026.2616856",
+      "journal": "JASA"
+    },
+    {
+      "title": "Factor-Adjusted Model Averaging",
+      "authors": [
+        "Wenhui Li",
+        "Xinyu Zhang"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2576188",
+      "url": "https://doi.org/10.1080/01621459.2025.2576188",
+      "journal": "JASA"
+    },
+    {
+      "title": "Conditional Data Synthesis Augmentation",
+      "authors": [
+        "Xinyu Tian",
+        "Xiaotong Shen"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2586772",
+      "url": "https://doi.org/10.1080/01621459.2025.2586772",
+      "journal": "JASA"
+    },
+    {
+      "title": "Frequency-Band Estimation of the Number of Factors",
+      "authors": [
+        "Marco Avarucci",
+        "Maddalena Cavicchioli",
+        "Mario Forni",
+        "Paolo Zaffaroni"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2571246",
+      "url": "https://doi.org/10.1080/01621459.2025.2571246",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Factor-Copula Latent-Vine Time Series Model for Extreme Flood Insurance Losses",
+      "authors": [
+        "Xiaoting Li",
+        "Harry Joe",
+        "Christian Genest"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2579953",
+      "url": "https://doi.org/10.1080/01621459.2025.2579953",
+      "journal": "JASA"
+    },
+    {
+      "title": "Optimal Differentially Private Ranking from Pairwise Comparisons*",
+      "authors": [
+        "T. Tony Cai",
+        "Abhinav Chakraborty",
+        "Yichen Wang"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-25",
+      "doi": "10.1080/01621459.2026.2612773",
+      "url": "https://doi.org/10.1080/01621459.2026.2612773",
+      "journal": "JASA"
+    },
+    {
+      "title": "Posterior Risk of Modular and Semi-Modular Bayesian Inference",
+      "authors": [
+        "David T. Frazier",
+        "David J. Nott"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2580690",
+      "url": "https://doi.org/10.1080/01621459.2025.2580690",
+      "journal": "JASA"
+    },
+    {
+      "title": "Impact of Existence and Nonexistence of Pivot on the Coverage of Empirical Best Linear Prediction Intervals for Small Areas",
+      "authors": [
+        "Yuting Chen",
+        "Masayo Y. Hirose",
+        "Partha Lahiri"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-10",
+      "doi": "10.1080/01621459.2025.2583503",
+      "url": "https://doi.org/10.1080/01621459.2025.2583503",
+      "journal": "JASA"
+    },
+    {
+      "title": "Random Pairing MLE for Estimation of Item Parameters in Rasch Model",
+      "authors": [
+        "Yuepeng Yang",
+        "Cong Ma"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2582873",
+      "url": "https://doi.org/10.1080/01621459.2025.2582873",
+      "journal": "JASA"
+    },
+    {
+      "title": "Functional Partial Least-Squares: Adaptive Estimation and Inference",
+      "authors": [
+        "Andrii Babii",
+        "Marine Carrasco",
+        "Idriss Tsafack"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-11",
+      "doi": "10.1080/01621459.2025.2582874",
+      "url": "https://doi.org/10.1080/01621459.2025.2582874",
+      "journal": "JASA"
+    },
+    {
+      "title": "Efficient Optimization of Plasma Radiation Detector Configurations using Imperfect Inference Models",
+      "authors": [
+        "Difan Song",
+        "William E. Lewis",
+        "Patrick F. Knapp",
+        "C. F. Jeff Wu",
+        "V. Roshan Joseph"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-9",
+      "doi": "10.1080/01621459.2025.2582601",
+      "url": "https://doi.org/10.1080/01621459.2025.2582601",
+      "journal": "JASA"
+    },
+    {
+      "title": "Reconstruct Ising Model With Global Optimality via SLIDE",
+      "authors": [
+        "Xuanyu Chen",
+        "Jin Zhu",
+        "Junxian Zhu",
+        "Xueqin Wang",
+        "Heping Zhang"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2571245",
+      "url": "https://doi.org/10.1080/01621459.2025.2571245",
+      "journal": "JASA"
+    },
+    {
+      "title": "Trans-Glasso: A Transfer Learning Approach to Precision Matrix Estimation",
+      "authors": [
+        "Boxin Zhao",
+        "Cong Ma",
+        "Mladen Kolar"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-21",
+      "doi": "10.1080/01621459.2025.2602856",
+      "url": "https://doi.org/10.1080/01621459.2025.2602856",
+      "journal": "JASA"
+    },
+    {
+      "title": "Learning with the Minimum Description Length Principle",
+      "authors": [
+        "Peter D. Grünwald"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-4",
+      "doi": "10.1080/01621459.2025.2583392",
+      "url": "https://doi.org/10.1080/01621459.2025.2583392",
+      "journal": "JASA"
+    },
+    {
+      "title": "Causal Inference in Pharmaceutical Statistics",
+      "authors": [
+        "Ashley L. Buchanan"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-2",
+      "doi": "10.1080/01621459.2025.2585561",
+      "url": "https://doi.org/10.1080/01621459.2025.2585561",
+      "journal": "JASA"
+    },
+    {
+      "title": "Online Auction Design Using Distribution-Free Uncertainty Quantification with Applications to E-Commerce",
+      "authors": [
+        "Jiale Han",
+        "Xiaowu Dai"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2576180",
+      "url": "https://doi.org/10.1080/01621459.2025.2576180",
+      "journal": "JASA"
+    },
+    {
+      "title": "Bayesian Image Analysis in Fourier Space",
+      "authors": [
+        "John Kornak",
+        "Karl Young",
+        "Eric Friedman",
+        "Konstantinos Bakas"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2573523",
+      "url": "https://doi.org/10.1080/01621459.2025.2573523",
+      "journal": "JASA"
+    },
+    {
+      "title": "Identification and Multiply Robust Estimation of Causal Effects via Instrumental Variables from An Auxiliary Population",
+      "authors": [
+        "Wei Li",
+        "Jiapeng Liu",
+        "Peng Ding",
+        "Zhi Geng"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2576797",
+      "url": "https://doi.org/10.1080/01621459.2025.2576797",
+      "journal": "JASA"
+    },
+    {
+      "title": "Localizing Strictly Proper Scoring Rules",
+      "authors": [
+        "Ramon F. A. de Punder",
+        "Cees G. H. Diks",
+        "Roger J. A. Laeven",
+        "Dick J. C. van Dijk"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2576189",
+      "url": "https://doi.org/10.1080/01621459.2025.2576189",
+      "journal": "JASA"
+    },
+    {
+      "title": "Consistent Least Squares Estimation in Population-Size-Dependent Branching Processes",
+      "authors": [
+        "Peter Braunsteins",
+        "Sophie Hautphenne",
+        "Carmen Minuesa"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2571247",
+      "url": "https://doi.org/10.1080/01621459.2025.2571247",
+      "journal": "JASA"
+    },
+    {
+      "title": "SPARCC: Semi-Parametric Robust Estimation in a Right-Censored Covariate Model",
+      "authors": [
+        "Seong-ho Lee",
+        "Brian D. Richardson",
+        "Yanyuan Ma",
+        "Karen S. Marder",
+        "Tanya P. Garcia"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2562645",
+      "url": "https://doi.org/10.1080/01621459.2025.2562645",
+      "journal": "JASA"
+    },
+    {
+      "title": "Causality-Oriented Robustness: Exploiting General Noise Interventions",
+      "authors": [
+        "Xinwei Shen",
+        "Peter Bühlmann",
+        "Armeen Taeb"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2544365",
+      "url": "https://doi.org/10.1080/01621459.2025.2544365",
+      "journal": "JASA"
+    },
+    {
+      "title": "When Does Bottom-Up Beat Top-Down in Hierarchical Community Detection?",
+      "authors": [
+        "Maximilien Dreveton",
+        "Daichi Kuroda",
+        "Matthias Grossglauser",
+        "Patrick Thiran"
+      ],
+      "year": "2026",
+      "month": "01",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2569711",
+      "url": "https://doi.org/10.1080/01621459.2025.2569711",
+      "journal": "JASA"
+    },
+    {
+      "title": "Spatial Variation on Multiple Scales in Line Transect Data; the Case of Antarctic Fin Whales",
+      "authors": [
+        "Olav Nikolai Breivik",
+        "Hans J. Skaug",
+        "Martin Jullum",
+        "Martin Biuw"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2566422",
+      "url": "https://doi.org/10.1080/01621459.2025.2566422",
+      "journal": "JASA"
+    },
+    {
+      "title": "Optimal Run Order for Order-of-Addition Experiments",
+      "authors": [
+        "Chunyan Wang",
+        "Jiayu Peng",
+        "Dennis K. J. Lin"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-10",
+      "doi": "10.1080/01621459.2025.2562646",
+      "url": "https://doi.org/10.1080/01621459.2025.2562646",
+      "journal": "JASA"
+    },
+    {
+      "title": "Cluster-Randomized Trials with Cross-Cluster Interference",
+      "authors": [
+        "Michael P. Leung"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-11",
+      "doi": "10.1080/01621459.2025.2566416",
+      "url": "https://doi.org/10.1080/01621459.2025.2566416",
+      "journal": "JASA"
+    },
+    {
+      "title": "On a Class of Sobolev Tests for Symmetry, their Detection Thresholds, and Asymptotic Powers",
+      "authors": [
+        "Eduardo García-Portugués",
+        "Davy Paindaveine",
+        "Thomas Verdebout"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2566414",
+      "url": "https://doi.org/10.1080/01621459.2025.2566414",
+      "journal": "JASA"
+    },
+    {
+      "title": "Bayesian Signal Matching for Transfer Learning in ERP-Based Brain Computer Interface",
+      "authors": [
+        "Tianwen Ma",
+        "Jane E. Huggins",
+        "Jian Kang"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2563189",
+      "url": "https://doi.org/10.1080/01621459.2025.2563189",
+      "journal": "JASA"
+    },
+    {
+      "title": "Scan Statistics for the Detection of Anomalies in\n                    <i>M</i>\n                    -Dependent Random Fields with Applications to Image Data",
+      "authors": [
+        "Claudia Kirch",
+        "Philipp Klein",
+        "Marco Meyer"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2563777",
+      "url": "https://doi.org/10.1080/01621459.2025.2563777",
+      "journal": "JASA"
+    },
+    {
+      "title": "Conjugate Gradient Methods for High-Dimensional GLMMs",
+      "authors": [
+        "Andrea Pandolfi",
+        "Omiros Papaspiliopoulos",
+        "Giacomo Zanella"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2573522",
+      "url": "https://doi.org/10.1080/01621459.2025.2573522",
+      "journal": "JASA"
+    },
+    {
+      "title": "High-Dimensional Spatial Autoregression with Latent Factors by Diversified Projections",
+      "authors": [
+        "Jiaxin Shi",
+        "Xuening Zhu",
+        "Jing Zhou",
+        "Baichen Yu",
+        "Hansheng Wang"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2562644",
+      "url": "https://doi.org/10.1080/01621459.2025.2562644",
+      "journal": "JASA"
+    },
+    {
+      "title": "SMART-MC: Characterizing the Dynamics of Multiple Sclerosis Therapy Transitions Using a Covariate-Based Markov Model",
+      "authors": [
+        "Beomchang Kim",
+        "Zongqi Xia",
+        "Priyam Das"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-15",
+      "doi": "10.1080/01621459.2025.2555055",
+      "url": "https://doi.org/10.1080/01621459.2025.2555055",
+      "journal": "JASA"
+    },
+    {
+      "title": "Elastic Shape Analysis of Movement Data",
+      "authors": [
+        "J. E. Borgert",
+        "Jan Hannig",
+        "J. Derek Tucker",
+        "Liubov Arbeeva",
+        "Ashley N. Buck",
+        "Yvonne M. Golightly",
+        "Stephen P. Messier",
+        "Amanda E. Nelson",
+        "J. S. Marron"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-11",
+      "doi": "10.1080/01621459.2025.2572778",
+      "url": "https://doi.org/10.1080/01621459.2025.2572778",
+      "journal": "JASA"
+    },
+    {
+      "title": "Bayesian Geostatistics Using Predictive Stacking",
+      "authors": [
+        "Lu Zhang",
+        "Wenpin Tang",
+        "Sudipto Banerjee"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2566449",
+      "url": "https://doi.org/10.1080/01621459.2025.2566449",
+      "journal": "JASA"
+    },
+    {
+      "title": "Construction of Asymmetric Nested Orthogonal Arrays",
+      "authors": [
+        "Shanqi Pang",
+        "Xiao Lin",
+        "Mingyao Ai",
+        "Peter Chien"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-10",
+      "doi": "10.1080/01621459.2025.2555058",
+      "url": "https://doi.org/10.1080/01621459.2025.2555058",
+      "journal": "JASA"
+    },
+    {
+      "title": "Testing and Support Recovery in Population-Based Image Data",
+      "authors": [
+        "Lianqiang Qu",
+        "Jian Huang",
+        "Liuquan Sun",
+        "Hongtu Zhu"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2525585",
+      "url": "https://doi.org/10.1080/01621459.2025.2525585",
+      "journal": "JASA"
+    },
+    {
+      "title": "Spatiotemporal Besov Priors for Bayesian Inverse Problems",
+      "authors": [
+        "Shiwei Lan",
+        "Mirjeta Pasha",
+        "Shuyi Li",
+        "Weining Shen"
+      ],
+      "year": "2025",
+      "month": "12",
+      "volume": "",
+      "issue": "",
+      "pages": "1-15",
+      "doi": "10.1080/01621459.2025.2560688",
+      "url": "https://doi.org/10.1080/01621459.2025.2560688",
+      "journal": "JASA"
+    },
+    {
+      "title": "Universally Optimal Designs for Symmetric Models in Order-of-Addition Experiments",
+      "authors": [
+        "Ze Liu",
+        "Yongdao Zhou",
+        "Min-Qian Liu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-11",
+      "doi": "10.1080/01621459.2025.2552515",
+      "url": "https://doi.org/10.1080/01621459.2025.2552515",
+      "journal": "JASA"
+    },
+    {
+      "title": "Developing A Practical Measure: An Asymmetric Mean Squared Prediction Error for Small Area Estimation",
+      "authors": [
+        "Haiqiang Ma",
+        "Thuan Nguyen",
+        "Jiming Jiang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2555056",
+      "url": "https://doi.org/10.1080/01621459.2025.2555056",
+      "journal": "JASA"
+    },
+    {
+      "title": "Improved Bounds and Inference on Optimal Regimes",
+      "authors": [
+        "Julien D. Laurendeau",
+        "Aaron L. Sarvet",
+        "Mats J. Stensrud"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2537451",
+      "url": "https://doi.org/10.1080/01621459.2025.2537451",
+      "journal": "JASA"
+    },
+    {
+      "title": "Inference for Dispersion and Curvature of Random Objects",
+      "authors": [
+        "Wookyeong Song",
+        "Hans-Georg Müller"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2544377",
+      "url": "https://doi.org/10.1080/01621459.2025.2544377",
+      "journal": "JASA"
+    },
+    {
+      "title": "Using Total Margin of Error to Account for Non-Sampling Error in Election Polls",
+      "authors": [
+        "Jeff Dominitz",
+        "Charles F. Manski"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2537459",
+      "url": "https://doi.org/10.1080/01621459.2025.2537459",
+      "journal": "JASA"
+    },
+    {
+      "title": "Balanced Sampling With Inequalities: Application to Category Bounding, Matrix Rounding, and Spread Sampling",
+      "authors": [
+        "Arnaud Tripet",
+        "Yves Tillé"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-11",
+      "doi": "10.1080/01621459.2025.2550667",
+      "url": "https://doi.org/10.1080/01621459.2025.2550667",
+      "journal": "JASA"
+    },
+    {
+      "title": "Statistical Quantile Learning for Large Additive Latent Variable Models",
+      "authors": [
+        "Julien Bodelet",
+        "Guillaume Blanc",
+        "Jiajun Shan",
+        "Graciela Muniz Terrera",
+        "Oliver Y. Chén"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2526697",
+      "url": "https://doi.org/10.1080/01621459.2025.2526697",
+      "journal": "JASA"
+    },
+    {
+      "title": "Efficiency of QMLE for Dynamic Panel Data Models with Interactive Effects",
+      "authors": [
+        "Jushan Bai"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2552452",
+      "url": "https://doi.org/10.1080/01621459.2025.2552452",
+      "journal": "JASA"
+    },
+    {
+      "title": "The Effect of Alcohol Intake on Brain White Matter Microstructural Integrity: A New Causal Inference Framework for Incomplete Phenomic Data",
+      "authors": [
+        "Chixiang Chen",
+        "Shuo Chen",
+        "Zhenyao Ye",
+        "Xu Shi",
+        "Tianzhou Ma",
+        "Michelle Shardell"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2542553",
+      "url": "https://doi.org/10.1080/01621459.2025.2542553",
+      "journal": "JASA"
+    },
+    {
+      "title": "Understanding Inequalities in Cancer Survival Using Bayesian Machine Learning",
+      "authors": [
+        "Piyali Basak",
+        "Camille Maringe",
+        "F. Javier Rubio",
+        "Antonio R. Linero"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2547968",
+      "url": "https://doi.org/10.1080/01621459.2025.2547968",
+      "journal": "JASA"
+    },
+    {
+      "title": "Chain-Linked Multiple Matrix Integration via Embedding Alignment",
+      "authors": [
+        "Runbing Zheng",
+        "Minh Tang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2550677",
+      "url": "https://doi.org/10.1080/01621459.2025.2550677",
+      "journal": "JASA"
+    },
+    {
+      "title": "Differentially Private Sliced Inverse Regression: Minimax Optimality and Algorithm",
+      "authors": [
+        "Xintao Xia",
+        "Linjun Zhang",
+        "Zhanrui Cai"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2555059",
+      "url": "https://doi.org/10.1080/01621459.2025.2555059",
+      "journal": "JASA"
+    },
+    {
+      "title": "Policy Learning with Distributional Welfare",
+      "authors": [
+        "Yifan Cui",
+        "Sukjin Han"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2552514",
+      "url": "https://doi.org/10.1080/01621459.2025.2552514",
+      "journal": "JASA"
+    },
+    {
+      "title": "On the Poor Statistical Properties of the\n                    <i>P</i>\n                    -Curve Meta-Analytic Procedure",
+      "authors": [
+        "Richard D. Morey",
+        "Clintin P. Davis-Stober"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2544397",
+      "url": "https://doi.org/10.1080/01621459.2025.2544397",
+      "journal": "JASA"
+    },
+    {
+      "title": "Efficient Distributed Learning over Decentralized Networks with Convoluted Support Vector Machine",
+      "authors": [
+        "Canyi Chen",
+        "Nan Qiao",
+        "Liping Zhu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2550671",
+      "url": "https://doi.org/10.1080/01621459.2025.2550671",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Bayesian Nonparametric Approach to Mediation and Spillover Effects with Multiple Mediators in Cluster-Randomized Trials",
+      "authors": [
+        "Yuki Ohnishi",
+        "Fan Li"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2544366",
+      "url": "https://doi.org/10.1080/01621459.2025.2544366",
+      "journal": "JASA"
+    },
+    {
+      "title": "Linear-Cost Vecchia Approximation of Multivariate Normal Probabilities",
+      "authors": [
+        "Jian Cao",
+        "Matthias Katzfuss"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2546586",
+      "url": "https://doi.org/10.1080/01621459.2025.2546586",
+      "journal": "JASA"
+    },
+    {
+      "title": "Word-Level Maximum Mean Discrepancy Regularization for Word Embedding",
+      "authors": [
+        "Youqian Gao",
+        "Ben Dai"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2547978",
+      "url": "https://doi.org/10.1080/01621459.2025.2547978",
+      "journal": "JASA"
+    },
+    {
+      "title": "Inference for Low-Rank Models Without Estimating the Rank",
+      "authors": [
+        "Jungjun Choi",
+        "Hyukjun Kwon",
+        "Yuan Liao"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2538272",
+      "url": "https://doi.org/10.1080/01621459.2025.2538272",
+      "journal": "JASA"
+    },
+    {
+      "title": "Nonparametric Density Estimation of a Long-Term Trend from Repeated Semicontinuous Data",
+      "authors": [
+        "Félix Camirand Lemyre",
+        "Raymond J. Carroll",
+        "Aurore Delaigle"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2555054",
+      "url": "https://doi.org/10.1080/01621459.2025.2555054",
+      "journal": "JASA"
+    },
+    {
+      "title": "Data Thinning for Poisson Factor Models and its Applications",
+      "authors": [
+        "Zhijing Wang",
+        "Peirong Xu",
+        "Hongyu Zhao",
+        "Tao Wang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2546577",
+      "url": "https://doi.org/10.1080/01621459.2025.2546577",
+      "journal": "JASA"
+    },
+    {
+      "title": "Simultaneous Inference for Monotone and Smoothly Time-Varying Functions Under Complex Temporal Dynamics",
+      "authors": [
+        "Tianpai Luo",
+        "Weichi Wu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2550669",
+      "url": "https://doi.org/10.1080/01621459.2025.2550669",
+      "journal": "JASA"
+    },
+    {
+      "title": "A New Approach for Homogeneity Pursuit in Short Panel Data Analysis",
+      "authors": [
+        "Yang Han",
+        "Weichi Wu",
+        "Wenyang Zhang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-11",
+      "doi": "10.1080/01621459.2025.2552513",
+      "url": "https://doi.org/10.1080/01621459.2025.2552513",
+      "journal": "JASA"
+    },
+    {
+      "title": "Transfer Learning Under Large-Scale Low-Rank Regression Models",
+      "authors": [
+        "Seyoung Park",
+        "Eun Ryung Lee",
+        "Hyunjin Kim",
+        "Hongyu Zhao"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2555057",
+      "url": "https://doi.org/10.1080/01621459.2025.2555057",
+      "journal": "JASA"
+    },
+    {
+      "title": "Inference on the Proportion of Variance Explained in Principal Component Analysis",
+      "authors": [
+        "Ronan Perry",
+        "Snigdha Panigrahi",
+        "Jacob Bien",
+        "Daniela Witten"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-11",
+      "doi": "10.1080/01621459.2025.2538895",
+      "url": "https://doi.org/10.1080/01621459.2025.2538895",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Powerful Transformation of Quantitative Responses for Biobank-Scale Association Studies",
+      "authors": [
+        "Yaowu Liu",
+        "Tianying Wang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2540083",
+      "url": "https://doi.org/10.1080/01621459.2025.2540083",
+      "journal": "JASA"
+    },
+    {
+      "title": "Effect Aliasing in Observational Studies",
+      "authors": [
+        "Paul R. Rosenbaum",
+        "José R. Zubizarreta"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-23",
+      "doi": "10.1080/01621459.2025.2537456",
+      "url": "https://doi.org/10.1080/01621459.2025.2537456",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Minimax Two-Sample Test for Functional Data via Grothendieck’s Divergence",
+      "authors": [
+        "Yan Chen",
+        "Hongmei Lin",
+        "Xueqin Wang",
+        "Canhong Wen"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-25",
+      "doi": "10.1080/01621459.2025.2537455",
+      "url": "https://doi.org/10.1080/01621459.2025.2537455",
+      "journal": "JASA"
+    },
+    {
+      "title": "Online Policy Learning and Inference by Matrix Completion",
+      "authors": [
+        "Congyuan Duan",
+        "Jingyang Li",
+        "Dong Xia"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-25",
+      "doi": "10.1080/01621459.2025.2537454",
+      "url": "https://doi.org/10.1080/01621459.2025.2537454",
+      "journal": "JASA"
+    },
+    {
+      "title": "Dimension Reduction for Large-Scale Federated Data: Statistical Rate and Asymptotic Inference",
+      "authors": [
+        "Shuting Shen",
+        "Junwei Lu",
+        "Xihong Lin"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2537453",
+      "url": "https://doi.org/10.1080/01621459.2025.2537453",
+      "journal": "JASA"
+    },
+    {
+      "title": "Confidence Sets for Causal Orderings",
+      "authors": [
+        "Y. Samuel Wang",
+        "Mladen Kolar",
+        "Mathias Drton"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2542552",
+      "url": "https://doi.org/10.1080/01621459.2025.2542552",
+      "journal": "JASA"
+    },
+    {
+      "title": "Fairness in Machine Learning: A Review for Statisticians",
+      "authors": [
+        "Xianwen He",
+        "Yao Li"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2834-2851",
+      "doi": "10.1080/01621459.2025.2579579",
+      "url": "https://doi.org/10.1080/01621459.2025.2579579",
+      "journal": "JASA"
+    },
+    {
+      "title": "Random Effects Model-Based Sufficient Dimension Reduction for Independent Clustered Data",
+      "authors": [
+        "Linh H. Nghiem",
+        "Francis K. C. Hui"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2449-2460",
+      "doi": "10.1080/01621459.2025.2457919",
+      "url": "https://doi.org/10.1080/01621459.2025.2457919",
+      "journal": "JASA"
+    },
+    {
+      "title": "Conditional probability tensor decompositions for multivariate categorical response regression",
+      "authors": [
+        "Aaron J. Molstad",
+        "Xin Zhang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-25",
+      "doi": "10.1080/01621459.2025.2567045",
+      "url": "https://doi.org/10.1080/01621459.2025.2567045",
+      "journal": "JASA"
+    },
+    {
+      "title": "On the Algorithmic Bias of Aligning Large Language Models with RLHF: Preference Collapse and Matching Regularization",
+      "authors": [
+        "Jiancong Xiao",
+        "Ziniu Li",
+        "Xingyu Xie",
+        "Emily Getzen",
+        "Cong Fang",
+        "Qi Long",
+        "Weijie J. Su"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2154-2164",
+      "doi": "10.1080/01621459.2025.2555067",
+      "url": "https://doi.org/10.1080/01621459.2025.2555067",
+      "journal": "JASA"
+    },
+    {
+      "title": "Tail Calibration of Probabilistic Forecasts",
+      "authors": [
+        "Sam Allen",
+        "Jonathan Koh",
+        "Johan Segers",
+        "Johanna Ziegel"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2796-2808",
+      "doi": "10.1080/01621459.2025.2506194",
+      "url": "https://doi.org/10.1080/01621459.2025.2506194",
+      "journal": "JASA"
+    },
+    {
+      "title": "Bayesian Random-Effects Meta-Analysis Integrating Individual Participant Data and Aggregate Data",
+      "authors": [
+        "Yunxiang Huang",
+        "Hang J. Kim",
+        "Chiung-Yu Huang",
+        "Mi-Ok Kim"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2128-2139",
+      "doi": "10.1080/01621459.2025.2520469",
+      "url": "https://doi.org/10.1080/01621459.2025.2520469",
+      "journal": "JASA"
+    },
+    {
+      "title": "A New Approach to Optimal Design under Model Uncertainty Motivated by Multi-Armed Bandits",
+      "authors": [
+        "Mingyao Ai",
+        "Holger Dette",
+        "Zhengfu Liu",
+        "Jun Yu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2709-2722",
+      "doi": "10.1080/01621459.2025.2487223",
+      "url": "https://doi.org/10.1080/01621459.2025.2487223",
+      "journal": "JASA"
+    },
+    {
+      "title": "Mixture Models: Parametric, Semiparametric, and New Directions",
+      "authors": [
+        "Hien D. Nguyen"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2855-2856",
+      "doi": "10.1080/01621459.2025.2561150",
+      "url": "https://doi.org/10.1080/01621459.2025.2561150",
+      "journal": "JASA"
+    },
+    {
+      "title": "Boosting AI-Generated Biomedical Images with Confidence through Advanced Statistical Inference",
+      "authors": [
+        "Zhiling Gu",
+        "Shan Yu",
+        "Guannan Wang",
+        "Lily Wang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2165-2180",
+      "doi": "10.1080/01621459.2025.2552510",
+      "url": "https://doi.org/10.1080/01621459.2025.2552510",
+      "journal": "JASA"
+    },
+    {
+      "title": "Data Science for Infectious Disease Data Analytics: An Introduction with R",
+      "authors": [
+        "Qi Zheng"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2852-2853",
+      "doi": "10.1080/01621459.2025.2552421",
+      "url": "https://doi.org/10.1080/01621459.2025.2552421",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Regression Framework for Studying Relationships among Attributes under Network Interference",
+      "authors": [
+        "Cornelius Fritz",
+        "Michael Schweinberger",
+        "Subhankar Bhadra",
+        "David R. Hunter"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "",
+      "issue": "",
+      "pages": "1-22",
+      "doi": "10.1080/01621459.2025.2565851",
+      "url": "https://doi.org/10.1080/01621459.2025.2565851",
+      "journal": "JASA"
+    },
+    {
+      "title": "Debiased Calibration Estimation Using Generalized Entropy in Survey Sampling",
+      "authors": [
+        "Yonghyun Kwon",
+        "Jae Kwang Kim",
+        "Yumou Qiu"
+      ],
+      "year": "2025",
+      "month": "09",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2537452",
+      "url": "https://doi.org/10.1080/01621459.2025.2537452",
+      "journal": "JASA"
+    },
+    {
+      "title": "Estimation of Out-of-Sample Sharpe Ratio for High Dimensional Portfolio Optimization",
+      "authors": [
+        "Xuran Meng",
+        "Yuan Cao",
+        "Weichen Wang"
+      ],
+      "year": "2025",
+      "month": "09",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2535757",
+      "url": "https://doi.org/10.1080/01621459.2025.2535757",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Goodness-of-Fit Assessment for General Learning Procedures in High Dimensions",
+      "authors": [
+        "Chenxuan He",
+        "Canyi Chen",
+        "Liping Zhu"
+      ],
+      "year": "2025",
+      "month": "09",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2529602",
+      "url": "https://doi.org/10.1080/01621459.2025.2529602",
+      "journal": "JASA"
+    },
+    {
+      "title": "Fast Approximation of Shapley Values Through Fractional Factorial Designs",
+      "authors": [
+        "Zheng Zhou",
+        "Robert Mee",
+        "Herbert Hamers",
+        "Wei Zheng"
+      ],
+      "year": "2025",
+      "month": "09",
+      "volume": "",
+      "issue": "",
+      "pages": "1-20",
+      "doi": "10.1080/01621459.2025.2529027",
+      "url": "https://doi.org/10.1080/01621459.2025.2529027",
+      "journal": "JASA"
+    },
+    {
+      "title": "Exponential Families in Theory and Practice",
+      "authors": [
+        "Jessica Gronsbell"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2853-2855",
+      "doi": "10.1080/01621459.2025.2552416",
+      "url": "https://doi.org/10.1080/01621459.2025.2552416",
+      "journal": "JASA"
+    },
+    {
+      "title": "Dynamic Decision Making With Individualized Variable Selection",
+      "authors": [
+        "Bryan Cai",
+        "Ying Cui",
+        "Haoda Fu",
+        "Donald M Lloyd-Jones",
+        "Lihui Zhao",
+        "Lu Tian"
+      ],
+      "year": "2025",
+      "month": "09",
+      "volume": "",
+      "issue": "",
+      "pages": "1-21",
+      "doi": "10.1080/01621459.2025.2555060",
+      "url": "https://doi.org/10.1080/01621459.2025.2555060",
+      "journal": "JASA"
+    },
+    {
+      "title": "SOFARI: High-Dimensional Manifold-Based Inference",
+      "authors": [
+        "Zemin Zheng",
+        "Xin Zhou",
+        "Yingying Fan",
+        "Jinchi Lv"
+      ],
+      "year": "2025",
+      "month": "09",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2529026",
+      "url": "https://doi.org/10.1080/01621459.2025.2529026",
+      "journal": "JASA"
+    },
+    {
+      "title": "Estimating Racial Disparities When Race is Not Observed",
+      "authors": [
+        "Cory McCartan",
+        "Robin Fisher",
+        "Jacob Goldin",
+        "Daniel E. Ho",
+        "Kosuke Imai"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2140-2153",
+      "doi": "10.1080/01621459.2025.2526695",
+      "url": "https://doi.org/10.1080/01621459.2025.2526695",
+      "journal": "JASA"
+    },
+    {
+      "title": "Integrated Path Stability Selection",
+      "authors": [
+        "Omar Melikechi",
+        "Jeffrey W. Miller"
+      ],
+      "year": "2025",
+      "month": "09",
+      "volume": "",
+      "issue": "",
+      "pages": "1-11",
+      "doi": "10.1080/01621459.2025.2525589",
+      "url": "https://doi.org/10.1080/01621459.2025.2525589",
+      "journal": "JASA"
+    },
+    {
+      "title": "Kernel Density Estimation with Polyspherical Data and its Applications",
+      "authors": [
+        "Eduardo García-Portugués",
+        "Andrea Meilán-Vila"
+      ],
+      "year": "2025",
+      "month": "09",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2521898",
+      "url": "https://doi.org/10.1080/01621459.2025.2521898",
+      "journal": "JASA"
+    },
+    {
+      "title": "Design and Analysis of Randomized Trials to Estimate Spatio-Temporally Heterogeneous Treatment Effects",
+      "authors": [
+        "Samuel I. Watson",
+        "Thomas A. Smith"
+      ],
+      "year": "2025",
+      "month": "09",
+      "volume": "",
+      "issue": "",
+      "pages": "1-11",
+      "doi": "10.1080/01621459.2025.2527424",
+      "url": "https://doi.org/10.1080/01621459.2025.2527424",
+      "journal": "JASA"
+    },
+    {
+      "title": "Additive Multi-Index Gaussian Process Modeling, with Application to Multi-Physics Surrogate Modeling of the Quark-Gluon Plasma",
+      "authors": [
+        "Kevin Li",
+        "Simon Mak",
+        "J.-F. Paquet",
+        "Steffen A. Bass"
+      ],
+      "year": "2025",
+      "month": "09",
+      "volume": "",
+      "issue": "",
+      "pages": "1-16",
+      "doi": "10.1080/01621459.2025.2529025",
+      "url": "https://doi.org/10.1080/01621459.2025.2529025",
+      "journal": "JASA"
+    },
+    {
+      "title": "Design-Based Causal Inference with Missing Outcomes: Missingness Mechanisms, Imputation-Assisted Randomization Tests, and Covariate Adjustment",
+      "authors": [
+        "Siyu Heng",
+        "Jiawei Zhang",
+        "Yang Feng"
+      ],
+      "year": "2025",
+      "month": "08",
+      "volume": "",
+      "issue": "",
+      "pages": "1-24",
+      "doi": "10.1080/01621459.2025.2516204",
+      "url": "https://doi.org/10.1080/01621459.2025.2516204",
+      "journal": "JASA"
+    },
+    {
+      "title": "Design-Based Uncertainty for Quasi-Experiments",
+      "authors": [
+        "Ashesh Rambachan",
+        "Jonathan Roth"
+      ],
+      "year": "2025",
+      "month": "08",
+      "volume": "",
+      "issue": "",
+      "pages": "1-15",
+      "doi": "10.1080/01621459.2025.2526700",
+      "url": "https://doi.org/10.1080/01621459.2025.2526700",
+      "journal": "JASA"
+    },
+    {
+      "title": "Long-Term Effect Estimation When Combining Clinical Trial and Observational Follow-Up Datasets",
+      "authors": [
+        "Gang Cheng",
+        "Yen-Chi Chen",
+        "Joseph M. Unger",
+        "Cathee Till",
+        "Ying-Qi Zhao"
+      ],
+      "year": "2025",
+      "month": "08",
+      "volume": "",
+      "issue": "",
+      "pages": "1-10",
+      "doi": "10.1080/01621459.2025.2526703",
+      "url": "https://doi.org/10.1080/01621459.2025.2526703",
+      "journal": "JASA"
+    },
+    {
+      "title": "On a Notion of Graph Centrality Based on\n                    <i>L</i>\n                    <sub>1</sub>\n                    Data Depth",
+      "authors": [
+        "Seungwoo Kang",
+        "Hee-Seok Oh"
+      ],
+      "year": "2025",
+      "month": "08",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2520467",
+      "url": "https://doi.org/10.1080/01621459.2025.2520467",
+      "journal": "JASA"
+    },
+    {
+      "title": "High-Dimensional Covariance Regression with Application to Co-Expression QTL Detection",
+      "authors": [
+        "Rakheon Kim",
+        "Jingfei Zhang"
+      ],
+      "year": "2025",
+      "month": "08",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2520996",
+      "url": "https://doi.org/10.1080/01621459.2025.2520996",
+      "journal": "JASA"
+    },
+    {
+      "title": "Fair Coins Tend to Land on the Same Side They Started: Evidence from 350,757 Flips",
+      "authors": [
+        "František Bartoš",
+        "Alexandra Sarafoglou",
+        "Henrik R. Godmann",
+        "Amir Sahrani",
+        "David Klein Leunk",
+        "Pierre Y. Gui",
+        "David Voss",
+        "Kaleem Ullah",
+        "Malte Zoubek",
+        "Franziska Nippold",
+        "Frederik Aust",
+        "Felipe Fontana Vieira",
+        "Chris-Gabriel Islam",
+        "Anton J. Zoubek",
+        "Sara Shabani",
+        "Jonas Petter",
+        "Ingeborg B. Roos",
+        "Adam Finnemann",
+        "Aaron B. Lob",
+        "Madlen F. Hoffstadt",
+        "Jason Nak",
+        "Jill de Ron",
+        "Koen Derks",
+        "Karoline Huth",
+        "Sjoerd Terpstra",
+        "Thomas Bastelica",
+        "Magda Matetovici",
+        "Vincent L. Ott",
+        "Andreea S. Zetea",
+        "Katharina Karnbach",
+        "Michelle C. Donzallaz",
+        "Arne John",
+        "Roy M. Moore",
+        "Franziska Assion",
+        "Riet van Bork",
+        "Theresa E. Leidinger",
+        "Xiaochang Zhao",
+        "Adrian Karami Motaghi",
+        "Ting Pan",
+        "Hannah Armstrong",
+        "Tianqi Peng",
+        "Mara Bialas",
+        "Joyce Y.-C. Pang",
+        "Bohan Fu",
+        "Shujun Yang",
+        "Xiaoyi Lin",
+        "Dana Sleiffer",
+        "Miklos Bognar",
+        "Balazs Aczel",
+        "Eric-Jan Wagenmakers"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2118-2127",
+      "doi": "10.1080/01621459.2025.2516210",
+      "url": "https://doi.org/10.1080/01621459.2025.2516210",
+      "journal": "JASA"
+    },
+    {
+      "title": "Data-Driven Tuning Parameter Selection for High-Dimensional Vector Autoregressions",
+      "authors": [
+        "Anders B. Kock",
+        "Rasmus S. Pedersen",
+        "Jesper R.-V. Sørensen"
+      ],
+      "year": "2025",
+      "month": "08",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2025.2516190",
+      "url": "https://doi.org/10.1080/01621459.2025.2516190",
+      "journal": "JASA"
+    },
+    {
+      "title": "Higher-Order Accurate Two-Sample Network Inference and Network Hashing",
+      "authors": [
+        "Meijia Shao",
+        "Dong Xia",
+        "Yuan Zhang",
+        "Qiong Wu",
+        "Shuo Chen"
+      ],
+      "year": "2025",
+      "month": "08",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2520459",
+      "url": "https://doi.org/10.1080/01621459.2025.2520459",
+      "journal": "JASA"
+    },
+    {
+      "title": "Testing Elliptical Models in High Dimensions",
+      "authors": [
+        "Siyao Wang",
+        "Miles E. Lopes"
+      ],
+      "year": "2025",
+      "month": "08",
+      "volume": "",
+      "issue": "",
+      "pages": "1-11",
+      "doi": "10.1080/01621459.2025.2518617",
+      "url": "https://doi.org/10.1080/01621459.2025.2518617",
+      "journal": "JASA"
+    },
+    {
+      "title": "Checking the Cox Proportional Hazards Model with Interval-Censored Data",
+      "authors": [
+        "Yangjianchen Xu",
+        "Donglin Zeng",
+        "D. Y. Lin"
+      ],
+      "year": "2025",
+      "month": "08",
+      "volume": "",
+      "issue": "",
+      "pages": "1-16",
+      "doi": "10.1080/01621459.2025.2520460",
+      "url": "https://doi.org/10.1080/01621459.2025.2520460",
+      "journal": "JASA"
+    },
+    {
+      "title": "Integrative Analysis of Microbial 16S Gene and Shotgun Metagenomic Sequencing Data Improves Statistical Efficiency in Testing Differential Abundance",
+      "authors": [
+        "Ye Yue",
+        "Yicong Mao",
+        "Timothy D. Read",
+        "Veronika Fedirko",
+        "Glen A. Satten",
+        "Xuan Chen",
+        "Xiang Zhan",
+        "Yi-Juan Hu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2102-2117",
+      "doi": "10.1080/01621459.2025.2516205",
+      "url": "https://doi.org/10.1080/01621459.2025.2516205",
+      "journal": "JASA"
+    },
+    {
+      "title": "Incorporating Auxiliary Variables to Improve the Efficiency of Time-Varying Treatment Effect Estimation",
+      "authors": [
+        "Jieru Shi",
+        "Zhenke Wu",
+        "Walter Dempsey"
+      ],
+      "year": "2025",
+      "month": "08",
+      "volume": "",
+      "issue": "",
+      "pages": "1-11",
+      "doi": "10.1080/01621459.2025.2516197",
+      "url": "https://doi.org/10.1080/01621459.2025.2516197",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Practical Interval Estimation Method for Spectral Density Function",
+      "authors": [
+        "Haihan Yu",
+        "Mark S. Kaiser",
+        "Daniel J. Nordman"
+      ],
+      "year": "2025",
+      "month": "08",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2516211",
+      "url": "https://doi.org/10.1080/01621459.2025.2516211",
+      "journal": "JASA"
+    },
+    {
+      "title": "Modeling Tree Survival for Investigating Climate Change Effects",
+      "authors": [
+        "Nicole Augustin",
+        "Axel Albrecht",
+        "Karim Anaya-Izquierdo",
+        "Alice Davis",
+        "Stefan Meining",
+        "Heike Puhlmann",
+        "Simon Wood"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2079-2089",
+      "doi": "10.1080/01621459.2025.2516181",
+      "url": "https://doi.org/10.1080/01621459.2025.2516181",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Bayesian Criterion for Rerandomization",
+      "authors": [
+        "Zhaoyang Liu",
+        "Tingxuan Han",
+        "Donald B. Rubin",
+        "Ke Deng"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2809-2821",
+      "doi": "10.1080/01621459.2025.2507432",
+      "url": "https://doi.org/10.1080/01621459.2025.2507432",
+      "journal": "JASA"
+    },
+    {
+      "title": "Identifying the Structure of High-Dimensional Time Series via Eigen-Analysis",
+      "authors": [
+        "Bo Zhang",
+        "Jiti Gao",
+        "Guangming Pan",
+        "Yanrong Yang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2822-2833",
+      "doi": "10.1080/01621459.2025.2507436",
+      "url": "https://doi.org/10.1080/01621459.2025.2507436",
+      "journal": "JASA"
+    },
+    {
+      "title": "The ICML 2023 Ranking Experiment: Examining Author Self-Assessment in ML/AI Peer Review",
+      "authors": [
+        "Buxin Su",
+        "Jiayao Zhang",
+        "Natalie Collina",
+        "Yuling Yan",
+        "Didong Li",
+        "Kyunghyun Cho",
+        "Jianqing Fan",
+        "Aaron Roth",
+        "Weijie Su"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2510006",
+      "url": "https://doi.org/10.1080/01621459.2025.2510006",
+      "journal": "JASA"
+    },
+    {
+      "title": "Manipulating an Instrumental Variable in an Observational Study of Premature Babies: Design, Bounds, and Inference",
+      "authors": [
+        "Zhe Chen",
+        "Min Haeng Cho",
+        "Bo Zhang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2065-2078",
+      "doi": "10.1080/01621459.2025.2510711",
+      "url": "https://doi.org/10.1080/01621459.2025.2510711",
+      "journal": "JASA"
+    },
+    {
+      "title": "LAMBDA: A Large Model Based Data Agent",
+      "authors": [
+        "Maojun Sun",
+        "Ruijian Han",
+        "Binyan Jiang",
+        "Houduo Qi",
+        "Defeng Sun",
+        "Yancheng Yuan",
+        "Jian Huang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2510000",
+      "url": "https://doi.org/10.1080/01621459.2025.2510000",
+      "journal": "JASA"
+    },
+    {
+      "title": "Adjacency Matrix Decomposition Clustering for Human Activity Data",
+      "authors": [
+        "Martha Barnard",
+        "Yingling Fan",
+        "Julian Wolfson"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2053-2064",
+      "doi": "10.1080/01621459.2025.2506196",
+      "url": "https://doi.org/10.1080/01621459.2025.2506196",
+      "journal": "JASA"
+    },
+    {
+      "title": "Mutually Exciting Point Processes with Latency",
+      "authors": [
+        "Yoann Potiron",
+        "Vladimir Volkov"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2025.2516209",
+      "url": "https://doi.org/10.1080/01621459.2025.2516209",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Latent Variable Model for Individual Degree Measures in Respondent-Driven Sampling",
+      "authors": [
+        "Yibo Wang",
+        "Sunghee Lee",
+        "Michael R. Elliott"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2090-2101",
+      "doi": "10.1080/01621459.2025.2516185",
+      "url": "https://doi.org/10.1080/01621459.2025.2516185",
+      "journal": "JASA"
+    },
+    {
+      "title": "Adaptation Using Spatially Distributed Gaussian Processes",
+      "authors": [
+        "Botond Szabo",
+        "Amine Hadji",
+        "Aad van der Vaart"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2784-2795",
+      "doi": "10.1080/01621459.2025.2501717",
+      "url": "https://doi.org/10.1080/01621459.2025.2501717",
+      "journal": "JASA"
+    },
+    {
+      "title": "Conformal Prediction for Network-Assisted Regression",
+      "authors": [
+        "Robert Lunde",
+        "Elizaveta Levina",
+        "Ji Zhu"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1633-1644",
+      "doi": "10.1080/01621459.2025.2506198",
+      "url": "https://doi.org/10.1080/01621459.2025.2506198",
+      "journal": "JASA"
+    },
+    {
+      "title": "Joint Spectral Clustering in Multilayer Degree-Corrected Stochastic Blockmodels",
+      "authors": [
+        "Joshua Agterberg",
+        "Zachary Lubberts",
+        "Jesús Arroyo"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1607-1620",
+      "doi": "10.1080/01621459.2025.2516201",
+      "url": "https://doi.org/10.1080/01621459.2025.2516201",
+      "journal": "JASA"
+    },
+    {
+      "title": "Financial Data Analytics with R: Monte-Carlo Validation",
+      "authors": [
+        "Tony Sit"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "2009-2010",
+      "doi": "10.1080/01621459.2025.2526711",
+      "url": "https://doi.org/10.1080/01621459.2025.2526711",
+      "journal": "JASA"
+    },
+    {
+      "title": "Generalized Linear Mixed Models: Modern Concepts, Methods and Applications, 2nd ed.",
+      "authors": [
+        "Xing Liu"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "2003-2005",
+      "doi": "10.1080/01621459.2025.2506201",
+      "url": "https://doi.org/10.1080/01621459.2025.2506201",
+      "journal": "JASA"
+    },
+    {
+      "title": "Deep Fréchet Regression",
+      "authors": [
+        "Su I Iao",
+        "Yidong Zhou",
+        "Hans-Georg Müller"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1437-1448",
+      "doi": "10.1080/01621459.2025.2507982",
+      "url": "https://doi.org/10.1080/01621459.2025.2507982",
+      "journal": "JASA"
+    },
+    {
+      "title": "Deep Mutual Density Ratio Estimation with Bregman Divergence and Its Applications",
+      "authors": [
+        "Dongxiao Han",
+        "Siming Zheng",
+        "Guohao Shen",
+        "Xinyuan Song",
+        "Liuquan Sun",
+        "Jian Huang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1990-2001",
+      "doi": "10.1080/01621459.2025.2507437",
+      "url": "https://doi.org/10.1080/01621459.2025.2507437",
+      "journal": "JASA"
+    },
+    {
+      "title": "Kernel Spectral Joint Embeddings for High-Dimensional Noisy Datasets Using Duo-Landmark Integral Operators",
+      "authors": [
+        "Xiucai Ding",
+        "Rong Ma"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1463-1476",
+      "doi": "10.1080/01621459.2025.2539539",
+      "url": "https://doi.org/10.1080/01621459.2025.2539539",
+      "journal": "JASA"
+    },
+    {
+      "title": "Partially Exchangeable Stochastic Block Models for (Node-Colored) Multilayer Networks",
+      "authors": [
+        "Daniele Durante",
+        "Francesco Gaffi",
+        "Antonio Lijoi",
+        "Igor Prünster"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1811-1827",
+      "doi": "10.1080/01621459.2025.2507825",
+      "url": "https://doi.org/10.1080/01621459.2025.2507825",
+      "journal": "JASA"
+    },
+    {
+      "title": "Debiasing Watermarks for Large Language Models via Maximal Coupling",
+      "authors": [
+        "Yangxinyu Xie",
+        "Xiang Li",
+        "Tanwi Mallick",
+        "Weijie Su",
+        "Ruixun Zhang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1424-1436",
+      "doi": "10.1080/01621459.2025.2520455",
+      "url": "https://doi.org/10.1080/01621459.2025.2520455",
+      "journal": "JASA"
+    },
+    {
+      "title": "Optimal Transport based Cross-Domain Integration for Heterogeneous Data",
+      "authors": [
+        "Yubai Yuan",
+        "Yijiao Zhang",
+        "Babak Shahbaba",
+        "Norbert Fortin",
+        "Keiland Cooper",
+        "Qing Nie",
+        "Annie Qu"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1449-1462",
+      "doi": "10.1080/01621459.2025.2540653",
+      "url": "https://doi.org/10.1080/01621459.2025.2540653",
+      "journal": "JASA"
+    },
+    {
+      "title": "Evaluation of Binary Classifiers for Asymptotically Dependent and Independent Extremes",
+      "authors": [
+        "Juliette Legrand",
+        "Philippe Naveau",
+        "Marco Oesting"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1558-1568",
+      "doi": "10.1080/01621459.2025.2529024",
+      "url": "https://doi.org/10.1080/01621459.2025.2529024",
+      "journal": "JASA"
+    },
+    {
+      "title": "Analyzing Whale Calling through Hawkes Process Modeling",
+      "authors": [
+        "Bokgyeong Kang",
+        "Erin M. Schliep",
+        "Alan E. Gelfand",
+        "Tina M. Yack",
+        "Christopher W. Clark",
+        "Robert S. Schick"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2040-2052",
+      "doi": "10.1080/01621459.2025.2501711",
+      "url": "https://doi.org/10.1080/01621459.2025.2501711",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Unified Framework for Residual Diagnostics in Generalized Linear Models and Beyond",
+      "authors": [
+        "Dungang Liu",
+        "Zewei Lin",
+        "Heping Zhang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1840-1852",
+      "doi": "10.1080/01621459.2025.2504037",
+      "url": "https://doi.org/10.1080/01621459.2025.2504037",
+      "journal": "JASA"
+    },
+    {
+      "title": "Bayesian Inference on Brain-Computer Interfaces via GLASS",
+      "authors": [
+        "Bangyao Zhao",
+        "Jane E. Huggins",
+        "Jian Kang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2028-2039",
+      "doi": "10.1080/01621459.2025.2498088",
+      "url": "https://doi.org/10.1080/01621459.2025.2498088",
+      "journal": "JASA"
+    },
+    {
+      "title": "Modeling Hypergraphs with Diversity and Heterogeneous Popularity",
+      "authors": [
+        "Xianshi Yu",
+        "Ji Zhu"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1491-1502",
+      "doi": "10.1080/01621459.2025.2455200",
+      "url": "https://doi.org/10.1080/01621459.2025.2455200",
+      "journal": "JASA"
+    },
+    {
+      "title": "Distributional Off-Policy Evaluation in Reinforcement Learning",
+      "authors": [
+        "Zhengling Qi",
+        "Chenjia Bai",
+        "Zhaoran Wang",
+        "Lan Wang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1517-1530",
+      "doi": "10.1080/01621459.2025.2506197",
+      "url": "https://doi.org/10.1080/01621459.2025.2506197",
+      "journal": "JASA"
+    },
+    {
+      "title": "Spatial Linear Models for Environmental Data",
+      "authors": [
+        "Bruno Sansó"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "2002-2003",
+      "doi": "10.1080/01621459.2025.2490300",
+      "url": "https://doi.org/10.1080/01621459.2025.2490300",
+      "journal": "JASA"
+    },
+    {
+      "title": "Communication-Efficient Distributed Estimation and Inference for Cox’s Model",
+      "authors": [
+        "Pierre Bayle",
+        "Jianqing Fan",
+        "Zhipeng Lou"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1736-1746",
+      "doi": "10.1080/01621459.2025.2516820",
+      "url": "https://doi.org/10.1080/01621459.2025.2516820",
+      "journal": "JASA"
+    },
+    {
+      "title": "Higher Order Accurate Symmetric Bootstrap Confidence Intervals in High Dimensional Penalized Regression",
+      "authors": [
+        "Debraj Das",
+        "Arindam Chatterjee",
+        "S. N. Lahiri"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1645-1656",
+      "doi": "10.1080/01621459.2024.2445873",
+      "url": "https://doi.org/10.1080/01621459.2024.2445873",
+      "journal": "JASA"
+    },
+    {
+      "title": "Correction",
+      "authors": [],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "2011-2014",
+      "doi": "10.1080/01621459.2025.2540256",
+      "url": "https://doi.org/10.1080/01621459.2025.2540256",
+      "journal": "JASA"
+    },
+    {
+      "title": "Asymptotic Guarantees for Bayesian Phylogenetic Tree Reconstruction",
+      "authors": [
+        "Alisa Kirichenko",
+        "Luke J. Kelly",
+        "Jere Koskela"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1569-1579",
+      "doi": "10.1080/01621459.2025.2485359",
+      "url": "https://doi.org/10.1080/01621459.2025.2485359",
+      "journal": "JASA"
+    },
+    {
+      "title": "Global and Episode-Specific Prediction of Recurrent Events Using Longitudinal Health Informatics Data",
+      "authors": [
+        "Yifei Sun",
+        "Sy Han Chiou",
+        "Chiung-Yu Huang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2015-2027",
+      "doi": "10.1080/01621459.2025.2497569",
+      "url": "https://doi.org/10.1080/01621459.2025.2497569",
+      "journal": "JASA"
+    },
+    {
+      "title": "Network Goodness-of-Fit for the Block-Model Family",
+      "authors": [
+        "Jiashun Jin",
+        "Zheng Tracy Ke",
+        "Jiajun Tang",
+        "Jingming Wang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1919-1932",
+      "doi": "10.1080/01621459.2025.2479242",
+      "url": "https://doi.org/10.1080/01621459.2025.2479242",
+      "journal": "JASA"
+    },
+    {
+      "title": "Aggregated Projection Method: A New Approach for Group Factor Model",
+      "authors": [
+        "Jiaqi Hu",
+        "Ting Li",
+        "Xueqin Wang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2749-2761",
+      "doi": "10.1080/01621459.2025.2491154",
+      "url": "https://doi.org/10.1080/01621459.2025.2491154",
+      "journal": "JASA"
+    },
+    {
+      "title": "Statistical Prediction and Machine Learning",
+      "authors": [
+        "Michal Pešta"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "2007-2009",
+      "doi": "10.1080/01621459.2025.2495318",
+      "url": "https://doi.org/10.1080/01621459.2025.2495318",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Smoothed-Bayesian Approach to Frequency Recovery from Sketched Data",
+      "authors": [
+        "Mario Beraha",
+        "Stefano Favaro",
+        "Matteo Sesia"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2737-2748",
+      "doi": "10.1080/01621459.2025.2490302",
+      "url": "https://doi.org/10.1080/01621459.2025.2490302",
+      "journal": "JASA"
+    },
+    {
+      "title": "Unified Optimal Model Averaging with a General Loss Function based on Cross-Validation",
+      "authors": [
+        "Dalei Yu",
+        "Xinyu Zhang",
+        "Hua Liang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2697-2708",
+      "doi": "10.1080/01621459.2025.2487215",
+      "url": "https://doi.org/10.1080/01621459.2025.2487215",
+      "journal": "JASA"
+    },
+    {
+      "title": "Estimating Heterogeneous Causal Mediation Effects with Bayesian Decision Tree Ensembles",
+      "authors": [
+        "Angela Ting",
+        "Antonio R. Linero"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1400-1413",
+      "doi": "10.1080/01621459.2025.2491155",
+      "url": "https://doi.org/10.1080/01621459.2025.2491155",
+      "journal": "JASA"
+    },
+    {
+      "title": "Safe Policy Learning through Extrapolation: Application to Pre-trial Risk Assessment",
+      "authors": [
+        "Eli Ben-Michael",
+        "D. James Greiner",
+        "Kosuke Imai",
+        "Zhichao Jiang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1386-1399",
+      "doi": "10.1080/01621459.2025.2489135",
+      "url": "https://doi.org/10.1080/01621459.2025.2489135",
+      "journal": "JASA"
+    },
+    {
+      "title": "<i>Who Are We Missing?</i>\n                    : A Principled Approach to Characterizing the Underrepresented Population",
+      "authors": [
+        "Harsh Parikh",
+        "Rachael K. Ross",
+        "Elizabeth Stuart",
+        "Kara E. Rudolph"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1414-1423",
+      "doi": "10.1080/01621459.2025.2495319",
+      "url": "https://doi.org/10.1080/01621459.2025.2495319",
+      "journal": "JASA"
+    },
+    {
+      "title": "Inference in Generalized Linear Models with Robustness to Misspecified Variances",
+      "authors": [
+        "Riccardo De Santis",
+        "Jelle J. Goeman",
+        "Jesse Hemerik",
+        "Samuel Davenport",
+        "Livio Finos"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2762-2771",
+      "doi": "10.1080/01621459.2025.2491775",
+      "url": "https://doi.org/10.1080/01621459.2025.2491775",
+      "journal": "JASA"
+    },
+    {
+      "title": "Nonparametric Test for Rough Volatility",
+      "authors": [
+        "Carsten H. Chong",
+        "Viktor Todorov"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2772-2783",
+      "doi": "10.1080/01621459.2025.2495316",
+      "url": "https://doi.org/10.1080/01621459.2025.2495316",
+      "journal": "JASA"
+    },
+    {
+      "title": "Dependent Random Partitions by Shrinking Toward an Anchor",
+      "authors": [
+        "David B. Dahl",
+        "Richard L. Warr",
+        "Thomas P. Jensen"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2684-2696",
+      "doi": "10.1080/01621459.2025.2485357",
+      "url": "https://doi.org/10.1080/01621459.2025.2485357",
+      "journal": "JASA"
+    },
+    {
+      "title": "Causal Inference for Genomic Data with Multiple Heterogeneous Outcomes",
+      "authors": [
+        "Jin-Hong Du",
+        "Zhenghao Zeng",
+        "Edward H. Kennedy",
+        "Larry Wasserman",
+        "Kathryn Roeder"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2484-2497",
+      "doi": "10.1080/01621459.2025.2468014",
+      "url": "https://doi.org/10.1080/01621459.2025.2468014",
+      "journal": "JASA"
+    },
+    {
+      "title": "Asymptotic Behavior of Adversarial Training Estimator under\n                    <i>ℓ</i>\n                    <sub>∞</sub>\n                    -Perturbation",
+      "authors": [
+        "Yiling Xie",
+        "Xiaoming Huo"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2672-2683",
+      "doi": "10.1080/01621459.2025.2485346",
+      "url": "https://doi.org/10.1080/01621459.2025.2485346",
+      "journal": "JASA"
+    },
+    {
+      "title": "Likelihood Ratio Tests in Random Graph Models with Increasing Dimensions",
+      "authors": [
+        "Ting Yan",
+        "Yuanzhang Li",
+        "Jinfeng Xu",
+        "Yaning Yang",
+        "Ji Zhu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2723-2736",
+      "doi": "10.1080/01621459.2025.2488477",
+      "url": "https://doi.org/10.1080/01621459.2025.2488477",
+      "journal": "JASA"
+    },
+    {
+      "title": "Simultaneous Inference for Generalized Linear Models with Unmeasured Confounders",
+      "authors": [
+        "Jin-Hong Du",
+        "Larry Wasserman",
+        "Kathryn Roeder"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1945-1959",
+      "doi": "10.1080/01621459.2025.2485379",
+      "url": "https://doi.org/10.1080/01621459.2025.2485379",
+      "journal": "JASA"
+    },
+    {
+      "title": "Posterior Predictive Design for Phase I Clinical Trials",
+      "authors": [
+        "Chenqi Fu",
+        "Shouhao Zhou",
+        "J. Jack Lee"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2646-2657",
+      "doi": "10.1080/01621459.2025.2484044",
+      "url": "https://doi.org/10.1080/01621459.2025.2484044",
+      "journal": "JASA"
+    },
+    {
+      "title": "Testing Mutually Exclusive Hypotheses for Multi-Response Regressions",
+      "authors": [
+        "Jiaqi Huang",
+        "Wenbiao Zhao",
+        "Lixing Zhu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2410-2421",
+      "doi": "10.1080/01621459.2025.2455191",
+      "url": "https://doi.org/10.1080/01621459.2025.2455191",
+      "journal": "JASA"
+    },
+    {
+      "title": "Estimation and Inference of Quantile Spatially Varying Coefficient Models Over Complicated Domains",
+      "authors": [
+        "Myungjin Kim",
+        "Li Wang",
+        "Huixia Judy Wang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1853-1867",
+      "doi": "10.1080/01621459.2025.2480867",
+      "url": "https://doi.org/10.1080/01621459.2025.2480867",
+      "journal": "JASA"
+    },
+    {
+      "title": "Hypothesis Testing for a Functional Parameter via Self-Normalization",
+      "authors": [
+        "Yi Zhang",
+        "Xiaofeng Shao"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2632-2645",
+      "doi": "10.1080/01621459.2025.2483483",
+      "url": "https://doi.org/10.1080/01621459.2025.2483483",
+      "journal": "JASA"
+    },
+    {
+      "title": "Network-Based Neighborhood Regression",
+      "authors": [
+        "Yaoming Zhen",
+        "Jin-Hong Du"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2658-2671",
+      "doi": "10.1080/01621459.2025.2485342",
+      "url": "https://doi.org/10.1080/01621459.2025.2485342",
+      "journal": "JASA"
+    },
+    {
+      "title": "Distributed Tensor Principal Component Analysis with Data Heterogeneity",
+      "authors": [
+        "Elynn Chen",
+        "Xi Chen",
+        "Wenbo Jing",
+        "Yichen Zhang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2619-2631",
+      "doi": "10.1080/01621459.2025.2483481",
+      "url": "https://doi.org/10.1080/01621459.2025.2483481",
+      "journal": "JASA"
+    },
+    {
+      "title": "Sparse Bayesian Multidimensional Item Response Theory",
+      "authors": [
+        "Jiguang Li",
+        "Robert Gibbons",
+        "Veronika Ročková"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2592-2605",
+      "doi": "10.1080/01621459.2025.2476786",
+      "url": "https://doi.org/10.1080/01621459.2025.2476786",
+      "journal": "JASA"
+    },
+    {
+      "title": "Prediction of Cognitive Function via Brain Region Volumes with Applications to Alzheimer’s Disease Based on Space-Factor-Guided Functional Principal Component Analysis",
+      "authors": [
+        "Shoudao Wen",
+        "Yi Li",
+        "Dehan Kong",
+        "Huazhen Lin"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1373-1385",
+      "doi": "10.1080/01621459.2025.2479220",
+      "url": "https://doi.org/10.1080/01621459.2025.2479220",
+      "journal": "JASA"
+    },
+    {
+      "title": "Communication-Efficient Distributed Sparse Learning with Oracle Property and Geometric Convergence",
+      "authors": [
+        "Weidong Liu",
+        "Xiaojun Mao",
+        "Jiyuan Tu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2606-2618",
+      "doi": "10.1080/01621459.2025.2479237",
+      "url": "https://doi.org/10.1080/01621459.2025.2479237",
+      "journal": "JASA"
+    },
+    {
+      "title": "Data Fusion Using Weakly Aligned Sources",
+      "authors": [
+        "Sijia Li",
+        "Peter B. Gilbert",
+        "Rui Duan",
+        "Alex Luedtke"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2569-2579",
+      "doi": "10.1080/01621459.2025.2476780",
+      "url": "https://doi.org/10.1080/01621459.2025.2476780",
+      "journal": "JASA"
+    },
+    {
+      "title": "Statistical Inference for High-Dimensional Spectral Density Matrix",
+      "authors": [
+        "Jinyuan Chang",
+        "Qing Jiang",
+        "Tucker McElroy",
+        "Xiaofeng Shao"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1960-1974",
+      "doi": "10.1080/01621459.2025.2468013",
+      "url": "https://doi.org/10.1080/01621459.2025.2468013",
+      "journal": "JASA"
+    },
+    {
+      "title": "Cutting Feedback in Misspecified Copula Models",
+      "authors": [
+        "Michael Stanley Smith",
+        "Weichang Yu",
+        "David J. Nott",
+        "David T. Frazier"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1975-1989",
+      "doi": "10.1080/01621459.2025.2464270",
+      "url": "https://doi.org/10.1080/01621459.2025.2464270",
+      "journal": "JASA"
+    },
+    {
+      "title": "Dynamic Regression of Longitudinal Trajectory Features",
+      "authors": [
+        "Huijuan Ma",
+        "Wei Zhao",
+        "John Hanfelt",
+        "Limin Peng"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2535-2546",
+      "doi": "10.1080/01621459.2025.2474265",
+      "url": "https://doi.org/10.1080/01621459.2025.2474265",
+      "journal": "JASA"
+    },
+    {
+      "title": "Frequency Domain Statistical Inference for High-Dimensional Time Series",
+      "authors": [
+        "Jonas Krampe",
+        "Efstathios Paparoditis"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1580-1592",
+      "doi": "10.1080/01621459.2025.2479244",
+      "url": "https://doi.org/10.1080/01621459.2025.2479244",
+      "journal": "JASA"
+    },
+    {
+      "title": "Positive and Unlabeled Data: Model, Estimation, Inference, and Classification",
+      "authors": [
+        "Siyan Liu",
+        "Chi-Kuang Yeh",
+        "Xin Zhang",
+        "Qinglong Tian",
+        "Pengfei Li"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2547-2558",
+      "doi": "10.1080/01621459.2025.2474266",
+      "url": "https://doi.org/10.1080/01621459.2025.2474266",
+      "journal": "JASA"
+    },
+    {
+      "title": "Geodesic Mixed Effects Models for Repeatedly Observed/Longitudinal Random Objects",
+      "authors": [
+        "Satarupa Bhattacharjee",
+        "Hans-Georg Müller"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1879-1892",
+      "doi": "10.1080/01621459.2025.2474267",
+      "url": "https://doi.org/10.1080/01621459.2025.2474267",
+      "journal": "JASA"
+    },
+    {
+      "title": "Kernel Meets Sieve: Transformed Hazards Models with Sparse Longitudinal Covariates",
+      "authors": [
+        "Dayu Sun",
+        "Zhuowei Sun",
+        "Xingqiu Zhao",
+        "Hongyuan Cao"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2580-2591",
+      "doi": "10.1080/01621459.2025.2476781",
+      "url": "https://doi.org/10.1080/01621459.2025.2476781",
+      "journal": "JASA"
+    },
+    {
+      "title": "An Economical Approach to Design Posterior Analyses",
+      "authors": [
+        "Luke Hagar",
+        "Nathaniel T. Stevens"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2559-2568",
+      "doi": "10.1080/01621459.2025.2476221",
+      "url": "https://doi.org/10.1080/01621459.2025.2476221",
+      "journal": "JASA"
+    },
+    {
+      "title": "Network Varying Coefficient Model",
+      "authors": [
+        "Xinyan Fan",
+        "Kuangnan Fang",
+        "Wei Lan",
+        "Chih-Ling Tsai"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2498-2509",
+      "doi": "10.1080/01621459.2025.2470481",
+      "url": "https://doi.org/10.1080/01621459.2025.2470481",
+      "journal": "JASA"
+    },
+    {
+      "title": "Robustifying Likelihoods by Optimistically Re-weighting Data",
+      "authors": [
+        "Miheer Dewaskar",
+        "Christopher Tosh",
+        "Jeremias Knoblauch",
+        "David B. Dunson"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1787-1798",
+      "doi": "10.1080/01621459.2025.2468012",
+      "url": "https://doi.org/10.1080/01621459.2025.2468012",
+      "journal": "JASA"
+    },
+    {
+      "title": "Degree-Heterogeneous Latent Class Analysis for High-Dimensional Discrete Data",
+      "authors": [
+        "Zhongyuan Lyu",
+        "Ling Chen",
+        "Yuqi Gu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2435-2448",
+      "doi": "10.1080/01621459.2025.2455198",
+      "url": "https://doi.org/10.1080/01621459.2025.2455198",
+      "journal": "JASA"
+    },
+    {
+      "title": "Statistical Inference for High-Dimensional Convoluted Rank Regression",
+      "authors": [
+        "Leheng Cai",
+        "Xu Guo",
+        "Heng Lian",
+        "Liping Zhu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2510-2521",
+      "doi": "10.1080/01621459.2025.2471054",
+      "url": "https://doi.org/10.1080/01621459.2025.2471054",
+      "journal": "JASA"
+    },
+    {
+      "title": "Multi-Dimensional Domain Generalization with Low-Rank Structures",
+      "authors": [
+        "Sai Li",
+        "Linjun Zhang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2522-2534",
+      "doi": "10.1080/01621459.2025.2471055",
+      "url": "https://doi.org/10.1080/01621459.2025.2471055",
+      "journal": "JASA"
+    },
+    {
+      "title": "Class-Specific Joint Feature Screening in Ultrahigh-Dimensional Mixture Regression",
+      "authors": [
+        "Kaili Jing",
+        "Abbas Khalili",
+        "Chen Xu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2473-2483",
+      "doi": "10.1080/01621459.2025.2468011",
+      "url": "https://doi.org/10.1080/01621459.2025.2468011",
+      "journal": "JASA"
+    },
+    {
+      "title": "Distributional Outcome Regression via Quantile Functions and its Application to Modelling Continuously Monitored Heart Rate and Physical Activity",
+      "authors": [
+        "Rahul Ghosal",
+        "Sujit K. Ghosh",
+        "Jennifer A. Schrack",
+        "Vadim Zipunnikov"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1347-1359",
+      "doi": "10.1080/01621459.2025.2460232",
+      "url": "https://doi.org/10.1080/01621459.2025.2460232",
+      "journal": "JASA"
+    },
+    {
+      "title": "Efficient Estimation for Longitudinal Networks via Adaptive Merging",
+      "authors": [
+        "Haoran Zhang",
+        "Junhui Wang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1683-1694",
+      "doi": "10.1080/01621459.2025.2455202",
+      "url": "https://doi.org/10.1080/01621459.2025.2455202",
+      "journal": "JASA"
+    },
+    {
+      "title": "Deep Regression for Repeated Measurements",
+      "authors": [
+        "Shunxing Yan",
+        "Fang Yao",
+        "Hang Zhou"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2461-2472",
+      "doi": "10.1080/01621459.2025.2458344",
+      "url": "https://doi.org/10.1080/01621459.2025.2458344",
+      "journal": "JASA"
+    },
+    {
+      "title": "Phase-Type Distributions for Sieve Estimation",
+      "authors": [
+        "Hu Xiangbin",
+        "Yudong Wang",
+        "Zhisheng Ye",
+        "Xingqiu Zhao"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1828-1839",
+      "doi": "10.1080/01621459.2025.2459442",
+      "url": "https://doi.org/10.1080/01621459.2025.2459442",
+      "journal": "JASA"
+    },
+    {
+      "title": "Fast Signal Region Detection With Application to Whole Genome Association Studies",
+      "authors": [
+        "Wei Zhang",
+        "Fan Wang",
+        "Fang Yao"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1360-1372",
+      "doi": "10.1080/01621459.2025.2464271",
+      "url": "https://doi.org/10.1080/01621459.2025.2464271",
+      "journal": "JASA"
+    },
+    {
+      "title": "Estimation of Over-Parameterized Models from an Auto-Modeling Perspective",
+      "authors": [
+        "Yiran Jiang",
+        "Chuanhai Liu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2422-2434",
+      "doi": "10.1080/01621459.2025.2455192",
+      "url": "https://doi.org/10.1080/01621459.2025.2455192",
+      "journal": "JASA"
+    },
+    {
+      "title": "Estimating Heterogeneous Exposure Effects in the Case-Crossover Design Using BART",
+      "authors": [
+        "Jacob R. Englert",
+        "Stefanie T. Ebelt",
+        "Howard H. Chang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1335-1346",
+      "doi": "10.1080/01621459.2025.2460231",
+      "url": "https://doi.org/10.1080/01621459.2025.2460231",
+      "journal": "JASA"
+    },
+    {
+      "title": "High-Dimensional Variable Clustering based on Maxima of a Weakly Dependent Random Process",
+      "authors": [
+        "Alexis Boulin",
+        "Elena Di Bernardino",
+        "Thomas Laloë",
+        "Gwladys Toulemonde"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1933-1944",
+      "doi": "10.1080/01621459.2025.2459443",
+      "url": "https://doi.org/10.1080/01621459.2025.2459443",
+      "journal": "JASA"
+    },
+    {
+      "title": "Rate-Optimal Rank Aggregation with Private Pairwise Rankings",
+      "authors": [
+        "Shirong Xu",
+        "Will Wei Sun",
+        "Guang Cheng"
+      ],
+      "year": "2025",
+      "month": "04",
+      "volume": "120",
+      "issue": "550",
+      "pages": "737-750",
+      "doi": "10.1080/01621459.2025.2484843",
+      "url": "https://doi.org/10.1080/01621459.2025.2484843",
+      "journal": "JASA"
+    },
+    {
+      "title": "High-Dimensional Expected Shortfall Regression",
+      "authors": [
+        "Shushu Zhang",
+        "Xuming He",
+        "Kean Ming Tan",
+        "Wen-Xin Zhou"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1799-1810",
+      "doi": "10.1080/01621459.2024.2448860",
+      "url": "https://doi.org/10.1080/01621459.2024.2448860",
+      "journal": "JASA"
+    },
+    {
+      "title": "Federated Adaptive Causal Estimation (FACE) of Target Treatment Effects",
+      "authors": [
+        "Larry Han",
+        "Jue Hou",
+        "Kelly Cho",
+        "Rui Duan",
+        "Tianxi Cai"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1503-1516",
+      "doi": "10.1080/01621459.2025.2453249",
+      "url": "https://doi.org/10.1080/01621459.2025.2453249",
+      "journal": "JASA"
+    },
+    {
+      "title": "Hub Detection in Gaussian Graphical Models",
+      "authors": [
+        "José Á. Sánchez Gómez",
+        "Weibin Mo",
+        "Junlong Zhao",
+        "Yufeng Liu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2397-2409",
+      "doi": "10.1080/01621459.2025.2453250",
+      "url": "https://doi.org/10.1080/01621459.2025.2453250",
+      "journal": "JASA"
+    },
+    {
+      "title": "U-Statistic Reduction: Higher-Order Accurate Risk Control and Statistical-Computational Trade-Off",
+      "authors": [
+        "Meijia Shao",
+        "Dong Xia",
+        "Yuan Zhang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1593-1606",
+      "doi": "10.1080/01621459.2024.2448029",
+      "url": "https://doi.org/10.1080/01621459.2024.2448029",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Novel Approach of High Dimensional Linear Hypothesis Testing Problem",
+      "authors": [
+        "Zhe Zhang",
+        "Xiufan Yu",
+        "Runze Li"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2235-2249",
+      "doi": "10.1080/01621459.2024.2428467",
+      "url": "https://doi.org/10.1080/01621459.2024.2428467",
+      "journal": "JASA"
+    },
+    {
+      "title": "High-Dimensional Knockoffs Inference for Time Series Data",
+      "authors": [
+        "Chien-Ming Chi",
+        "Yingying Fan",
+        "Ching-Kang Ing",
+        "Jinchi Lv"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1763-1774",
+      "doi": "10.1080/01621459.2024.2431344",
+      "url": "https://doi.org/10.1080/01621459.2024.2431344",
+      "journal": "JASA"
+    },
+    {
+      "title": "Discovering the Network Granger Causality in Large Vector Autoregressive Models",
+      "authors": [
+        "Yoshimasa Uematsu",
+        "Takashi Yamagata"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2385-2396",
+      "doi": "10.1080/01621459.2025.2450836",
+      "url": "https://doi.org/10.1080/01621459.2025.2450836",
+      "journal": "JASA"
+    },
+    {
+      "title": "Identifying Genetic Variants for Brain Connectivity Using Ball Covariance Ranking and Aggregation",
+      "authors": [
+        "Wei Dai",
+        "Heping Zhang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1323-1334",
+      "doi": "10.1080/01621459.2025.2450837",
+      "url": "https://doi.org/10.1080/01621459.2025.2450837",
+      "journal": "JASA"
+    },
+    {
+      "title": "Inferences in Multinomial Dynamic Mixed Logit Models",
+      "authors": [
+        "Alwell Oyet",
+        "Brajendra C. Sutradhar",
+        "R. Prabhakar Rao"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2350-2361",
+      "doi": "10.1080/01621459.2024.2448857",
+      "url": "https://doi.org/10.1080/01621459.2024.2448857",
+      "journal": "JASA"
+    },
+    {
+      "title": "An Adaptive Adjustment to the\n                    <i>R</i>\n                    <sub>2</sub>\n                    Statistic in High-Dimensional Elliptical Models",
+      "authors": [
+        "Shizhe Hong",
+        "Weiming Li",
+        "Qiang Liu",
+        "Yangchun Zhang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2372-2384",
+      "doi": "10.1080/01621459.2024.2448859",
+      "url": "https://doi.org/10.1080/01621459.2024.2448859",
+      "journal": "JASA"
+    },
+    {
+      "title": "Semiparametric Regression Analysis of Interval-Censored Multi-State Data with An Absorbing State",
+      "authors": [
+        "Yu Gu",
+        "Donglin Zeng",
+        "D. Y. Lin"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2362-2371",
+      "doi": "10.1080/01621459.2024.2448858",
+      "url": "https://doi.org/10.1080/01621459.2024.2448858",
+      "journal": "JASA"
+    },
+    {
+      "title": "Handbook of Bayesian, Fiducial, and Frequentist Inference",
+      "authors": [
+        "Mengyang Gu"
+      ],
+      "year": "2025",
+      "month": "04",
+      "volume": "120",
+      "issue": "550",
+      "pages": "1318-1320",
+      "doi": "10.1080/01621459.2025.2454048",
+      "url": "https://doi.org/10.1080/01621459.2025.2454048",
+      "journal": "JASA"
+    },
+    {
+      "title": "Objective Bayesian Inference",
+      "authors": [
+        "Jaeyong Lee"
+      ],
+      "year": "2025",
+      "month": "04",
+      "volume": "120",
+      "issue": "550",
+      "pages": "1321-1322",
+      "doi": "10.1080/01621459.2025.2454051",
+      "url": "https://doi.org/10.1080/01621459.2025.2454051",
+      "journal": "JASA"
+    },
+    {
+      "title": "Sparse Bayesian Group Factor Model for Feature Interactions in Multiple Count Tables Data",
+      "authors": [
+        "Shuangjie Zhang",
+        "Yuning Shen",
+        "Irene A. Chen",
+        "Juhee Lee"
+      ],
+      "year": "2025",
+      "month": "04",
+      "volume": "120",
+      "issue": "550",
+      "pages": "723-736",
+      "doi": "10.1080/01621459.2025.2449721",
+      "url": "https://doi.org/10.1080/01621459.2025.2449721",
+      "journal": "JASA"
+    },
+    {
+      "title": "Immune Profiling Among Colorectal Cancer Subtypes Using Dependent Mixture Models",
+      "authors": [
+        "Yunshan Duan",
+        "Shuai Guo",
+        "Wenyi Wang",
+        "Peter Müller"
+      ],
+      "year": "2025",
+      "month": "04",
+      "volume": "120",
+      "issue": "550",
+      "pages": "671-684",
+      "doi": "10.1080/01621459.2024.2427936",
+      "url": "https://doi.org/10.1080/01621459.2024.2427936",
+      "journal": "JASA"
+    },
+    {
+      "title": "Robust Bayesian Modeling of Counts with Zero Inflation and Outliers: Theoretical Robustness and Efficient Computation",
+      "authors": [
+        "Yasuyuki Hamura",
+        "Kaoru Irie",
+        "Shonosuke Sugasawa"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1545-1557",
+      "doi": "10.1080/01621459.2024.2447111",
+      "url": "https://doi.org/10.1080/01621459.2024.2447111",
+      "journal": "JASA"
+    },
+    {
+      "title": "GeoWarp: Warped Spatial Processes for Inferring Subsea Sediment Properties",
+      "authors": [
+        "Michael Bertolacci",
+        "Andrew Zammit-Mangion",
+        "Juan Valderrama Giraldo",
+        "Michael O’Neill",
+        "Fraser Bransby",
+        "Phil Watson"
+      ],
+      "year": "2025",
+      "month": "04",
+      "volume": "120",
+      "issue": "550",
+      "pages": "710-722",
+      "doi": "10.1080/01621459.2024.2445874",
+      "url": "https://doi.org/10.1080/01621459.2024.2445874",
+      "journal": "JASA"
+    },
+    {
+      "title": "Comparison of Longitudinal Trajectories Using a High-Dimensional Partial Linear Semiparametric Mixed-Effects Model",
+      "authors": [
+        "Sami Leon",
+        "Tong Tong Wu"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2288-2301",
+      "doi": "10.1080/01621459.2024.2441523",
+      "url": "https://doi.org/10.1080/01621459.2024.2441523",
+      "journal": "JASA"
+    },
+    {
+      "title": "Adaptive Testing for High-Dimensional Data",
+      "authors": [
+        "Yangfan Zhang",
+        "Runmin Wang",
+        "Xiaofeng Shao"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1893-1905",
+      "doi": "10.1080/01621459.2024.2439617",
+      "url": "https://doi.org/10.1080/01621459.2024.2439617",
+      "journal": "JASA"
+    },
+    {
+      "title": "Robust Inference for Federated Meta-Learning",
+      "authors": [
+        "Zijian Guo",
+        "Xiudi Li",
+        "Larry Han",
+        "Tianxi Cai"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1695-1710",
+      "doi": "10.1080/01621459.2024.2443246",
+      "url": "https://doi.org/10.1080/01621459.2024.2443246",
+      "journal": "JASA"
+    },
+    {
+      "title": "Analysis of Variance of Tensor Product Reproducing Kernel Hilbert Spaces on Metric Spaces",
+      "authors": [
+        "Zhanfeng Wang",
+        "Rui Pan",
+        "Xueqin Wang",
+        "Yuedong Wang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2302-2313",
+      "doi": "10.1080/01621459.2024.2441525",
+      "url": "https://doi.org/10.1080/01621459.2024.2441525",
+      "journal": "JASA"
+    },
+    {
+      "title": "Estimation and Inference for Nonparametric Expected Shortfall Regression over RKHS",
+      "authors": [
+        "Myeonghun Yu",
+        "Yue Wang",
+        "Siyu Xie",
+        "Kean Ming Tan",
+        "Wen-Xin Zhou"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2314-2325",
+      "doi": "10.1080/01621459.2024.2441657",
+      "url": "https://doi.org/10.1080/01621459.2024.2441657",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Bias-Accuracy-Privacy Trilemma for Statistical Estimation",
+      "authors": [
+        "Gautam Kamath",
+        "Argyris Mouzakis",
+        "Matthew Regehr",
+        "Vikrant Singhal",
+        "Thomas Steinke",
+        "Jonathan Ullman"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2338-2349",
+      "doi": "10.1080/01621459.2024.2443275",
+      "url": "https://doi.org/10.1080/01621459.2024.2443275",
+      "journal": "JASA"
+    },
+    {
+      "title": "Euclidean Mirrors and Dynamics in Network Time Series",
+      "authors": [
+        "Avanti Athreya",
+        "Zachary Lubberts",
+        "Youngser Park",
+        "Carey Priebe"
+      ],
+      "year": "2025",
+      "month": "04",
+      "volume": "120",
+      "issue": "550",
+      "pages": "1025-1036",
+      "doi": "10.1080/01621459.2024.2392912",
+      "url": "https://doi.org/10.1080/01621459.2024.2392912",
+      "journal": "JASA"
+    },
+    {
+      "title": "Large Precision Matrix Estimation with Unknown Group Structure",
+      "authors": [
+        "Cong Cheng",
+        "Yuan Ke",
+        "Wenyang Zhang"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2326-2337",
+      "doi": "10.1080/01621459.2024.2442092",
+      "url": "https://doi.org/10.1080/01621459.2024.2442092",
+      "journal": "JASA"
+    },
+    {
+      "title": "Sensitivity Analysis for Quantiles of Hidden Biases in Matched Observational Studies",
+      "authors": [
+        "Dongxiao Wu",
+        "Xinran Li"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1657-1668",
+      "doi": "10.1080/01621459.2024.2441527",
+      "url": "https://doi.org/10.1080/01621459.2024.2441527",
+      "journal": "JASA"
+    },
+    {
+      "title": "Estimation and Variable Selection for Interval-Censored Failure Time Data with Random Change Point and Application to Breast Cancer Study",
+      "authors": [
+        "Mingyue Du",
+        "Yichen Lou",
+        "Jianguo Sun"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2276-2287",
+      "doi": "10.1080/01621459.2024.2441522",
+      "url": "https://doi.org/10.1080/01621459.2024.2441522",
+      "journal": "JASA"
+    },
+    {
+      "title": "Deconvolution Density Estimation with Penalized MLE",
+      "authors": [
+        "Yun Cai",
+        "Hong Gu",
+        "Toby Kenney"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1711-1723",
+      "doi": "10.1080/01621459.2024.2436686",
+      "url": "https://doi.org/10.1080/01621459.2024.2436686",
+      "journal": "JASA"
+    },
+    {
+      "title": "Modeling Preferences: A Bayesian Mixture of Finite Mixtures for Rankings and Ratings",
+      "authors": [
+        "Michael Pearce",
+        "Elena A. Erosheva"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1621-1632",
+      "doi": "10.1080/01621459.2024.2444700",
+      "url": "https://doi.org/10.1080/01621459.2024.2444700",
+      "journal": "JASA"
+    },
+    {
+      "title": "Ordinal Data Analysis: Statistical Perspective with Applications",
+      "authors": [
+        "Maria Iannario"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "2005-2007",
+      "doi": "10.1080/01621459.2024.2443255",
+      "url": "https://doi.org/10.1080/01621459.2024.2443255",
+      "journal": "JASA"
+    },
+    {
+      "title": "On the Comparative Analysis of Average Treatment Effects Estimation via Data Combination",
+      "authors": [
+        "Peng Wu",
+        "Shanshan Luo",
+        "Zhi Geng"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2250-2261",
+      "doi": "10.1080/01621459.2024.2435656",
+      "url": "https://doi.org/10.1080/01621459.2024.2435656",
+      "journal": "JASA"
+    },
+    {
+      "title": "Combining Broad and Narrow Case Definitions in Matched Case-Control Studies: Firearms in the Home and Suicide Risk",
+      "authors": [
+        "Ting Ye",
+        "Kan Chen",
+        "Dylan Small"
+      ],
+      "year": "2025",
+      "month": "04",
+      "volume": "120",
+      "issue": "550",
+      "pages": "698-709",
+      "doi": "10.1080/01621459.2024.2441519",
+      "url": "https://doi.org/10.1080/01621459.2024.2441519",
+      "journal": "JASA"
+    },
+    {
+      "title": "When Composite Likelihood meets Stochastic Approximation",
+      "authors": [
+        "Giuseppe Alfonzetti",
+        "Ruggero Bellio",
+        "Yunxiao Chen",
+        "Irini Moustaki"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1906-1918",
+      "doi": "10.1080/01621459.2024.2436219",
+      "url": "https://doi.org/10.1080/01621459.2024.2436219",
+      "journal": "JASA"
+    },
+    {
+      "title": "Optimal Multitask Linear Regression and Contextual Bandits under Sparse Heterogeneity",
+      "authors": [
+        "Xinmeng Huang",
+        "Kan Xu",
+        "Donghwan Lee",
+        "Hamed Hassani",
+        "Hamsa Bastani",
+        "Edgar Dobriban"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "120",
+      "issue": "552",
+      "pages": "2262-2275",
+      "doi": "10.1080/01621459.2024.2439622",
+      "url": "https://doi.org/10.1080/01621459.2024.2439622",
+      "journal": "JASA"
+    },
+    {
+      "title": "Inferring Causal Effect of a Digital Communication Strategy under a Latent Sequential Ignorability Assumption and Treatment Noncompliance",
+      "authors": [
+        "Yuki Ohnishi",
+        "Bikram Karmakar",
+        "Wreetabrata Kar"
+      ],
+      "year": "2025",
+      "month": "04",
+      "volume": "120",
+      "issue": "550",
+      "pages": "685-697",
+      "doi": "10.1080/01621459.2024.2435655",
+      "url": "https://doi.org/10.1080/01621459.2024.2435655",
+      "journal": "JASA"
+    },
+    {
+      "title": "Soccer Analytics: An Introduction Using R",
+      "authors": [
+        "Alexander Aue"
+      ],
+      "year": "2025",
+      "month": "04",
+      "volume": "120",
+      "issue": "550",
+      "pages": "1320-1321",
+      "doi": "10.1080/01621459.2024.2435110",
+      "url": "https://doi.org/10.1080/01621459.2024.2435110",
+      "journal": "JASA"
+    },
+    {
+      "title": "When Frictions Are Fractional: Rough Noise in High-Frequency Data",
+      "authors": [
+        "Carsten H. Chong",
+        "Thomas Delerue",
+        "Guoying Li"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1531-1544",
+      "doi": "10.1080/01621459.2024.2428466",
+      "url": "https://doi.org/10.1080/01621459.2024.2428466",
+      "journal": "JASA"
+    },
+    {
+      "title": "Unlocking Retrospective Prevalent Information in EHRs—A Revisit to the Pairwise Pseudolikelihood",
+      "authors": [
+        "Nir Keret",
+        "Malka Gorfine"
+      ],
+      "year": "2025",
+      "month": "04",
+      "volume": "120",
+      "issue": "550",
+      "pages": "658-670",
+      "doi": "10.1080/01621459.2024.2427431",
+      "url": "https://doi.org/10.1080/01621459.2024.2427431",
+      "journal": "JASA"
+    },
+    {
+      "title": "Simulation-Based, Finite-Sample Inference for Privatized Data",
+      "authors": [
+        "Jordan Awan",
+        "Zhanyu Wang"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1669-1682",
+      "doi": "10.1080/01621459.2024.2427436",
+      "url": "https://doi.org/10.1080/01621459.2024.2427436",
+      "journal": "JASA"
+    },
+    {
+      "title": "Bayesian Clustering via Fusing of Localized Densities",
+      "authors": [
+        "Alexander Dombowsky",
+        "David B. Dunson"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1775-1786",
+      "doi": "10.1080/01621459.2024.2427935",
+      "url": "https://doi.org/10.1080/01621459.2024.2427935",
+      "journal": "JASA"
+    },
+    {
+      "title": "Comments on “Data Fission: Splitting a Single Data Point”",
+      "authors": [
+        "Sanat K. Sarkar"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "170-171",
+      "doi": "10.1080/01621459.2024.2414865",
+      "url": "https://doi.org/10.1080/01621459.2024.2414865",
+      "journal": "JASA"
+    },
+    {
+      "title": "Discussion of “Data Fission: Splitting a Single Data Point” – Some Asymptotic Results for Data Fission",
+      "authors": [
+        "Lihua Lei"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "147-150",
+      "doi": "10.1080/01621459.2024.2441416",
+      "url": "https://doi.org/10.1080/01621459.2024.2441416",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Discussion on: “Data Fission: Splitting a Single Data Point” by Leiner, J., Duan, B., Wasserman, L. and Ramdas, A.",
+      "authors": [
+        "Marta Catalano",
+        "Augusto Fasano",
+        "Matteo Giordano",
+        "Giovanni Rebaudo"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "158-158",
+      "doi": "10.1080/01621459.2024.2412183",
+      "url": "https://doi.org/10.1080/01621459.2024.2412183",
+      "journal": "JASA"
+    },
+    {
+      "title": "Rejoinder",
+      "authors": [
+        "James Leiner",
+        "Boyan Duan",
+        "Larry Wasserman",
+        "Aaditya Ramdas"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "180-185",
+      "doi": "10.1080/01621459.2025.2459216",
+      "url": "https://doi.org/10.1080/01621459.2025.2459216",
+      "journal": "JASA"
+    },
+    {
+      "title": "Poisson-FOCuS: An Efficient Online Method for Detecting Count Bursts with Application to Gamma Ray Burst Detection. Rejoinder",
+      "authors": [
+        "Kes Ward",
+        "Giuseppe Dilillo",
+        "Idris Eckley",
+        "Paul Fearnhead"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "34-37",
+      "doi": "10.1080/01621459.2024.2443563",
+      "url": "https://doi.org/10.1080/01621459.2024.2443563",
+      "journal": "JASA"
+    },
+    {
+      "title": "Discussion of “Data Fission: Splitting a Single Data Point” by Leiner\n                    <i>et al.</i>",
+      "authors": [
+        "Jing Lei",
+        "Natalia L. Oliveira",
+        "Ryan J. Tibshirani"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "168-169",
+      "doi": "10.1080/01621459.2024.2413426",
+      "url": "https://doi.org/10.1080/01621459.2024.2413426",
+      "journal": "JASA"
+    },
+    {
+      "title": "Comments on “Data Fission: Splitting a Single Data Point” by James Leiner, Boyan Duan, Larry Wasserman, and Aaditya Ramdas",
+      "authors": [
+        "Lijun Wang",
+        "Hongyu Zhao"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "176-177",
+      "doi": "10.1080/01621459.2024.2412808",
+      "url": "https://doi.org/10.1080/01621459.2024.2412808",
+      "journal": "JASA"
+    },
+    {
+      "title": "Discussion of “Data Fission: Splitting a Single Data Point”",
+      "authors": [
+        "Anna Neufeld",
+        "Ameer Dharamshi",
+        "Lucy L. Gao",
+        "Daniela Witten",
+        "Jacob Bien"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "151-157",
+      "doi": "10.1080/01621459.2024.2421998",
+      "url": "https://doi.org/10.1080/01621459.2024.2421998",
+      "journal": "JASA"
+    },
+    {
+      "title": "Comment on “Data Fission: Splitting a Single Data Point” by James Leiner, Boyan Duan, Larry Wasserman and Aaditya Ramdas",
+      "authors": [
+        "V. Roshan Joseph"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "167-167",
+      "doi": "10.1080/01621459.2024.2403728",
+      "url": "https://doi.org/10.1080/01621459.2024.2403728",
+      "journal": "JASA"
+    },
+    {
+      "title": "Data Fission and Sampling Designs: A Discussion",
+      "authors": [
+        "Kwun Chuen Gary Chan",
+        "Ross L. Prentice",
+        "Zhenman Yuan"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "159-160",
+      "doi": "10.1080/01621459.2024.2416530",
+      "url": "https://doi.org/10.1080/01621459.2024.2416530",
+      "journal": "JASA"
+    },
+    {
+      "title": "Our Mission in Action: Past, Present, and Future",
+      "authors": [
+        "Dionne L. Price"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "1-6",
+      "doi": "10.1080/01621459.2025.2450191",
+      "url": "https://doi.org/10.1080/01621459.2025.2450191",
+      "journal": "JASA"
+    },
+    {
+      "title": "Assumption-Lean Data Fission with Resampled Data",
+      "authors": [
+        "Kevin Fry",
+        "Snigdha Panigrahi",
+        "Jonathan Taylor"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "161-161",
+      "doi": "10.1080/01621459.2024.2412172",
+      "url": "https://doi.org/10.1080/01621459.2024.2412172",
+      "journal": "JASA"
+    },
+    {
+      "title": "Saha and Ramdas’ Discussion of “Poisson-FOCuS” by Ward, Dilillo, Eckley &amp; Fearnhead",
+      "authors": [
+        "Aytijhya Saha",
+        "Aaditya Ramdas"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "31-33",
+      "doi": "10.1080/01621459.2024.2402957",
+      "url": "https://doi.org/10.1080/01621459.2024.2402957",
+      "journal": "JASA"
+    },
+    {
+      "title": "Discussion on “Data Fission: Splitting a Single Data Point”",
+      "authors": [
+        "Zhigen Zhao"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "178-179",
+      "doi": "10.1080/01621459.2024.2416913",
+      "url": "https://doi.org/10.1080/01621459.2024.2416913",
+      "journal": "JASA"
+    },
+    {
+      "title": "Comment on “Data Fission: Splitting a Single Data Point”",
+      "authors": [
+        "Philip Waggoner"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "172-173",
+      "doi": "10.1080/01621459.2024.2402523",
+      "url": "https://doi.org/10.1080/01621459.2024.2402523",
+      "journal": "JASA"
+    },
+    {
+      "title": "Discussion of Leiner et al. “Data Fission: Splitting a Single Data Point”",
+      "authors": [
+        "Daniel García Rasines",
+        "Alastair Young"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "162-163",
+      "doi": "10.1080/01621459.2024.2402539",
+      "url": "https://doi.org/10.1080/01621459.2024.2402539",
+      "journal": "JASA"
+    },
+    {
+      "title": "Comment on “Data Fission: Splitting a Single Data Point” Data Fission for Unsupervised Learning: A Discussion on Post-Clustering Inference and the Challenges of Debiasing",
+      "authors": [
+        "Changhu Wang",
+        "Xinzhou Ge",
+        "Dongyuan Song",
+        "Jingyi Jessica Li"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "174-175",
+      "doi": "10.1080/01621459.2024.2412191",
+      "url": "https://doi.org/10.1080/01621459.2024.2412191",
+      "journal": "JASA"
+    },
+    {
+      "title": "ROC Analysis for Classification and Prediction in Practice",
+      "authors": [
+        "Mauricio Tec"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "585-586",
+      "doi": "10.1080/01621459.2024.2423434",
+      "url": "https://doi.org/10.1080/01621459.2024.2423434",
+      "journal": "JASA"
+    },
+    {
+      "title": "Comment for “Data Fission: Splitting a Single Data Point”",
+      "authors": [
+        "Sangwon Hyun"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "164-164",
+      "doi": "10.1080/01621459.2025.2467918",
+      "url": "https://doi.org/10.1080/01621459.2025.2467918",
+      "journal": "JASA"
+    },
+    {
+      "title": "Empirical Bayes Estimation via Data Fission",
+      "authors": [
+        "Nikolaos Ignatiadis",
+        "Dennis L. Sun"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "165-166",
+      "doi": "10.1080/01621459.2024.2421994",
+      "url": "https://doi.org/10.1080/01621459.2024.2421994",
+      "journal": "JASA"
+    },
+    {
+      "title": "A Space Astrophysics Perspective on Poisson-FOCuS",
+      "authors": [
+        "Carlo Graziani"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "22-25",
+      "doi": "10.1080/01621459.2024.2396960",
+      "url": "https://doi.org/10.1080/01621459.2024.2396960",
+      "journal": "JASA"
+    },
+    {
+      "title": "Discussion on “Poisson-FOCuS: An Efficient Online Method for Detecting Count Bursts with Application to Gamma Ray Burst Detection” by Ward, Dilillo, Eckley and Fearnhead",
+      "authors": [
+        "Yang Chen"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "26-30",
+      "doi": "10.1080/01621459.2024.2402961",
+      "url": "https://doi.org/10.1080/01621459.2024.2402961",
+      "journal": "JASA"
+    },
+    {
+      "title": "Discussion of “Poisson-FOCuS: An Efficient Online Method for Detecting Count Bursts with Application to Gamma Ray Burst Detection”",
+      "authors": [
+        "Mikael Kuusela"
+      ],
+      "year": "2025",
+      "month": "01",
+      "volume": "120",
+      "issue": "549",
+      "pages": "20-21",
+      "doi": "10.1080/01621459.2024.2402536",
+      "url": "https://doi.org/10.1080/01621459.2024.2402536",
+      "journal": "JASA"
+    }
+  ]
+}

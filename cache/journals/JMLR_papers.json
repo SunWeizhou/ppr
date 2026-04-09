@@ -1,0 +1,6337 @@
+{
+  "journal": "JMLR",
+  "fetched_at": "2026-04-07T20:34:57.488602",
+  "count": 358,
+  "papers": [
+    {
+      "title": "The surrogate Gibbs-posterior of a corrected stochastic MALA: Towards uncertainty quantification for neural networks",
+      "authors": [
+        "Sebastian Bieringer",
+        "Gregor Kasieczka",
+        "Maximilian F. Steffen",
+        "Mathias Trabs"
+      ],
+      "volume": "27",
+      "issue": "1",
+      "pages": "1-50",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/22-0483.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Online Detection of Changes in Moment--Based Projections: When to Retrain Deep Learners or Update Portfolios?",
+      "authors": [
+        "Ansgar Steland"
+      ],
+      "volume": "27",
+      "issue": "2",
+      "pages": "1-50",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/23-0274.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Efficient frequent directions algorithms for approximate decomposition of matrices and higher-order tensors",
+      "authors": [
+        "Maolin Che",
+        "Yimin Wei",
+        "Hong Yan"
+      ],
+      "volume": "27",
+      "issue": "3",
+      "pages": "1-56",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/23-0737.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Identifying Weight-Variant Latent Causal Models",
+      "authors": [
+        "Yuhang Liu",
+        "Zhen Zhang",
+        "Dong Gong",
+        "Mingming Gong",
+        "Biwei Huang",
+        "Anton van den Hengel",
+        "Kun Zhang",
+        "Javen Qinfeng Shi"
+      ],
+      "volume": "27",
+      "issue": "4",
+      "pages": "1-49",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/23-1023.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Classification Under Local Differential Privacy with Model Reversal and Model Averaging",
+      "authors": [
+        "Caihong Qin",
+        "Yang Bai"
+      ],
+      "volume": "27",
+      "issue": "5",
+      "pages": "1-44",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-0290.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Stochastic Gradient Methods: Bias, Stability and Generalization",
+      "authors": [
+        "Shuang Zeng",
+        "Yunwen Lei"
+      ],
+      "volume": "27",
+      "issue": "6",
+      "pages": "1-55",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-0637.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Extending Mean-Field Variational Inference via Entropic Regularization: Theory and Computation",
+      "authors": [
+        "Bohan Wu",
+        "David M. Blei"
+      ],
+      "volume": "27",
+      "issue": "7",
+      "pages": "1-68",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-1057.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "skwdro: a library for Wasserstein distributionally robust machine learning",
+      "authors": [
+        "Vincent Florian",
+        "Waïss Azizian",
+        "Franck Iutzeler",
+        "Jérôme Malick"
+      ],
+      "volume": "27",
+      "issue": "8",
+      "pages": "1-7",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-1840.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Guaranteed Nonconvex Low-Rank Tensor Estimation via Scaled Gradient Descent",
+      "authors": [
+        "Tong Wu"
+      ],
+      "volume": "27",
+      "issue": "9",
+      "pages": "1-90",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-0012.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A Data-Augmented Contrastive Learning Approach to Nonparametric Density Estimation",
+      "authors": [
+        "Chenghao Li",
+        "Yuanyuan Lin"
+      ],
+      "volume": "27",
+      "issue": "10",
+      "pages": "1-47",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-0376.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Nonlocal Techniques for the Analysis of Deep ReLU Neural Network Approximations",
+      "authors": [
+        "Cornelia Schneider",
+        "Mario Ullrich",
+        "Jan Vybíral"
+      ],
+      "volume": "27",
+      "issue": "11",
+      "pages": "1-41",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-0746.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Nonlinear function-on-function regression by RKHS",
+      "authors": [
+        "Peijun Sang",
+        "Bing Li"
+      ],
+      "volume": "27",
+      "issue": "12",
+      "pages": "1-54",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-1017.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "UQLM: A Python Package for Uncertainty Quantification in Large Language Models",
+      "authors": [
+        "Dylan Bouchard",
+        "Mohit Singh Chauhan",
+        "David Skarbrevik",
+        "Ho-Kyeong Ra",
+        "Viren Bajaj",
+        "Zeya Ahmad"
+      ],
+      "volume": "27",
+      "issue": "13",
+      "pages": "1-10",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-1557.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A Reinforcement Learning Approach in Multi-Phase Second-Price Auction Design",
+      "authors": [
+        "Rui Ai",
+        "Boxiang Lyu",
+        "Zhaoran Wang",
+        "Zhuoran Yang",
+        "Michael I. Jordan"
+      ],
+      "volume": "27",
+      "issue": "14",
+      "pages": "1-55",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/22-1194.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Error Analysis for Deep ReLU Feedforward Density-Ratio Estimation with Bregman Divergence",
+      "authors": [
+        "Siming Zheng",
+        "Guohao Shen",
+        "Yuanyuan Lin",
+        "Jian Huang"
+      ],
+      "volume": "27",
+      "issue": "15",
+      "pages": "1-60",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/23-0425.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Flexible Functional Treatment Effect Estimation",
+      "authors": [
+        "Jiayi Wang",
+        "Raymond K. W. Wong",
+        "Xiaoke Zhang",
+        "Kwun Chuen Gary Chan"
+      ],
+      "volume": "27",
+      "issue": "16",
+      "pages": "1-48",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/23-0944.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Neural Network Parameter-optimization of Gaussian Pre-marginalized Directed Acyclic Graphs",
+      "authors": [
+        "Mehrzad Saremi"
+      ],
+      "volume": "27",
+      "issue": "17",
+      "pages": "1-53",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/23-1249.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Extrapolated Markov Chain Oversampling Method for Imbalanced Text Classification",
+      "authors": [
+        "Aleksi Avela",
+        "Pauliina Ilmonen"
+      ],
+      "volume": "27",
+      "issue": "18",
+      "pages": "1-28",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-0428.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "An Anytime Algorithm for Good Arm Identification",
+      "authors": [
+        "Marc Jourdan",
+        "Andrée Delahaye-Duriez",
+        "Clémence Réda"
+      ],
+      "volume": "27",
+      "issue": "19",
+      "pages": "1-90",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-0680.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Simulation-based Calibration of Uncertainty Intervals under Approximate Bayesian Estimation",
+      "authors": [
+        "Terrance D. Savitsky",
+        "Julie Gershunskaya"
+      ],
+      "volume": "27",
+      "issue": "20",
+      "pages": "1-32",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-1139.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Learning Bayesian Network Classifiers to Minimize Class Variable Parameters",
+      "authors": [
+        "Shouta Sugahara",
+        "Koya Kato",
+        "James Cussens",
+        "Maomi Ueno"
+      ],
+      "volume": "27",
+      "issue": "21",
+      "pages": "1-41",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-1901.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Nonparametric Estimation of a Factorizable Density using Diffusion Models",
+      "authors": [
+        "Hyeok Kyu Kwon",
+        "Dongha Kim",
+        "Ilsang Ohn",
+        "Minwoo Chae"
+      ],
+      "volume": "27",
+      "issue": "22",
+      "pages": "1-125",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-0121.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "The Distribution of Ridgeless Least Squares Interpolators",
+      "authors": [
+        "Qiyang Han",
+        "Xiaocong Xu"
+      ],
+      "volume": "27",
+      "issue": "23",
+      "pages": "1-94",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-0458.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "LazyDINO: Fast, Scalable, and Efficiently Amortized Bayesian Inversion via Structure-Exploiting and Surrogate-Driven Measure Transport",
+      "authors": [
+        "Lianghao Cao",
+        "Joshua Chen",
+        "Michael Brennan",
+        "Thomas O&#39;Leary-Roseberry",
+        "Youssef Marzouk",
+        "Omar Ghattas"
+      ],
+      "volume": "27",
+      "issue": "24",
+      "pages": "1-71",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-0858.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A Common Interface for Automatic Differentiation",
+      "authors": [
+        "Guillaume Dalle",
+        "Adrian Hill"
+      ],
+      "volume": "27",
+      "issue": "25",
+      "pages": "1-13",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-1024.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Refined Risk Bounds for Unbounded Losses via Transductive Priors",
+      "authors": [
+        "Jian Qian",
+        "Alexander Rakhlin",
+        "Nikita Zhivotovskiy"
+      ],
+      "volume": "27",
+      "issue": "26",
+      "pages": "1-64",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-2745.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Decorrelated Local Linear Estimator: Inference for Non-linear Effects in High-dimensional Additive Models",
+      "authors": [
+        "Zijian Guo",
+        "Wei Yuan",
+        "Cunhui Zhang"
+      ],
+      "volume": "27",
+      "issue": "27",
+      "pages": "1-79",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/22-1436.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Communication-efficient Distributed Statistical Inference for Massive Data with Heterogeneous Auxiliary Information",
+      "authors": [
+        "Miaomiao Yu",
+        "Zhongfeng Jiang",
+        "Jiaxuan Li",
+        "Yong Zhou"
+      ],
+      "volume": "27",
+      "issue": "28",
+      "pages": "1-39",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/23-0440.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Generative Bayesian Inference with GANs",
+      "authors": [
+        "Yuexi Wang",
+        "Veronika Rockova"
+      ],
+      "volume": "27",
+      "issue": "29",
+      "pages": "1-48",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/23-0946.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Exploring Novel Uncertainty Quantification through Forward Intensity Function Modeling",
+      "authors": [
+        "Yudong Wang",
+        "Zhi-Sheng Ye",
+        "Cheng Yong Tang"
+      ],
+      "volume": "27",
+      "issue": "30",
+      "pages": "1-63",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/23-1465.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Persistence Diagrams Estimation of Multivariate Piecewise Hölder-continuous Signals",
+      "authors": [
+        "Hugo Henneuse"
+      ],
+      "volume": "27",
+      "issue": "31",
+      "pages": "1-55",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-0456.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "CHANI: Correlation-based Hawkes Aggregation of Neurons with bio-Inspiration",
+      "authors": [
+        "Sophie Jaffard",
+        "Samuel Vaiter",
+        "Patricia Reynaud-Bouret"
+      ],
+      "volume": "27",
+      "issue": "32",
+      "pages": "1-62",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-0783.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Finite Neural Networks as Mixtures of Gaussian Processes: From Provable Error Bounds to Prior Selection",
+      "authors": [
+        "Steven Adams",
+        "Andrea Patanè",
+        "Morteza Lahijanian",
+        "Luca Laurenti"
+      ],
+      "volume": "27",
+      "issue": "33",
+      "pages": "1-52",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-1199.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimization and Generalization of Gradient Descent for Shallow ReLU Networks with Minimal Width",
+      "authors": [
+        "Yunwen Lei",
+        "Puyu Wang",
+        "Yiming Ying",
+        "Ding-Xuan Zhou"
+      ],
+      "volume": "27",
+      "issue": "34",
+      "pages": "1-35",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-2030.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Adaptive Forward Stepwise: A Method for High Sparsity Regression",
+      "authors": [
+        "Ivy Zhang",
+        "Robert Tibshirani"
+      ],
+      "volume": "27",
+      "issue": "35",
+      "pages": "1-24",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-0151.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimizing Attention with Mirror Descent: Generalized Max-Margin Token Selection",
+      "authors": [
+        "Addison Kristanto Julistiono",
+        "Davoud Ataee Tarzanagh",
+        "Navid Azizan"
+      ],
+      "volume": "27",
+      "issue": "36",
+      "pages": "1-61",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-0549.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Hierarchical Causal Models",
+      "authors": [
+        "Eli N. Weinstein",
+        "David M. Blei"
+      ],
+      "volume": "27",
+      "issue": "37",
+      "pages": "1-73",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-0899.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Reparameterized Complex-valued Neurons Can Efficiently Learn More than Real-valued Neurons via Gradient Descent",
+      "authors": [
+        "Jin-Hui Wu",
+        "Shao-Qun Zhang",
+        "Yuan Jiang",
+        "Zhi-Hua Zhou"
+      ],
+      "volume": "27",
+      "issue": "38",
+      "pages": "1-51",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-1106.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Unsupervised Feature Selection via Nonnegative Orthogonal Constrained Regularized Minimization",
+      "authors": [
+        "Yan Li",
+        "Defeng Sun",
+        "Liping Zhang"
+      ],
+      "volume": "27",
+      "issue": "39",
+      "pages": "1-44",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/23-0157.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A causal fused lasso for interpretable heterogeneous treatment effects estimation",
+      "authors": [
+        "Oscar Hernan Madrid Padilla",
+        "Yanzhen Chen",
+        "Carlos Misael Madrid Padilla",
+        "Gabriel Ruiz"
+      ],
+      "volume": "27",
+      "issue": "40",
+      "pages": "1-56",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/23-0535.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Bayesian Inference of Contextual Bandit Policies via Empirical Likelihood",
+      "authors": [
+        "Jiangrong Ouyang",
+        "Mingming Gong",
+        "Howard Bondell"
+      ],
+      "volume": "27",
+      "issue": "41",
+      "pages": "1-28",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/23-0958.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Convergence and complexity of block majorization-minimization for constrained block-Riemannian optimization",
+      "authors": [
+        "Yuchen Li",
+        "Laura Balzano",
+        "Deanna Needell",
+        "Hanbaek Lyu"
+      ],
+      "volume": "27",
+      "issue": "42",
+      "pages": "1-77",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-0020.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Two-way Node Popularity Model for Directed and Bipartite Networks",
+      "authors": [
+        "Bing-Yi Jing",
+        "Ting Li",
+        "Jiangzhou Wang",
+        "Ya Wang"
+      ],
+      "volume": "27",
+      "issue": "43",
+      "pages": "1-73",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-0526.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A Symplectic Analysis of Alternating Mirror Descent",
+      "authors": [
+        "Jonas E. Katona",
+        "Xiuyuan Wang",
+        "Andre Wibisono"
+      ],
+      "volume": "27",
+      "issue": "44",
+      "pages": "1-61",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-0792.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Contrasting Local and Global Modeling with Machine Learning and Satellite Data: A Case Study Estimating Tree Canopy Height in African Savannas",
+      "authors": [
+        "Esther Rolf",
+        "Lucia Gordon",
+        "Milind Tambe",
+        "Andrew Davies"
+      ],
+      "volume": "27",
+      "issue": "45",
+      "pages": "1-37",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-1592.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Boosted Control Functions: Distribution Generalization and Invariance in Confounded Models",
+      "authors": [
+        "Nicola Gnecco",
+        "Jonas Peters",
+        "Sebastian Engelke",
+        "Niklas Pfister"
+      ],
+      "volume": "27",
+      "issue": "46",
+      "pages": "1-57",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/24-2207.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "DCatalyst: A Unified Accelerated Framework for Decentralized Optimization",
+      "authors": [
+        "TIanyu Cao",
+        "Xiaokai Chen",
+        "Gesualdo Scutari"
+      ],
+      "volume": "27",
+      "issue": "47",
+      "pages": "1-57",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-0185.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Covariate-dependent Hierarchical Dirichlet Processes",
+      "authors": [
+        "Huizi Zhang",
+        "Sara Wade",
+        "Natalia Bochkina"
+      ],
+      "volume": "27",
+      "issue": "48",
+      "pages": "1-99",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-0668.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Online Bernstein-von Mises theorem",
+      "authors": [
+        "Jeyong Lee",
+        "Junhyeok Choi",
+        "Minwoo Chae"
+      ],
+      "volume": "27",
+      "issue": "49",
+      "pages": "1-124",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-0989.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Transformers Can Overcome the Curse of Dimensionality: A Theoretical Study from an Approximation Perspective",
+      "authors": [
+        "Yuling Jiao",
+        "Yanming Lai",
+        "Yang Wang",
+        "Bokai Yan"
+      ],
+      "volume": "27",
+      "issue": "50",
+      "pages": "1-34",
+      "year": "2026",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v27/25-1214.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Efficiently Escaping Saddle Points in Bilevel Optimization",
+      "authors": [
+        "Minhui Huang",
+        "Xuxing Chen",
+        "Kaiyi Ji",
+        "Shiqian Ma",
+        "Lifeng Lai"
+      ],
+      "volume": "26",
+      "issue": "1",
+      "pages": "1-61",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0136.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Bayes Meets Bernstein at the Meta Level: an Analysis of Fast Rates in Meta-Learning with PAC-Bayes",
+      "authors": [
+        "Charles Riou",
+        "Pierre Alquier",
+        "Badr-Eddine Chérief-Abdellatif"
+      ],
+      "volume": "26",
+      "issue": "2",
+      "pages": "1-60",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-025.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "DisC2o-HD: Distributed causal inference with covariates shift for analyzing real-world high-dimensional data",
+      "authors": [
+        "Jiayi Tong",
+        "Jie Hu",
+        "George Hripcsak",
+        "Yang Ning",
+        "Yong Chen"
+      ],
+      "volume": "26",
+      "issue": "3",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1254.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Deep Out-of-Distribution Uncertainty Quantification via Weight Entropy Maximization",
+      "authors": [
+        "Antoine de Mathelin",
+        "François Deheeger",
+        "Mathilde Mougeot",
+        "Nicolas Vayatis"
+      ],
+      "volume": "26",
+      "issue": "4",
+      "pages": "1-68",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1359.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Enhancing Graph Representation Learning with Localized Topological Features",
+      "authors": [
+        "Zuoyu Yan",
+        "Qi Zhao",
+        "Ze Ye",
+        "Tengfei Ma",
+        "Liangcai Gao",
+        "Zhi Tang",
+        "Yusu Wang",
+        "Chao Chen"
+      ],
+      "volume": "26",
+      "issue": "5",
+      "pages": "1-36",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1424.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Memory Gym: Towards Endless Tasks to Benchmark Memory Capabilities of Agents",
+      "authors": [
+        "Marco Pleines",
+        "Matthias Pallasch",
+        "Frank Zimmer",
+        "Mike Preuss"
+      ],
+      "volume": "26",
+      "issue": "6",
+      "pages": "1-40",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0043.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A Random Matrix Approach to Low-Multilinear-Rank Tensor Approximation",
+      "authors": [
+        "Hugo Lebeau",
+        "Florent Chatelain",
+        "Romain Couillet"
+      ],
+      "volume": "26",
+      "issue": "7",
+      "pages": "1-64",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0193.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Adaptive Client Sampling in Federated Learning via Online Learning with Bandit Feedback",
+      "authors": [
+        "Boxin Zhao",
+        "Lingxiao Wang",
+        "Ziqi Liu",
+        "Zhiqiang Zhang",
+        "Jun Zhou",
+        "Chaochao Chen",
+        "Mladen Kolar"
+      ],
+      "volume": "26",
+      "issue": "8",
+      "pages": "1-67",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0385.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Test-Time Training on Video Streams",
+      "authors": [
+        "Renhao Wang",
+        "Yu Sun",
+        "Arnuv Tandon",
+        "Yossi Gandelsman",
+        "Xinlei Chen",
+        "Alexei A. Efros",
+        "Xiaolong Wang"
+      ],
+      "volume": "26",
+      "issue": "9",
+      "pages": "1-29",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0439.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "An Axiomatic Definition of Hierarchical Clustering",
+      "authors": [
+        "Ery Arias-Castro",
+        "Elizabeth Coda"
+      ],
+      "volume": "26",
+      "issue": "10",
+      "pages": "1-26",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1052.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Two-Timescale Gradient Descent Ascent Algorithms for Nonconvex Minimax Optimization",
+      "authors": [
+        "Tianyi Lin",
+        "Chi Jin",
+        "Michael I. Jordan"
+      ],
+      "volume": "26",
+      "issue": "11",
+      "pages": "1-45",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0863.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Selective Inference with Distributed Data",
+      "authors": [
+        "Sifan Liu",
+        "Snigdha Panigrahi"
+      ],
+      "volume": "26",
+      "issue": "12",
+      "pages": "1-44",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0309.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Estimating Network-Mediated Causal Effects via Principal Components Network Regression",
+      "authors": [
+        "Alex Hayes",
+        "Mark M. Fredrickson",
+        "Keith Levin"
+      ],
+      "volume": "26",
+      "issue": "13",
+      "pages": "1-99",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1317.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Locally Private Causal Inference for Randomized Experiments",
+      "authors": [
+        "Yuki Ohnishi",
+        "Jordan Awan"
+      ],
+      "volume": "26",
+      "issue": "14",
+      "pages": "1-40",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1401.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "From Sparse to Dense Functional Data in High Dimensions: Revisiting Phase Transitions from a Non-Asymptotic Perspective",
+      "authors": [
+        "Shaojun Guo",
+        "Dong Li",
+        "Xinghao Qiao",
+        "Yizhu Wang"
+      ],
+      "volume": "26",
+      "issue": "15",
+      "pages": "1-40",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1578.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Error estimation and adaptive tuning for unregularized robust M-estimator",
+      "authors": [
+        "Pierre C. Bellec",
+        "Takuya Koriyama"
+      ],
+      "volume": "26",
+      "issue": "16",
+      "pages": "1-40",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0060.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Supervised Learning with Evolving Tasks and Performance Guarantees",
+      "authors": [
+        "Verónica Álvarez",
+        "Santiago Mazuelas",
+        "Jose A. Lozano"
+      ],
+      "volume": "26",
+      "issue": "17",
+      "pages": "1-59",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0343.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Riemannian Bilevel Optimization",
+      "authors": [
+        "Jiaxiang Li",
+        "Shiqian Ma"
+      ],
+      "volume": "26",
+      "issue": "18",
+      "pages": "1-44",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0397.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Random ReLU Neural Networks as Non-Gaussian Processes",
+      "authors": [
+        "Rahul Parhi",
+        "Pakshal Bohra",
+        "Ayoub El Biari",
+        "Mehrsa Pourya",
+        "Michael Unser"
+      ],
+      "volume": "26",
+      "issue": "19",
+      "pages": "1-31",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0737.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Regularizing Hard Examples Improves Adversarial Robustness",
+      "authors": [
+        "Hyungyu Lee",
+        "Saehyung Lee",
+        "Ho Bae",
+        "Sungroh Yoon"
+      ],
+      "volume": "26",
+      "issue": "20",
+      "pages": "1-48",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-1428.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Bayesian Sparse Gaussian Mixture Model for Clustering in High Dimensions",
+      "authors": [
+        "Dapeng Yao",
+        "Fangzheng Xie",
+        "Yanxun Xu"
+      ],
+      "volume": "26",
+      "issue": "21",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0142.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Directed Cyclic Graphs for Simultaneous Discovery of Time-Lagged and Instantaneous Causality from Longitudinal Data Using Instrumental Variables",
+      "authors": [
+        "Wei Jin",
+        "Yang Ni",
+        "Amanda B. Spence",
+        "Leah H. Rubin",
+        "Yanxun Xu"
+      ],
+      "volume": "26",
+      "issue": "22",
+      "pages": "1-62",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0272.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Improving Graph Neural Networks on Multi-node Tasks with the Labeling Trick",
+      "authors": [
+        "Xiyuan Wang",
+        "Pan Li",
+        "Muhan Zhang"
+      ],
+      "volume": "26",
+      "issue": "23",
+      "pages": "1-44",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0560.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "The ODE Method for Stochastic Approximation and Reinforcement Learning with Markovian Noise",
+      "authors": [
+        "Shuze Daniel Liu",
+        "Shuhang Chen",
+        "Shangtong Zhang"
+      ],
+      "volume": "26",
+      "issue": "24",
+      "pages": "1-76",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0100.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "depyf: Open the Opaque Box of PyTorch Compiler for Machine Learning Researchers",
+      "authors": [
+        "Kaichao You",
+        "Runsheng Bai",
+        "Meng Cao",
+        "Jianmin Wang",
+        "Ion Stoica",
+        "Mingsheng Long"
+      ],
+      "volume": "26",
+      "issue": "25",
+      "pages": "1-18",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0383.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "The Blessing of Heterogeneity in Federated Q-Learning: Linear Speedup and Beyond",
+      "authors": [
+        "Jiin Woo",
+        "Gauri Joshi",
+        "Yuejie Chi"
+      ],
+      "volume": "26",
+      "issue": "26",
+      "pages": "1-85",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0579.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Mean Aggregator is More Robust than Robust Aggregators under Label Poisoning Attacks on Distributed Heterogeneous Data",
+      "authors": [
+        "Jie Peng",
+        "Weiyu Li",
+        "Stefan Vlaski",
+        "Qing Ling"
+      ],
+      "volume": "26",
+      "issue": "27",
+      "pages": "1-51",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1307.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimal Experiment Design for Causal Effect Identification",
+      "authors": [
+        "Sina Akbari",
+        "Jalal Etesami",
+        "Negar Kiyavash"
+      ],
+      "volume": "26",
+      "issue": "28",
+      "pages": "1-56",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-1516.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Orthogonal Bases for Equivariant Graph Learning with Provable k-WL Expressive Power",
+      "authors": [
+        "Jia He",
+        "Maggie Cheng"
+      ],
+      "volume": "26",
+      "issue": "29",
+      "pages": "1-35",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0178.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Bayesian Multi-Group Gaussian Process Models for Heterogeneous Group-Structured Data",
+      "authors": [
+        "Didong Li",
+        "Andrew Jones",
+        "Sudipto Banerjee",
+        "Barbara E. Engelhardt"
+      ],
+      "volume": "26",
+      "issue": "30",
+      "pages": "1-34",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0291.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Accelerating optimization over the space of probability measures",
+      "authors": [
+        "Shi Chen",
+        "Qin Li",
+        "Oliver Tse",
+        "Stephen J. Wright"
+      ],
+      "volume": "26",
+      "issue": "31",
+      "pages": "1-40",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1288.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Sliced-Wasserstein Distances and Flows on Cartan-Hadamard Manifolds",
+      "authors": [
+        "Clément Bonet",
+        "Lucas Drumetz",
+        "Nicolas Courty"
+      ],
+      "volume": "26",
+      "issue": "32",
+      "pages": "1-76",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0359.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Statistical Inference of Constrained Stochastic Optimization via Sketched Sequential Quadratic Programming",
+      "authors": [
+        "Sen Na",
+        "Michael Mahoney"
+      ],
+      "volume": "26",
+      "issue": "33",
+      "pages": "1-75",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0530.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "gsplat: An Open-Source Library for Gaussian Splatting",
+      "authors": [
+        "Vickie Ye",
+        "Ruilong Li",
+        "Justin Kerr",
+        "Matias Turkulainen",
+        "Brent Yi",
+        "Zhuoyang Pan",
+        "Otto Seiskari",
+        "Jianbo Ye",
+        "Jeffrey Hu",
+        "Matthew Tancik",
+        "Angjoo Kanazawa"
+      ],
+      "volume": "26",
+      "issue": "34",
+      "pages": "1-17",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1476.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Rank-one Convexification for Sparse Regression",
+      "authors": [
+        "Alper Atamturk",
+        "Andres Gomez"
+      ],
+      "volume": "26",
+      "issue": "35",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/19-159.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Copula-based Sensitivity Analysis for Multi-Treatment Causal Inference with Unobserved Confounding",
+      "authors": [
+        "Jiajing Zheng",
+        "Alexander D&#39;Amour",
+        "Alexander Franks"
+      ],
+      "volume": "26",
+      "issue": "36",
+      "pages": "1-60",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0372.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Unbalanced Kantorovich-Rubinstein distance, plan, and barycenter on nite spaces: A statistical perspective",
+      "authors": [
+        "Shayan Hundrieser",
+        "Florian Heinemann",
+        "Marcel Klatt",
+        "Marina Struleva",
+        "Axel Munk"
+      ],
+      "volume": "26",
+      "issue": "37",
+      "pages": "1-70",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-1262.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimizing Data Collection for Machine Learning",
+      "authors": [
+        "Rafid Mahmood",
+        "James Lucas",
+        "Jose M. Alvarez",
+        "Sanja Fidler",
+        "Marc T. Law"
+      ],
+      "volume": "26",
+      "issue": "38",
+      "pages": "1-52",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0292.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Nonconvex Stochastic Bregman Proximal Gradient Method with Application to Deep Learning",
+      "authors": [
+        "Kuangyu Ding",
+        "Jingyang Li",
+        "Kim-Chuan Toh"
+      ],
+      "volume": "26",
+      "issue": "39",
+      "pages": "1-44",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0657.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Efficient and Robust Semi-supervised Estimation of Average Treatment Effect with Partially Annotated Treatment and Response",
+      "authors": [
+        "Jue Hou",
+        "Rajarshi Mukherjee",
+        "Tianxi Cai"
+      ],
+      "volume": "26",
+      "issue": "40",
+      "pages": "1-77",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1587.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On the Approximation of Kernel functions",
+      "authors": [
+        "Paul Dommel",
+        "Alois Pichler"
+      ],
+      "volume": "26",
+      "issue": "41",
+      "pages": "1-30",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0270.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Extremal graphical modeling with latent variables via convex optimization",
+      "authors": [
+        "Sebastian Engelke",
+        "Armeen Taeb"
+      ],
+      "volume": "26",
+      "issue": "42",
+      "pages": "1-68",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0472.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Wasserstein Convergence Guarantees for a General Class of Score-Based Generative Models",
+      "authors": [
+        "Xuefeng Gao",
+        "Hoang M. Nguyen",
+        "Lingjiong Zhu"
+      ],
+      "volume": "26",
+      "issue": "43",
+      "pages": "1-54",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0902.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Learning Global Nash Equilibrium in Team Competitive Games with Generalized Fictitious Cross-Play",
+      "authors": [
+        "Zelai Xu",
+        "Chao Yu",
+        "Yancheng Liang",
+        "Yi Wu",
+        "Yu Wang"
+      ],
+      "volume": "26",
+      "issue": "44",
+      "pages": "1-30",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1503.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Manifold Fitting under Unbounded Noise",
+      "authors": [
+        "Zhigang Yao",
+        "Yuqing Xia"
+      ],
+      "volume": "26",
+      "issue": "45",
+      "pages": "1-55",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/21-0039.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Adjusted Expected Improvement for Cumulative Regret Minimization in Noisy Bayesian Optimization",
+      "authors": [
+        "Shouri Hu",
+        "Haowei Wang",
+        "Zhongxiang Dai",
+        "Bryan Kian Hsiang Low",
+        "Szu Hui Ng"
+      ],
+      "volume": "26",
+      "issue": "46",
+      "pages": "1-33",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0523.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "DAGs as Minimal I-maps for the Induced Models of Causal Bayesian Networks under Conditioning",
+      "authors": [
+        "Xiangdong Xie",
+        "Jiahua Guo",
+        "Yi Sun"
+      ],
+      "volume": "26",
+      "issue": "47",
+      "pages": "1-62",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0002.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Efficient and Robust Transfer Learning of Optimal Individualized Treatment Regimes with Right-Censored Survival Data",
+      "authors": [
+        "Pan Zhao",
+        "Julie Josse",
+        "Shu Yang"
+      ],
+      "volume": "26",
+      "issue": "48",
+      "pages": "1-54",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0335.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "The Effect of SGD Batch Size on Autoencoder Learning: Sparsity, Sharpness, and Feature Learning",
+      "authors": [
+        "Nikhil Ghosh",
+        "Spencer Frei",
+        "Wooseok Ha",
+        "Bin Yu"
+      ],
+      "volume": "26",
+      "issue": "49",
+      "pages": "1-61",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1022.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "PFLlib: A Beginner-Friendly and Comprehensive Personalized Federated Learning Library and Benchmark",
+      "authors": [
+        "Jianqing Zhang",
+        "Yang Liu",
+        "Yang Hua",
+        "Hao Wang",
+        "Tao Song",
+        "Zhengui Xue",
+        "Ruhui Ma",
+        "Jian Cao"
+      ],
+      "volume": "26",
+      "issue": "50",
+      "pages": "1-10",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1634.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Composite Goodness-of-fit Tests with Kernels",
+      "authors": [
+        "Oscar Key",
+        "Arthur Gretton",
+        "François-Xavier Briol",
+        "Tamara Fernandez"
+      ],
+      "volume": "26",
+      "issue": "51",
+      "pages": "1-60",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0276.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Curvature-based Clustering on Graphs",
+      "authors": [
+        "Yu Tian",
+        "Zachary Lubberts",
+        "Melanie Weber"
+      ],
+      "volume": "26",
+      "issue": "52",
+      "pages": "1-67",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0781.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Scaling Data-Constrained Language Models",
+      "authors": [
+        "Niklas Muennighoff",
+        "Alexander M. Rush",
+        "Boaz Barak",
+        "Teven Le Scao",
+        "Aleksandra Piktus",
+        "Nouamane Tazi",
+        "Sampo Pyysalo",
+        "Thomas Wolf",
+        "Colin Raffel"
+      ],
+      "volume": "26",
+      "issue": "53",
+      "pages": "1-66",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1000.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Lightning UQ Box: Uncertainty Quantification for Neural Networks",
+      "authors": [
+        "Nils Lehmann",
+        "Nina Maria Gottschling",
+        "Jakob Gawlikowski",
+        "Adam J. Stewart",
+        "Stefan Depeweg",
+        "Eric Nalisnick"
+      ],
+      "volume": "26",
+      "issue": "54",
+      "pages": "1-7",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2110.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A Comparative Evaluation of Quantification Methods",
+      "authors": [
+        "Tobias Schumacher",
+        "Markus Strohmaier",
+        "Florian Lemmerich"
+      ],
+      "volume": "26",
+      "issue": "55",
+      "pages": "1-54",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/21-0241.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Scaling ResNets in the Large-depth Regime",
+      "authors": [
+        "Pierre Marion",
+        "Adeline Fermanian",
+        "Gérard Biau",
+        "Jean-Philippe Vert"
+      ],
+      "volume": "26",
+      "issue": "56",
+      "pages": "1-48",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0664.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Variance-Aware Estimation of Kernel Mean Embedding",
+      "authors": [
+        "Geoffrey Wolfer",
+        "Pierre Alquier"
+      ],
+      "volume": "26",
+      "issue": "57",
+      "pages": "1-48",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0161.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Determine the Number of States in Hidden Markov Models via Marginal Likelihood",
+      "authors": [
+        "Yang Chen",
+        "Cheng-Der Fuh",
+        "Chu-Lan Michael Kao"
+      ],
+      "volume": "26",
+      "issue": "58",
+      "pages": "1-59",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0343.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On Adaptive Stochastic Optimization for Streaming Data: A Newton's Method with O(dN) Operations",
+      "authors": [
+        "Antoine Godichon-Baggioni",
+        "Nicklas Werge"
+      ],
+      "volume": "26",
+      "issue": "59",
+      "pages": "1-49",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1565.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Evaluation of Active Feature Acquisition Methods for Time-varying Feature Settings",
+      "authors": [
+        "Henrik von Kleist",
+        "Alireza Zamanian",
+        "Ilya Shpitser",
+        "Narges Ahmidi"
+      ],
+      "volume": "26",
+      "issue": "60",
+      "pages": "1-84",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1635.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Recursive Causal Discovery",
+      "authors": [
+        "Ehsan Mokhtarian",
+        "Sepehr Elahi",
+        "Sina Akbari",
+        "Negar Kiyavash"
+      ],
+      "volume": "26",
+      "issue": "61",
+      "pages": "1-65",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0384.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Continuously evolving rewards in an open-ended environment",
+      "authors": [
+        "Richard M. Bailey"
+      ],
+      "volume": "26",
+      "issue": "62",
+      "pages": "1-51",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0847.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Ontolearn---A Framework for Large-scale OWL Class Expression Learning in Python",
+      "authors": [
+        "Caglar Demir",
+        "Alkid Baci",
+        "N&#39;Dah Jean Kouagou",
+        "Leonie Nora Sieger",
+        "Stefan Heindorf",
+        "Simon Bin",
+        "Lukas Blübaum",
+        "Alexander Bigerl",
+        "Axel-Cyrille Ngonga Ngomo"
+      ],
+      "volume": "26",
+      "issue": "63",
+      "pages": "1-6",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1113.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Estimation of Local Geometric Structure on Manifolds from Noisy Data",
+      "authors": [
+        "Yariv Aizenbud",
+        "Barak Sober"
+      ],
+      "volume": "26",
+      "issue": "64",
+      "pages": "1-89",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0183.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Instability, Computational Efficiency and Statistical Accuracy",
+      "authors": [
+        "Nhat Ho",
+        "Koulik Khamaru",
+        "Raaz Dwivedi",
+        "Martin J. Wainwright",
+        "Michael I. Jordan",
+        "Bin Yu"
+      ],
+      "volume": "26",
+      "issue": "65",
+      "pages": "1-68",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0300.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Deletion Robust Non-Monotone Submodular Maximization over Matroids",
+      "authors": [
+        "Paul Dütting",
+        "Federico Fusco",
+        "Silvio Lattanzi",
+        "Ashkan Norouzi-Fard",
+        "Morteza Zadimoghaddam"
+      ],
+      "volume": "26",
+      "issue": "66",
+      "pages": "1-28",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1219.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Fine-Grained Change Point Detection for Topic Modeling with Pitman-Yor Process",
+      "authors": [
+        "Feifei Wang",
+        "Zimeng Zhao",
+        "Ruimin Ye",
+        "Xiaoge Gu",
+        "Xiaoling Lu"
+      ],
+      "volume": "26",
+      "issue": "67",
+      "pages": "1-53",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1576.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Stabilizing Sharpness-Aware Minimization Through A Simple Renormalization Strategy",
+      "authors": [
+        "Chengli Tan",
+        "Jiangshe Zhang",
+        "Junmin Liu",
+        "Yicheng Wang",
+        "Yunda Hao"
+      ],
+      "volume": "26",
+      "issue": "68",
+      "pages": "1-35",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0065.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Local Linear Recovery Guarantee of Deep Neural Networks at Overparameterization",
+      "authors": [
+        "Yaoyu Zhang",
+        "Leyang Zhang",
+        "Zhongwang Zhang",
+        "Zhiwei Bai"
+      ],
+      "volume": "26",
+      "issue": "69",
+      "pages": "1-30",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0192.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Sharp Bounds for Sequential Federated Learning on Heterogeneous Data",
+      "authors": [
+        "Yipeng Li",
+        "Xinchen Lyu"
+      ],
+      "volume": "26",
+      "issue": "70",
+      "pages": "1-55",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0668.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Sampling and Estimation on Manifolds using the Langevin Diffusion",
+      "authors": [
+        "Karthik Bharath",
+        "Alexander Lewis",
+        "Akash Sharma",
+        "Michael V. Tretyakov"
+      ],
+      "volume": "26",
+      "issue": "71",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0829.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Laplace Meets Moreau: Smooth Approximation to Infimal Convolutions Using Laplace's Method",
+      "authors": [
+        "Ryan J. Tibshirani",
+        "Samy Wu Fung",
+        "Howard Heaton",
+        "Stanley Osher"
+      ],
+      "volume": "26",
+      "issue": "72",
+      "pages": "1-36",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0944.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimization Over a Probability Simplex",
+      "authors": [
+        "James Chok",
+        "Geoffrey M. Vasil"
+      ],
+      "volume": "26",
+      "issue": "73",
+      "pages": "1-35",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1166.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On Consistent Bayesian Inference from Synthetic Data",
+      "authors": [
+        "Ossi Räisä",
+        "Joonas Jälkö",
+        "Antti Honkela"
+      ],
+      "volume": "26",
+      "issue": "74",
+      "pages": "1-65",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1428.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Learning causal graphs via nonlinear sufficient dimension reduction",
+      "authors": [
+        "Eftychia Solea",
+        "Bing Li",
+        "Kyongwon Kim"
+      ],
+      "volume": "26",
+      "issue": "75",
+      "pages": "1-46",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0048.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Distributed Stochastic Bilevel Optimization: Improved Complexity and Heterogeneity Analysis",
+      "authors": [
+        "Youcheng Niu",
+        "Jinming Xu",
+        "Ying Sun",
+        "Yan Huang",
+        "Li Chai"
+      ],
+      "volume": "26",
+      "issue": "76",
+      "pages": "1-58",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0187.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Wasserstein F-tests for Frechet regression on Bures-Wasserstein manifolds",
+      "authors": [
+        "Haoshu Xu",
+        "Hongzhe Li"
+      ],
+      "volume": "26",
+      "issue": "77",
+      "pages": "1-123",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0493.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Derivative-Informed Neural Operator Acceleration of Geometric MCMC for Infinite-Dimensional Bayesian Inverse Problems",
+      "authors": [
+        "Lianghao Cao",
+        "Thomas O&#39;Leary-Roseberry",
+        "Omar Ghattas"
+      ],
+      "volume": "26",
+      "issue": "78",
+      "pages": "1-68",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0745.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Dynamic angular synchronization under smoothness constraints",
+      "authors": [
+        "Ernesto Araya",
+        "Mihai Cucuringu",
+        "Hemant Tyagi"
+      ],
+      "volume": "26",
+      "issue": "79",
+      "pages": "1-45",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0925.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "GraphNeuralNetworks.jl: Deep Learning on Graphs with Julia",
+      "authors": [
+        "Carlo Lucibello",
+        "Aurora Rossi"
+      ],
+      "volume": "26",
+      "issue": "80",
+      "pages": "1-6",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2130.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Towards Optimal Branching of Linear and Semidefinite Relaxations for Neural Network Robustness Certification",
+      "authors": [
+        "Brendon G. Anderson",
+        "Ziye Ma",
+        "Jingqi Li",
+        "Somayeh Sojoudi"
+      ],
+      "volume": "26",
+      "issue": "81",
+      "pages": "1-59",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/21-0068.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Implicit vs Unfolded Graph Neural Networks",
+      "authors": [
+        "Yongyi Yang",
+        "Tang Liu",
+        "Yangkun Wang",
+        "Zengfeng Huang",
+        "David Wipf"
+      ],
+      "volume": "26",
+      "issue": "82",
+      "pages": "1-46",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0459.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Causal Abstraction: A Theoretical Foundation for Mechanistic Interpretability",
+      "authors": [
+        "Atticus Geiger",
+        "Duligur Ibeling",
+        "Amir Zur",
+        "Maheep Chaudhary",
+        "Sonakshi Chauhan",
+        "Jing Huang",
+        "Aryaman Arora",
+        "Zhengxuan Wu",
+        "Noah Goodman",
+        "Christopher Potts",
+        "Thomas Icard"
+      ],
+      "volume": "26",
+      "issue": "83",
+      "pages": "1-64",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0058.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Random Pruning Over-parameterized Neural Networks Can Improve Generalization: A Training Dynamics Analysis",
+      "authors": [
+        "Hongru Yang",
+        "Yingbin Liang",
+        "Xiaojie Guo",
+        "Lingfei Wu",
+        "Zhangyang Wang"
+      ],
+      "volume": "26",
+      "issue": "84",
+      "pages": "1-51",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0832.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On Inference for the Support Vector Machine",
+      "authors": [
+        "Jakub Rybak",
+        "Heather Battey",
+        "Wen-Xin Zhou"
+      ],
+      "volume": "26",
+      "issue": "85",
+      "pages": "1-54",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1581.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Integral Probability Metrics Meet Neural Networks: The Radon-Kolmogorov-Smirnov Test",
+      "authors": [
+        "Seunghoon Paik",
+        "Michael Celentano",
+        "Alden Green",
+        "Ryan J. Tibshirani"
+      ],
+      "volume": "26",
+      "issue": "86",
+      "pages": "1-57",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0245.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "How good is your Laplace approximation of the Bayesian posterior? Finite-sample computable error bounds for a variety of useful divergences",
+      "authors": [
+        "Mikolaj J. Kasprzak",
+        "Ryan Giordano",
+        "Tamara Broderick"
+      ],
+      "volume": "26",
+      "issue": "87",
+      "pages": "1-81",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0619.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Feature Learning in Finite-Width Bayesian Deep Linear Networks with Multiple Outputs and Convolutional Layers",
+      "authors": [
+        "Federico Bassetti",
+        "Marco Gherardi",
+        "Alessandro Ingrosso",
+        "Mauro Pastore",
+        "Pietro Rotondo"
+      ],
+      "volume": "26",
+      "issue": "88",
+      "pages": "1-35",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1158.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "High-Dimensional L2-Boosting: Rate of Convergence",
+      "authors": [
+        "Ye Luo",
+        "Martin Spindler",
+        "Jannis Kueck"
+      ],
+      "volume": "26",
+      "issue": "89",
+      "pages": "1-54",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/21-0725.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Uplift Model Evaluation with Ordinal Dominance Graphs",
+      "authors": [
+        "Brecht Verbeken",
+        "Marie-Anne Guerry",
+        "Wouter Verbeke",
+        "Sam Verboven"
+      ],
+      "volume": "26",
+      "issue": "90",
+      "pages": "1-56",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-1455.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Causal Effect of Functional Treatment",
+      "authors": [
+        "Ruoxu Tan",
+        "Wei Huang",
+        "Zheng Zhang",
+        "Guosheng Yin"
+      ],
+      "volume": "26",
+      "issue": "91",
+      "pages": "1-39",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0381.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Affine Rank Minimization via Asymptotic Log-Det Iteratively Reweighted Least Squares",
+      "authors": [
+        "Sebastian Krämer"
+      ],
+      "volume": "26",
+      "issue": "92",
+      "pages": "1-44",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0943.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Outlier Robust and Sparse Estimation of Linear Regression Coefficients",
+      "authors": [
+        "Takeyuki Sasai",
+        "Hironori Fujisawa"
+      ],
+      "volume": "26",
+      "issue": "93",
+      "pages": "1-79",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1583.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Posterior Concentrations of Fully-Connected Bayesian Neural Networks with General Priors on the Weights",
+      "authors": [
+        "Insung Kong",
+        "Yongdai Kim"
+      ],
+      "volume": "26",
+      "issue": "94",
+      "pages": "1-60",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0425.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Invariant Subspace Decomposition",
+      "authors": [
+        "Margherita Lazzaretto",
+        "Jonas Peters",
+        "Niklas Pfister"
+      ],
+      "volume": "26",
+      "issue": "95",
+      "pages": "1-56",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0699.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Linear cost and exponentially convergent approximation of Gaussian Matérn processes on intervals",
+      "authors": [
+        "David Bolin",
+        "Vaibhav Mehandiratta",
+        "Alexandre B. Simas"
+      ],
+      "volume": "26",
+      "issue": "96",
+      "pages": "1-34",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1779.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Bagged k-Distance for Mode-Based Clustering  Using the Probability of Localized Level Sets",
+      "authors": [
+        "Hanyuan Hang"
+      ],
+      "volume": "26",
+      "issue": "97",
+      "pages": "1-62",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-1179.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Bayesian Data Sketching for Varying Coefficient Regression Models",
+      "authors": [
+        "Rajarshi Guhaniyogi",
+        "Laura Baracaldo",
+        "Sudipto Banerjee"
+      ],
+      "volume": "26",
+      "issue": "98",
+      "pages": "1-29",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0505.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Statistical field theory for Markov decision processes under uncertainty",
+      "authors": [
+        "George Stamatescu"
+      ],
+      "volume": "26",
+      "issue": "99",
+      "pages": "1-24",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0905.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Distribution Free Tests for Model Selection Based on Maximum Mean Discrepancy with Estimated Parameters",
+      "authors": [
+        "Florian Brück",
+        "Jean-David Fermanian",
+        "Aleksey Min"
+      ],
+      "volume": "26",
+      "issue": "100",
+      "pages": "1-52",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1199.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Efficient Numerical Integration in Reproducing Kernel Hilbert Spaces via Leverage Scores Sampling",
+      "authors": [
+        "Antoine Chatalic",
+        "Nicolas Schreuder",
+        "Ernesto De Vito",
+        "Lorenzo Rosasco"
+      ],
+      "volume": "26",
+      "issue": "101",
+      "pages": "1-55",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1551.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Linear Hypothesis Testing in High-Dimensional Expected Shortfall Regression with Heavy-Tailed Errors",
+      "authors": [
+        "Gaoyu Wu",
+        "Jelena Bradic",
+        "Kean Ming Tan",
+        "Wen-Xin Zhou"
+      ],
+      "volume": "26",
+      "issue": "102",
+      "pages": "1-54",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0061.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Error bounds for particle gradient descent, and extensions of the log-Sobolev and Talagrand inequalities",
+      "authors": [
+        "Rocco Caprio",
+        "Juan Kuntz",
+        "Samuel Power",
+        "Adam M. Johansen"
+      ],
+      "volume": "26",
+      "issue": "103",
+      "pages": "1-38",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0437.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A Unified Analysis of Nonstochastic Delayed Feedback for Combinatorial Semi-Bandits, Linear Bandits, and MDPs",
+      "authors": [
+        "Lukas Zierahn",
+        "Dirk van der Hoeven",
+        "Tal Lancewicki",
+        "Aviv Rosenberg",
+        "Nicolò Cesa-Bianchi"
+      ],
+      "volume": "26",
+      "issue": "104",
+      "pages": "1-60",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0496.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Learning conditional distributions on continuous spaces",
+      "authors": [
+        "Cyril Benezet",
+        "Ziteng Cheng",
+        "Sebastian Jaimungal"
+      ],
+      "volume": "26",
+      "issue": "105",
+      "pages": "1-64",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0924.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A Decentralized Proximal Gradient Tracking Algorithm for Composite Optimization on Riemannian Manifolds",
+      "authors": [
+        "Lei Wang",
+        "Le Bao",
+        "Xin Liu"
+      ],
+      "volume": "26",
+      "issue": "106",
+      "pages": "1-37",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1989.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On Global and Local Convergence of Iterative Linear Quadratic Optimization Algorithms for Discrete Time Nonlinear Control",
+      "authors": [
+        "Vincent Roulet",
+        "Siddhartha Srinivasa",
+        "Maryam Fazel",
+        "Zaid Harchaoui"
+      ],
+      "volume": "26",
+      "issue": "107",
+      "pages": "1-85",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-1271.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Adaptive Distributed Kernel Ridge Regression: A Feasible Distributed Learning Scheme for Data Silos",
+      "authors": [
+        "Shao-Bo Lin",
+        "Xiaotong Liu",
+        "Di Wang",
+        "Hai Zhang",
+        "Ding-Xuan Zhou"
+      ],
+      "volume": "26",
+      "issue": "108",
+      "pages": "1-54",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0806.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Near-Optimal Nonconvex-Strongly-Convex Bilevel Optimization with Fully First-Order Oracles",
+      "authors": [
+        "Lesi Chen",
+        "Yaohua Ma",
+        "Jingzhao Zhang"
+      ],
+      "volume": "26",
+      "issue": "109",
+      "pages": "1-56",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1104.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Prominent Roles of Conditionally Invariant Components in Domain Adaptation: Theory and Algorithms",
+      "authors": [
+        "Keru Wu",
+        "Yuansi Chen",
+        "Wooseok Ha",
+        "Bin Yu"
+      ],
+      "volume": "26",
+      "issue": "110",
+      "pages": "1-92",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1234.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On the Statistical Properties of Generative Adversarial Models for Low Intrinsic Data Dimension",
+      "authors": [
+        "Saptarshi Chakraborty",
+        "Peter L. Bartlett"
+      ],
+      "volume": "26",
+      "issue": "111",
+      "pages": "1-57",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0054.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Score-based Causal Representation Learning: Linear and General Transformations",
+      "authors": [
+        "Burak Varici",
+        "Emre Acartürk",
+        "Karthikeyan Shanmugam",
+        "Abhishek Kumar",
+        "Ali Tajer"
+      ],
+      "volume": "26",
+      "issue": "112",
+      "pages": "1-90",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0194.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Precise High-Dimensional Asymptotics for Quantifying Heterogeneous Transfers",
+      "authors": [
+        "Fan Yang",
+        "Hongyang R. Zhang",
+        "Sen Wu",
+        "Christopher Re",
+        "Weijie J. Su"
+      ],
+      "volume": "26",
+      "issue": "113",
+      "pages": "1-88",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0454.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Principled Penalty-based Methods for Bilevel Reinforcement Learning and RLHF",
+      "authors": [
+        "Han Shen",
+        "Zhuoran Yang",
+        "Tianyi Chen"
+      ],
+      "volume": "26",
+      "issue": "114",
+      "pages": "1-49",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0720.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "DRM Revisited: A Complete Error Analysis",
+      "authors": [
+        "Yuling Jiao",
+        "Ruoxuan Li",
+        "Peiying Wu",
+        "Jerry Zhijian Yang",
+        "Pingwen Zhang"
+      ],
+      "volume": "26",
+      "issue": "115",
+      "pages": "1-76",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1258.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Bayesian Scalar-on-Image Regression with a Spatially Varying Single-layer Neural Network Prior",
+      "authors": [
+        "Ben Wu",
+        "Keru Wu",
+        "Jian Kang"
+      ],
+      "volume": "26",
+      "issue": "116",
+      "pages": "1-38",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0246.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On Model Identification and Out-of-Sample Prediction of PCR with Applications to Synthetic Controls",
+      "authors": [
+        "Anish Agarwal",
+        "Devavrat Shah",
+        "Dennis Shen"
+      ],
+      "volume": "26",
+      "issue": "117",
+      "pages": "1-58",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0102.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Sparse SVM with Hard-Margin Loss: a Newton-Augmented Lagrangian Method in Reduced Dimensions",
+      "authors": [
+        "Penghe Zhang",
+        "Naihua Xiu",
+        "Hou-Duo Qi"
+      ],
+      "volume": "26",
+      "issue": "118",
+      "pages": "1-55",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0953.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Quantifying the Effectiveness of Linear Preconditioning in Markov Chain Monte Carlo",
+      "authors": [
+        "Max Hird",
+        "Samuel Livingstone"
+      ],
+      "volume": "26",
+      "issue": "119",
+      "pages": "1-51",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1633.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Degree of Interference: A General Framework For Causal Inference Under Interference",
+      "authors": [
+        "Yuki Ohnishi",
+        "Bikram Karmakar",
+        "Arman Sabbaghi"
+      ],
+      "volume": "26",
+      "issue": "120",
+      "pages": "1-37",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0119.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Maximum Causal Entropy IRL in Mean-Field Games and GNEP Framework for Forward RL",
+      "authors": [
+        "Berkay Anahtarci",
+        "Can Deha Kariksiz",
+        "Naci Saldi"
+      ],
+      "volume": "26",
+      "issue": "121",
+      "pages": "1-40",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0458.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Posterior and Variational Inference for Deep Neural Networks with Heavy-Tailed Weights",
+      "authors": [
+        "Paul Egels",
+        "Ismaël Castillo"
+      ],
+      "volume": "26",
+      "issue": "122",
+      "pages": "1-58",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0894.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Last-iterate Convergence of Shuffling Momentum Gradient Method under the Kurdyka-Lojasiewicz Inequality",
+      "authors": [
+        "Yuqing Liang",
+        "Dongpo Xu"
+      ],
+      "volume": "26",
+      "issue": "123",
+      "pages": "1-51",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1243.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Physics-informed Kernel Learning",
+      "authors": [
+        "Nathan Doumèche",
+        "Francis Bach",
+        "Gérard Biau",
+        "Claire Boyer"
+      ],
+      "volume": "26",
+      "issue": "124",
+      "pages": "1-39",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1536.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "BitNet: 1-bit Pre-training for Large Language Models",
+      "authors": [
+        "Hongyu Wang",
+        "Shuming Ma",
+        "Lingxiao Ma",
+        "Lei Wang",
+        "Wenhui Wang",
+        "Li Dong",
+        "Shaohan Huang",
+        "Huaijie Wang",
+        "Jilong Xue",
+        "Ruiping Wang",
+        "Yi Wu",
+        "Furu Wei"
+      ],
+      "volume": "26",
+      "issue": "125",
+      "pages": "1-29",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2050.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Modelling Populations of Interaction Networks via Distance Metrics",
+      "authors": [
+        "George Bolt",
+        "Simón Lunagómez",
+        "Christopher Nemeth"
+      ],
+      "volume": "26",
+      "issue": "126",
+      "pages": "1-112",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0706.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Actor-Critic learning  for mean-field control in continuous time",
+      "authors": [
+        "Noufel FRIKHA",
+        "Maximilien GERMAIN",
+        "Mathieu LAURIERE",
+        "Huyen PHAM",
+        "Xuanye SONG"
+      ],
+      "volume": "26",
+      "issue": "127",
+      "pages": "1-42",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0345.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimal Sample Selection Through Uncertainty Estimation and Its Application in Deep Learning",
+      "authors": [
+        "Yong Lin",
+        "Chen Liu",
+        "Chenlu Ye",
+        "Qing Lian",
+        "Yuan Yao",
+        "Tong Zhang"
+      ],
+      "volume": "26",
+      "issue": "128",
+      "pages": "1-47",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1160.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Transformers from Diffusion: A Unified Framework for Neural Message Passing",
+      "authors": [
+        "Qitian Wu",
+        "David Wipf",
+        "Junchi Yan"
+      ],
+      "volume": "26",
+      "issue": "129",
+      "pages": "1-47",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1672.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Categorical Semantics of Compositional Reinforcement Learning",
+      "authors": [
+        "Georgios Bakirtzis",
+        "Michail Savvas",
+        "Ufuk Topcu"
+      ],
+      "volume": "26",
+      "issue": "130",
+      "pages": "1-37",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0197.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On the O(sqrt(d)/T^(1/4)) Convergence Rate of RMSProp and Its Momentum Extension Measured by l_1 Norm",
+      "authors": [
+        "Huan Li",
+        "Yiming Dong",
+        "Zhouchen Lin"
+      ],
+      "volume": "26",
+      "issue": "131",
+      "pages": "1-25",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0523.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Score-Aware Policy-Gradient and Performance Guarantees using Local Lyapunov Stability",
+      "authors": [
+        "Céline Comte",
+        "Matthieu Jonckheere",
+        "Jaron Sanders",
+        "Albert Senen-Cerda"
+      ],
+      "volume": "26",
+      "issue": "132",
+      "pages": "1-74",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1009.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "PREMAP: A Unifying PREiMage APproximation Framework for Neural Networks",
+      "authors": [
+        "Xiyue Zhang",
+        "Benjie Wang",
+        "Marta Kwiatkowska",
+        "Huan Zhang"
+      ],
+      "volume": "26",
+      "issue": "133",
+      "pages": "1-44",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1297.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Characterizing Dynamical Stability of Stochastic Gradient Descent in Overparameterized Learning",
+      "authors": [
+        "Dennis Chemnitz",
+        "Maximilian Engel"
+      ],
+      "volume": "26",
+      "issue": "134",
+      "pages": "1-46",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1547.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimal and Efficient Algorithms for Decentralized Online Convex Optimization",
+      "authors": [
+        "Yuanyu Wan",
+        "Tong Wei",
+        "Bo Xue",
+        "Mingli Song",
+        "Lijun Zhang"
+      ],
+      "volume": "26",
+      "issue": "135",
+      "pages": "1-43",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2137.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Minimax Optimal Deep Neural Network Classifiers Under Smooth Decision Boundary",
+      "authors": [
+        "Tianyang Hu",
+        "Ruiqi Liu",
+        "Zuofeng Shang",
+        "Guang Cheng"
+      ],
+      "volume": "26",
+      "issue": "136",
+      "pages": "1-38",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0758.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Randomly Projected Convex Clustering Model: Motivation, Realization, and Cluster Recovery Guarantees",
+      "authors": [
+        "Ziwen Wang",
+        "Yancheng Yuan",
+        "Jiaming Ma",
+        "Tieyong Zeng",
+        "Defeng Sun"
+      ],
+      "volume": "26",
+      "issue": "137",
+      "pages": "1-57",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0384.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Finite Expression Method for Solving High-Dimensional Partial Differential Equations",
+      "authors": [
+        "Senwei Liang",
+        "Haizhao Yang"
+      ],
+      "volume": "26",
+      "issue": "138",
+      "pages": "1-31",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1290.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Diffeomorphism-based feature learning using Poincaré inequalities on augmented input space",
+      "authors": [
+        "Romain Verdière",
+        "Clémentine Prieur",
+        "Olivier Zahm"
+      ],
+      "volume": "26",
+      "issue": "139",
+      "pages": "1-31",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1707.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Deep Variational Multivariate Information Bottleneck - A Framework for Variational Losses",
+      "authors": [
+        "Eslam Abdelaleem",
+        "Ilya Nemenman",
+        "K. Michael Martini"
+      ],
+      "volume": "26",
+      "issue": "140",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0204.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Conditional Wasserstein Distances with Applications in Bayesian OT Flow Matching",
+      "authors": [
+        "Jannis Chemseddine",
+        "Paul Hagemann",
+        "Gabriele Steidl",
+        "Christian Wald"
+      ],
+      "volume": "26",
+      "issue": "141",
+      "pages": "1-47",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0586.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "ClimSim-Online: A Large Multi-Scale Dataset and Framework for Hybrid Physics-ML Climate Emulation",
+      "authors": [
+        "Sungduk Yu",
+        "Zeyuan Hu",
+        "Akshay Subramaniam",
+        "Walter Hannah",
+        "Liran Peng",
+        "Jerry Lin",
+        "Mohamed Aziz Bhouri",
+        "Ritwik Gupta",
+        "Björn Lütjens",
+        "Justus C. Will",
+        "Gunnar Behrens",
+        "Julius J. M. Busecke",
+        "Nora Loose",
+        "Charles I Stern",
+        "Tom Beucler",
+        "Bryce Harrop",
+        "Helge Heuer",
+        "Benjamin R Hillman",
+        "Andrea Jenney",
+        "Nana Liu",
+        "Alistair White",
+        "Tian Zheng",
+        "Zhiming Kuang",
+        "Fiaz Ahmed",
+        "Elizabeth Barnes",
+        "Noah D. Brenowitz",
+        "Christopher Bretherton",
+        "Veronika Eyring",
+        "Savannah Ferretti",
+        "Nicholas Lutsko",
+        "Pierre Gentine",
+        "Stephan Mandt",
+        "J. David Neelin",
+        "Rose Yu",
+        "Laure Zanna",
+        "Nathan M. Urban",
+        "Janni Yuval",
+        "Ryan Abernathey",
+        "Pierre Baldi",
+        "Wayne Chuang",
+        "Yu Huang",
+        "Fernando Iglesias-Suarez",
+        "Sanket Jantre",
+        "Po-Lun Ma",
+        "Sara Shamekh",
+        "Guang Zhang",
+        "Michael Pritchard"
+      ],
+      "volume": "26",
+      "issue": "142",
+      "pages": "1-85",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/26-142.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Deep Generative Models: Complexity, Dimensionality, and Approximation",
+      "authors": [
+        "Kevin Wang",
+        "Hongqian Niu",
+        "Yixin Wang",
+        "Didong Li"
+      ],
+      "volume": "26",
+      "issue": "143",
+      "pages": "1-37",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1335.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Fine-grained Analysis and Faster Algorithms for Iteratively Solving Linear Systems",
+      "authors": [
+        "Michal Dereziński",
+        "Daniel LeJeune",
+        "Deanna Needell",
+        "Elizaveta Rebrova"
+      ],
+      "volume": "26",
+      "issue": "144",
+      "pages": "1-49",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1906.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On the Ability of Deep Networks to Learn Symmetries from Data: A Neural Kernel Theory",
+      "authors": [
+        "Andrea Perin",
+        "Stephane Deny"
+      ],
+      "volume": "26",
+      "issue": "145",
+      "pages": "1-70",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2175.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Dynamic Bayesian Learning for Spatiotemporal Mechanistic Models",
+      "authors": [
+        "Sudipto Banerjee",
+        "Xiang Chen",
+        "Ian Frankenburg",
+        "Daniel Zhou"
+      ],
+      "volume": "26",
+      "issue": "146",
+      "pages": "1-43",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0896.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Latent Process Models for Functional Network Data",
+      "authors": [
+        "Peter W. MacDonald",
+        "Elizaveta Levina",
+        "Ji Zhu"
+      ],
+      "volume": "26",
+      "issue": "147",
+      "pages": "1-69",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0444.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Losing Momentum in Continuous-time Stochastic Optimisation",
+      "authors": [
+        "Kexin Jin",
+        "Jonas Latz",
+        "Chenguang Liu",
+        "Alessandro Scagliotti"
+      ],
+      "volume": "26",
+      "issue": "148",
+      "pages": "1-55",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1396.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "skglm: Improving scikit-learn for Regularized Generalized Linear Models",
+      "authors": [
+        "Badr Moufad",
+        "Pierre-Antoine Bannier",
+        "Quentin Bertrand",
+        "Quentin Klopfenstein",
+        "Mathurin Massias"
+      ],
+      "volume": "26",
+      "issue": "149",
+      "pages": "1-6",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0008.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Randomization Can Reduce Both Bias and Variance: A Case Study in Random Forests",
+      "authors": [
+        "Brian Liu",
+        "Rahul Mazumder"
+      ],
+      "volume": "26",
+      "issue": "150",
+      "pages": "1-49",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0255.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Sample Complexity of the Linear Quadratic Regulator: A Reinforcement Learning Lens",
+      "authors": [
+        "Amirreza Neshaei Moghaddam",
+        "Alex Olshevsky",
+        "Bahman Gharesifard"
+      ],
+      "volume": "26",
+      "issue": "151",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0636.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Universal Online Convex Optimization Meets Second-order Bounds",
+      "authors": [
+        "Lijun Zhang",
+        "Yibo Wang",
+        "Guanghui Wang",
+        "Jinfeng Yi",
+        "Tianbao Yang"
+      ],
+      "volume": "26",
+      "issue": "152",
+      "pages": "1-53",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1131.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Classification in the high dimensional Anisotropic mixture framework: A new take on Robust Interpolation",
+      "authors": [
+        "Stanislav Minsker",
+        "Mohamed Ndaoud",
+        "Yiqiu Shen"
+      ],
+      "volume": "26",
+      "issue": "153",
+      "pages": "1-39",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1366.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On Non-asymptotic Theory of Recurrent Neural Networks in Temporal Point Processes",
+      "authors": [
+        "Zhiheng Chen",
+        "Guanhua Fang",
+        "Wen Yu"
+      ],
+      "volume": "26",
+      "issue": "154",
+      "pages": "1-67",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1953.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Frontiers to the learning of nonparametric hidden Markov models",
+      "authors": [
+        "Kweku Abraham",
+        "Elisabeth Gassiat",
+        "Zacharie Naulet"
+      ],
+      "volume": "26",
+      "issue": "155",
+      "pages": "1-75",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2230.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "WEFE: A Python Library for Measuring and Mitigating Bias in Word Embeddings",
+      "authors": [
+        "Pablo Badilla",
+        "Felipe Bravo-Marquez",
+        "María José Zambrano",
+        "Jorge Pérez"
+      ],
+      "volume": "26",
+      "issue": "156",
+      "pages": "1-6",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-1133.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Regularized Rényi Divergence Minimization through Bregman Proximal Gradient Algorithms",
+      "authors": [
+        "Thomas Guilmeau",
+        "Emilie Chouzenoux",
+        "Víctor Elvira"
+      ],
+      "volume": "26",
+      "issue": "157",
+      "pages": "1-56",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0573.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Score-Based Diffusion Models in Function Space",
+      "authors": [
+        "Jae Hyun Lim",
+        "Nikola B. Kovachki",
+        "Ricardo Baptista",
+        "Christopher Beckham",
+        "Kamyar Azizzadenesheli",
+        "Jean Kossaifi",
+        "Vikram Voleti",
+        "Jiaming Song",
+        "Karsten Kreis",
+        "Jan Kautz",
+        "Christopher Pal",
+        "Arash Vahdat",
+        "Anima Anandkumar"
+      ],
+      "volume": "26",
+      "issue": "158",
+      "pages": "1-62",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1472.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Simplex Constrained Sparse Optimization via Tail Screening",
+      "authors": [
+        "Peng Chen",
+        "Jin Zhu",
+        "Junxian Zhu",
+        "Xueqin Wang"
+      ],
+      "volume": "26",
+      "issue": "159",
+      "pages": "1-38",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0010.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Density Estimation Using the Perceptron",
+      "authors": [
+        "Patrik Róbert Gerber",
+        "Tianze Jiang",
+        "Yury Polyanskiy",
+        "Rui Sun"
+      ],
+      "volume": "26",
+      "issue": "160",
+      "pages": "1-51",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0261.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Extending Temperature Scaling with Homogenizing Maps",
+      "authors": [
+        "Christopher Qian",
+        "Feng Liang",
+        "Jason Adams"
+      ],
+      "volume": "26",
+      "issue": "161",
+      "pages": "1-46",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0700.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Distribution Estimation under the Infinity Norm",
+      "authors": [
+        "Aryeh Kontorovich",
+        "Amichai Painsky"
+      ],
+      "volume": "26",
+      "issue": "162",
+      "pages": "1-30",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1166.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "System Neural Diversity: Measuring Behavioral Heterogeneity in Multi-Agent Learning",
+      "authors": [
+        "Matteo Bettini",
+        "Ajay Shankar",
+        "Amanda Prorok"
+      ],
+      "volume": "26",
+      "issue": "163",
+      "pages": "1-27",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1477.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Nonparametric Regression on Random Geometric Graphs Sampled from Submanifolds",
+      "authors": [
+        "Paul Rosa",
+        "Judith Rousseau"
+      ],
+      "volume": "26",
+      "issue": "164",
+      "pages": "1-65",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1960.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Autoencoders in Function Space",
+      "authors": [
+        "Justin Bunker",
+        "Mark Girolami",
+        "Hefin Lambley",
+        "Andrew M. Stuart",
+        "T. J. Sullivan"
+      ],
+      "volume": "26",
+      "issue": "165",
+      "pages": "1-54",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0035.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "EMaP: Explainable AI with Manifold-based Perturbations",
+      "authors": [
+        "Minh Nhat Vu",
+        "Huy Quang Mai",
+        "My T. Thai"
+      ],
+      "volume": "26",
+      "issue": "166",
+      "pages": "1-35",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-1157.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Asymptotic Inference for Multi-Stage Stationary Treatment Policy with Variable Selection",
+      "authors": [
+        "Daiqi Gao",
+        "Yufeng Liu",
+        "Donglin Zeng"
+      ],
+      "volume": "26",
+      "issue": "167",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0660.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Frequentist Guarantees of Distributed (Non)-Bayesian Inference",
+      "authors": [
+        "Bohan Wu",
+        "César A. Uribe"
+      ],
+      "volume": "26",
+      "issue": "168",
+      "pages": "1-65",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1504.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Boosting Causal Additive Models",
+      "authors": [
+        "Maximilian Kertel",
+        "Nadja Klein"
+      ],
+      "volume": "26",
+      "issue": "169",
+      "pages": "1-49",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0052.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Contextual Bandits with Stage-wise Constraints",
+      "authors": [
+        "Aldo Pacchiano",
+        "Mohammad Ghavamzadeh",
+        "Peter Bartlett"
+      ],
+      "volume": "26",
+      "issue": "170",
+      "pages": "1-57",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0267.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Data-Driven Performance Guarantees for Classical and Learned Optimizers",
+      "authors": [
+        "Rajiv Sambharya",
+        "Bartolomeo Stellato"
+      ],
+      "volume": "26",
+      "issue": "171",
+      "pages": "1-49",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0755.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Enhanced Feature Learning via Regularisation: Integrating Neural Networks and Kernel Methods",
+      "authors": [
+        "Bertille FOLLAIN",
+        "Francis BACH"
+      ],
+      "volume": "26",
+      "issue": "172",
+      "pages": "1-56",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1178.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Interpretable Global Minima of Deep ReLU Neural Networks on Sequentially Separable Data",
+      "authors": [
+        "Thomas Chen",
+        "Patrícia Muñoz Ewald"
+      ],
+      "volume": "26",
+      "issue": "173",
+      "pages": "1-31",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1516.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Best Linear Unbiased Estimate from Privatized Contingency Tables",
+      "authors": [
+        "Jordan Awan",
+        "Adam Edwards",
+        "Paul Bartholomew",
+        "Andrew Sillers"
+      ],
+      "volume": "26",
+      "issue": "174",
+      "pages": "1-41",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1962.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "High-Rank Irreducible Cartesian Tensor Decomposition and Bases of Equivariant Spaces",
+      "authors": [
+        "Shihao Shao",
+        "Yikang Li",
+        "Zhouchen Lin",
+        "Qinghua Cui"
+      ],
+      "volume": "26",
+      "issue": "175",
+      "pages": "1-53",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0134.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Fast Algorithm for Constrained Linear Inverse Problems",
+      "authors": [
+        "Mohammed Rayyan Sheriff",
+        "Floor Fenne Redel",
+        "Peyman Mohajerin Esfahani"
+      ],
+      "volume": "26",
+      "issue": "176",
+      "pages": "1-41",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-1380.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Four Axiomatic Characterizations of the Integrated Gradients Attribution Method",
+      "authors": [
+        "Daniel Lundstrom",
+        "Meisam Razaviyayn"
+      ],
+      "volume": "26",
+      "issue": "177",
+      "pages": "1-31",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0671.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Bagged Regularized k-Distances for Anomaly Detection",
+      "authors": [
+        "Yuchao Cai",
+        "Hanfang Yang",
+        "Yuheng Ma",
+        "Hanyuan Hang"
+      ],
+      "volume": "26",
+      "issue": "178",
+      "pages": "1-59",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1519.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Assumption-lean and data-adaptive post-prediction inference",
+      "authors": [
+        "Jiacheng Miao",
+        "Xinran Miao",
+        "Yixuan Wu",
+        "Jiwei Zhao",
+        "Qiongshi Lu"
+      ],
+      "volume": "26",
+      "issue": "179",
+      "pages": "1-31",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0056.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "\"What is Different Between These Datasets?\" A Framework for Explaining Data Distribution Shifts",
+      "authors": [
+        "Varun Babbar*",
+        "Zhicheng Guo*",
+        "Cynthia Rudin"
+      ],
+      "volume": "26",
+      "issue": "180",
+      "pages": "1-64",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0352.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Generative Adversarial Networks: Dynamics",
+      "authors": [
+        "Matias G. Delgadino",
+        "Bruno B. Suassuna",
+        "Rene Cabrera"
+      ],
+      "volume": "26",
+      "issue": "181",
+      "pages": "1-30",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0848.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Hierarchical Decision Making Based on Structural Information Principles",
+      "authors": [
+        "Xianghua Zeng",
+        "Hao Peng",
+        "Dingli Su",
+        "Angsheng Li"
+      ],
+      "volume": "26",
+      "issue": "182",
+      "pages": "1-55",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1184.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Early Alignment in Two-Layer Networks Training is a Two-Edged Sword",
+      "authors": [
+        "Etienne Boursier",
+        "Nicolas Flammarion"
+      ],
+      "volume": "26",
+      "issue": "183",
+      "pages": "1-75",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1523.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Imprecise Multi-Armed Bandits: Representing Irreducible Uncertainty as a Zero-Sum Game",
+      "authors": [
+        "Vanessa Kosoy"
+      ],
+      "volume": "26",
+      "issue": "184",
+      "pages": "1-75",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2001.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimizing Return Distributions with Distributional Dynamic Programming",
+      "authors": [
+        "Bernardo Ávila Pires",
+        "Mark Rowland",
+        "Diana Borsa",
+        "Zhaohan Daniel Guo",
+        "Khimya Khetarpal",
+        "André Barreto",
+        "David Abel",
+        "Rémi Munos",
+        "Will Dabney"
+      ],
+      "volume": "26",
+      "issue": "185",
+      "pages": "1-90",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0210.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Exponential Family Graphical Models: Correlated Replicates and Unmeasured Confounders, with Applications to fMRI Data",
+      "authors": [
+        "Yanxin Jin",
+        "Yang Ning",
+        "Kean Ming Tan"
+      ],
+      "volume": "26",
+      "issue": "186",
+      "pages": "1-66",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-1421.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Learning from Similar Linear Representations: Adaptivity, Minimaxity, and Robustness",
+      "authors": [
+        "Ye Tian",
+        "Yuqi Gu",
+        "Yang Feng"
+      ],
+      "volume": "26",
+      "issue": "187",
+      "pages": "1-125",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0902.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Multiple Instance Verification",
+      "authors": [
+        "Xin Xu",
+        "Eibe Frank",
+        "Geoffrey Holmes"
+      ],
+      "volume": "26",
+      "issue": "188",
+      "pages": "1-46",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1590.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "EF21 with Bells & Whistles: Six Algorithmic Extensions of Modern Error Feedback",
+      "authors": [
+        "Ilyas Fatkhullin",
+        "Igor Sokolov",
+        "Eduard Gorbunov",
+        "Zhize Li",
+        "Peter Richtárik"
+      ],
+      "volume": "26",
+      "issue": "189",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0059.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Model-free Change-Point Detection Using AUC of a Classifier",
+      "authors": [
+        "Rohit Kanrar",
+        "Feiyu Jiang",
+        "Zhanrui Cai"
+      ],
+      "volume": "26",
+      "issue": "190",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0365.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A New Random Reshuffling Method for Nonsmooth Nonconvex Finite-sum Optimization",
+      "authors": [
+        "Junwen Qiu",
+        "Xiao Li",
+        "Andre Milzarek"
+      ],
+      "volume": "26",
+      "issue": "191",
+      "pages": "1-46",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0891.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Learning with Linear Function Approximations in Mean-Field Control",
+      "authors": [
+        "Erhan Bayraktar",
+        "Ali Devran Kara"
+      ],
+      "volume": "26",
+      "issue": "192",
+      "pages": "1-53",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1221.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On the Convergence of Projected Policy Gradient for Any Constant Step Sizes",
+      "authors": [
+        "Jiacai Liu",
+        "Wenye Li",
+        "Dachao Lin",
+        "Ke Wei",
+        "Zhihua Zhang"
+      ],
+      "volume": "26",
+      "issue": "193",
+      "pages": "1-35",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1530.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Linear Separation Capacity of Self-Supervised Representation Learning",
+      "authors": [
+        "Shulei Wang"
+      ],
+      "volume": "26",
+      "issue": "194",
+      "pages": "1-48",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2032.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Relaxed Gaussian Process Interpolation: a Goal-Oriented Approach to Bayesian Optimization",
+      "authors": [
+        "Sébastien J. Petit",
+        "Julien Bect",
+        "Emmanuel Vazquez"
+      ],
+      "volume": "26",
+      "issue": "195",
+      "pages": "1-70",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0828.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Calibrated Inference: Statistical Inference that Accounts for Both Sampling Uncertainty and Distributional Uncertainty",
+      "authors": [
+        "Yujin Jeong",
+        "Dominik Rothenhäusler"
+      ],
+      "volume": "26",
+      "issue": "196",
+      "pages": "1-48",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0714.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Decentralized Sparse Linear Regression via Gradient-Tracking",
+      "authors": [
+        "Marie Maros",
+        "Gesualdo Scutari",
+        "Ying Sun",
+        "Guang Cheng"
+      ],
+      "volume": "26",
+      "issue": "197",
+      "pages": "1-56",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1168.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimal subsampling for high-dimensional partially linear models via machine learning methods",
+      "authors": [
+        "Yujing Shao",
+        "Lei Wang",
+        "Heng Lian",
+        "Haiying Wang"
+      ],
+      "volume": "26",
+      "issue": "198",
+      "pages": "1-70",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1475.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Operator Learning for Hyperbolic PDEs",
+      "authors": [
+        "Christopher Wang",
+        "Alex Townsend"
+      ],
+      "volume": "26",
+      "issue": "199",
+      "pages": "1-44",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1724.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "An Adaptive Parameter-free and Projection-free Restarting Level Set Method for Constrained Convex Optimization Under the Error Bound Condition",
+      "authors": [
+        "Qihang Lin",
+        "Negar Soheili",
+        "Runchao Ma",
+        "Selvaprabu Nadarajah"
+      ],
+      "volume": "26",
+      "issue": "200",
+      "pages": "1-45",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0201.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Are Ensembles Getting Better All the Time?",
+      "authors": [
+        "Pierre-Alexandre Mattei",
+        "Damien Garreau"
+      ],
+      "volume": "26",
+      "issue": "201",
+      "pages": "1-46",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0408.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Variational Inference for Uncertainty Quantification: an Analysis of Trade-offs",
+      "authors": [
+        "Charles C. Margossian",
+        "Loucas Pillaud-Vivien",
+        "Lawrence K. Saul"
+      ],
+      "volume": "26",
+      "issue": "202",
+      "pages": "1-41",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0878.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Reliever: Relieving the Burden of Costly Model Fits for Changepoint Detection",
+      "authors": [
+        "Chengde Qian",
+        "Guanghui Wang",
+        "Changliang Zou"
+      ],
+      "volume": "26",
+      "issue": "203",
+      "pages": "1-57",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1108.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "BoFire: Bayesian Optimization Framework Intended for Real Experiments",
+      "authors": [
+        "Johannes P. Dürholt",
+        "Thomas S. Asche",
+        "Johanna Kleinekorte",
+        "Gabriel Mancino-Ball",
+        "Benjamin Schiller",
+        "Simon Sung",
+        "Julian Keupp",
+        "Aaron Osburg",
+        "Toby Boyne",
+        "Ruth Misener",
+        "Rosona Eldred",
+        "Chrysoula Kappatou",
+        "Robert M. Lee",
+        "Dominik Linzner",
+        "Wagner Steuer Costa",
+        "David Walz",
+        "Niklas Wulkow",
+        "Behrang Shafei"
+      ],
+      "volume": "26",
+      "issue": "204",
+      "pages": "1-7",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/26-204.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Robust Point Matching with Distance Profiles",
+      "authors": [
+        "YoonHaeng Hur",
+        "Yuehaw Khoo"
+      ],
+      "volume": "26",
+      "issue": "205",
+      "pages": "1-38",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2224.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Mixtures of Gaussian Process Experts with SMC^2",
+      "authors": [
+        "Teemu Härkönen",
+        "Sara Wade",
+        "Kody Law",
+        "Lassi Roininen"
+      ],
+      "volume": "26",
+      "issue": "206",
+      "pages": "1-38",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0973.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Decentralized Asynchronous Optimization with DADAO allows Decoupling and Acceleration",
+      "authors": [
+        "Adel Nabli",
+        "Edouard Oyallon"
+      ],
+      "volume": "26",
+      "issue": "207",
+      "pages": "1-48",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0748.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Efficient Methods for Non-stationary Online Learning",
+      "authors": [
+        "Peng Zhao",
+        "Yan-Feng Xie",
+        "Lijun Zhang",
+        "Zhi-Hua Zhou"
+      ],
+      "volume": "26",
+      "issue": "208",
+      "pages": "1-66",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1188.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Stochastic Interpolants: A Unifying Framework for Flows and Diffusions",
+      "authors": [
+        "Michael Albergo",
+        "Nicholas M. Boffi",
+        "Eric Vanden-Eijnden"
+      ],
+      "volume": "26",
+      "issue": "209",
+      "pages": "1-80",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1605.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Sparse Semiparametric Discriminant Analysis for High-dimensional Zero-inflated Data",
+      "authors": [
+        "Hee Cheol Chung",
+        "Yang Ni",
+        "Irina Gaynanova"
+      ],
+      "volume": "26",
+      "issue": "210",
+      "pages": "1-54",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0046.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Learning-to-Optimize with PAC-Bayesian Guarantees: Theoretical Considerations and Practical Implementation",
+      "authors": [
+        "Michael Sucker",
+        "Jalal Fadili",
+        "Peter Ochs"
+      ],
+      "volume": "26",
+      "issue": "211",
+      "pages": "1-53",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0486.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Generation of Geodesics with Actor-Critic Reinforcement Learning to Predict Midpoints",
+      "authors": [
+        "Kazumi Kasaura"
+      ],
+      "volume": "26",
+      "issue": "212",
+      "pages": "1-36",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1020.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Deep Neural Networks are Adaptive to Function Regularity and Data Distribution in Approximation and Estimation",
+      "authors": [
+        "Hao Liu",
+        "Jiahui Cheng",
+        "Wenjing Liao"
+      ],
+      "volume": "26",
+      "issue": "213",
+      "pages": "1-56",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1148.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Reinforcement Learning for Infinite-Dimensional Systems",
+      "authors": [
+        "Wei Zhang",
+        "Jr-Shin Li"
+      ],
+      "volume": "26",
+      "issue": "214",
+      "pages": "1-52",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1575.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Unified Discrete Diffusion for Categorical Data",
+      "authors": [
+        "Lingxiao Zhao",
+        "Xueying Ding",
+        "Lijun Yu",
+        "Leman Akoglu"
+      ],
+      "volume": "26",
+      "issue": "215",
+      "pages": "1-49",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0171.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Biological Sequence Kernels with Guaranteed Flexibility",
+      "authors": [
+        "Alan N. Amin",
+        "Debora S. Marks",
+        "Eli N. Weinstein"
+      ],
+      "volume": "26",
+      "issue": "216",
+      "pages": "1-63",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0455.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Scalable and Adaptive Variational Bayes Methods for Hawkes Processes",
+      "authors": [
+        "Deborah Sulem",
+        "Vincent Rivoirard",
+        "Judith Rousseau"
+      ],
+      "volume": "26",
+      "issue": "217",
+      "pages": "1-102",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1053.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A Hybrid Weighted Nearest Neighbour Classifier for Semi-Supervised Learning",
+      "authors": [
+        "Stephen M. S. Lee",
+        "Mehdi Soleymani"
+      ],
+      "volume": "26",
+      "issue": "218",
+      "pages": "1-46",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1258.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimal Rates of Kernel Ridge Regression under Source Condition in Large Dimensions",
+      "authors": [
+        "Haobo Zhang",
+        "Yicheng Li",
+        "Weihao Lu",
+        "Qian Lin"
+      ],
+      "volume": "26",
+      "issue": "219",
+      "pages": "1-63",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1679.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Understanding Deep Representation Learning via Layerwise Feature Compression and Discrimination",
+      "authors": [
+        "Peng Wang",
+        "Xiao Li",
+        "Can Yaras",
+        "Zhihui Zhu",
+        "Laura Balzano",
+        "Wei Hu",
+        "Qing Qu"
+      ],
+      "volume": "26",
+      "issue": "220",
+      "pages": "1-61",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0047.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Geometry and Stability of Supervised Learning Problems",
+      "authors": [
+        "Facundo Mémoli",
+        "Brantley Vose",
+        "Robert C. Williamson"
+      ],
+      "volume": "26",
+      "issue": "221",
+      "pages": "1-99",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0322.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On the Natural Gradient of the Evidence Lower Bound",
+      "authors": [
+        "Nihat Ay",
+        "Jesse van Oostrum",
+        "Adwait Datar"
+      ],
+      "volume": "26",
+      "issue": "222",
+      "pages": "1-37",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0606.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Lexicographic Lipschitz Bandits: New Algorithms and a Lower Bound",
+      "authors": [
+        "Bo Xue",
+        "Ji Cheng",
+        "Fei Liu",
+        "Yimu Wang",
+        "Lijun Zhang",
+        "Qingfu Zhang"
+      ],
+      "volume": "26",
+      "issue": "223",
+      "pages": "1-56",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1047.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Universality of Kernel Random Matrices and Kernel Regression in the Quadratic Regime",
+      "authors": [
+        "Parthe Pandit",
+        "Zhichao Wang",
+        "Yizhe Zhu"
+      ],
+      "volume": "26",
+      "issue": "224",
+      "pages": "1-73",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1533.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Inferring Change Points in High-Dimensional Regression via Approximate Message Passing",
+      "authors": [
+        "Gabriel Arpino",
+        "Xiaoqi Liu",
+        "Julia Gontarek",
+        "Ramji Venkataramanan"
+      ],
+      "volume": "26",
+      "issue": "225",
+      "pages": "1-49",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1789.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Talent: A Tabular Analytics and Learning Toolbox",
+      "authors": [
+        "Si-Yang Liu",
+        "Hao-Run Cai",
+        "Qi-Le Zhou",
+        "Huai-Hong Yin",
+        "Tao Zhou",
+        "Jun-Peng Jiang",
+        "Han-Jia Ye"
+      ],
+      "volume": "26",
+      "issue": "226",
+      "pages": "1-16",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0512.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Algorithms for ridge estimation with convergence guarantees",
+      "authors": [
+        "Wanli Qiao",
+        "Wolfgang Polonik"
+      ],
+      "volume": "26",
+      "issue": "227",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/21-0095.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "An Augmentation Overlap Theory of Contrastive Learning",
+      "authors": [
+        "Qi Zhang",
+        "Yifei Wang",
+        "Yisen Wang"
+      ],
+      "volume": "26",
+      "issue": "228",
+      "pages": "1-42",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-1009.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On the Representation of Pairwise Causal Background Knowledge and Its Applications in Causal Inference",
+      "authors": [
+        "Zhuangyan Fang",
+        "Ruiqi Zhao",
+        "Yue Liu",
+        "Yangbo He"
+      ],
+      "volume": "26",
+      "issue": "229",
+      "pages": "1-73",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0624.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Statistical Inference of Random Graphs With a Surrogate Likelihood Function",
+      "authors": [
+        "Dingbo Wu",
+        "Fangzheng Xie"
+      ],
+      "volume": "26",
+      "issue": "230",
+      "pages": "1-65",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0153.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Online Quantile Regression",
+      "authors": [
+        "Yinan Shen",
+        "Dong Xia",
+        "Wen-Xin Zhou"
+      ],
+      "volume": "26",
+      "issue": "231",
+      "pages": "1-55",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0589.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Graph-accelerated Markov Chain Monte Carlo using Approximate Samples",
+      "authors": [
+        "Leo L. Duan",
+        "Anirban Bhattacharya"
+      ],
+      "volume": "26",
+      "issue": "232",
+      "pages": "1-25",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1024.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Physics Informed Kolmogorov-Arnold Neural Networks for Dynamical Analysis via Efficient-KAN and WAV-KAN",
+      "authors": [
+        "Subhajit Patra",
+        "Sonali Panda",
+        "Bikram Keshari Parida",
+        "Mahima Arya",
+        "Kurt Jacobs",
+        "Denys I. Bondar",
+        "Abhijit Sen"
+      ],
+      "volume": "26",
+      "issue": "233",
+      "pages": "1-39",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1278.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On Probabilistic Embeddings in Optimal Dimension Reduction",
+      "authors": [
+        "Ryan Murray",
+        "Adam Pickarski"
+      ],
+      "volume": "26",
+      "issue": "234",
+      "pages": "1-39",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1461.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "(De)-regularized Maximum Mean Discrepancy Gradient Flow",
+      "authors": [
+        "Zonghao Chen",
+        "Aratrika Mustafi",
+        "Pierre Glaser",
+        "Anna Korba",
+        "Arthur Gretton",
+        "Bharath K. Sriperumbudur"
+      ],
+      "volume": "26",
+      "issue": "235",
+      "pages": "1-77",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1574.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Generalized multi-view model: Adaptive density estimation under low-rank constraints",
+      "authors": [
+        "Julien Chhor",
+        "Olga Klopp",
+        "Alexandre B. Tsybakov"
+      ],
+      "volume": "26",
+      "issue": "236",
+      "pages": "1-52",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1729.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Revisiting Gradient Normalization and Clipping for Nonconvex SGD under Heavy-Tailed Noise: Necessity, Sufficiency, and Acceleration",
+      "authors": [
+        "Tao Sun",
+        "Xinwang Liu",
+        "Kun Yuan"
+      ],
+      "volume": "26",
+      "issue": "237",
+      "pages": "1-42",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1991.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Stochastic Interior-Point Methods for Smooth Conic Optimization with Applications",
+      "authors": [
+        "Chuan He",
+        "Zhanwang Deng"
+      ],
+      "volume": "26",
+      "issue": "238",
+      "pages": "1-39",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2158.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Fair Text Classification via Transferable Representations",
+      "authors": [
+        "Thibaud Leteno",
+        "Michael Perrot",
+        "Charlotte Laclau",
+        "Antoine Gourru",
+        "Christophe Gravier"
+      ],
+      "volume": "26",
+      "issue": "239",
+      "pages": "1-47",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0485.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Decentralized Bilevel Optimization: A Perspective from Transient Iteration Complexity",
+      "authors": [
+        "Boao Kong",
+        "Shuchen Zhu",
+        "Songtao Lu",
+        "Xinmeng Huang",
+        "Kun Yuan"
+      ],
+      "volume": "26",
+      "issue": "240",
+      "pages": "1-64",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0677.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Gold-medalist Performance in Solving Olympiad Geometry with AlphaGeometry2",
+      "authors": [
+        "Yuri Chervonyi",
+        "Trieu H. Trinh",
+        "Miroslav Olšák",
+        "Xiaomeng Yang",
+        "Hoang H. Nguyen",
+        "Marcelo Menegali",
+        "Junehyuk Jung",
+        "Junsu Kim",
+        "Vikas Verma",
+        "Quoc V. Le",
+        "Thang Luong"
+      ],
+      "volume": "26",
+      "issue": "241",
+      "pages": "1-39",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-1654.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Hierarchical and Stochastic Crystallization Learning: Geometrically Leveraged Nonparametric Regression with Delaunay Triangulation",
+      "authors": [
+        "Jiaqi Gu",
+        "Guosheng Yin"
+      ],
+      "volume": "26",
+      "issue": "242",
+      "pages": "1-25",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/21-0930.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Piecewise deterministic sampling with splitting schemes",
+      "authors": [
+        "Andrea Bertazzi",
+        "Paul Dobson",
+        "Pierre Monmarché"
+      ],
+      "volume": "26",
+      "issue": "243",
+      "pages": "1-94",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0036.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "General Loss Functions Lead to (Approximate) Interpolation in High Dimensions",
+      "authors": [
+        "Kuo-Wei Lai",
+        "Vidya Muthukumar"
+      ],
+      "volume": "26",
+      "issue": "244",
+      "pages": "1-72",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1078.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Efficient Knowledge Deletion from Trained Models Through Layer-wise Partial Machine Unlearning",
+      "authors": [
+        "Vinay Chakravarthi Gogineni",
+        "Esmaeil S. Nadimi"
+      ],
+      "volume": "26",
+      "issue": "245",
+      "pages": "1-33",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0469.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Stable learning using spiking neural networks equipped with affine encoders and decoders",
+      "authors": [
+        "A. Martina Neuman",
+        "Dominik Dold",
+        "Philipp Christian Petersen"
+      ],
+      "volume": "26",
+      "issue": "246",
+      "pages": "1-49",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0658.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Infinite-dimensional Mahalanobis Distance with Applications to Kernelized Novelty Detection",
+      "authors": [
+        "Nikita Zozoulenko",
+        "Thomas Cass",
+        "Lukas Gonon"
+      ],
+      "volume": "26",
+      "issue": "247",
+      "pages": "1-47",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1126.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A Unified Framework to Enforce, Discover, and Promote Symmetry in Machine Learning",
+      "authors": [
+        "Samuel E. Otto",
+        "Nicholas Zolman",
+        "J. Nathan Kutz",
+        "Steven L. Brunton"
+      ],
+      "volume": "26",
+      "issue": "248",
+      "pages": "1-83",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1315.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Convergence Rates for Non-Log-Concave Sampling and Log-Partition Estimation",
+      "authors": [
+        "David Holzmüller",
+        "Francis Bach"
+      ],
+      "volume": "26",
+      "issue": "249",
+      "pages": "1-72",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1494.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "An Asymptotically Optimal Coordinate Descent Algorithm for Learning Bayesian Networks from Gaussian Models",
+      "authors": [
+        "Tong Xu",
+        "Simge Küçükyavuz",
+        "Ali Shojaie",
+        "Armeen Taeb"
+      ],
+      "volume": "26",
+      "issue": "250",
+      "pages": "1-30",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1657.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Jackpot: Approximating Uncertainty Domains with Adversarial Manifolds",
+      "authors": [
+        "Nathanaël Munier",
+        "Emmanuel Soubies",
+        "Pierre Weiss"
+      ],
+      "volume": "26",
+      "issue": "251",
+      "pages": "1-41",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1769.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Minimax Optimal Two-Sample Testing under Local Differential Privacy",
+      "authors": [
+        "Jongmin Mun",
+        "Seungwoo Kwak",
+        "Ilmun Kim"
+      ],
+      "volume": "26",
+      "issue": "252",
+      "pages": "1-79",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2016.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Scaling Capability in Token Space: An Analysis of Large Vision Language Model",
+      "authors": [
+        "Tenghui Li",
+        "Guoxu Zhou",
+        "Xuyang Zhao",
+        "Qibin Zhao"
+      ],
+      "volume": "26",
+      "issue": "253",
+      "pages": "1-61",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2243.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "VFOSA: Variance-Reduced Fast Operator Splitting Algorithms for Generalized Equations",
+      "authors": [
+        "Quoc Tran-Dinh"
+      ],
+      "volume": "26",
+      "issue": "254",
+      "pages": "1-68",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0500.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Differentially Private Multivariate Medians",
+      "authors": [
+        "Kelly Ramsay",
+        "Aukosh Jagannath",
+        "Shoja&#39;eddin Chenouri"
+      ],
+      "volume": "26",
+      "issue": "255",
+      "pages": "1-52",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0763.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Convergence and Sample Complexity of Natural Policy Gradient Primal-Dual Methods for Constrained MDPs",
+      "authors": [
+        "Dongsheng Ding",
+        "Kaiqing Zhang",
+        "Jiali Duan",
+        "Tamer Basar",
+        "Mihailo R. Jovanovic"
+      ],
+      "volume": "26",
+      "issue": "256",
+      "pages": "1-76",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0622.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Differentially Private Bootstrap: New Privacy Analysis and Inference Strategies",
+      "authors": [
+        "Zhanyu Wang",
+        "Guang Cheng",
+        "Jordan Awan"
+      ],
+      "volume": "26",
+      "issue": "257",
+      "pages": "1-57",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0514.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On the Utility of Equal Batch Sizes for Inference in  Stochastic Gradient Descent",
+      "authors": [
+        "Rahul Singh",
+        "Abhinek Shukla",
+        "Dootika Vats"
+      ],
+      "volume": "26",
+      "issue": "258",
+      "pages": "1-41",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0094.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Collaborative likelihood-ratio estimation over graphs",
+      "authors": [
+        "Alejandro de la Concha",
+        "Nicolas Vayatis",
+        "Argyris Kalogeratos"
+      ],
+      "volume": "26",
+      "issue": "259",
+      "pages": "1-66",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0565.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Fast Computation of Superquantile-Constrained Optimization Through Implicit Scenario Reduction",
+      "authors": [
+        "Jake Roth",
+        "Ying Cui"
+      ],
+      "volume": "26",
+      "issue": "260",
+      "pages": "1-34",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0752.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Efficient Online Prediction for High-Dimensional Time Series via Joint Tensor Tucker Decomposition",
+      "authors": [
+        "Zhenting Luan",
+        "Defeng Sun",
+        "Haoning Wang",
+        "Liping Zhang"
+      ],
+      "volume": "26",
+      "issue": "261",
+      "pages": "1-30",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1229.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "On the Robustness of Kernel Goodness-of-Fit Tests",
+      "authors": [
+        "Xing Liu",
+        "François-Xavier Briol"
+      ],
+      "volume": "26",
+      "issue": "262",
+      "pages": "1-72",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1365.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Fundamental Limits of Membership Inference Attacks on Machine Learning Models",
+      "authors": [
+        "Eric Aubinais",
+        "Elisabeth Gassiat",
+        "Pablo Piantanida"
+      ],
+      "volume": "26",
+      "issue": "263",
+      "pages": "1-54",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1515.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Identifiability of Causal Graphs under Non-Additive Conditionally Parametric Causal Models",
+      "authors": [
+        "Juraj Bodik",
+        "Valérie Chavez-Demoulin"
+      ],
+      "volume": "26",
+      "issue": "264",
+      "pages": "1-55",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1662.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Hopfield-Fenchel-Young Networks: A Unified Framework for Associative Memory Retrieval",
+      "authors": [
+        "Saul Santos",
+        "Vlad Niculae",
+        "Daniel McNamee",
+        "Andre F.T. Martins"
+      ],
+      "volume": "26",
+      "issue": "265",
+      "pages": "1-51",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1961.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "TorchCP: A Python Library for Conformal Prediction",
+      "authors": [
+        "Jianguo Huang",
+        "Jianqing Song",
+        "Xuanning Zhou",
+        "Bingyi Jing",
+        "Hongxin Wei"
+      ],
+      "volume": "26",
+      "issue": "266",
+      "pages": "1-25",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2141.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Towards Unified Native Spaces in Kernel Methods",
+      "authors": [
+        "Xavier Emery",
+        "Emilio Porcu",
+        "Moreno Bevilacqua"
+      ],
+      "volume": "26",
+      "issue": "267",
+      "pages": "1-35",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0022.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimal Complexity in Byzantine-Robust Distributed Stochastic Optimization with Data Heterogeneity",
+      "authors": [
+        "Qiankun Shi",
+        "Jie Peng",
+        "Kun Yuan",
+        "Xiao Wang",
+        "Qing Ling"
+      ],
+      "volume": "26",
+      "issue": "268",
+      "pages": "1-58",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0613.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Towards Understanding Gradient Flow Dynamics of Homogeneous Neural Networks Beyond the Origin",
+      "authors": [
+        "Akshay Kumar",
+        "Jarvis Haupt"
+      ],
+      "volume": "26",
+      "issue": "269",
+      "pages": "1-83",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-1089.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimal Functional Bilinear Regression with Two-dimensional Functional Covariates via Reproducing Kernel Hilbert Space",
+      "authors": [
+        "Dan Yang",
+        "Jianlong Shao",
+        "Haipeng Shen",
+        "Hongtu Zhu"
+      ],
+      "volume": "26",
+      "issue": "270",
+      "pages": "1-52",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/18-073.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Sketching in High-Dimensional Regression With Big Data Using Gaussian Scale Mixture Priors",
+      "authors": [
+        "Rajarshi Guhaniyogi",
+        "Aaron Wolfe Scheffler"
+      ],
+      "volume": "26",
+      "issue": "271",
+      "pages": "1-28",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/22-0887.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "FedHB: Hierarchical Bayesian Federated Learning",
+      "authors": [
+        "Minyoung Kim",
+        "Timothy Hospedales"
+      ],
+      "volume": "26",
+      "issue": "272",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1350.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Good regularity creates large learning rate implicit biases: edge of stability, balancing, and catapult",
+      "authors": [
+        "Yuqing Wang",
+        "Zhenghao Xu",
+        "Tuo Zhao",
+        "Molei Tao"
+      ],
+      "volume": "26",
+      "issue": "273",
+      "pages": "1-68",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1691.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Substitute Adjustment via Recovery of Latent Variables",
+      "authors": [
+        "Jeffrey Adams",
+        "Niels Richard Hansen"
+      ],
+      "volume": "26",
+      "issue": "274",
+      "pages": "1-44",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0309.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Physics-Informed Deep Learning and Compressive Collocation for High-Dimensional Diffusion-Reaction Equations: Practical Existence Theory and Numerics",
+      "authors": [
+        "Simone Brugiapaglia",
+        "Nick Dexter",
+        "Samir Karam",
+        "Weiqi Wang"
+      ],
+      "volume": "26",
+      "issue": "275",
+      "pages": "1-51",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0884.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "The GeometricKernels Package: Heat and Matérn Kernels for Geometric Learning on Manifolds, Meshes, and Graphs",
+      "authors": [
+        "Peter Mostowsky",
+        "Vincent Dutordoir",
+        "Iskander Azangulov",
+        "Noémie Jaquier",
+        "Michael John Hutchinson",
+        "Aditya Ravuri",
+        "Leonel Rozo",
+        "Alexander Terenin",
+        "Viacheslav Borovitskiy"
+      ],
+      "volume": "26",
+      "issue": "276",
+      "pages": "1-14",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1185.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Combining Climate Models using Bayesian Regression Trees and Random Paths",
+      "authors": [
+        "John C. Yannotty",
+        "Thomas J. Santner",
+        "Bo Li",
+        "Matthew T. Pratola"
+      ],
+      "volume": "26",
+      "issue": "277",
+      "pages": "1-46",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1584.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Concentration of Cumulative Reward in Markov Decision Processes",
+      "authors": [
+        "Borna Sayedana",
+        "Peter E. Caines",
+        "Aditya Mahajan"
+      ],
+      "volume": "26",
+      "issue": "278",
+      "pages": "1-71",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2047.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Bias-variance decompositions: the exclusive privilege of Bregman divergences",
+      "authors": [
+        "Tom Heskes"
+      ],
+      "volume": "26",
+      "issue": "279",
+      "pages": "1-30",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0211.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimal Decentralized Composite Optimization for Strongly Convex Functions",
+      "authors": [
+        "Haishan Ye",
+        "Xiangyu Chang"
+      ],
+      "volume": "26",
+      "issue": "280",
+      "pages": "1-34",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0397.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Backward Filtering Forward Guiding",
+      "authors": [
+        "Frank H. van der Meulen",
+        "S. Sommer"
+      ],
+      "volume": "26",
+      "issue": "281",
+      "pages": "1-51",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-1130.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Geometric Operator Learning with Optimal Transport",
+      "authors": [
+        "Xinyi Li",
+        "Zongyi Li",
+        "Nikola Kovachki",
+        "Anima Anandkumar"
+      ],
+      "volume": "26",
+      "issue": "282",
+      "pages": "1-38",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-1380.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Almost Sure Convergence of Dropout Algorithms for Neural Networks",
+      "authors": [
+        "Albert Senen--Cerda",
+        "Jaron Sanders"
+      ],
+      "volume": "26",
+      "issue": "283",
+      "pages": "1-53",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/20-1396.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Nonlinear functional regression by functional deep neural network with kernel embedding",
+      "authors": [
+        "Zhongjie Shi",
+        "Jun Fan",
+        "Linhao Song",
+        "Ding-Xuan Zhou",
+        "Johan A.K. Suykens"
+      ],
+      "volume": "26",
+      "issue": "284",
+      "pages": "1-49",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-0659.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Step and Smooth Decompositions as Topological Clustering",
+      "authors": [
+        "Luciano Vinas",
+        "Arash A. Amini"
+      ],
+      "volume": "26",
+      "issue": "285",
+      "pages": "1-36",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1490.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Client Selection for Federated Policy Optimization with Environment Heterogeneity",
+      "authors": [
+        "Zhijie Xie",
+        "Shenghui Song"
+      ],
+      "volume": "26",
+      "issue": "286",
+      "pages": "1-45",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0233.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "CAP: A General Algorithm for Online Selective Conformal Prediction with FCR Control",
+      "authors": [
+        "Yajie Bao",
+        "Yuyang Huo",
+        "Haojie Ren",
+        "Changliang Zou"
+      ],
+      "volume": "26",
+      "issue": "287",
+      "pages": "1-74",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0452.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Proper losses regret at least 1/2-order",
+      "authors": [
+        "Han Bao",
+        "Asuka Takatsu"
+      ],
+      "volume": "26",
+      "issue": "288",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1112.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "DeepCAVE: A Visualization and Analysis Tool for Automated Machine Learning",
+      "authors": [
+        "Sarah Segel",
+        "Helena Graf",
+        "Edward Bergman",
+        "Kristina Thieme",
+        "Marcel Wever",
+        "Alexander Tornede",
+        "Frank Hutter",
+        "Marius Lindauer"
+      ],
+      "volume": "26",
+      "issue": "289",
+      "pages": "1-8",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1353.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Equivariant Manifold Neural ODEs and Differential Invariants",
+      "authors": [
+        "Emma Andersdotter",
+        "Daniel Persson",
+        "Fredrik Ohlsson"
+      ],
+      "volume": "26",
+      "issue": "290",
+      "pages": "1-33",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1888.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "The Z-Gromov-Wasserstein Distance",
+      "authors": [
+        "Martin Bauer",
+        "Facundo Mémoli",
+        "Tom Needham",
+        "Mao Nishino"
+      ],
+      "volume": "26",
+      "issue": "291",
+      "pages": "1-57",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-2189.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "O(d/T) Convergence Theory for Diffusion Probabilistic Models under Minimal Assumptions",
+      "authors": [
+        "Gen Li",
+        "Yuling Yan"
+      ],
+      "volume": "26",
+      "issue": "292",
+      "pages": "1-55",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0272.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Optimal Denoising in Score-Based Generative Models: The Role of Data Regularity",
+      "authors": [
+        "Eliot Beyler",
+        "Francis Bach"
+      ],
+      "volume": "26",
+      "issue": "293",
+      "pages": "1-48",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0544.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Zono-Conformal Prediction: Zonotope-Based Uncertainty Quantification for Regression and Classification Tasks",
+      "authors": [
+        "Laura Lützow",
+        "Michael Eichelbeck",
+        "Mykel J. Kochenderfer",
+        "Matthias Althoff"
+      ],
+      "volume": "26",
+      "issue": "294",
+      "pages": "1-37",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-1161.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Global Convergence of Adjoint-Optimized Neural PDEs",
+      "authors": [
+        "Konstantin Riedl",
+        "Justin Sirignano",
+        "Konstantinos Spiliopoulos"
+      ],
+      "volume": "26",
+      "issue": "295",
+      "pages": "1-94",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-1383.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Kernel-based L_2-Boosting with Structure Constraints",
+      "authors": [
+        "Yao Wang",
+        "Xin Guo",
+        "Shao-Bo Lin"
+      ],
+      "volume": "26",
+      "issue": "296",
+      "pages": "1-37",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/20-593.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Geodesic Slice Sampling on the Sphere",
+      "authors": [
+        "Michael Habeck",
+        "Mareike Hasenpflug",
+        "Shantanu Kodgirwar",
+        "Daniel Rudolf"
+      ],
+      "volume": "26",
+      "issue": "297",
+      "pages": "1-38",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1158.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "A statistical perspective on algorithm unrolling models for inverse problems",
+      "authors": [
+        "Yves Atchade",
+        "Xinru Liu",
+        "Qiuyun Zhu"
+      ],
+      "volume": "26",
+      "issue": "298",
+      "pages": "1-47",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/23-1512.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Geometry-Dependent Matching Pursuit: a Transition Phase for Convergence on Linear Regression and LASSO",
+      "authors": [
+        "Celine Moucer",
+        "Adrien B. Taylor",
+        "Francis Bach"
+      ],
+      "volume": "26",
+      "issue": "299",
+      "pages": "1-50",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0253.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Continuum Attention for Neural Operators",
+      "authors": [
+        "Edoardo Calvello",
+        "Nikola B. Kovachki",
+        "Matthew E. Levine",
+        "Andrew M. Stuart"
+      ],
+      "volume": "26",
+      "issue": "300",
+      "pages": "1-52",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-0879.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Bayesian Score Calibration for Approximate Models",
+      "authors": [
+        "Joshua J. Bon",
+        "David J. Warne",
+        "David J. Nott",
+        "Christopher Drovandi"
+      ],
+      "volume": "26",
+      "issue": "301",
+      "pages": "1-40",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1179.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Reward-Directed Score-Based Diffusion Models via q-Learning",
+      "authors": [
+        "Xuefeng Gao",
+        "Jiale Zha",
+        "Xun Yu Zhou"
+      ],
+      "volume": "26",
+      "issue": "302",
+      "pages": "1-46",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1521.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Neural Operators Can Play Dynamic Stackelberg Games",
+      "authors": [
+        "Guillermo A. Alvarez",
+        "Ibrahim Ekren",
+        "Anastasis Kratsios",
+        "Xuwei Yang"
+      ],
+      "volume": "26",
+      "issue": "303",
+      "pages": "1-61",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/24-1985.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Mixing Times and Privacy Analysis for the Projected Langevin Algorithm under a Modulus of Continuity",
+      "authors": [
+        "Mario Bravo",
+        "Juan P. Flores-Mella",
+        "Cristóbal Guzmán"
+      ],
+      "volume": "26",
+      "issue": "304",
+      "pages": "1-33",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0206.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Gradient Equilibrium in Online Learning: Theory and Applications",
+      "authors": [
+        "Anastasios N. Angelopoulos",
+        "Michael I. Jordan",
+        "Ryan J. Tibshirani"
+      ],
+      "volume": "26",
+      "issue": "305",
+      "pages": "1-68",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0356.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Second-order Information Promotes Mini-Batch Robustness in Variance-Reduced Gradients",
+      "authors": [
+        "Sachin Garg",
+        "Albert S. Berahas",
+        "Michał Dereziński"
+      ],
+      "volume": "26",
+      "issue": "306",
+      "pages": "1-49",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-0657.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "FusionBench: A Unified Library and Comprehensive Benchmark for Deep Model Fusion",
+      "authors": [
+        "Anke Tang",
+        "Li Shen",
+        "Yong Luo",
+        "Enneng Yang",
+        "Han Hu",
+        "Lefei Zhang",
+        "Bo Du",
+        "Dacheng Tao"
+      ],
+      "volume": "26",
+      "issue": "307",
+      "pages": "1-38",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-1243.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    },
+    {
+      "title": "Certified Machine Unlearning Under High Dimensional Regime",
+      "authors": [
+        "Haolin Zou",
+        "Arnab Auddy",
+        "Yongchan Kwon",
+        "Kamiar Rahnama Rad",
+        "Arian Maleki"
+      ],
+      "volume": "26",
+      "issue": "308",
+      "pages": "1-58",
+      "year": "2025",
+      "month": "",
+      "url": "https://www.jmlr.org/papers/v26/25-1751.html",
+      "abstract": "",
+      "doi": "",
+      "journal": "JMLR"
+    }
+  ]
+}
