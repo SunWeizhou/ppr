@@ -44,18 +44,6 @@
             <span class="summary-pill-value">{{ queue_counts.values() | list | sum }}</span>
         </div>
     </div>
-
-    <div class="command-link-row">
-        <a href="/library" class="command-link">查看 Library</a>
-        <a href="/settings" class="command-link">调整画像</a>
-        <span class="command-link command-link-muted">
-            {% if latest_job %}
-                最近生成：{{ latest_job.updated_at or latest_job.created_at }}
-            {% else %}
-                当前没有生成任务记录
-            {% endif %}
-        </span>
-    </div>
 </section>
 {% endblock %}
 
@@ -118,26 +106,17 @@
 
         <details class="rail-section">
             <summary class="rail-summary">
-                <span class="section-kicker">Research Assets</span>
-                <span class="rail-summary-text">{{ all_collections|length }} collections / {{ all_saved_searches|length }} searches</span>
+                <span class="section-kicker">Job Status</span>
+                <span class="rail-summary-text">{% if latest_job %}{{ latest_job.status }}{% else %}idle{% endif %}</span>
             </summary>
             <div class="rail-section-body">
-                <div class="list-stack">
-                    <a href="/library?tab=collections" class="list-item list-item-link">
-                        <div>
-                            <span class="list-item-title">Collections</span>
-                            <span class="list-item-subtitle">方法簇和问题容器</span>
-                        </div>
-                        <span class="list-item-trailing">{{ all_collections|length }}</span>
-                    </a>
-                    <a href="/library?tab=saved-searches" class="list-item list-item-link">
-                        <div>
-                            <span class="list-item-title">Saved Searches</span>
-                            <span class="list-item-subtitle">长期问题订阅</span>
-                        </div>
-                        <span class="list-item-trailing">{{ all_saved_searches|length }}</span>
-                    </a>
-                </div>
+                <p class="detail-copy">
+                    {% if latest_job %}
+                        最近一次任务由 {{ latest_job.trigger_source }} 触发，更新时间 {{ latest_job.updated_at or latest_job.created_at }}。
+                    {% else %}
+                        当前没有生成任务记录。
+                    {% endif %}
+                </p>
             </div>
         </details>
     </aside>

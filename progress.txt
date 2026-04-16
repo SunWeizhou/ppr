@@ -68,3 +68,11 @@
   - Settings form uses `/api/keywords` (POST/DELETE) and `/api/settings` (POST) endpoints
   - All 5 pages now have correct active nav highlighting
 ---
+
+## 2026-04-16 - US-007
+- **What was implemented:** Streamlined Inbox left rail. Removed Research Assets section (collection count, saved search count). Removed command-link-row from hero. Added Job Status collapsible section to left rail.
+- **Files changed:** templates/home_research.html
+- **Learnings for future iterations:**
+  - Inbox left rail now has 4 sections: Timeline, Filters, Daily Themes, Job Status
+  - The command-link-row was an older pattern that duplicated navigation already in top nav
+---
