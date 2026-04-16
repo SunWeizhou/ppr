@@ -234,11 +234,10 @@ def save_favorites(favorites):
 
 NAV_ITEM_CONFIG = [
     ('inbox', '/', 'Inbox', 'tone-home'),
-    ('track', '/track', 'Track', 'tone-track'),
-    ('explore', '/search', 'Explore', 'tone-search'),
+    ('queue', '/queue', 'Queue', 'tone-queue'),
     ('library', '/library', 'Library', 'tone-library'),
-    ('insights', '/stats', 'Insights', 'tone-stats'),
-    ('settings', '/settings', '设置', 'tone-settings'),
+    ('monitor', '/monitor', 'Monitor', 'tone-monitor'),
+    ('settings', '/settings', 'Settings', 'tone-settings'),
 ]
 
 CATEGORY_NAMES = {
@@ -335,7 +334,7 @@ def _status_class(status):
 def _build_nav_items(active_tab: str, liked_count: int, is_today: bool = False):
     items = []
     for key, href, label, tone in NAV_ITEM_CONFIG:
-        item_label = f'{label} ({liked_count})' if key == 'library' else label
+        item_label = label
         items.append({
             'key': key,
             'href': href,

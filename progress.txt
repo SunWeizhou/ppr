@@ -1,0 +1,22 @@
+# Progress Log
+
+## Codebase Patterns
+- `NAV_ITEM_CONFIG` in web_server.py (line ~235) defines all top-nav items as (key, href, label, tone_css_class) tuples
+- `_build_nav_items()` in web_server.py constructs nav items with active state; `_build_page_context()` assembles full template context
+- `base_research.html` uses Jinja2 template inheritance with blocks: head, hero, content, scripts
+- CSS tone classes (`.tone-<key>.active/.tone-<key>:hover`) in `static/research_ui.css` provide per-nav-item accent colors
+- Navigation is data-driven: change `NAV_ITEM_CONFIG` and all pages that extend `base_research.html` get the updated nav
+- Old pages (Track, Explore, Insights) still have Flask routes but no longer appear in top nav
+
+---
+
+## 2026-04-16 - US-001
+- **What was implemented:** Updated NAV_ITEM_CONFIG to the 5-page IA: Inbox, Queue, Library, Monitor, Settings. Removed Track, Explore (Search), and Insights from top nav. Added CSS tone classes for tone-queue and tone-monitor.
+- **Files changed:** web_server.py, static/research_ui.css
+- **Learnings for future iterations:**
+  - Nav is data-driven via NAV_ITEM_CONFIG - just update the list and all pages update
+  - Old page routes (track, explore, insights) still exist and need to be handled in later stories
+  - `_build_nav_items` previously appended liked_count to Library label - removed that display
+  - CSS tone classes follow pattern `.tone-<key>.active, .tone-<key>:hover { border-color: ... }`
+  - Manual browser verification needed (no dev-browser tools configured)
+---

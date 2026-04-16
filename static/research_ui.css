@@ -151,23 +151,18 @@ a {
   border-color: rgba(18, 76, 121, 0.18);
 }
 
-.tone-track.active,
-.tone-track:hover {
-  border-color: rgba(47, 109, 87, 0.22);
-}
-
-.tone-search.active,
-.tone-search:hover {
+.tone-queue.active,
+.tone-queue:hover {
   border-color: rgba(18, 76, 121, 0.18);
-}
-
-.tone-stats.active,
-.tone-stats:hover {
-  border-color: rgba(154, 121, 52, 0.24);
 }
 
 .tone-library.active,
 .tone-library:hover {
+  border-color: rgba(47, 109, 87, 0.22);
+}
+
+.tone-monitor.active,
+.tone-monitor:hover {
   border-color: rgba(47, 109, 87, 0.22);
 }
 
