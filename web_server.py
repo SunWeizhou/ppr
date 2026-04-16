@@ -701,6 +701,27 @@ def _resolve_queue_papers(status=None):
     )
 
 
+def _build_recent_hits(scholars, journals, saved_searches):
+    """Aggregate recent papers from all subscription sources."""
+    hits = []
+    try:
+        from arxiv_recommender_v5 import search_by_keywords
+        for search in saved_searches[:3]:
+            query_text = search.get('query_text', '')
+            if not query_text:
+                continue
+            try:
+                papers = search_by_keywords(_split_query_terms(query_text), max_results=3, days_back=30)
+                for paper in papers:
+                    paper['source_type'] = 'query'
+                    hits.append(paper)
+            except Exception:
+                pass
+    except ImportError:
+        pass
+    return hits
+
+
 def _render_track_research():
     from journal_tracker import (
         JournalTracker,
@@ -2631,6 +2652,49 @@ def queue_page():
 @app.route('/track')
 def track_page():
     return _render_track_research()
+
+
+@app.route('/monitor')
+def monitor_page():
+    tab = request.args.get('tab', 'authors')
+    page_context = _build_page_context('monitor')
+    my_scholars_data = load_my_scholars()
+    my_scholars = [_serialize_scholar(scholar) for scholar in my_scholars_data.get('scholars', [])]
+
+    from journal_tracker import (
+        JournalTracker,
+        LEGACY_USER_CONFIG_PATH,
+        USER_PROFILE_PATH,
+        load_update_log,
+        should_check_for_updates,
+    )
+
+    preferred_config = USER_PROFILE_PATH if USER_PROFILE_PATH.exists() else LEGACY_USER_CONFIG_PATH
+    tracker = JournalTracker(str(preferred_config) if preferred_config.exists() else None)
+    update_log = load_update_log()
+    journal_cards = []
+    for journal in tracker.get_all_journals():
+        should_check, update_reason = should_check_for_updates(journal['key'])
+        journal_cards.append({
+            **journal,
+            'should_check': should_check,
+            'update_reason': update_reason,
+            'last_update': update_log.get(journal['key'], {}).get('last_check', '从未'),
+        })
+
+    recent_hits = []
+    if tab == 'recent-hits':
+        recent_hits = _build_recent_hits(my_scholars, journal_cards, page_context['all_saved_searches'])
+
+    return render_template(
+        'monitor_research.html',
+        title='Monitor - arXiv Recommender',
+        tab=tab,
+        my_scholars=my_scholars,
+        journal_cards=journal_cards,
+        recent_hits=recent_hits,
+        **page_context,
+    )
 
 
 # Scholar Database - Important researchers in ML Theory & Statistics
