@@ -2638,6 +2638,19 @@ def index():
     return generate_page()
 
 
+@app.route('/queue')
+def queue_page():
+    status = request.args.get('status', '')
+    page_context = _build_page_context('queue')
+    queue_items = _resolve_queue_papers(status=status if status else None)
+    page_context.update({
+        'queue_items': queue_items,
+        'active_status': status,
+        'queue_status_values': QUEUE_STATUS_VALUES,
+    })
+    return render_template('queue_research.html', **page_context)
+
+
 @app.route('/track')
 def track_page():
     return _render_track_research()

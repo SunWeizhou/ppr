@@ -28,3 +28,13 @@
   - The search page is accessible from Inbox via the "围绕问题继续探索" button
   - home_research.html is the Inbox page template
 ---
+
+## 2026-04-16 - US-003
+- **What was implemented:** Created templates/queue_research.html extending base_research.html with status tabs (Inbox/Skim Later/Deep Read/Saved/Archived), two-column layout (paper list + detail panel), and move-to-status actions. Added /queue route in web_server.py using existing `_resolve_queue_papers()` helper.
+- **Files changed:** templates/queue_research.html (new), web_server.py
+- **Learnings for future iterations:**
+  - `_resolve_queue_papers(status=None)` in web_server.py resolves queue items with full paper data - reuse this
+  - `_build_page_context('queue')` provides all base context (nav, feedback, queue_counts, etc.)
+  - QUEUE_STATUS_VALUES = ("Inbox", "Skim Later", "Deep Read", "Saved", "Archived")
+  - The two-column layout uses CSS class `library-layout` which already has responsive grid
+---
