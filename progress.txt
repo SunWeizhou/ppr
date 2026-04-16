@@ -38,3 +38,13 @@
   - QUEUE_STATUS_VALUES = ("Inbox", "Skim Later", "Deep Read", "Saved", "Archived")
   - The two-column layout uses CSS class `library-layout` which already has responsive grid
 ---
+
+## 2026-04-16 - US-004
+- **What was implemented:** Rewrote library_research.html with 3 tabs (Collections/Saved Papers/History) and two-column layout. Updated `_render_library_research()` and `/library` route to serve new tab data. Collections tab shows collection list and papers. Saved Papers tab uses `_resolve_queue_papers(status='Saved')`. History tab reads from digest files via `get_available_dates()` and `parse_markdown_digest_cached()`.
+- **Files changed:** templates/library_research.html, web_server.py
+- **Learnings for future iterations:**
+  - `get_available_dates()` returns dates in reverse chronological order
+  - `parse_markdown_digest_cached(filepath)` returns (papers, keywords) from a digest file
+  - `STATE_STORE.list_collection_papers(collection_id)` returns papers in a collection
+  - Default tab changed from 'queue' to 'collections' since Queue now has its own page
+---

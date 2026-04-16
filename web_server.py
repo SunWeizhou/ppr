@@ -744,19 +744,13 @@ def _render_track_research():
     )
 
 
-def _render_library_research(tab='queue', queue_status=None, collection_id=None, search_id=None):
+def _render_library_research(tab='collections', collection_id=None, selected_date=''):
     page_context = _build_page_context('library')
     feedback = load_feedback()
-    queue_items = _resolve_queue_papers(queue_status if queue_status in QUEUE_STATUS_VALUES else None)
-
-    liked_papers, liked_found, liked_total, _ = _resolve_feedback_papers('liked')
-    disliked_papers, disliked_found, disliked_total, _ = _resolve_feedback_papers('disliked')
-    liked_decorated = _decorate_library_papers(liked_papers, feedback)
-    disliked_decorated = _decorate_library_papers(disliked_papers, feedback)
 
     collections_all = page_context['all_collections']
-    saved_searches_all = page_context['all_saved_searches']
 
+    # Collections tab
     selected_collection = None
     if collection_id:
         selected_collection = STATE_STORE.get_collection(collection_id)
@@ -781,48 +775,31 @@ def _render_library_research(tab='queue', queue_status=None, collection_id=None,
             resolved.append(paper)
         selected_collection_papers = _decorate_library_papers(resolved, feedback)
 
-    selected_search = None
-    if search_id:
-        selected_search = STATE_STORE.get_saved_search(search_id)
-    elif tab == 'saved-searches' and saved_searches_all:
-        selected_search = saved_searches_all[0]
+    # Saved Papers tab
+    saved_papers = _resolve_queue_papers(status='Saved')
 
-    search_preview = []
-    if selected_search:
-        try:
-            from arxiv_recommender_v5 import search_by_keywords
-            search_preview = _decorate_search_papers(
-                search_by_keywords(_split_query_terms(selected_search['query_text']), max_results=8, days_back=90)
-            )
-        except Exception as exc:
-            logger.warning(f"Saved search preview failed for {selected_search.get('id')}: {exc}")
-
-    headline_metrics = [
-        {'label': 'Queue Total', 'value': sum(page_context['queue_counts'].values())},
-        {'label': 'Liked', 'value': liked_total},
-        {'label': 'Ignored', 'value': disliked_total},
-        {'label': 'Collections', 'value': len(collections_all)},
-    ]
+    # History tab
+    history_dates = get_available_dates()
+    history_papers = []
+    if selected_date:
+        filepath = os.path.join(HISTORY_DIR, f'digest_{selected_date}.md')
+        if os.path.exists(filepath):
+            papers, _ = parse_markdown_digest_cached(filepath)
+            for paper in papers:
+                paper['date'] = selected_date
+            history_papers = _decorate_library_papers(papers, feedback)
 
     return render_template(
         'library_research.html',
         title='Library - arXiv Recommender',
         tab=tab,
-        queue_status=queue_status if queue_status in QUEUE_STATUS_VALUES else '',
-        headline_metrics=headline_metrics,
-        queue_items=queue_items,
-        liked_papers=liked_decorated,
-        disliked_papers=disliked_decorated,
-        liked_found=liked_found,
-        liked_total=liked_total,
-        disliked_found=disliked_found,
-        disliked_total=disliked_total,
-        collections_all=collections_all,
-        saved_searches_all=saved_searches_all,
         selected_collection=selected_collection,
         selected_collection_papers=selected_collection_papers,
-        selected_search=selected_search,
-        search_preview=search_preview,
+        saved_papers=saved_papers,
+        saved_papers_count=len(saved_papers),
+        history_dates=history_dates,
+        selected_date=selected_date,
+        history_papers=history_papers,
         **page_context,
     )
 
@@ -3821,11 +3798,10 @@ def view_disliked():
 
 @app.route('/library')
 def library_page():
-    tab = request.args.get('tab', 'queue')
-    queue_status = request.args.get('status')
+    tab = request.args.get('tab', 'collections')
     collection_id = request.args.get('collection_id', type=int)
-    search_id = request.args.get('search_id', type=int)
-    return _render_library_research(tab, queue_status, collection_id, search_id)
+    selected_date = request.args.get('date', '')
+    return _render_library_research(tab, collection_id, selected_date)
 
 
 def generate_favorites_page(feedback_type):
