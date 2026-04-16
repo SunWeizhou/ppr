@@ -20,3 +20,11 @@
   - CSS tone classes follow pattern `.tone-<key>.active, .tone-<key>:hover { border-color: ... }`
   - Manual browser verification needed (no dev-browser tools configured)
 ---
+
+## 2026-04-16 - US-002
+- **What was implemented:** No code changes needed - already satisfied by US-001. Search removed from top nav. Inbox already has "围绕问题继续探索" button at home_research.html:24 linking to /search.
+- **Files changed:** None
+- **Learnings for future iterations:**
+  - The search page is accessible from Inbox via the "围绕问题继续探索" button
+  - home_research.html is the Inbox page template
+---

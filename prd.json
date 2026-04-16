@@ -30,8 +30,8 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Already satisfied by US-001 changes. Search removed from NAV_ITEM_CONFIG. Inbox has '围绕问题继续探索' button linking to /search."
     },
     {
       "id": "US-003",
