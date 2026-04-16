@@ -533,11 +533,13 @@ def _render_settings_research(
     papers_per_day,
     prefer_theory,
     theory_enabled,
+    tab='profile',
 ):
     page_context = _build_page_context('settings')
     return render_template(
         'settings_research.html',
-        title='设置 - arXiv Recommender',
+        title='Settings - arXiv Recommender',
+        tab=tab,
         core_keywords=core_keywords,
         secondary_keywords=secondary_keywords,
         theory_keywords=theory_keywords,
@@ -5375,6 +5377,7 @@ def render_search_page(papers, keywords):
 @app.route('/settings')
 def settings_page():
     """Settings page for modifying keywords."""
+    tab = request.args.get('tab', 'profile')
     try:
         from config_manager import get_config
 
@@ -5402,7 +5405,6 @@ def settings_page():
     theory_keywords = keywords_config.get('theory_keywords', [])
 
     # Topics as text
-    topics_text = ', '.join(priority_topics)
     dislike_text = ', '.join(dislike_topics)
 
     return _render_settings_research(
@@ -5413,6 +5415,7 @@ def settings_page():
         papers_per_day=papers_per_day,
         prefer_theory=prefer_theory,
         theory_enabled=theory_enabled,
+        tab=tab,
     )
 
     return f'''<!DOCTYPE html>

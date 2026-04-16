@@ -58,3 +58,13 @@
   - `load_update_log()` and `should_check_for_updates()` check journal freshness
   - Recent Hits currently only aggregates from saved searches; can be expanded for author/venue matches
 ---
+
+## 2026-04-16 - US-006
+- **What was implemented:** Rewrote settings_research.html with 4 tabs (Profile/Sources/Ranking/System). Profile has keyword management and demotion rules. Ranking has papers per day and theory bias. System shows job status and data management. Updated route handler to accept tab parameter.
+- **Files changed:** templates/settings_research.html, web_server.py
+- **Learnings for future iterations:**
+  - `_render_settings_research()` uses keyword-only args (*)
+  - `load_keywords_config()` provides core/secondary/theory/dislike keywords
+  - Settings form uses `/api/keywords` (POST/DELETE) and `/api/settings` (POST) endpoints
+  - All 5 pages now have correct active nav highlighting
+---
