@@ -1,0 +1,300 @@
+{% extends "base_research.html" %}
+
+{% block hero %}
+<section class="command-deck track-command-deck">
+    <div class="command-head">
+        <div class="command-copy">
+            <div class="kicker">Follow System</div>
+            <div class="command-title-row">
+                <h1 class="command-title">Track</h1>
+                <span class="chip brand">{{ my_scholars|length }} scholars</span>
+                <span class="chip">{{ journal_cards|length }} journals</span>
+            </div>
+            <p class="command-summary">
+                这里不负责决定今天先读什么，只负责管理长期值得追踪的作者和顶刊来源，再把真正有价值的更新送回 Inbox。
+            </p>
+        </div>
+
+        <div class="command-actions">
+            <a href="/" class="action-button btn-brand">返回 Inbox</a>
+            <a href="/library" class="action-button btn-subtle">查看 Library</a>
+        </div>
+    </div>
+
+    <div class="command-summary-strip">
+        {% for metric in headline_metrics %}
+            <div class="summary-pill">
+                <span class="summary-pill-label">{{ metric.label }}</span>
+                <span class="summary-pill-value">{{ metric.value }}</span>
+            </div>
+        {% endfor %}
+        <div class="summary-pill">
+            <span class="summary-pill-label">Collections</span>
+            <span class="summary-pill-value">{{ all_collections|length }}</span>
+        </div>
+        <div class="summary-pill">
+            <span class="summary-pill-label">Saved Searches</span>
+            <span class="summary-pill-value">{{ all_saved_searches|length }}</span>
+        </div>
+    </div>
+
+    <div class="command-link-row">
+        <a href="/scholars" class="command-link">完整学者库</a>
+        <a href="/journal" class="command-link">完整顶刊页</a>
+        <span class="command-link command-link-muted">Track 只保留会持续回看的对象，不为临时热点扩张界面。</span>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="track-workbench">
+    <div class="track-section-grid">
+        <div class="panel-card section-card track-section">
+            <div class="section-head section-head-tight">
+                <div>
+                    <div class="section-kicker">Followed Scholars</div>
+                    <h2 class="panel-title">我关注的学者</h2>
+                    <p class="muted-copy">这部分只放你真的会持续关注的作者，而不是预设名单的全集。</p>
+                </div>
+            </div>
+
+            {% if my_scholars %}
+                <div class="scholars-grid">
+                    {% for scholar in my_scholars %}
+                        <article class="scholar-card tracked">
+                            <div class="scholar-header">
+                                <div>
+                                    <h3 class="scholar-name">{{ scholar.name }}</h3>
+                                    <p class="scholar-affiliation">{{ scholar.affiliation or 'Affiliation not set' }}</p>
+                                </div>
+                                <button type="button" class="scholar-remove" onclick="removeScholar('{{ scholar.name }}')">移除</button>
+                            </div>
+                            <div class="scholar-meta-stack">
+                                {% if scholar.focus %}
+                                    <div class="scholar-meta-line">
+                                        <span class="scholar-meta-label">Focus</span>
+                                        <span class="scholar-meta-value">{{ scholar.focus }}</span>
+                                    </div>
+                                {% endif %}
+                                {% if scholar.email %}
+                                    <div class="scholar-meta-line">
+                                        <span class="scholar-meta-label">Email</span>
+                                        <span class="scholar-meta-value">{{ scholar.email }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="scholar-links">
+                                {% for link in scholar.links %}
+                                    <a href="{{ link.href }}" class="action-button {{ link.tone }}" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
+                                {% endfor %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <p class="muted-copy">还没有添加自己的 Follow 学者。先从 5 到 10 个常读作者开始。</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="panel-card section-card track-section">
+            <div class="section-head section-head-tight">
+                <div>
+                    <div class="section-kicker">Journal Monitor</div>
+                    <h2 class="panel-title">顶刊动态</h2>
+                    <p class="muted-copy">顶刊在这里是质量增强层，不占首页主任务，只负责稳定监控正式版本和更新频率。</p>
+                </div>
+            </div>
+
+            <div class="track-card-grid journal-monitor-grid">
+                {% for journal in journal_cards %}
+                    <article class="track-card track-card-compact" style="--track-color: {{ journal.color }};">
+                        <div class="track-card-head">
+                            <div>
+                                <div class="section-kicker">{{ journal.icon }} {{ journal.short_name }}</div>
+                                <h3 class="panel-title">{{ journal.name }}</h3>
+                            </div>
+                            <span class="chip {% if journal.should_check %}warm{% else %}sage{% endif %}">
+                                {% if journal.should_check %}待检查{% else %}已同步{% endif %}
+                            </span>
+                        </div>
+                        <p class="detail-copy track-card-copy">{{ journal.update_reason }}</p>
+                        <div class="track-card-footer">
+                            <span class="chip">上次检查 {{ journal.last_update }}</span>
+                            <a href="/journal/{{ journal.key }}" class="action-button btn-brand">打开 {{ journal.short_name }}</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <details class="panel-card section-card track-disclosure">
+        <summary class="track-disclosure-summary">
+            <div>
+                <div class="section-kicker">Add Scholar</div>
+                <h2 class="panel-title">添加新的关注对象</h2>
+            </div>
+            <span class="track-disclosure-copy">这是次级操作，默认折叠，避免和 Follow 列表抢视线。</span>
+        </summary>
+        <div class="track-disclosure-body">
+            <div class="quick-add-panel">
+                <label class="field-label" for="gsUrlInput">快速添加：Google Scholar 链接</label>
+                <div class="inline-form">
+                    <input type="text" id="gsUrlInput" class="form-input" placeholder="https://scholar.google.com/citations?user=XXXXX">
+                    <button type="button" class="action-button btn-brand" onclick="parseGoogleScholar()">解析</button>
+                </div>
+            </div>
+
+            <form id="addScholarForm" class="form-grid scholar-form-grid">
+                <section class="form-card">
+                    <label class="field-label" for="scholarName">姓名</label>
+                    <input type="text" class="form-input" id="scholarName" placeholder="如: Yunwen Lei" required>
+                </section>
+                <section class="form-card">
+                    <label class="field-label" for="scholarAffiliation">机构</label>
+                    <input type="text" class="form-input" id="scholarAffiliation" placeholder="如: University of Hong Kong">
+                </section>
+                <section class="form-card">
+                    <label class="field-label" for="scholarFocus">研究方向</label>
+                    <input type="text" class="form-input" id="scholarFocus" placeholder="如: Learning Theory, Generalization">
+                </section>
+                <section class="form-card">
+                    <label class="field-label" for="scholarEmail">邮箱</label>
+                    <input type="text" class="form-input" id="scholarEmail" placeholder="如: yunwen@hku.hk">
+                </section>
+                <section class="form-card">
+                    <label class="field-label" for="scholarGS">Google Scholar</label>
+                    <input type="text" class="form-input" id="scholarGS" placeholder="Google Scholar 主页链接">
+                </section>
+                <section class="form-card">
+                    <label class="field-label" for="scholarWebsite">个人主页</label>
+                    <input type="text" class="form-input" id="scholarWebsite" placeholder="学者个人网站">
+                </section>
+                <section class="form-card full-span">
+                    <div class="button-row">
+                        <button type="submit" class="action-button btn-brand">加入 Follow 列表</button>
+                    </div>
+                </section>
+            </form>
+        </div>
+
+    <details class="panel-card section-card track-disclosure">
+        <summary class="track-disclosure-summary">
+            <div>
+                <div class="section-kicker">Usage Boundary</div>
+                <h2 class="panel-title">使用边界与深度入口</h2>
+            </div>
+            <span class="track-disclosure-copy">把说明文案和深度入口收起来，避免它们常驻占据首屏。</span>
+        </summary>
+        <div class="track-disclosure-body">
+            <div class="track-support-grid">
+                <div class="support-card">
+                    <div class="section-kicker">Quick Links</div>
+                    <div class="list-stack">
+                        <a href="/scholars" class="list-item list-item-link">
+                            <div>
+                                <span class="list-item-title">完整学者库</span>
+                                <span class="list-item-subtitle">按方向浏览预设学者</span>
+                            </div>
+                            <span class="list-item-trailing">Open</span>
+                        </a>
+                        <a href="/journal" class="list-item list-item-link">
+                            <div>
+                                <span class="list-item-title">完整顶刊页</span>
+                                <span class="list-item-subtitle">查看卷期与引用趋势</span>
+                            </div>
+                            <span class="list-item-trailing">Open</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="support-card">
+                    <div class="section-kicker">Usage Notes</div>
+                    <ul class="search-hint-list" style="margin-top: 8px;">
+                        <li>Track 适合长期对象，不适合临时热点。</li>
+                        <li>学者追踪回答“谁持续在这个方向产出”，顶刊回答“正式版本进展如何”。</li>
+                        <li>真正要读的论文，仍然要回到 Inbox 和 Library 里安排状态。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </details>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('addScholarForm')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const payload = {
+        name: document.getElementById('scholarName').value,
+        affiliation: document.getElementById('scholarAffiliation').value,
+        focus: document.getElementById('scholarFocus').value,
+        email: document.getElementById('scholarEmail').value,
+        google_scholar: document.getElementById('scholarGS').value,
+        website: document.getElementById('scholarWebsite').value
+    };
+
+    try {
+        const result = await requestJson('/api/scholars/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        showToast(result.message || '学者已加入 Follow 列表');
+        window.setTimeout(() => window.location.reload(), 450);
+    } catch (error) {
+        showToast('添加失败: ' + error.message, 'error');
+    }
+});
+
+async function parseGoogleScholar() {
+    const input = document.getElementById('gsUrlInput');
+    const url = input.value.trim();
+    if (!url) {
+        showToast('请输入 Google Scholar 链接', 'error');
+        return;
+    }
+    if (!url.includes('scholar.google.com')) {
+        showToast('请输入有效的 Google Scholar 链接', 'error');
+        return;
+    }
+
+    try {
+        const result = await requestJson('/api/scholars/parse_gscholar', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url: url})
+        });
+        document.getElementById('scholarName').value = result.name || '';
+        document.getElementById('scholarAffiliation').value = result.affiliation || '';
+        document.getElementById('scholarFocus').value = result.focus || '';
+        document.getElementById('scholarEmail').value = result.email || '';
+        document.getElementById('scholarGS').value = result.google_scholar || '';
+        document.getElementById('scholarWebsite').value = result.website || '';
+        input.value = '';
+        showToast('已解析学者信息');
+    } catch (error) {
+        showToast('解析失败: ' + error.message, 'error');
+    }
+}
+
+async function removeScholar(name) {
+    if (!window.confirm('确定移除 ' + name + ' 吗？')) return;
+
+    try {
+        const result = await requestJson('/api/scholars/remove', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: name})
+        });
+        showToast(result.message || '已移除学者');
+        window.setTimeout(() => window.location.reload(), 350);
+    } catch (error) {
+        showToast('移除失败: ' + error.message, 'error');
+    }
+}
+</script>
+{% endblock %}

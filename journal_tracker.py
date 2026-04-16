@@ -13,11 +13,14 @@ import urllib.request
 import urllib.parse
 import urllib.error
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import ssl
 import time
 import re
 import xml.etree.ElementTree as ET
+
+from app_paths import CACHE_DIR as APP_CACHE_DIR, LEGACY_USER_CONFIG_PATH, PROJECT_ROOT, USER_PROFILE_PATH
 
 SSL_CONTEXT = ssl.create_default_context()
 SSL_CONTEXT.check_hostname = False
@@ -97,7 +100,7 @@ JOURNALS = {
 }
 
 # Cache settings
-CACHE_DIR = 'D:/arxiv_recommender/cache'
+CACHE_DIR = str(APP_CACHE_DIR)
 CACHE_FILE = os.path.join(CACHE_DIR, 'journal_cache.json')
 CITATION_HISTORY_FILE = os.path.join(CACHE_DIR, 'citation_history.json')
 UPDATE_LOG_FILE = os.path.join(CACHE_DIR, 'update_log.json')
@@ -742,17 +745,43 @@ class JournalTracker:
     def __init__(self, user_config_path: str = None):
         self.cache = JournalCache()
         self.user_topics = []
-        if user_config_path and os.path.exists(user_config_path):
-            self._load_user_topics(user_config_path)
+        resolved_path = self._resolve_user_config_path(user_config_path)
+        if resolved_path:
+            self._load_user_topics(resolved_path)
+
+    def _resolve_user_config_path(self, user_config_path: Optional[str]) -> Optional[str]:
+        candidate_paths = []
+        if user_config_path:
+            candidate_paths.append(Path(user_config_path))
+        candidate_paths.extend([USER_PROFILE_PATH, LEGACY_USER_CONFIG_PATH])
+
+        for path in candidate_paths:
+            if path and Path(path).exists():
+                return str(path)
+        return None
 
     def _load_user_topics(self, config_path: str):
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-                focus = config.get('research_focus', {})
-                self.user_topics = [t.lower() for t in focus.get('topics', [])]
-        except:
-            pass
+        except Exception:
+            return
+
+        topics = []
+        keywords = config.get('keywords', {})
+        if isinstance(keywords, dict):
+            for topic, meta in keywords.items():
+                if not isinstance(meta, dict):
+                    continue
+                if meta.get('category') in {'core', 'secondary'}:
+                    topics.append(topic.lower())
+
+        if not topics:
+            focus = config.get('research_focus', {})
+            topics.extend(t.lower() for t in focus.get('topics', []))
+
+        # Preserve order while removing duplicates.
+        self.user_topics = list(dict.fromkeys(topics))
 
     def compute_relevance(self, paper: Dict) -> float:
         if not self.user_topics:
@@ -874,7 +903,8 @@ class JournalTracker:
 
 def generate_journal_page(selected_journal: str = 'JMLR', volume: str = None, issue: str = None) -> str:
     """Generate HTML page for journal tracker with volume/issue navigation."""
-    tracker = JournalTracker('D:/arxiv_recommender/user_config.json')
+    preferred_config = USER_PROFILE_PATH if USER_PROFILE_PATH.exists() else LEGACY_USER_CONFIG_PATH
+    tracker = JournalTracker(str(preferred_config) if preferred_config.exists() else None)
     papers, issues_info, journal_info = tracker.get_papers(selected_journal, volume, issue)
     all_journals = tracker.get_all_journals()
 
@@ -1268,6 +1298,6 @@ def generate_journal_page(selected_journal: str = 'JMLR', volume: str = None, is
 if __name__ == '__main__':
     # Test
     html = generate_journal_page('JMLR')
-    with open('D:/arxiv_recommender/journal_test.html', 'w', encoding='utf-8') as f:
+    with open(PROJECT_ROOT / 'journal_test.html', 'w', encoding='utf-8') as f:
         f.write(html)
     print("Test page generated: journal_test.html")

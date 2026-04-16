@@ -1,0 +1,316 @@
+{% extends "base_research.html" %}
+
+{% block hero %}
+<section class="page-hero">
+    <div class="hero-panel">
+        <div class="kicker">Follow System</div>
+        <h1 class="hero-title">学者追踪</h1>
+        <p class="hero-subtitle">
+            学者追踪不是单独的一页名单，而是 Follow System 的一个入口。你可以把长期关注的统计学者收进工作台，并把预设学者库作为发现新线索的起点。
+        </p>
+        <div class="metric-grid">
+            {% for metric in headline_metrics %}
+                <div class="metric-card">
+                    <span class="metric-label">{{ metric.label }}</span>
+                    <span class="metric-value">{{ metric.value }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="hero-rail">
+        <div class="stack-card">
+            <div class="card-kicker">Current Focus</div>
+            <h2 class="panel-title">{{ current_focus_title }}</h2>
+            <p class="detail-copy">{{ current_focus_copy }}</p>
+        </div>
+
+        <div class="stack-card">
+            <div class="card-kicker">How To Use</div>
+            <h2 class="panel-title">使用建议</h2>
+            <ul class="search-hint-list" style="margin-top: 8px;">
+                <li>先只追你真正会读的学者，不要把列表堆成通讯录。</li>
+                <li>预设学者库适合找“谁在这个方向持续产出”。</li>
+                <li>手动添加优先用 Google Scholar 链接，后续清洗成本更低。</li>
+            </ul>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="section-grid">
+    <div>
+        <div class="section-head">
+            <div>
+                <div class="section-kicker">Category Explorer</div>
+                <h2 class="section-title">预设分类</h2>
+                <p class="muted-copy">先按方向筛，再决定谁值得进入你的长期 Follow 列表。</p>
+            </div>
+        </div>
+
+        <div class="category-tabs">
+            <a href="/scholars" class="category-tab {% if not selected_category %}active{% endif %}" style="--tab-color: #b34f2d;">
+                <span class="tab-icon">⭐</span>
+                <span class="tab-name">全部分类</span>
+                <span class="tab-meta">{{ category_count }}</span>
+            </a>
+            {% for category in category_tabs %}
+                <a href="/scholars/{{ category.key }}" class="category-tab {% if category.active %}active{% endif %}" style="--tab-color: {{ category.color }};">
+                    <span class="tab-icon">{{ category.icon }}</span>
+                    <span class="tab-name">{{ category.name }}</span>
+                    <span class="tab-meta">{{ category.count }}</span>
+                </a>
+            {% endfor %}
+        </div>
+
+        <div class="stack-card section-card">
+            <div class="section-kicker">Tracked Scholars</div>
+            <h2 class="panel-title">我关注的学者</h2>
+            {% if my_scholars %}
+                <div class="scholars-grid">
+                    {% for scholar in my_scholars %}
+                        <article class="scholar-card tracked">
+                            <div class="scholar-header">
+                                <div>
+                                    <h3 class="scholar-name">{{ scholar.name }}</h3>
+                                    <p class="scholar-affiliation">{{ scholar.affiliation or 'Affiliation not set' }}</p>
+                                </div>
+                                <button type="button" class="scholar-remove" onclick="removeScholar('{{ scholar.name }}')">移除</button>
+                            </div>
+                            <div class="chip-row">
+                                {% if scholar.focus %}
+                                    <span class="chip brand">{{ scholar.focus }}</span>
+                                {% endif %}
+                                {% if scholar.email %}
+                                    <span class="chip">{{ scholar.email }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="scholar-links">
+                                {% for link in scholar.links %}
+                                    <a href="{{ link.href }}" class="action-button {{ link.tone }}" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
+                                {% endfor %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state compact-empty">
+                    <p class="muted-copy">还没有添加你自己的 Follow 学者。先从常读作者开始，通常 5 到 10 个就够了。</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="stack-card section-card">
+            <div class="section-kicker">Add Scholar</div>
+            <h2 class="panel-title">添加新的关注学者</h2>
+            <div class="quick-add-panel">
+                <label class="field-label" for="gsUrlInput">快速添加：Google Scholar 链接</label>
+                <div class="inline-form">
+                    <input type="text" id="gsUrlInput" class="form-input" placeholder="https://scholar.google.com/citations?user=XXXXX">
+                    <button type="button" class="action-button btn-brand" onclick="parseGoogleScholar()">解析</button>
+                </div>
+                <p class="field-help">解析成功后会自动填充下方表单，再决定是否加入你的长期关注列表。</p>
+            </div>
+
+            <form id="addScholarForm" class="form-grid scholar-form-grid">
+                <section class="form-card">
+                    <label class="field-label" for="scholarName">姓名</label>
+                    <input type="text" class="form-input" id="scholarName" placeholder="如: Yunwen Lei" required>
+                </section>
+                <section class="form-card">
+                    <label class="field-label" for="scholarAffiliation">机构</label>
+                    <input type="text" class="form-input" id="scholarAffiliation" placeholder="如: University of Hong Kong">
+                </section>
+                <section class="form-card">
+                    <label class="field-label" for="scholarFocus">研究方向</label>
+                    <input type="text" class="form-input" id="scholarFocus" placeholder="如: Learning Theory, Generalization">
+                </section>
+                <section class="form-card">
+                    <label class="field-label" for="scholarEmail">邮箱</label>
+                    <input type="text" class="form-input" id="scholarEmail" placeholder="如: yunwen@hku.hk">
+                </section>
+                <section class="form-card">
+                    <label class="field-label" for="scholarGS">Google Scholar</label>
+                    <input type="text" class="form-input" id="scholarGS" placeholder="Google Scholar 主页链接">
+                </section>
+                <section class="form-card">
+                    <label class="field-label" for="scholarWebsite">个人主页</label>
+                    <input type="text" class="form-input" id="scholarWebsite" placeholder="学者个人网站">
+                </section>
+                <section class="form-card full-span">
+                    <div class="button-row">
+                        <button type="submit" class="action-button btn-brand">加入 Follow 列表</button>
+                    </div>
+                </section>
+            </form>
+        </div>
+
+        {% for section in scholar_sections %}
+            <div class="stack-card section-card">
+                <div class="section-head section-head-tight">
+                    <div>
+                        <div class="section-kicker">{{ section.icon }} {{ section.name }}</div>
+                        <h2 class="panel-title">{{ section.name }}</h2>
+                        <p class="muted-copy">{{ section.description }}</p>
+                    </div>
+                    {% if not selected_category %}
+                        <a href="/scholars/{{ section.key }}" class="action-button btn-subtle">查看该分类</a>
+                    {% endif %}
+                </div>
+                <div class="scholars-grid">
+                    {% for scholar in section.scholars %}
+                        <article class="scholar-card">
+                            <div class="scholar-header">
+                                <div>
+                                    <h3 class="scholar-name">{{ scholar.name }}</h3>
+                                    <p class="scholar-affiliation">{{ scholar.affiliation }}</p>
+                                </div>
+                            </div>
+                            <div class="chip-row">
+                                {% if scholar.focus %}
+                                    <span class="chip brand">{{ scholar.focus }}</span>
+                                {% endif %}
+                            </div>
+                            {% if scholar.description %}
+                                <p class="scholar-description">{{ scholar.description }}</p>
+                            {% endif %}
+                            <div class="scholar-links">
+                                {% for link in scholar.links %}
+                                    <a href="{{ link.href }}" class="action-button {{ link.tone }}" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
+                                {% endfor %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="aside-stack">
+        <div class="stack-card">
+            <div class="card-kicker">Category Snapshot</div>
+            <h2 class="panel-title">分类规模</h2>
+            <div class="list-stack">
+                {% for category in category_tabs %}
+                    <div class="list-item">
+                        <div>
+                            <span class="list-item-title">{{ category.icon }} {{ category.name }}</span>
+                            <span class="list-item-subtitle">{{ category.description }}</span>
+                        </div>
+                        <span class="list-item-trailing">{{ category.count }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="stack-card">
+            <div class="card-kicker">Research Assets</div>
+            <h2 class="panel-title">当前研究对象</h2>
+            <div class="list-stack">
+                <div class="list-item">
+                    <div>
+                        <span class="list-item-title">Collections</span>
+                        <span class="list-item-subtitle">方法簇与研究线索</span>
+                    </div>
+                    <span class="list-item-trailing">{{ collections|length }}</span>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <span class="list-item-title">Saved Searches</span>
+                        <span class="list-item-subtitle">问题级订阅</span>
+                    </div>
+                    <span class="list-item-trailing">{{ saved_searches|length }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('addScholarForm')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const payload = {
+        name: document.getElementById('scholarName').value,
+        affiliation: document.getElementById('scholarAffiliation').value,
+        focus: document.getElementById('scholarFocus').value,
+        email: document.getElementById('scholarEmail').value,
+        google_scholar: document.getElementById('scholarGS').value,
+        website: document.getElementById('scholarWebsite').value
+    };
+
+    try {
+        const response = await fetch('/api/scholars/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'add failed');
+        }
+        showToast('学者已加入 Follow 列表');
+        window.setTimeout(() => window.location.reload(), 600);
+    } catch (error) {
+        showToast('添加失败: ' + error.message, 'error');
+    }
+});
+
+async function parseGoogleScholar() {
+    const input = document.getElementById('gsUrlInput');
+    const url = input.value.trim();
+    if (!url) {
+        showToast('请输入 Google Scholar 链接', 'error');
+        return;
+    }
+    if (!url.includes('scholar.google.com')) {
+        showToast('请输入有效的 Google Scholar 链接', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/scholars/parse_gscholar', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url: url})
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'parse failed');
+        }
+        document.getElementById('scholarName').value = result.name || '';
+        document.getElementById('scholarAffiliation').value = result.affiliation || '';
+        document.getElementById('scholarFocus').value = result.focus || '';
+        document.getElementById('scholarEmail').value = result.email || '';
+        document.getElementById('scholarGS').value = result.google_scholar || '';
+        document.getElementById('scholarWebsite').value = result.website || '';
+        input.value = '';
+        showToast('已解析学者信息');
+    } catch (error) {
+        showToast('解析失败: ' + error.message, 'error');
+    }
+}
+
+async function removeScholar(name) {
+    if (!window.confirm('确定移除 ' + name + ' 吗？')) return;
+
+    try {
+        const response = await fetch('/api/scholars/remove', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: name})
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || result.error || 'remove failed');
+        }
+        showToast('已移除学者');
+        window.setTimeout(() => window.location.reload(), 500);
+    } catch (error) {
+        showToast('移除失败: ' + error.message, 'error');
+    }
+}
+</script>
+{% endblock %}

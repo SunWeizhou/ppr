@@ -1,9 +1,39 @@
 {
   "journal": "Biometrika",
-  "fetched_at": "2026-04-01T21:39:52.141955",
-  "from_year": 2025,
-  "count": 114,
+  "fetched_at": "2026-04-09T22:15:42.027941",
+  "count": 116,
   "papers": [
+    {
+      "title": "Finding Distributions that Differ, with False Discovery Rate Control",
+      "authors": [
+        "Yonghoon Lee",
+        "Edgar Dobriban",
+        "Eric Tchetgen Tchetgen"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1093/biomet/asag025",
+      "url": "https://doi.org/10.1093/biomet/asag025",
+      "journal": "Biometrika"
+    },
+    {
+      "title": "Parallel computations for Metropolis Markov chains with Picard maps",
+      "authors": [
+        "S Grazzi",
+        "G Zanella"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1093/biomet/asag022",
+      "url": "https://doi.org/10.1093/biomet/asag022",
+      "journal": "Biometrika"
+    },
     {
       "title": "Conditioning on posterior samples for flexible frequentist goodness-of-fit testing",
       "authors": [
@@ -289,21 +319,6 @@
       "journal": "Biometrika"
     },
     {
-      "title": "Generalized Fréchet means with random minimizing domains and its strong consistency",
-      "authors": [
-        "Jaesung Park",
-        "Sungkyu Jung"
-      ],
-      "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
-      "doi": "10.1093/biomet/asag002",
-      "url": "https://doi.org/10.1093/biomet/asag002",
-      "journal": "Biometrika"
-    },
-    {
       "title": "Calibrated sensitivity models",
       "authors": [
         "A Mcclean",
@@ -317,6 +332,21 @@
       "pages": "",
       "doi": "10.1093/biomet/asag001",
       "url": "https://doi.org/10.1093/biomet/asag001",
+      "journal": "Biometrika"
+    },
+    {
+      "title": "Generalized Fréchet means with random minimizing domains and its strong consistency",
+      "authors": [
+        "Jaesung Park",
+        "Sungkyu Jung"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "113",
+      "issue": "1",
+      "pages": "",
+      "doi": "10.1093/biomet/asag002",
+      "url": "https://doi.org/10.1093/biomet/asag002",
       "journal": "Biometrika"
     },
     {
@@ -796,21 +826,6 @@
       "journal": "Biometrika"
     },
     {
-      "title": "Nonparametric data segmentation in multivariate time series via joint characteristic functions",
-      "authors": [
-        "E T McGonigle",
-        "H Cho"
-      ],
-      "year": "2025",
-      "month": "03",
-      "volume": "112",
-      "issue": "2",
-      "pages": "",
-      "doi": "10.1093/biomet/asaf024",
-      "url": "https://doi.org/10.1093/biomet/asaf024",
-      "journal": "Biometrika"
-    },
-    {
       "title": "An omitted variable bias framework for sensitivity analysis of instrumental variables",
       "authors": [
         "Carlos Cinelli",
@@ -823,6 +838,18 @@
       "pages": "",
       "doi": "10.1093/biomet/asaf004",
       "url": "https://doi.org/10.1093/biomet/asaf004",
+      "journal": "Biometrika"
+    },
+    {
+      "title": "Acknowledgements",
+      "authors": [],
+      "year": "2025",
+      "month": "10",
+      "volume": "112",
+      "issue": "4",
+      "pages": "",
+      "doi": "10.1093/biomet/asaf090",
+      "url": "https://doi.org/10.1093/biomet/asaf090",
       "journal": "Biometrika"
     },
     {
@@ -842,6 +869,21 @@
       "journal": "Biometrika"
     },
     {
+      "title": "Nonparametric data segmentation in multivariate time series via joint characteristic functions",
+      "authors": [
+        "E T McGonigle",
+        "H Cho"
+      ],
+      "year": "2025",
+      "month": "03",
+      "volume": "112",
+      "issue": "2",
+      "pages": "",
+      "doi": "10.1093/biomet/asaf024",
+      "url": "https://doi.org/10.1093/biomet/asaf024",
+      "journal": "Biometrika"
+    },
+    {
       "title": "Goodness-of-fit tests for linear non-Gaussian structural equation models",
       "authors": [
         "D Schkoda",
@@ -854,18 +896,6 @@
       "pages": "",
       "doi": "10.1093/biomet/asaf046",
       "url": "https://doi.org/10.1093/biomet/asaf046",
-      "journal": "Biometrika"
-    },
-    {
-      "title": "Acknowledgements",
-      "authors": [],
-      "year": "2025",
-      "month": "10",
-      "volume": "112",
-      "issue": "4",
-      "pages": "",
-      "doi": "10.1093/biomet/asaf090",
-      "url": "https://doi.org/10.1093/biomet/asaf090",
       "journal": "Biometrika"
     },
     {
@@ -989,24 +1019,6 @@
       "journal": "Biometrika"
     },
     {
-      "title": "Efficient estimation for functional accelerated failure time models",
-      "authors": [
-        "Changyu Liu",
-        "Wen Su",
-        "Kin-Yat Liu",
-        "Guosheng Yin",
-        "Xingqiu Zhao"
-      ],
-      "year": "2025",
-      "month": "03",
-      "volume": "112",
-      "issue": "2",
-      "pages": "",
-      "doi": "10.1093/biomet/asaf011",
-      "url": "https://doi.org/10.1093/biomet/asaf011",
-      "journal": "Biometrika"
-    },
-    {
       "title": "Fast and reliable confidence intervals for a variance component",
       "authors": [
         "Yiqiao Zhang",
@@ -1039,20 +1051,21 @@
       "journal": "Biometrika"
     },
     {
-      "title": "Consistent and scalable composite likelihood estimation of probit models with crossed random effects",
+      "title": "Efficient estimation for functional accelerated failure time models",
       "authors": [
-        "R Bellio",
-        "S Ghosh",
-        "A B Owen",
-        "C Varin"
+        "Changyu Liu",
+        "Wen Su",
+        "Kin-Yat Liu",
+        "Guosheng Yin",
+        "Xingqiu Zhao"
       ],
       "year": "2025",
-      "month": "07",
+      "month": "03",
       "volume": "112",
-      "issue": "3",
+      "issue": "2",
       "pages": "",
-      "doi": "10.1093/biomet/asaf037",
-      "url": "https://doi.org/10.1093/biomet/asaf037",
+      "doi": "10.1093/biomet/asaf011",
+      "url": "https://doi.org/10.1093/biomet/asaf011",
       "journal": "Biometrika"
     },
     {
@@ -1068,6 +1081,23 @@
       "pages": "",
       "doi": "10.1093/biomet/asaf035",
       "url": "https://doi.org/10.1093/biomet/asaf035",
+      "journal": "Biometrika"
+    },
+    {
+      "title": "Consistent and scalable composite likelihood estimation of probit models with crossed random effects",
+      "authors": [
+        "R Bellio",
+        "S Ghosh",
+        "A B Owen",
+        "C Varin"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "112",
+      "issue": "3",
+      "pages": "",
+      "doi": "10.1093/biomet/asaf037",
+      "url": "https://doi.org/10.1093/biomet/asaf037",
       "journal": "Biometrika"
     },
     {
@@ -1277,21 +1307,6 @@
       "journal": "Biometrika"
     },
     {
-      "title": "Resampling methods with multiply imputed data",
-      "authors": [
-        "Michael W Robbins",
-        "Lane Burgette"
-      ],
-      "year": "2025",
-      "month": "10",
-      "volume": "112",
-      "issue": "4",
-      "pages": "",
-      "doi": "10.1093/biomet/asaf059",
-      "url": "https://doi.org/10.1093/biomet/asaf059",
-      "journal": "Biometrika"
-    },
-    {
       "title": "Priors for second-order unbiased Bayes estimators",
       "authors": [
         "Mana Sakai",
@@ -1305,6 +1320,21 @@
       "pages": "",
       "doi": "10.1093/biomet/asaf068",
       "url": "https://doi.org/10.1093/biomet/asaf068",
+      "journal": "Biometrika"
+    },
+    {
+      "title": "Resampling methods with multiply imputed data",
+      "authors": [
+        "Michael W Robbins",
+        "Lane Burgette"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "112",
+      "issue": "4",
+      "pages": "",
+      "doi": "10.1093/biomet/asaf059",
+      "url": "https://doi.org/10.1093/biomet/asaf059",
       "journal": "Biometrika"
     },
     {
@@ -1340,6 +1370,22 @@
       "journal": "Biometrika"
     },
     {
+      "title": "Supervised contamination detection, with application to flow cytometry data",
+      "authors": [
+        "S Gaucher",
+        "G Blanchard",
+        "F Chazal"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "112",
+      "issue": "4",
+      "pages": "",
+      "doi": "10.1093/biomet/asaf063",
+      "url": "https://doi.org/10.1093/biomet/asaf063",
+      "journal": "Biometrika"
+    },
+    {
       "title": "A general form of covariate adjustment in clinical trials under covariate-adaptive randomization",
       "authors": [
         "Marlena S Bannick",
@@ -1356,22 +1402,6 @@
       "pages": "",
       "doi": "10.1093/biomet/asaf029",
       "url": "https://doi.org/10.1093/biomet/asaf029",
-      "journal": "Biometrika"
-    },
-    {
-      "title": "Supervised contamination detection, with application to flow cytometry data",
-      "authors": [
-        "S Gaucher",
-        "G Blanchard",
-        "F Chazal"
-      ],
-      "year": "2025",
-      "month": "10",
-      "volume": "112",
-      "issue": "4",
-      "pages": "",
-      "doi": "10.1093/biomet/asaf063",
-      "url": "https://doi.org/10.1093/biomet/asaf063",
       "journal": "Biometrika"
     },
     {
@@ -1449,21 +1479,6 @@
       "journal": "Biometrika"
     },
     {
-      "title": "Large-scale multiple testing of composite null hypotheses under heteroskedasticity",
-      "authors": [
-        "B Gang",
-        "T Banerjee"
-      ],
-      "year": "2025",
-      "month": "03",
-      "volume": "112",
-      "issue": "2",
-      "pages": "",
-      "doi": "10.1093/biomet/asaf007",
-      "url": "https://doi.org/10.1093/biomet/asaf007",
-      "journal": "Biometrika"
-    },
-    {
       "title": "Robust functional principal component analysis for non-Euclidean random objects",
       "authors": [
         "Jiazhen Xu",
@@ -1492,6 +1507,21 @@
       "pages": "",
       "doi": "10.1093/biomet/asaf043",
       "url": "https://doi.org/10.1093/biomet/asaf043",
+      "journal": "Biometrika"
+    },
+    {
+      "title": "Large-scale multiple testing of composite null hypotheses under heteroskedasticity",
+      "authors": [
+        "B Gang",
+        "T Banerjee"
+      ],
+      "year": "2025",
+      "month": "03",
+      "volume": "112",
+      "issue": "2",
+      "pages": "",
+      "doi": "10.1093/biomet/asaf007",
+      "url": "https://doi.org/10.1093/biomet/asaf007",
       "journal": "Biometrika"
     },
     {
@@ -1560,20 +1590,6 @@
       "journal": "Biometrika"
     },
     {
-      "title": "Sensitivity analysis for observational studies with flexible matched designs",
-      "authors": [
-        "Xinran Li"
-      ],
-      "year": "2025",
-      "month": "10",
-      "volume": "112",
-      "issue": "4",
-      "pages": "",
-      "doi": "10.1093/biomet/asaf069",
-      "url": "https://doi.org/10.1093/biomet/asaf069",
-      "journal": "Biometrika"
-    },
-    {
       "title": "Infinite joint species distribution models",
       "authors": [
         "F Stolf",
@@ -1586,6 +1602,20 @@
       "pages": "",
       "doi": "10.1093/biomet/asaf055",
       "url": "https://doi.org/10.1093/biomet/asaf055",
+      "journal": "Biometrika"
+    },
+    {
+      "title": "Sensitivity analysis for observational studies with flexible matched designs",
+      "authors": [
+        "Xinran Li"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "112",
+      "issue": "4",
+      "pages": "",
+      "doi": "10.1093/biomet/asaf069",
+      "url": "https://doi.org/10.1093/biomet/asaf069",
       "journal": "Biometrika"
     },
     {
@@ -1647,6 +1677,23 @@
       "journal": "Biometrika"
     },
     {
+      "title": "Dynamic factor analysis of high-dimensional recurrent events",
+      "authors": [
+        "F Chen",
+        "Y Chen",
+        "Z Ying",
+        "K Zhou"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "112",
+      "issue": "3",
+      "pages": "",
+      "doi": "10.1093/biomet/asaf028",
+      "url": "https://doi.org/10.1093/biomet/asaf028",
+      "journal": "Biometrika"
+    },
+    {
       "title": "Semiparametric sieve estimation for survival data with two-layer censoring",
       "authors": [
         "Yudong Wang",
@@ -1663,23 +1710,6 @@
       "pages": "",
       "doi": "10.1093/biomet/asaf006",
       "url": "https://doi.org/10.1093/biomet/asaf006",
-      "journal": "Biometrika"
-    },
-    {
-      "title": "Dynamic factor analysis of high-dimensional recurrent events",
-      "authors": [
-        "F Chen",
-        "Y Chen",
-        "Z Ying",
-        "K Zhou"
-      ],
-      "year": "2025",
-      "month": "07",
-      "volume": "112",
-      "issue": "3",
-      "pages": "",
-      "doi": "10.1093/biomet/asaf028",
-      "url": "https://doi.org/10.1093/biomet/asaf028",
       "journal": "Biometrika"
     },
     {
@@ -1747,22 +1777,6 @@
       "journal": "Biometrika"
     },
     {
-      "title": "On the asymptotic validity of confidence sets for linear functionals of solutions to integral equations",
-      "authors": [
-        "E Smucler",
-        "J M Robins",
-        "A Rotnitzky"
-      ],
-      "year": "2025",
-      "month": "10",
-      "volume": "112",
-      "issue": "4",
-      "pages": "",
-      "doi": "10.1093/biomet/asaf067",
-      "url": "https://doi.org/10.1093/biomet/asaf067",
-      "journal": "Biometrika"
-    },
-    {
       "title": "Existence and applications of finite-population samples that are exactly balanced",
       "authors": [
         "Yves Tillé",
@@ -1791,6 +1805,23 @@
       "doi": "10.1093/biomet/asaf072",
       "url": "https://doi.org/10.1093/biomet/asaf072",
       "journal": "Biometrika"
+    },
+    {
+      "title": "On the asymptotic validity of confidence sets for linear functionals of solutions to integral equations",
+      "authors": [
+        "E Smucler",
+        "J M Robins",
+        "A Rotnitzky"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "112",
+      "issue": "4",
+      "pages": "",
+      "doi": "10.1093/biomet/asaf067",
+      "url": "https://doi.org/10.1093/biomet/asaf067",
+      "journal": "Biometrika"
     }
-  ]
+  ],
+  "from_year": 2025
 }

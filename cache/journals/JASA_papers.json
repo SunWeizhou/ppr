@@ -1,9 +1,154 @@
 {
   "journal": "Journal of the American Statistical Association",
-  "fetched_at": "2026-04-01T21:39:48.504710",
-  "from_year": 2025,
-  "count": 362,
+  "fetched_at": "2026-04-09T22:15:35.870963",
+  "count": 364,
   "papers": [
+    {
+      "title": "Totally Concave Regression",
+      "authors": [
+        "Dohyeong Ki",
+        "Adityanand Guntuboyina"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2026.2620145",
+      "url": "https://doi.org/10.1080/01621459.2026.2620145",
+      "journal": "JASA"
+    },
+    {
+      "title": "Fast and Flexible Emulation of Spatial Extremes Processes via Variational Autoencoders",
+      "authors": [
+        "Likun Zhang",
+        "Xiaoyu Ma",
+        "Christopher K. Wikle",
+        "Raphaël Huser"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2026.2621515",
+      "url": "https://doi.org/10.1080/01621459.2026.2621515",
+      "journal": "JASA"
+    },
+    {
+      "title": "On the Identifying Power of Generalized Monotonicity for Average Treatment Effects",
+      "authors": [
+        "Yuehao Bai",
+        "Shunzhuang Huang",
+        "Sarah Moon",
+        "Azeem M. Shaikh",
+        "Edward J. Vytlacil"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "1-8",
+      "doi": "10.1080/01621459.2026.2620141",
+      "url": "https://doi.org/10.1080/01621459.2026.2620141",
+      "journal": "JASA"
+    },
+    {
+      "title": "Searching for Local Associations while Controlling the False Discovery Rate",
+      "authors": [
+        "Paula Gablenz",
+        "Matteo Sesia",
+        "Tianshu Sun",
+        "Chiara Sabatti"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2026.2616856",
+      "url": "https://doi.org/10.1080/01621459.2026.2616856",
+      "journal": "JASA"
+    },
+    {
+      "title": "The Explicative Market Microstructure Noise",
+      "authors": [
+        "Wenhao Cui"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2026.2622104",
+      "url": "https://doi.org/10.1080/01621459.2026.2622104",
+      "journal": "JASA"
+    },
+    {
+      "title": "Online Statistical Inference for Contextual Bandits via Stochastic Gradient Descent",
+      "authors": [
+        "Xiangyu Chang",
+        "Xi Chen",
+        "Zehua Lai",
+        "He Li",
+        "Zhihong Liu",
+        "Yichen Zhang"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "1-14",
+      "doi": "10.1080/01621459.2026.2621503",
+      "url": "https://doi.org/10.1080/01621459.2026.2621503",
+      "journal": "JASA"
+    },
+    {
+      "title": "Cluster Quilting: Spectral Clustering for Patchwork Learning",
+      "authors": [
+        "Lili Zheng",
+        "Andersen Chang",
+        "Genevera I. Allen"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "1-18",
+      "doi": "10.1080/01621459.2026.2648876",
+      "url": "https://doi.org/10.1080/01621459.2026.2648876",
+      "journal": "JASA"
+    },
+    {
+      "title": "Semiparametric Joint Modeling for Survival Analysis With Longitudinal Covariates",
+      "authors": [
+        "Wensheng Guo",
+        "Tianhao Wang"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2026.2615849",
+      "url": "https://doi.org/10.1080/01621459.2026.2615849",
+      "journal": "JASA"
+    },
+    {
+      "title": "Fairness-aware Contextual Dynamic Pricing with Strategic Buyers",
+      "authors": [
+        "Pangpang Liu",
+        "Will Wei Sun"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "1-23",
+      "doi": "10.1080/01621459.2026.2648862",
+      "url": "https://doi.org/10.1080/01621459.2026.2648862",
+      "journal": "JASA"
+    },
     {
       "title": "Correction",
       "authors": [],
@@ -170,22 +315,6 @@
       "journal": "JASA"
     },
     {
-      "title": "Subtype-Aware Registration of Longitudinal Electronic Health Records",
-      "authors": [
-        "Xin Gai",
-        "Shiyi Jiang",
-        "Anru R. Zhang"
-      ],
-      "year": "2026",
-      "month": "03",
-      "volume": "",
-      "issue": "",
-      "pages": "1-12",
-      "doi": "10.1080/01621459.2026.2613464",
-      "url": "https://doi.org/10.1080/01621459.2026.2613464",
-      "journal": "JASA"
-    },
-    {
       "title": "Differentially Private Sliced Inverse Regression in the Federated Paradigm",
       "authors": [
         "Shuaida He",
@@ -199,6 +328,22 @@
       "pages": "1-12",
       "doi": "10.1080/01621459.2025.2604315",
       "url": "https://doi.org/10.1080/01621459.2025.2604315",
+      "journal": "JASA"
+    },
+    {
+      "title": "Subtype-Aware Registration of Longitudinal Electronic Health Records",
+      "authors": [
+        "Xin Gai",
+        "Shiyi Jiang",
+        "Anru R. Zhang"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-12",
+      "doi": "10.1080/01621459.2026.2613464",
+      "url": "https://doi.org/10.1080/01621459.2026.2613464",
       "journal": "JASA"
     },
     {
@@ -295,22 +440,6 @@
       "journal": "JASA"
     },
     {
-      "title": "Estimating Multiple Structural Breaks in Large Panels With Unobserved Heterogeneity",
-      "authors": [
-        "Wenxin Huang",
-        "Yucheng Sun",
-        "Yiru Wang"
-      ],
-      "year": "2026",
-      "month": "03",
-      "volume": "",
-      "issue": "",
-      "pages": "1-13",
-      "doi": "10.1080/01621459.2025.2604323",
-      "url": "https://doi.org/10.1080/01621459.2025.2604323",
-      "journal": "JASA"
-    },
-    {
       "title": "Emerging Knowledge Trend in Statistical Research: A Content-Based Analysis Using Covariate-Assisted Dynamic Topic Model",
       "authors": [
         "Chenxuan He",
@@ -324,6 +453,22 @@
       "pages": "1-14",
       "doi": "10.1080/01621459.2025.2602833",
       "url": "https://doi.org/10.1080/01621459.2025.2602833",
+      "journal": "JASA"
+    },
+    {
+      "title": "Estimating Multiple Structural Breaks in Large Panels With Unobserved Heterogeneity",
+      "authors": [
+        "Wenxin Huang",
+        "Yucheng Sun",
+        "Yiru Wang"
+      ],
+      "year": "2026",
+      "month": "03",
+      "volume": "",
+      "issue": "",
+      "pages": "1-13",
+      "doi": "10.1080/01621459.2025.2604323",
+      "url": "https://doi.org/10.1080/01621459.2025.2604323",
       "journal": "JASA"
     },
     {
@@ -1684,20 +1829,6 @@
       "journal": "JASA"
     },
     {
-      "title": "The Explicative Market Microstructure Noise",
-      "authors": [
-        "Wenhao Cui"
-      ],
-      "year": "2026",
-      "month": "02",
-      "volume": "",
-      "issue": "",
-      "pages": "1-25",
-      "doi": "10.1080/01621459.2026.2622104",
-      "url": "https://doi.org/10.1080/01621459.2026.2622104",
-      "journal": "JASA"
-    },
-    {
       "title": "Statistical Inference for Mediation Models with High Dimensional Exposures and Mediators",
       "authors": [
         "Xinyu Zhang",
@@ -1715,71 +1846,6 @@
       "journal": "JASA"
     },
     {
-      "title": "On the Identifying Power of Generalized Monotonicity for Average Treatment Effects*",
-      "authors": [
-        "Yuehao Bai",
-        "Shunzhuang Huang",
-        "Sarah Moon",
-        "Azeem M. Shaikh",
-        "Edward J. Vytlacil"
-      ],
-      "year": "2026",
-      "month": "02",
-      "volume": "",
-      "issue": "",
-      "pages": "1-16",
-      "doi": "10.1080/01621459.2026.2620141",
-      "url": "https://doi.org/10.1080/01621459.2026.2620141",
-      "journal": "JASA"
-    },
-    {
-      "title": "Fast and flexible emulation of spatial extremes processes via variational autoencoders",
-      "authors": [
-        "Likun Zhang",
-        "Xiaoyu Ma",
-        "Christopher K. Wikle",
-        "Raphaël Huser"
-      ],
-      "year": "2026",
-      "month": "02",
-      "volume": "",
-      "issue": "",
-      "pages": "1-23",
-      "doi": "10.1080/01621459.2026.2621515",
-      "url": "https://doi.org/10.1080/01621459.2026.2621515",
-      "journal": "JASA"
-    },
-    {
-      "title": "Totally Concave Regression",
-      "authors": [
-        "Dohyeong Ki",
-        "Adityanand Guntuboyina"
-      ],
-      "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "1-22",
-      "doi": "10.1080/01621459.2026.2620145",
-      "url": "https://doi.org/10.1080/01621459.2026.2620145",
-      "journal": "JASA"
-    },
-    {
-      "title": "Semiparametric Joint Modeling for Survival Analysis with Longitudinal Covariates",
-      "authors": [
-        "Wensheng Guo",
-        "Tianhao Wang"
-      ],
-      "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "1-20",
-      "doi": "10.1080/01621459.2026.2615849",
-      "url": "https://doi.org/10.1080/01621459.2026.2615849",
-      "journal": "JASA"
-    },
-    {
       "title": "Double-Robust Small Area Estimation",
       "authors": [
         "Haiqiang Ma",
@@ -1793,25 +1859,6 @@
       "pages": "1-22",
       "doi": "10.1080/01621459.2026.2621516",
       "url": "https://doi.org/10.1080/01621459.2026.2621516",
-      "journal": "JASA"
-    },
-    {
-      "title": "Online Statistical Inference for Contextual Bandits via Stochastic Gradient Descent",
-      "authors": [
-        "Xiangyu Chang",
-        "Xi Chen",
-        "Zehua Lai",
-        "He Li",
-        "Zhihong Liu",
-        "Yichen Zhang"
-      ],
-      "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "1-24",
-      "doi": "10.1080/01621459.2026.2621503",
-      "url": "https://doi.org/10.1080/01621459.2026.2621503",
       "journal": "JASA"
     },
     {
@@ -1860,23 +1907,6 @@
       "pages": "1-18",
       "doi": "10.1080/01621459.2026.2614034",
       "url": "https://doi.org/10.1080/01621459.2026.2614034",
-      "journal": "JASA"
-    },
-    {
-      "title": "Searching for local associations while controlling the false discovery rate",
-      "authors": [
-        "Paula Gablenz",
-        "Matteo Sesia",
-        "Tianshu Sun",
-        "Chiara Sabatti"
-      ],
-      "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "1-22",
-      "doi": "10.1080/01621459.2026.2616856",
-      "url": "https://doi.org/10.1080/01621459.2026.2616856",
       "journal": "JASA"
     },
     {
@@ -4000,21 +4030,6 @@
       "journal": "JASA"
     },
     {
-      "title": "Modeling Hypergraphs with Diversity and Heterogeneous Popularity",
-      "authors": [
-        "Xianshi Yu",
-        "Ji Zhu"
-      ],
-      "year": "2025",
-      "month": "07",
-      "volume": "120",
-      "issue": "551",
-      "pages": "1491-1502",
-      "doi": "10.1080/01621459.2025.2455200",
-      "url": "https://doi.org/10.1080/01621459.2025.2455200",
-      "journal": "JASA"
-    },
-    {
       "title": "Distributional Off-Policy Evaluation in Reinforcement Learning",
       "authors": [
         "Zhengling Qi",
@@ -4029,6 +4044,21 @@
       "pages": "1517-1530",
       "doi": "10.1080/01621459.2025.2506197",
       "url": "https://doi.org/10.1080/01621459.2025.2506197",
+      "journal": "JASA"
+    },
+    {
+      "title": "Modeling Hypergraphs with Diversity and Heterogeneous Popularity",
+      "authors": [
+        "Xianshi Yu",
+        "Ji Zhu"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1491-1502",
+      "doi": "10.1080/01621459.2025.2455200",
+      "url": "https://doi.org/10.1080/01621459.2025.2455200",
       "journal": "JASA"
     },
     {
@@ -5143,22 +5173,6 @@
       "journal": "JASA"
     },
     {
-      "title": "Robust Bayesian Modeling of Counts with Zero Inflation and Outliers: Theoretical Robustness and Efficient Computation",
-      "authors": [
-        "Yasuyuki Hamura",
-        "Kaoru Irie",
-        "Shonosuke Sugasawa"
-      ],
-      "year": "2025",
-      "month": "07",
-      "volume": "120",
-      "issue": "551",
-      "pages": "1545-1557",
-      "doi": "10.1080/01621459.2024.2447111",
-      "url": "https://doi.org/10.1080/01621459.2024.2447111",
-      "journal": "JASA"
-    },
-    {
       "title": "GeoWarp: Warped Spatial Processes for Inferring Subsea Sediment Properties",
       "authors": [
         "Michael Bertolacci",
@@ -5175,6 +5189,22 @@
       "pages": "710-722",
       "doi": "10.1080/01621459.2024.2445874",
       "url": "https://doi.org/10.1080/01621459.2024.2445874",
+      "journal": "JASA"
+    },
+    {
+      "title": "Robust Bayesian Modeling of Counts with Zero Inflation and Outliers: Theoretical Robustness and Efficient Computation",
+      "authors": [
+        "Yasuyuki Hamura",
+        "Kaoru Irie",
+        "Shonosuke Sugasawa"
+      ],
+      "year": "2025",
+      "month": "07",
+      "volume": "120",
+      "issue": "551",
+      "pages": "1545-1557",
+      "doi": "10.1080/01621459.2024.2447111",
+      "url": "https://doi.org/10.1080/01621459.2024.2447111",
       "journal": "JASA"
     },
     {
@@ -5895,5 +5925,6 @@
       "url": "https://doi.org/10.1080/01621459.2024.2402536",
       "journal": "JASA"
     }
-  ]
+  ],
+  "from_year": 2025
 }

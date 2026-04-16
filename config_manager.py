@@ -36,6 +36,7 @@ class Settings:
     recency_bonus_days: int = 7
     recency_bonus: float = 0.3
     prefer_theory: bool = True
+    theory_enabled: bool = True
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
 
 
@@ -149,6 +150,7 @@ class ConfigManager:
                 'recency_bonus_days': 7,
                 'recency_bonus': 0.3,
                 'prefer_theory': True,
+                'theory_enabled': True,
                 'embedding_model': 'sentence-transformers/all-MiniLM-L6-v2'
             },
             'sources': {
@@ -202,6 +204,7 @@ class ConfigManager:
         self._settings.recency_bonus_days = settings_data.get('recency_bonus_days', 7)
         self._settings.recency_bonus = settings_data.get('recency_bonus', 0.3)
         self._settings.prefer_theory = settings_data.get('prefer_theory', True)
+        self._settings.theory_enabled = settings_data.get('theory_enabled', True)
         self._settings.embedding_model = settings_data.get('embedding_model',
             'sentence-transformers/all-MiniLM-L6-v2')
 
@@ -249,6 +252,7 @@ class ConfigManager:
                 'recency_bonus_days': self._settings.recency_bonus_days,
                 'recency_bonus': self._settings.recency_bonus,
                 'prefer_theory': self._settings.prefer_theory,
+                'theory_enabled': self._settings.theory_enabled,
                 'embedding_model': self._settings.embedding_model,
             },
             'sources': {
@@ -380,7 +384,7 @@ class ConfigManager:
 
     def add_theory_bonus(self, paper: Dict) -> float:
         """计算论文的理论得分加成"""
-        if not self._settings.prefer_theory:
+        if not self._settings.prefer_theory or not self._settings.theory_enabled:
             return 0.0
 
         text = (paper.get('title', '') + ' ' + paper.get('abstract', '')).lower()

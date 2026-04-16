@@ -1,0 +1,157 @@
+{% extends "base_research.html" %}
+
+{% block hero %}
+<section class="page-hero">
+    <div class="hero-panel">
+        <div class="kicker">Research Signals</div>
+        <h1 class="hero-title">阅读统计</h1>
+        <p class="hero-subtitle">
+            这里不是简单的点赞计数，而是你对统计论文的长期阅读偏好。用它判断当前推荐器是在收敛，还是开始偏离你的主问题。
+        </p>
+        <div class="metric-grid">
+            {% for metric in headline_metrics %}
+                <div class="metric-card">
+                    <span class="metric-label">{{ metric.label }}</span>
+                    <span class="metric-value">{{ metric.value }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="hero-rail">
+        <div class="stack-card">
+            <div class="card-kicker">Feedback Efficiency</div>
+            <h2 class="panel-title">反馈效率</h2>
+            <div class="progress-meter">
+                <span class="progress-meter-fill" style="width: {{ like_rate }}%"></span>
+            </div>
+            <p class="detail-copy">当前喜欢率为 {{ like_rate }}%，基于 {{ total_feedback }} 次显式反馈。</p>
+        </div>
+
+        <div class="stack-card">
+            <div class="card-kicker">Queue Overview</div>
+            <h2 class="panel-title">阅读队列</h2>
+            <div class="mini-grid">
+                <div class="mini-stat">
+                    <span class="mini-stat-label">Inbox</span>
+                    <span class="mini-stat-value">{{ queue_counts['Inbox'] }}</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-stat-label">Skim Later</span>
+                    <span class="mini-stat-value">{{ queue_counts['Skim Later'] }}</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-stat-label">Deep Read</span>
+                    <span class="mini-stat-value">{{ queue_counts['Deep Read'] }}</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-stat-label">Saved</span>
+                    <span class="mini-stat-value">{{ queue_counts['Saved'] }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="section-grid">
+    <div>
+        <div class="section-head">
+            <div>
+                <div class="section-kicker">Reading Momentum</div>
+                <h2 class="section-title">近期行为</h2>
+                <p class="muted-copy">这几项指标决定推荐器该更激进探索，还是继续压实你的主问题。</p>
+            </div>
+        </div>
+
+        <div class="insight-grid">
+            {% for card in rhythm_cards %}
+                <div class="insight-card">
+                    <span class="insight-label">{{ card.label }}</span>
+                    <span class="insight-value">{{ card.value }}</span>
+                    <p class="insight-copy">{{ card.copy }}</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="stack-card section-card">
+            <div class="section-kicker">Topic Signals</div>
+            <h2 class="panel-title">你最常喜欢的关键词</h2>
+            {% if top_keywords %}
+                <div class="keyword-cloud">
+                    {% for keyword in top_keywords %}
+                        <span class="keyword-pill">
+                            <span>{{ keyword.keyword }}</span>
+                            <span class="keyword-pill-count">{{ keyword.count }}</span>
+                        </span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state compact-empty">
+                    <p class="muted-copy">显式喜欢还不够多，暂时无法提取稳定的主题偏好。</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="stack-card section-card">
+            <div class="section-kicker">Feedback Ratio</div>
+            <h2 class="panel-title">喜欢与忽略的比例</h2>
+            <div class="ratio-row">
+                <div class="ratio-segment">
+                    <span class="ratio-label">喜欢</span>
+                    <span class="ratio-value">{{ liked_count }}</span>
+                </div>
+                <div class="ratio-segment danger">
+                    <span class="ratio-label">忽略</span>
+                    <span class="ratio-value">{{ disliked_count }}</span>
+                </div>
+            </div>
+            <div class="progress-meter dual">
+                <span class="progress-meter-fill" style="width: {{ like_rate }}%"></span>
+            </div>
+            <p class="detail-copy">如果喜欢率持续偏低，通常说明关键词太宽、探索位过多，或者理论偏好没有校准好。</p>
+        </div>
+    </div>
+
+    <div class="aside-stack">
+        <div class="stack-card">
+            <div class="card-kicker">Research Assets</div>
+            <h2 class="panel-title">对象规模</h2>
+            <div class="list-stack">
+                <div class="list-item">
+                    <div>
+                        <span class="list-item-title">Saved Searches</span>
+                        <span class="list-item-subtitle">问题级订阅</span>
+                    </div>
+                    <span class="list-item-trailing">{{ saved_searches|length }}</span>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <span class="list-item-title">Collections</span>
+                        <span class="list-item-subtitle">方法簇与研究线索</span>
+                    </div>
+                    <span class="list-item-trailing">{{ collections|length }}</span>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <span class="list-item-title">Favorites Cache</span>
+                        <span class="list-item-subtitle">本地完整论文缓存</span>
+                    </div>
+                    <span class="list-item-trailing">{{ favorite_count }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stack-card">
+            <div class="card-kicker">Interpretation</div>
+            <h2 class="panel-title">怎么读这些数</h2>
+            <ul class="search-hint-list" style="margin-top: 8px;">
+                <li>高喜欢率不一定代表系统好，可能只是候选池太窄。</li>
+                <li>活跃天数高但日均喜欢低，通常说明浏览多但进入精读的少。</li>
+                <li>关键词集中说明画像稳定，过散则说明你正在跨多个方向探索。</li>
+            </ul>
+        </div>
+    </div>
+</section>
+{% endblock %}

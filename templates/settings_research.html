@@ -1,0 +1,275 @@
+{% extends "base_research.html" %}
+
+{% block hero %}
+<section class="page-hero">
+    <div class="hero-panel">
+        <div class="kicker">Profile Tuning</div>
+        <h1 class="hero-title">把推荐器调成你的研究工作流</h1>
+        <p class="hero-subtitle">
+            这里不是一堆分散的配置项，而是你的统计研究画像。核心关键词、理论偏好和忽略主题会直接影响每日收件箱的排序。
+        </p>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <span class="metric-label">Core Topics</span>
+                <span class="metric-value">{{ core_keywords|length }}</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Secondary</span>
+                <span class="metric-value">{{ secondary_keywords|length }}</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Theory Terms</span>
+                <span class="metric-value">{{ theory_keywords|length }}</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Saved Searches</span>
+                <span class="metric-value">{{ saved_searches|length }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-rail">
+        <div class="stack-card">
+            <div class="card-kicker">Latest Job</div>
+            <h2 class="panel-title">生成状态</h2>
+            <div class="chip-row">
+                <span class="status-badge {{ latest_job_tone }}">
+                    {% if latest_job %}{{ latest_job.status }}{% else %}idle{% endif %}
+                </span>
+            </div>
+            <p class="detail-copy">
+                {% if latest_job %}
+                    最近一次任务由 {{ latest_job.trigger_source }} 触发，更新时间 {{ latest_job.updated_at or latest_job.created_at }}。
+                {% else %}
+                    当前还没有写入 JobRun；保存并重生成后会出现第一条任务记录。
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="stack-card">
+            <div class="card-kicker">How To Use</div>
+            <h2 class="panel-title">调参建议</h2>
+            <ul class="search-hint-list" style="margin-top: 8px;">
+                <li>核心关键词用于直接驱动排序，是最强信号。</li>
+                <li>次级关键词适合扩展一个领域边界，避免首页过窄。</li>
+                <li>理论关键词不代表主题，而是帮助识别 theorem / proof / bound 这类工作。</li>
+            </ul>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="settings-layout">
+    <div class="settings-panel">
+        <form id="settingsForm">
+            <div class="form-grid">
+                <section class="form-card full-span" id="keywords">
+                    <div class="section-kicker">Keyword Profile</div>
+                    <h2 class="panel-title">研究关键词</h2>
+                    <p class="field-help">通过不同层级的关键词，告诉系统什么是你的主问题、外围问题，以及什么样的论文更像“理论工作”。</p>
+
+                    <div class="keyword-section-label">Core Topics</div>
+                    <div class="keyword-tags-container" id="coreKeywords">
+                        {% for kw in core_keywords %}
+                            <span class="keyword-tag-item" data-keyword="{{ kw }}" data-type="core">{{ kw }}<span class="keyword-tag-delete" onclick="deleteKeyword(this)">&times;</span></span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="keyword-section-label">Secondary Topics</div>
+                    <div class="keyword-tags-container" id="secondaryKeywords">
+                        {% for kw in secondary_keywords %}
+                            <span class="keyword-tag-item secondary" data-keyword="{{ kw }}" data-type="secondary">{{ kw }}<span class="keyword-tag-delete" onclick="deleteKeyword(this)">&times;</span></span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="keyword-section-label">Theory Signals</div>
+                    <div class="keyword-tags-container" id="theoryKeywords">
+                        {% for kw in theory_keywords %}
+                            <span class="keyword-tag-item theory" data-keyword="{{ kw }}" data-type="theory">{{ kw }}<span class="keyword-tag-delete" onclick="deleteKeyword(this)">&times;</span></span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="keyword-add-form">
+                        <input type="text" id="newKeyword" placeholder="输入新关键词..." onkeypress="if(event.key==='Enter'){event.preventDefault();addKeyword();}">
+                        <select id="keywordType">
+                            <option value="core">Core</option>
+                            <option value="secondary">Secondary</option>
+                            <option value="theory">Theory</option>
+                        </select>
+                        <button type="button" class="action-button btn-brand" onclick="addKeyword()">添加</button>
+                    </div>
+                </section>
+
+                <section class="form-card full-span">
+                    <div class="section-kicker">Demotion Rules</div>
+                    <h2 class="panel-title">不感兴趣主题</h2>
+                    <label class="field-label" for="dislikeTopics">这些词会被持续降权</label>
+                    <textarea class="form-textarea" id="dislikeTopics" name="dislikeTopics" placeholder="例如：benchmark-heavy, federated learning, empirical systems">{{ dislike_text }}</textarea>
+                </section>
+
+                <section class="form-card">
+                    <div class="section-kicker">Recommendation Volume</div>
+                    <h2 class="panel-title">每日输出规模</h2>
+                    <label class="field-label" for="papersPerDay">每日推荐数量</label>
+                    <input type="number" class="form-input" id="papersPerDay" name="papersPerDay" value="{{ papers_per_day }}" min="5" max="50">
+                    <p class="field-help">数量越大，探索面越广；数量越小，越像一个精筛后的 inbox。</p>
+                </section>
+
+                <section class="form-card">
+                    <div class="section-kicker">Theory Bias</div>
+                    <h2 class="panel-title">理论偏好</h2>
+                    <label class="checkbox-row">
+                        <input type="checkbox" id="preferTheory" name="preferTheory" {% if prefer_theory %}checked{% endif %}>
+                        <span>优先推荐理论论文（proof / theorem / bound）</span>
+                    </label>
+                    <label class="checkbox-row">
+                        <input type="checkbox" id="theoryEnabled" name="theoryEnabled" {% if theory_enabled %}checked{% endif %}>
+                        <span>启用理论信号加分</span>
+                    </label>
+                </section>
+            </div>
+
+            <div class="button-row" style="margin-top: 24px;">
+                <button type="submit" class="action-button btn-brand">保存设置</button>
+                <button type="button" class="action-button btn-warm" onclick="saveAndRegenerate()">保存并重生成</button>
+                <a href="/" class="action-button btn-ghost">返回今日收件箱</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="aside-stack">
+        <div class="stack-card">
+            <div class="card-kicker">Current Workflow</div>
+            <h2 class="panel-title">研究资产一览</h2>
+            <div class="list-stack">
+                <div class="list-item">
+                    <div>
+                        <span class="list-item-title">Saved Searches</span>
+                        <span class="list-item-subtitle">长期跟踪的问题订阅</span>
+                    </div>
+                    <span class="list-item-trailing">{{ saved_searches|length }}</span>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <span class="list-item-title">Collections</span>
+                        <span class="list-item-subtitle">研究线索与方法簇</span>
+                    </div>
+                    <span class="list-item-trailing">{{ collections|length }}</span>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <span class="list-item-title">Queue Total</span>
+                        <span class="list-item-subtitle">在读与待读总量</span>
+                    </div>
+                    <span class="list-item-trailing">{{ queue_counts['Inbox'] + queue_counts['Skim Later'] + queue_counts['Deep Read'] + queue_counts['Saved'] }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function addKeyword() {
+    const input = document.getElementById('newKeyword');
+    const keyword = input.value.trim();
+    const type = document.getElementById('keywordType').value;
+    if (!keyword) {
+        showToast('请输入关键词', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/keywords', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({keyword: keyword, type: type})
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'keyword add failed');
+        }
+
+        const container = document.getElementById(type + 'Keywords');
+        const tag = document.createElement('span');
+        tag.className = 'keyword-tag-item' + (type === 'secondary' ? ' secondary' : type === 'theory' ? ' theory' : '');
+        tag.dataset.keyword = keyword.toLowerCase();
+        tag.dataset.type = type;
+        tag.innerHTML = keyword.toLowerCase() + '<span class="keyword-tag-delete" onclick="deleteKeyword(this)">&times;</span>';
+        container.appendChild(tag);
+        input.value = '';
+        showToast('关键词已添加');
+    } catch (error) {
+        showToast('添加失败: ' + error.message, 'error');
+    }
+}
+
+async function deleteKeyword(element) {
+    const tag = element.parentElement;
+    const keyword = tag.dataset.keyword;
+    const type = tag.dataset.type;
+
+    try {
+        const response = await fetch('/api/keywords', {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({keyword: keyword, type: type})
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'keyword delete failed');
+        }
+        tag.remove();
+        showToast('关键词已删除');
+    } catch (error) {
+        showToast('删除失败: ' + error.message, 'error');
+    }
+}
+
+document.getElementById('settingsForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    await saveSettings(false);
+});
+
+async function saveSettings(regenerate = false) {
+    const coreKws = Array.from(document.querySelectorAll('#coreKeywords .keyword-tag-item')).map(el => el.dataset.keyword);
+    const secondaryKws = Array.from(document.querySelectorAll('#secondaryKeywords .keyword-tag-item')).map(el => el.dataset.keyword);
+    const theoryKws = Array.from(document.querySelectorAll('#theoryKeywords .keyword-tag-item')).map(el => el.dataset.keyword);
+
+    const data = {
+        coreTopics: coreKws,
+        secondaryTopics: secondaryKws,
+        theoryKeywords: theoryKws,
+        dislikeTopics: document.getElementById('dislikeTopics').value,
+        papersPerDay: parseInt(document.getElementById('papersPerDay').value, 10),
+        preferTheory: document.getElementById('preferTheory').checked,
+        theoryEnabled: document.getElementById('theoryEnabled').checked,
+        regenerate: regenerate
+    };
+
+    try {
+        const response = await fetch('/api/settings', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'save failed');
+        }
+        showToast(regenerate ? '设置已保存，正在重生成' : '设置已保存');
+        if (regenerate) {
+            setTimeout(() => window.location.href = '/', 1100);
+        }
+    } catch (error) {
+        showToast('保存失败: ' + error.message, 'error');
+    }
+}
+
+function saveAndRegenerate() {
+    saveSettings(true);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <meta name="theme-color" content="#124c79">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='research_ui.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="{{ body_class or '' }}">
+    <div class="app-shell">
+        <header class="app-chrome">
+            <a href="/" class="brandmark">
+                <span class="brandmark-label">StatDesk</span>
+                <span class="brandmark-subtitle">local-first arXiv workflow for statistics researchers</span>
+            </a>
+            <nav class="primary-nav">
+                {% for item in nav_items %}
+                    <a
+                        href="{{ item.href }}"
+                        class="nav-link {{ item.tone }} {% if item.key == active_tab %}active{% endif %}"
+                        {% if item.confirm %}onclick="return confirm('{{ item.confirm }}')"{% endif %}
+                    >
+                        {{ item.label }}
+                    </a>
+                {% endfor %}
+            </nav>
+        </header>
+
+        <section class="app-statusbar">
+            <div class="statusbar-group">
+                <span class="chip brand">Queue {{ queue_counts.values() | list | sum }}</span>
+                <span class="chip">{{ liked_count }} liked</span>
+                <span class="status-badge {{ latest_job_tone }}">
+                    {% if latest_job %}{{ latest_job.status }}{% else %}idle{% endif %}
+                </span>
+            </div>
+            <div class="statusbar-group">
+                <span class="chip sage">{{ all_collections|length }} collections</span>
+                <span class="chip gold">{{ all_saved_searches|length }} saved searches</span>
+            </div>
+        </section>
+
+        {% block hero %}{% endblock %}
+        {% block content %}{% endblock %}
+
+        <div class="footer-note">
+            数据保存在本地，界面按统计研究工作流重排。
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script>
+    window.AppState = {
+        collections: {{ (all_collections or []) | tojson }},
+        savedSearches: {{ (all_saved_searches or []) | tojson }},
+        queueStatuses: {{ (queue_status_values or []) | tojson }},
+        latestJob: {{ (latest_job or {}) | tojson }}
+    };
+
+    function showToast(message, kind = 'success') {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.textContent = message;
+        toast.className = kind === 'error' ? 'toast visible error' : 'toast visible';
+        window.clearTimeout(window.__toastTimer);
+        window.__toastTimer = window.setTimeout(() => {
+            toast.className = kind === 'error' ? 'toast error' : 'toast';
+        }, 2200);
+    }
+
+    function escapeAttrValue(value) {
+        return String(value || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    }
+
+    async function requestJson(url, options = {}) {
+        const response = await fetch(url, options);
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || result.success === false) {
+            throw new Error(result.error || result.message || 'request failed');
+        }
+        return result;
+    }
+
+    function updateCollectionCache(collection) {
+        if (!collection || !collection.id) return;
+        const current = Array.isArray(window.AppState.collections) ? window.AppState.collections : [];
+        const next = current.filter(item => item.id !== collection.id);
+        next.push(collection);
+        next.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+        window.AppState.collections = next;
+    }
+
+    async function ensureCollection(options = {}) {
+        const defaultName = options.defaultName || options.queryText || '';
+        const existingNames = (window.AppState.collections || []).map(item => item.name).filter(Boolean);
+        const promptText = existingNames.length
+            ? '输入 Collection 名称。已有：' + existingNames.slice(0, 8).join(' / ')
+            : '输入新的 Collection 名称';
+        const name = (window.prompt(promptText, defaultName) || '').trim();
+        if (!name) {
+            return null;
+        }
+
+        const existing = (window.AppState.collections || []).find(item => String(item.name || '').toLowerCase() === name.toLowerCase());
+        if (existing) {
+            return existing;
+        }
+
+        const result = await requestJson('/api/collections', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                name: name,
+                query_text: options.queryText || '',
+                description: options.description || ''
+            })
+        });
+        updateCollectionCache(result.collection);
+        showToast('Collection 已创建');
+        return result.collection;
+    }
+
+    async function addPaperToCollection(paperId, options = {}) {
+        const collection = await ensureCollection(options);
+        if (!collection) return null;
+        await requestJson('/api/collections/' + collection.id + '/papers', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                paper_id: paperId,
+                note: options.note || '',
+                source: options.source || 'research_ui'
+            })
+        });
+        showToast('已加入 Collection: ' + collection.name);
+        return collection;
+    }
+
+    async function queuePaperStatus(paperId, status, options = {}) {
+        const result = await requestJson('/api/queue', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                paper_id: paperId,
+                status: status,
+                source: options.source || 'research_ui',
+                note: options.note || ''
+            })
+        });
+        syncPaperState(paperId, status);
+        showToast('已加入队列: ' + status);
+        return result.item;
+    }
+
+    function syncPaperState(paperId, status) {
+        const selector = '[data-paper-id="' + escapeAttrValue(paperId) + '"]';
+        document.querySelectorAll(selector).forEach((node) => {
+            node.dataset.queueStatus = status || '';
+            node.querySelectorAll('[data-queue-state]').forEach((chip) => {
+                chip.textContent = status || '';
+                chip.hidden = !status;
+                const normalized = String(status || '')
+                    .trim()
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                chip.className = normalized ? 'state-chip status-' + normalized : 'state-chip';
+            });
+        });
+    }
+
+    async function followAuthor(author, options = {}) {
+        if (!author) {
+            showToast('缺少作者名', 'error');
+            return null;
+        }
+        const result = await requestJson('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                paper_id: options.paperId || author,
+                action: 'follow_author',
+                author: author,
+                title: options.title || '',
+                source: options.source || 'research_ui'
+            })
+        });
+        showToast(result.followed ? ('已关注作者: ' + author) : result.result || '作者已存在');
+        return result;
+    }
+
+    function downloadBibtex(paperId) {
+        window.open('/api/export/bibtex/' + encodeURIComponent(paperId), '_blank');
+    }
+
+    async function trackPaperOpen(paperId, source = 'research_ui') {
+        try {
+            await requestJson('/api/feedback', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({paper_id: paperId, action: 'open_paper', source: source})
+            });
+        } catch (error) {
+            console.debug(error);
+        }
+    }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

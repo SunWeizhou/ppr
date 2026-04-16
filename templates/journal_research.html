@@ -1,0 +1,212 @@
+{% extends "base_research.html" %}
+
+{% block hero %}
+<section class="page-hero">
+    <div class="hero-panel">
+        <div class="kicker">Journal Monitor</div>
+        <h1 class="hero-title">顶刊动态</h1>
+        <p class="hero-subtitle">
+            顶刊更新不是和 arXiv 抢同一个实时流，而是作为质量增强层存在。这里优先回答两个问题：最新一期有什么，以及哪些工作值得你从预印本之外再看一遍。
+        </p>
+        <div class="metric-grid">
+            {% for metric in headline_metrics %}
+                <div class="metric-card">
+                    <span class="metric-label">{{ metric.label }}</span>
+                    <span class="metric-value">{{ metric.value }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="hero-rail">
+        <div class="stack-card">
+            <div class="card-kicker">Update Policy</div>
+            <h2 class="panel-title">检测策略</h2>
+            <div class="chip-row">
+                <span class="chip brand">{{ detection_description }}</span>
+                <span class="chip {% if should_check %}warm{% else %}sage{% endif %}">
+                    {% if should_check %}应检查{% else %}已同步{% endif %}
+                </span>
+            </div>
+            <p class="detail-copy">上次检查时间：{{ last_update }}。{{ update_reason }}</p>
+        </div>
+
+        <div class="stack-card">
+            <div class="card-kicker">Current Slice</div>
+            <h2 class="panel-title">{{ journal_name }}</h2>
+            <div class="chip-row">
+                {% if current_volume_label %}
+                    <span class="chip brand">{{ current_volume_label }}</span>
+                {% endif %}
+                {% if current_issue_label %}
+                    <span class="chip gold">{{ current_issue_label }}</span>
+                {% endif %}
+            </div>
+            <p class="detail-copy">这页适合看“正式发表版”的进度、引用基线和顶刊更新节奏，不替代你的每日 arXiv 收件箱。</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="section-grid">
+    <div>
+        <div class="section-head">
+            <div>
+                <div class="section-kicker">Journal Selector</div>
+                <h2 class="section-title">期刊与卷期</h2>
+                <p class="muted-copy">先选刊，再定位到卷期。连续出版和传统期刊会用不同的浏览方式。</p>
+            </div>
+        </div>
+
+        <div class="journal-tabs">
+            {% for journal in journals %}
+                <a href="/journal/{{ journal.key }}" class="journal-tab {% if journal.key == selected_journal %}active{% endif %}" style="--tab-color: {{ journal.color }};">
+                    <span class="tab-icon">{{ journal.icon }}</span>
+                    <span class="tab-name">{{ journal.short_name }}</span>
+                </a>
+            {% endfor %}
+        </div>
+
+        <div class="stack-card section-card">
+            <div class="filter-bar">
+                <div class="selector-group">
+                    <label class="field-label" for="volumeSelect">卷号</label>
+                    <select id="volumeSelect" class="form-input selector-input" onchange="changeVolume()">
+                        {% for volume in volumes %}
+                            <option value="{{ volume.number }}" {% if volume.number == current_volume %}selected{% endif %}>
+                                Volume {{ volume.number }}{% if volume.year %} ({{ volume.year }}){% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if not is_continuous and issues %}
+                    <div class="selector-group">
+                        <label class="field-label" for="issueSelect">期号</label>
+                        <select id="issueSelect" class="form-input selector-input" onchange="changeIssue()">
+                            {% for item in issues %}
+                                <option value="{{ item }}" {% if item == current_issue %}selected{% endif %}>Issue {{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if papers %}
+            <div class="journal-paper-grid">
+                {% for paper in papers %}
+                    <article class="paper-card compact-card">
+                        <div class="paper-topline">
+                            <div class="paper-rank">
+                                <span>#{{ paper.rank }}</span>
+                                {% if paper.relevance_stars %}
+                                    <span class="chip gold">{{ paper.relevance_stars }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="chip-row">
+                                {% if paper.citations %}
+                                    <span class="score-chip">{{ paper.citations }} cites</span>
+                                {% endif %}
+                                {% if paper.citation_trend %}
+                                    <span class="chip {% if paper.citation_trend > 0 %}sage{% else %}warm{% endif %}">
+                                        {% if paper.citation_trend > 0 %}↑{{ paper.citation_trend }}{% else %}↓{{ paper.citation_trend|abs }}{% endif %}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <h3 class="paper-title">
+                            <a class="paper-title-link" href="{{ paper.paper_url }}" target="_blank" rel="noopener noreferrer">{{ paper.title }}</a>
+                        </h3>
+                        <div class="paper-authors">{{ paper.author_text }}</div>
+                        <div class="paper-meta-row">
+                            <span class="meta-chip">{{ paper.pub_info }}</span>
+                            {% if paper.doi %}
+                                <span class="meta-chip brand">DOI</span>
+                            {% endif %}
+                        </div>
+                        {% if paper.abstract_preview %}
+                            <p class="paper-summary">{{ paper.abstract_preview }}</p>
+                        {% endif %}
+                        <div class="action-row">
+                            <a class="action-button btn-brand" href="{{ paper.paper_url }}" target="_blank" rel="noopener noreferrer">打开论文</a>
+                            <a class="action-button btn-subtle" href="{{ paper.scholar_url }}" target="_blank" rel="noopener noreferrer">Google Scholar</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="section-kicker">No Papers</div>
+                <h2 class="panel-title">当前卷期暂无论文</h2>
+                <p class="muted-copy">可以切换卷期，或者稍后再看系统同步后的结果。</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="aside-stack">
+        <div class="stack-card">
+            <div class="card-kicker">Current Stats</div>
+            <h2 class="panel-title">当前卷期概览</h2>
+            <div class="list-stack">
+                <div class="list-item">
+                    <div>
+                        <span class="list-item-title">当前卷</span>
+                        <span class="list-item-subtitle">{{ journal_name }}</span>
+                    </div>
+                    <span class="list-item-trailing">{{ current_volume_label or '-' }}</span>
+                </div>
+                {% if current_issue_label %}
+                    <div class="list-item">
+                        <div>
+                            <span class="list-item-title">当前期</span>
+                            <span class="list-item-subtitle">传统期刊导航</span>
+                        </div>
+                        <span class="list-item-trailing">{{ current_issue_label }}</span>
+                    </div>
+                {% endif %}
+                <div class="list-item">
+                    <div>
+                        <span class="list-item-title">相关论文</span>
+                        <span class="list-item-subtitle">带显式 relevance 信号</span>
+                    </div>
+                    <span class="list-item-trailing">{{ relevant_count }}</span>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <span class="list-item-title">引用增长</span>
+                        <span class="list-item-subtitle">citation trend 为正</span>
+                    </div>
+                    <span class="list-item-trailing">{{ trending_papers }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stack-card">
+            <div class="card-kicker">Why It Matters</div>
+            <h2 class="panel-title">使用边界</h2>
+            <ul class="search-hint-list" style="margin-top: 8px;">
+                <li>顶刊动态优先回答“正式发表版”的进度，不负责热点捕捉。</li>
+                <li>连续出版期刊更适合按 volume 浏览，传统期刊按 issue 浏览。</li>
+                <li>引用数是辅助判断，不应该替代你自己的主题偏好和理论标准。</li>
+            </ul>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function changeVolume() {
+    const vol = document.getElementById('volumeSelect').value;
+    window.location.href = '/journal/{{ selected_journal }}/v/' + encodeURIComponent(vol);
+}
+
+function changeIssue() {
+    const vol = document.getElementById('volumeSelect').value;
+    const issue = document.getElementById('issueSelect').value;
+    window.location.href = '/journal/{{ selected_journal }}/v/' + encodeURIComponent(vol) + '/i/' + encodeURIComponent(issue);
+}
+</script>
+{% endblock %}

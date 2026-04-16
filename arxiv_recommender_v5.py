@@ -196,6 +196,7 @@ def load_user_config() -> Dict:
         'settings': {
             'papers_per_day': config._settings.papers_per_day,
             'prefer_theory': config._settings.prefer_theory,
+            'theory_enabled': config._settings.theory_enabled,
         },
         'zotero': {
             'database_path': config._zotero.database_path,
@@ -889,6 +890,7 @@ class EnhancedScorer:
         self.THEORY_KEYWORDS = cm._config.get('theory_keywords', [])
         self.DEMOTE_TOPICS = cm.demote_keywords
         self.DISLIKE_TOPICS = list(cm.dislike_keywords.keys())
+        self.THEORY_ENABLED = cm._settings.theory_enabled
         # Keep SYNONYMS as class attribute (not configurable for now)
         if not hasattr(self, 'SYNONYMS'):
             self.SYNONYMS = {
@@ -990,11 +992,12 @@ class EnhancedScorer:
                     score += weight * 0.5
 
         # 6. 理论关键词加分（从用户配置）
-        theory_keywords = ['theorem', 'proof', 'bound', 'convergence', 'statistical',
-                          'bayesian', 'estimation', 'generalization']
-        for kw in theory_keywords:
-            if self._count_keyword(title, kw) > 0:
-                score += 0.4
+        if self.THEORY_ENABLED:
+            theory_keywords = ['theorem', 'proof', 'bound', 'convergence', 'statistical',
+                              'bayesian', 'estimation', 'generalization']
+            for kw in theory_keywords:
+                if self._count_keyword(title, kw) > 0:
+                    score += 0.4
 
         # 7. dislike topics 惩罚 (使用词边界匹配，与其他主题一致)
         for topic in get_dislike_topics():
@@ -1179,16 +1182,17 @@ class EnhancedScorer:
                 pass
 
         # 7. 理论深度
-        theory_keywords = ['theorem', 'proof', 'bound', 'convergence', 'minimax', 'optimal rate']
-        theory_matches = [kw for kw in theory_keywords if kw in title_lower or kw in abstract_lower]
-        if len(theory_matches) >= 2:
-            reasons.append({
-                'type': 'theory',
-                'icon': '📐',
-                'text': f"包含理论贡献: {', '.join(theory_matches[:2])}",
-                'location': '',
-                'score_impact': 0.5
-            })
+        if self.THEORY_ENABLED:
+            theory_keywords = ['theorem', 'proof', 'bound', 'convergence', 'minimax', 'optimal rate']
+            theory_matches = [kw for kw in theory_keywords if kw in title_lower or kw in abstract_lower]
+            if len(theory_matches) >= 2:
+                reasons.append({
+                    'type': 'theory',
+                    'icon': '📐',
+                    'text': f"包含理论贡献: {', '.join(theory_matches[:2])}",
+                    'location': '',
+                    'score_impact': 0.5
+                })
 
         return reasons[:4]  # 最多显示4条理由
 
@@ -1907,6 +1911,34 @@ def save_daily_recommendation(cache_dir: str, papers: List[Dict], themes: List[s
         json.dump(data, f, ensure_ascii=False, indent=2, default=str)
 
 
+def save_recommendation_run(cache_dir: str, date_str: str, papers: List[Dict], themes: List[str]):
+    """Persist a dated recommendation snapshot for history playback."""
+    run_dir = os.path.join(cache_dir, 'recommendation_runs')
+    os.makedirs(run_dir, exist_ok=True)
+    run_path = os.path.join(run_dir, f'{date_str}.json')
+
+    serializable_papers = []
+    for paper in papers:
+        paper_copy = dict(paper)
+        if 'score_details' in paper_copy and not isinstance(paper_copy['score_details'], dict):
+            paper_copy.pop('score_details', None)
+        serializable_papers.append(paper_copy)
+
+    with open(run_path, 'w', encoding='utf-8') as f:
+        json.dump(
+            {
+                'date': date_str,
+                'papers': serializable_papers,
+                'themes': themes,
+                'generated_at': datetime.now().isoformat(),
+            },
+            f,
+            ensure_ascii=False,
+            indent=2,
+            default=str,
+        )
+
+
 def run_pipeline(force_refresh: bool = False) -> List[Dict]:
     """Run the complete enhanced pipeline.
 
@@ -1987,7 +2019,7 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
     else:
         logger.info(f"Zotero not found at {zotero_path}")
         logger.info("  Running in keyword-only mode")
-        logger.info("  Tip: Set zotero.database_path in user_config.json")
+        logger.info("  Tip: Set zotero.database_path in user_profile.json")
 
     # Extract themes
     t0 = time.time()
@@ -2089,6 +2121,7 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
 
     # Save daily recommendation cache (so we don't regenerate on same day)
     save_daily_recommendation(CONFIG['cache_dir'], top_papers, themes)
+    save_recommendation_run(CONFIG['cache_dir'], date_str, top_papers, themes)
     logger.info(f"Daily recommendation cached for {date_str}")
 
     logger.info("=" * 60)

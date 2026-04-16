@@ -22,6 +22,7 @@ from datetime import datetime
 USER_DATA_FILES = [
     'cache/user_feedback.json',
     'cache/favorite_papers.json',
+    'cache/app_state.db',
     'my_scholars.json',
     'user_profile.json',
     'cache/recommendation_history.json',
@@ -66,8 +67,11 @@ def backup_user_data(message=None):
         for file_path in USER_DATA_FILES:
             full_path = os.path.join(base_dir, file_path)
             if os.path.exists(full_path):
+                git_add_cmd = ['git', 'add', file_path]
+                if file_path.endswith('.db'):
+                    git_add_cmd = ['git', 'add', '-f', file_path]
                 result = subprocess.run(
-                    ['git', 'add', file_path],
+                    git_add_cmd,
                     capture_output=True,
                     text=True,
                     cwd=base_dir
@@ -122,7 +126,7 @@ def get_backup_history(limit=10):
 
     try:
         result = subprocess.run(
-            ['git', 'log', '--oneline', '-n', str(limit), '--', 'cache/user_feedback.json', 'cache/favorite_papers.json', 'user_profile.json'],
+            ['git', 'log', '--oneline', '-n', str(limit), '--', 'cache/user_feedback.json', 'cache/favorite_papers.json', 'cache/app_state.db', 'user_profile.json'],
             capture_output=True,
             text=True,
             cwd=base_dir

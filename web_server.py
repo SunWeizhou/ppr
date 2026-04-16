@@ -8,13 +8,23 @@ import os
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 
 import json
+import sqlite3
 import re
 import threading
 import urllib.parse
 import subprocess
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, request, render_template, send_file
 from flask_cors import CORS
+
+from app_paths import (
+    CACHE_DIR as APP_CACHE_DIR,
+    HISTORY_DIR as APP_HISTORY_DIR,
+    PROJECT_ROOT,
+    STATE_DB_PATH,
+    ensure_runtime_dirs,
+)
+from state_store import QUEUE_STATUS_VALUES, get_state_store
 
 # 统一日志系统
 from logger_config import get_logger
@@ -31,6 +41,7 @@ def git_backup_user_data(message=None):
         user_data_files = [
             'cache/user_feedback.json',
             'cache/favorite_papers.json',
+            'cache/app_state.db',
             'my_scholars.json',
             'user_profile.json',
         ]
@@ -38,7 +49,10 @@ def git_backup_user_data(message=None):
         for file_path in user_data_files:
             full_path = os.path.join(BASE_DIR, file_path)
             if os.path.exists(full_path):
-                subprocess.run(['git', 'add', file_path], cwd=BASE_DIR, capture_output=True)
+                git_add_cmd = ['git', 'add', file_path]
+                if file_path.endswith('.db'):
+                    git_add_cmd = ['git', 'add', '-f', file_path]
+                subprocess.run(git_add_cmd, cwd=BASE_DIR, capture_output=True)
 
         # 检查是否有更改需要提交
         result = subprocess.run(
@@ -57,13 +71,25 @@ def git_backup_user_data(message=None):
 app = Flask(__name__)
 CORS(app)
 
-BASE_DIR = 'D:/arxiv_recommender'
-HISTORY_DIR = os.path.join(BASE_DIR, 'history')
-FEEDBACK_FILE = os.path.join(BASE_DIR, 'cache', 'user_feedback.json')
-CACHE_FILE = os.path.join(BASE_DIR, 'cache', 'paper_cache.json')
-FAVORITES_FILE = os.path.join(BASE_DIR, 'cache', 'favorite_papers.json')
+ensure_runtime_dirs()
+
+BASE_DIR = str(PROJECT_ROOT)
+HISTORY_DIR = str(APP_HISTORY_DIR)
+FEEDBACK_FILE = str(APP_CACHE_DIR / 'user_feedback.json')
+CACHE_FILE = str(APP_CACHE_DIR / 'paper_cache.json')
+FAVORITES_FILE = str(APP_CACHE_DIR / 'favorite_papers.json')
 INDEX_HTML = os.path.join(BASE_DIR, 'index.html')
 KEYWORDS_CONFIG_FILE = os.path.join(BASE_DIR, 'keywords_config.json')
+STATE_DB_FILE = str(STATE_DB_PATH)
+STATE_STORE = get_state_store()
+
+QUEUE_ACTIONS = {
+    'inbox': 'Inbox',
+    'save_for_later': 'Skim Later',
+    'deep_read': 'Deep Read',
+    'save': 'Saved',
+    'archive': 'Archived',
+}
 
 # ============ 公共 CSS 样式 ============
 COMMON_CSS = '''
@@ -206,6 +232,1035 @@ def save_favorites(favorites):
     git_backup_user_data(f"[Favorites] {len(favorites)} papers saved")
 
 
+NAV_ITEM_CONFIG = [
+    ('inbox', '/', 'Inbox', 'tone-home'),
+    ('track', '/track', 'Track', 'tone-track'),
+    ('explore', '/search', 'Explore', 'tone-search'),
+    ('library', '/library', 'Library', 'tone-library'),
+    ('insights', '/stats', 'Insights', 'tone-stats'),
+    ('settings', '/settings', '设置', 'tone-settings'),
+]
+
+CATEGORY_NAMES = {
+    'stat.ML': 'Stat ML',
+    'stat.TH': 'Stat Theory',
+    'stat.ME': 'Methodology',
+    'stat.CO': 'Computation',
+    'cs.LG': 'ML',
+    'cs.AI': 'AI',
+    'cs.CL': 'NLP',
+    'cs.CV': 'Vision',
+    'cs.NE': 'Neural',
+    'cs.IT': 'Info Theory',
+    'math.ST': 'Math Stats',
+    'math.PR': 'Probability',
+    'math.OC': 'Optimization',
+    'econ.EM': 'Econometrics',
+}
+
+
+def _queue_counts():
+    counts = {status: 0 for status in QUEUE_STATUS_VALUES}
+    for item in STATE_STORE.list_queue_items():
+        status = item.get('status')
+        if status in counts:
+            counts[status] += 1
+    return counts
+
+
+def _split_query_terms(query_text: str):
+    query_text = str(query_text or '').strip()
+    if not query_text:
+        return []
+    if ',' in query_text or '，' in query_text:
+        return [part.strip() for part in re.split(r'[,，]+', query_text) if part.strip()]
+    return [query_text]
+
+
+def _normalize_reason_type(text: str):
+    lowered = text.lower()
+    if '核心主题' in text or 'core' in lowered:
+        return '🎯', '标题/摘要命中'
+    if '相关主题' in text or 'secondary' in lowered:
+        return '📌', ''
+    if '理论' in text or 'theorem' in lowered or 'proof' in lowered or 'bound' in lowered:
+        return '📐', ''
+    if 'zotero' in lowered or '语义' in text:
+        return '🧠', ''
+    if '作者' in text or 'institution' in lowered or 'google research' in lowered:
+        return '🏛️', ''
+    if '近' in text or '新论文' in text or 'recency' in lowered:
+        return '🆕', ''
+    return '📌', ''
+
+
+def _breakdown_from_text(text: str):
+    if not text:
+        return []
+
+    reasons = []
+    for raw in [part.strip() for part in re.split(r'[;；]\s*', text) if part.strip()]:
+        icon, location = _normalize_reason_type(raw)
+        reasons.append({
+            'type': 'derived',
+            'icon': icon,
+            'text': raw,
+            'location': location,
+            'score_impact': 0,
+        })
+    return reasons[:4]
+
+
+def _queue_map():
+    return {
+        item.get('paper_id'): _normalize_queue_status(item.get('status'))
+        for item in STATE_STORE.list_queue_items()
+    }
+
+
+def _normalize_queue_status(status):
+    value = str(status or '').strip()
+    if value.lower() in {'', 'none', 'null'}:
+        return ''
+    return value
+
+
+def _status_class(status):
+    status = _normalize_queue_status(status)
+    if not status:
+        return ''
+    return 'status-' + status.lower().replace(' ', '-')
+
+
+def _build_nav_items(active_tab: str, liked_count: int, is_today: bool = False):
+    items = []
+    for key, href, label, tone in NAV_ITEM_CONFIG:
+        item_label = f'{label} ({liked_count})' if key == 'library' else label
+        items.append({
+            'key': key,
+            'href': href,
+            'label': item_label,
+            'tone': tone,
+            'confirm': None,
+        })
+
+    if is_today:
+        items.append({
+            'key': 'refresh',
+            'href': '/api/refresh?force=1',
+            'label': '刷新今日结果',
+            'tone': 'tone-refresh',
+            'confirm': '确定刷新今日推荐？',
+        })
+    return items
+
+
+def _build_page_context(active_tab: str, *, is_today: bool = False):
+    feedback = load_feedback()
+    liked_count = len(feedback.get('liked', []))
+    queue_counts = _queue_counts()
+    latest_job = _serialize_job(STATE_STORE.get_latest_job('daily_recommendation'))
+    collections = STATE_STORE.list_collections()
+    saved_searches = STATE_STORE.list_saved_searches()
+
+    return {
+        'active_tab': active_tab,
+        'feedback': feedback,
+        'liked_count': liked_count,
+        'nav_items': _build_nav_items(active_tab, liked_count, is_today),
+        'queue_counts': queue_counts,
+        'collections': collections[:6],
+        'all_collections': collections,
+        'saved_searches': saved_searches[:6],
+        'all_saved_searches': saved_searches,
+        'latest_job': latest_job,
+        'latest_job_tone': f"job-{latest_job.get('status')}" if latest_job else 'job-idle',
+        'queue_status_values': QUEUE_STATUS_VALUES,
+    }
+
+
+def _build_date_cards(dates, current_date):
+    date_cards = []
+    for raw_date in dates[:14]:
+        try:
+            dt = datetime.strptime(raw_date, '%Y-%m-%d')
+            date_cards.append({
+                'date': raw_date,
+                'day': dt.strftime('%d'),
+                'month': dt.strftime('%b').upper(),
+                'weekday': dt.strftime('%a'),
+                'active': raw_date == current_date,
+            })
+        except ValueError:
+            date_cards.append({
+                'date': raw_date,
+                'day': raw_date[-2:],
+                'month': raw_date[5:7],
+                'weekday': '',
+                'active': raw_date == current_date,
+            })
+    return date_cards
+
+
+def _decorate_home_papers(papers, feedback):
+    queue_map = _queue_map()
+    decorated = []
+
+    for idx, paper in enumerate(papers, start=1):
+        item = dict(paper)
+        item['rank'] = idx
+        item['is_liked'] = item.get('id') in feedback.get('liked', [])
+        item['is_disliked'] = item.get('id') in feedback.get('disliked', [])
+        item['queue_status'] = queue_map.get(item.get('id'))
+        item['queue_status_class'] = _status_class(item['queue_status'])
+        item['relevance_html'] = generate_relevance_html(item)
+        item['author_text'] = _format_author_text(item.get('authors'), limit=4)
+        item['first_author'] = _extract_primary_author(item.get('authors'))
+        item['category_labels'] = [
+            CATEGORY_NAMES.get(category, category)
+            for category in item.get('categories', [])[:4]
+        ]
+        item['summary_short'] = (item.get('summary') or item.get('abstract') or '')[:220]
+        decorated.append(item)
+
+    for idx, item in enumerate(decorated):
+        details = item.get('score_details') or {}
+        score = item.get('score', 0) or 0
+        prev_score = decorated[idx - 1].get('score', 0) if idx > 0 else None
+        primary_signal = max(
+            (
+                ('主题匹配', details.get('relevance', 0)),
+                ('作者/机构信号', details.get('author', 0)),
+                ('技术深度', details.get('depth', 0)),
+                ('Zotero 语义相似度', details.get('semantic', 0)),
+            ),
+            key=lambda pair: pair[1],
+        )[0]
+        if idx == 0:
+            why_above = '它当前拥有列表中最高的综合得分，因此排在最前。'
+        else:
+            gap = max((prev_score or 0) - score, 0)
+            why_above = f'它仍然靠前，因为 {primary_signal} 较强；与上一篇的总分差约为 {gap:.1f}。'
+        why_hidden = '如果同类论文只有弱关键词命中、缺少语义相似或作者加成，就会被压到更后的位置。'
+        item['why_above'] = why_above
+        item['why_hidden'] = why_hidden
+
+    return decorated
+
+
+def _decorate_search_papers(papers):
+    queue_map = _queue_map()
+    decorated = []
+
+    for idx, paper in enumerate(papers, start=1):
+        item = dict(paper)
+        authors = item.get('authors', [])
+        if isinstance(authors, list):
+            author_text = ', '.join(authors[:3])
+            if len(authors) > 3:
+                author_text += f' et al. ({len(authors)} authors)'
+        else:
+            author_text = authors
+
+        item['rank'] = idx
+        item['author_text'] = author_text
+        item['first_author'] = _extract_primary_author(authors)
+        item['category_labels'] = [
+            CATEGORY_NAMES.get(category, category)
+            for category in item.get('categories', [])[:4]
+        ]
+        item['queue_status'] = queue_map.get(item.get('id'))
+        item['queue_status_class'] = _status_class(item['queue_status'])
+        item['relevance_reason'] = item.get('relevance_reason', '关键词匹配')
+        item['summary_short'] = (item.get('summary') or item.get('abstract') or '')[:220]
+        decorated.append(item)
+
+    return decorated
+
+
+def _render_home_research(date, papers, keywords, dates, prev_date, next_date, feedback):
+    keywords_config = load_keywords_config()
+    today_matched_keywords = extract_today_keywords(papers, keywords_config)
+    is_today = date == datetime.now().strftime('%Y-%m-%d')
+    page_context = _build_page_context('inbox', is_today=is_today)
+    decorated_papers = _decorate_home_papers(papers, feedback)
+
+    headline_metrics = [
+        {'label': '今日论文', 'value': len(decorated_papers)},
+        {'label': '已喜欢', 'value': page_context['liked_count']},
+        {'label': '队列总量', 'value': sum(page_context['queue_counts'].values())},
+        {'label': '最高分', 'value': f"{max((paper.get('score', 0) for paper in decorated_papers), default=0):.1f}"},
+    ]
+
+    return render_template(
+        'home_research.html',
+        title=f'arXiv Daily Digest - {date}',
+        date=date,
+        is_today=is_today,
+        hero_keywords=today_matched_keywords or keywords[:8],
+        daily_themes=keywords[:10],
+        matched_keyword_count=len(today_matched_keywords),
+        papers=decorated_papers,
+        date_cards=_build_date_cards(dates, date),
+        prev_date=prev_date,
+        next_date=next_date,
+        headline_metrics=headline_metrics,
+        **page_context,
+    )
+
+
+def _render_search_research(papers, keywords):
+    page_context = _build_page_context('explore')
+    decorated_papers = _decorate_search_papers(papers)
+    current_query = ', '.join(keywords)
+
+    return render_template(
+        'search_research.html',
+        title='问题搜索 - arXiv Recommender',
+        date=datetime.now().strftime('%Y-%m-%d'),
+        current_query=current_query,
+        keywords=keywords,
+        papers=decorated_papers,
+        **page_context,
+    )
+
+
+def _render_settings_research(
+    *,
+    core_keywords,
+    secondary_keywords,
+    theory_keywords,
+    dislike_text,
+    papers_per_day,
+    prefer_theory,
+    theory_enabled,
+):
+    page_context = _build_page_context('settings')
+    return render_template(
+        'settings_research.html',
+        title='设置 - arXiv Recommender',
+        core_keywords=core_keywords,
+        secondary_keywords=secondary_keywords,
+        theory_keywords=theory_keywords,
+        dislike_text=dislike_text,
+        papers_per_day=papers_per_day,
+        prefer_theory=prefer_theory,
+        theory_enabled=theory_enabled,
+        **page_context,
+    )
+
+
+def _format_author_text(authors, *, limit: int = 3):
+    if isinstance(authors, list):
+        author_text = ', '.join(authors[:limit])
+        if len(authors) > limit:
+            author_text += f' et al. ({len(authors)} authors)'
+        return author_text
+    return authors or ''
+
+
+def _extract_primary_author(authors):
+    if isinstance(authors, list) and authors:
+        return authors[0]
+    if isinstance(authors, str) and authors.strip():
+        return authors.split(',')[0].strip()
+    return ''
+
+
+def _load_history_paper_index():
+    all_papers = {}
+    for date in get_available_dates():
+        filepath = os.path.join(HISTORY_DIR, f'digest_{date}.md')
+        if not os.path.exists(filepath):
+            continue
+
+        papers, _ = parse_markdown_digest_cached(filepath)
+        for paper in papers:
+            paper_id = paper.get('id')
+            if not paper_id or paper_id in all_papers:
+                continue
+            item = dict(paper)
+            item['date'] = date
+            all_papers[paper_id] = item
+
+    return all_papers
+
+
+def _resolve_paper_record(paper_id, *, history_index=None, favorites=None, paper_cache=None):
+    favorites = favorites if favorites is not None else load_favorites()
+    paper_cache = paper_cache if paper_cache is not None else safe_load_json(CACHE_FILE, {})
+    history_index = history_index if history_index is not None else _load_history_paper_index()
+
+    if paper_id in favorites:
+        favorite = favorites[paper_id]
+        return {
+            'id': paper_id,
+            'title': favorite.get('title', f'论文 {paper_id}'),
+            'link': favorite.get('link', f'https://arxiv.org/abs/{paper_id}'),
+            'authors': favorite.get('authors', ''),
+            'summary': favorite.get('summary', favorite.get('abstract', '')[:300] if favorite.get('abstract') else ''),
+            'abstract': favorite.get('abstract', favorite.get('summary', '')),
+            'relevance': favorite.get('relevance', '来自你的长期收藏'),
+            'score': favorite.get('score', 0),
+            'date': (favorite.get('date_published') or favorite.get('date_added') or '')[:10],
+            'categories': favorite.get('categories', []),
+            'source': 'favorites',
+        }
+
+    if paper_id in history_index:
+        item = dict(history_index[paper_id])
+        item.setdefault('source', 'history')
+        item.setdefault('summary', item.get('abstract', ''))
+        item.setdefault('abstract', item.get('summary', ''))
+        item.setdefault('relevance', item.get('relevance_reason', item.get('relevance', '')))
+        return item
+
+    if paper_id in paper_cache:
+        cached = paper_cache[paper_id]
+        return {
+            'id': paper_id,
+            'title': cached.get('title', f'论文 {paper_id}'),
+            'link': f'https://arxiv.org/abs/{paper_id}',
+            'authors': cached.get('authors', '作者信息不可用'),
+            'summary': cached.get('abstract', '摘要不可用'),
+            'abstract': cached.get('abstract', ''),
+            'relevance': cached.get('relevance', '来自缓存'),
+            'score': cached.get('score', 0),
+            'date': cached.get('date', ''),
+            'categories': cached.get('categories', []),
+            'source': 'paper_cache',
+        }
+
+    return {
+        'id': paper_id,
+        'title': f'论文 {paper_id}',
+        'link': f'https://arxiv.org/abs/{paper_id}',
+        'authors': '详情不可用',
+        'summary': '此论文信息暂时不在历史记录或缓存中，可按需补全。',
+        'abstract': '',
+        'relevance': '点击查看 arXiv 页面',
+        'score': 0,
+        'date': '',
+        'categories': [],
+        'source': 'placeholder',
+    }
+
+
+def _decorate_library_papers(papers, feedback, *, queue_overrides=None):
+    queue_map = _queue_map()
+    if queue_overrides:
+        queue_map.update(queue_overrides)
+
+    decorated = []
+    for idx, paper in enumerate(papers, start=1):
+        item = dict(paper)
+        item['rank'] = idx
+        item['author_text'] = _format_author_text(item.get('authors'))
+        item['first_author'] = _extract_primary_author(item.get('authors'))
+        item['queue_status'] = queue_map.get(item.get('id'))
+        item['queue_status_class'] = _status_class(item['queue_status'])
+        item['relevance_html'] = generate_relevance_html(item)
+        item['is_incomplete'] = not item.get('score')
+        item['is_liked'] = item.get('id') in feedback.get('liked', [])
+        item['is_disliked'] = item.get('id') in feedback.get('disliked', [])
+        item['category_labels'] = [
+            CATEGORY_NAMES.get(category, category)
+            for category in item.get('categories', [])[:4]
+        ]
+        item['summary_short'] = (item.get('summary') or item.get('abstract') or '')[:220]
+        decorated.append(item)
+    return decorated
+
+
+def _resolve_queue_papers(status=None):
+    feedback = load_feedback()
+    history_index = _load_history_paper_index()
+    favorites = load_favorites()
+    paper_cache = safe_load_json(CACHE_FILE, {})
+
+    resolved = []
+    for item in STATE_STORE.list_queue_items(status=status):
+        queue_status = _normalize_queue_status(item.get('status'))
+        paper = _resolve_paper_record(
+            item.get('paper_id'),
+            history_index=history_index,
+            favorites=favorites,
+            paper_cache=paper_cache,
+        )
+        paper['queue_status'] = queue_status
+        paper['queue_status_class'] = _status_class(queue_status)
+        paper['queue_note'] = item.get('note', '')
+        paper['queue_tags'] = item.get('tags_json', [])
+        paper['queue_source'] = item.get('source', '')
+        paper['updated_at'] = item.get('updated_at', '')
+        resolved.append(paper)
+
+    return _decorate_library_papers(
+        resolved,
+        feedback,
+        queue_overrides={paper['id']: paper['queue_status'] for paper in resolved},
+    )
+
+
+def _render_track_research():
+    from journal_tracker import (
+        JournalTracker,
+        LEGACY_USER_CONFIG_PATH,
+        USER_PROFILE_PATH,
+        load_update_log,
+        should_check_for_updates,
+    )
+
+    page_context = _build_page_context('track')
+    my_scholars_data = load_my_scholars()
+    my_scholars = [_serialize_scholar(scholar) for scholar in my_scholars_data.get('scholars', [])]
+
+    preferred_config = USER_PROFILE_PATH if USER_PROFILE_PATH.exists() else LEGACY_USER_CONFIG_PATH
+    tracker = JournalTracker(str(preferred_config) if preferred_config.exists() else None)
+    update_log = load_update_log()
+    journal_cards = []
+    for journal in tracker.get_all_journals():
+        should_check, update_reason = should_check_for_updates(journal['key'])
+        journal_cards.append({
+            **journal,
+            'should_check': should_check,
+            'update_reason': update_reason,
+            'last_update': update_log.get(journal['key'], {}).get('last_check', '从未'),
+        })
+
+    headline_metrics = [
+        {'label': 'Followed Scholars', 'value': len(my_scholars)},
+        {'label': 'Tracked Journals', 'value': len(journal_cards)},
+        {'label': 'Collections', 'value': len(page_context['all_collections'])},
+        {'label': 'Saved Searches', 'value': len(page_context['all_saved_searches'])},
+    ]
+
+    return render_template(
+        'track_research.html',
+        title='Track - arXiv Recommender',
+        headline_metrics=headline_metrics,
+        my_scholars=my_scholars,
+        journal_cards=journal_cards,
+        **page_context,
+    )
+
+
+def _render_library_research(tab='queue', queue_status=None, collection_id=None, search_id=None):
+    page_context = _build_page_context('library')
+    feedback = load_feedback()
+    queue_items = _resolve_queue_papers(queue_status if queue_status in QUEUE_STATUS_VALUES else None)
+
+    liked_papers, liked_found, liked_total, _ = _resolve_feedback_papers('liked')
+    disliked_papers, disliked_found, disliked_total, _ = _resolve_feedback_papers('disliked')
+    liked_decorated = _decorate_library_papers(liked_papers, feedback)
+    disliked_decorated = _decorate_library_papers(disliked_papers, feedback)
+
+    collections_all = page_context['all_collections']
+    saved_searches_all = page_context['all_saved_searches']
+
+    selected_collection = None
+    if collection_id:
+        selected_collection = STATE_STORE.get_collection(collection_id)
+    elif tab == 'collections' and collections_all:
+        selected_collection = collections_all[0]
+
+    selected_collection_papers = []
+    if selected_collection:
+        history_index = _load_history_paper_index()
+        favorites = load_favorites()
+        paper_cache = safe_load_json(CACHE_FILE, {})
+        resolved = []
+        for item in STATE_STORE.list_collection_papers(selected_collection['id']):
+            paper = _resolve_paper_record(
+                item.get('paper_id'),
+                history_index=history_index,
+                favorites=favorites,
+                paper_cache=paper_cache,
+            )
+            paper['collection_note'] = item.get('note', '')
+            paper['added_at'] = item.get('added_at', '')
+            resolved.append(paper)
+        selected_collection_papers = _decorate_library_papers(resolved, feedback)
+
+    selected_search = None
+    if search_id:
+        selected_search = STATE_STORE.get_saved_search(search_id)
+    elif tab == 'saved-searches' and saved_searches_all:
+        selected_search = saved_searches_all[0]
+
+    search_preview = []
+    if selected_search:
+        try:
+            from arxiv_recommender_v5 import search_by_keywords
+            search_preview = _decorate_search_papers(
+                search_by_keywords(_split_query_terms(selected_search['query_text']), max_results=8, days_back=90)
+            )
+        except Exception as exc:
+            logger.warning(f"Saved search preview failed for {selected_search.get('id')}: {exc}")
+
+    headline_metrics = [
+        {'label': 'Queue Total', 'value': sum(page_context['queue_counts'].values())},
+        {'label': 'Liked', 'value': liked_total},
+        {'label': 'Ignored', 'value': disliked_total},
+        {'label': 'Collections', 'value': len(collections_all)},
+    ]
+
+    return render_template(
+        'library_research.html',
+        title='Library - arXiv Recommender',
+        tab=tab,
+        queue_status=queue_status if queue_status in QUEUE_STATUS_VALUES else '',
+        headline_metrics=headline_metrics,
+        queue_items=queue_items,
+        liked_papers=liked_decorated,
+        disliked_papers=disliked_decorated,
+        liked_found=liked_found,
+        liked_total=liked_total,
+        disliked_found=disliked_found,
+        disliked_total=disliked_total,
+        collections_all=collections_all,
+        saved_searches_all=saved_searches_all,
+        selected_collection=selected_collection,
+        selected_collection_papers=selected_collection_papers,
+        selected_search=selected_search,
+        search_preview=search_preview,
+        **page_context,
+    )
+
+
+def _resolve_feedback_papers(feedback_type):
+    feedback = load_feedback()
+    paper_ids = feedback.get(feedback_type, [])
+    favorites = load_favorites()
+    paper_cache = safe_load_json(CACHE_FILE, {})
+    all_papers = _load_history_paper_index()
+
+    filtered_papers = []
+    found_count = 0
+
+    for paper_id in paper_ids:
+        if feedback_type == 'liked' and paper_id in favorites:
+            favorite = favorites[paper_id]
+            filtered_papers.append({
+                'id': paper_id,
+                'title': favorite.get('title', f'论文 {paper_id}'),
+                'link': favorite.get('link', f'https://arxiv.org/abs/{paper_id}'),
+                'authors': favorite.get('authors', ''),
+                'summary': favorite.get('summary', favorite.get('abstract', '')[:300] if favorite.get('abstract') else ''),
+                'relevance': favorite.get('relevance', '来自你的长期收藏'),
+                'score': favorite.get('score', 0),
+                'date': (favorite.get('date_published') or favorite.get('date_added') or '')[:10],
+            })
+            found_count += 1
+        elif paper_id in all_papers:
+            filtered_papers.append(all_papers[paper_id])
+            found_count += 1
+        elif paper_id in paper_cache:
+            cached = paper_cache[paper_id]
+            filtered_papers.append({
+                'id': paper_id,
+                'title': cached.get('title', f'论文 {paper_id}'),
+                'link': f'https://arxiv.org/abs/{paper_id}',
+                'authors': cached.get('authors', '作者信息不可用'),
+                'summary': cached.get('abstract', '摘要不可用'),
+                'relevance': cached.get('relevance', '来自缓存'),
+                'score': cached.get('score', 0),
+                'date': cached.get('date', ''),
+            })
+            found_count += 1
+        else:
+            filtered_papers.append({
+                'id': paper_id,
+                'title': f'论文 {paper_id}',
+                'link': f'https://arxiv.org/abs/{paper_id}',
+                'authors': '详情不可用',
+                'summary': '此论文信息暂时不在历史记录或缓存中，可按需补全。',
+                'relevance': '点击查看 arXiv 页面',
+                'score': 0,
+                'date': '',
+            })
+
+    if feedback_type == 'liked':
+        def get_sort_date(paper):
+            paper_id = paper.get('id', '')
+            favorite = favorites.get(paper_id, {})
+            date_str = favorite.get('date_added', '')
+            if not date_str:
+                return datetime.min
+            try:
+                return datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
+            except Exception:
+                return datetime.min
+
+        filtered_papers.sort(key=get_sort_date, reverse=True)
+
+    return filtered_papers, found_count, len(paper_ids), feedback
+
+
+def _decorate_feedback_papers(papers, feedback):
+    queue_map = _queue_map()
+    decorated = []
+
+    for idx, paper in enumerate(papers, start=1):
+        item = dict(paper)
+        item['rank'] = idx
+        item['author_text'] = _format_author_text(item.get('authors'))
+        item['queue_status'] = queue_map.get(item.get('id'))
+        item['queue_status_class'] = _status_class(item['queue_status'])
+        item['relevance_html'] = generate_relevance_html(item)
+        item['is_incomplete'] = not item.get('score')
+        item['is_liked'] = item.get('id') in feedback.get('liked', [])
+        item['is_disliked'] = item.get('id') in feedback.get('disliked', [])
+        decorated.append(item)
+
+    return decorated
+
+
+def _render_favorites_research(feedback_type):
+    papers, found_count, total_count, feedback = _resolve_feedback_papers(feedback_type)
+    decorated_papers = _decorate_feedback_papers(papers, feedback)
+    page_context = _build_page_context('library')
+
+    queued_count = sum(1 for paper in decorated_papers if paper.get('queue_status'))
+    incomplete_count = sum(1 for paper in decorated_papers if paper.get('is_incomplete'))
+    missing_count = max(total_count - found_count, 0)
+
+    hero_title = '喜欢的论文' if feedback_type == 'liked' else '已忽略论文'
+    hero_subtitle = (
+        '这不是一个静态收藏夹，而是你长期研究资产的一部分。把真正值得回看的论文送进队列，再逐步沉淀成 collection。'
+        if feedback_type == 'liked'
+        else '忽略列表用来收紧推荐边界，避免首页反复被同类噪音占据。它更像一组持久的负反馈，而不是临时的“看过了”。'
+    )
+    asset_note = (
+        '喜欢页优先展示你未来还会反复回看的论文；缺失元数据的条目可以按需补全。'
+        if feedback_type == 'liked'
+        else '忽略页用于观察系统正在学会规避哪些主题，必要时也可以重新标记为相关。'
+    )
+
+    headline_metrics = [
+        {'label': '条目总数', 'value': total_count},
+        {'label': '已补全', 'value': found_count},
+        {'label': '已在队列', 'value': queued_count},
+        {'label': '待补全', 'value': incomplete_count},
+    ]
+
+    return render_template(
+        'favorites_research.html',
+        title=f'{hero_title} - arXiv Recommender',
+        hero_kicker='Research Assets' if feedback_type == 'liked' else 'Feedback Memory',
+        hero_title=hero_title,
+        hero_subtitle=hero_subtitle,
+        headline_metrics=headline_metrics,
+        papers=decorated_papers,
+        feedback_type=feedback_type,
+        found_count=found_count,
+        total_count=total_count,
+        missing_count=missing_count,
+        incomplete_count=incomplete_count,
+        queued_count=queued_count,
+        asset_note=asset_note,
+        section_title='长期保留的论文资产' if feedback_type == 'liked' else '负反馈边界样本',
+        section_subtitle='保留你未来还会回看的论文，并用显式反馈持续修正推荐器。'
+            if feedback_type == 'liked'
+            else '这里的条目会帮助系统更快识别什么不该反复出现。',
+        empty_title='还没有喜欢任何论文' if feedback_type == 'liked' else '还没有忽略任何论文',
+        empty_copy='先从今日收件箱里选出值得留下的论文。'
+            if feedback_type == 'liked'
+            else '当你开始明确忽略某类工作后，这里会逐步形成稳定边界。',
+        **page_context,
+    )
+
+
+def _build_stats_payload():
+    feedback = load_feedback()
+    favorites = load_favorites()
+    liked_ids = feedback.get('liked', [])
+    disliked_ids = feedback.get('disliked', [])
+    favorite_ids = list(favorites.keys())
+    dates = get_available_dates()
+
+    def parse_paper_date(paper_id):
+        try:
+            year_month = paper_id.split('v')[0][:4]
+            year = 2000 + int(year_month[:2])
+            month = int(year_month[2:4])
+            return datetime(year, month, 1)
+        except Exception:
+            return None
+
+    today = datetime.now()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+    weekly_liked = sum(1 for paper_id in liked_ids if parse_paper_date(paper_id) and parse_paper_date(paper_id) >= week_ago)
+    monthly_liked = sum(1 for paper_id in liked_ids if parse_paper_date(paper_id) and parse_paper_date(paper_id) >= month_ago)
+
+    keyword_counts = {}
+    for paper_id in liked_ids:
+        if paper_id in favorites:
+            text = (favorites[paper_id].get('title', '') + ' ' + favorites[paper_id].get('abstract', '')).lower()
+        else:
+            text = ''
+            for date in dates[:7]:
+                filepath = os.path.join(HISTORY_DIR, f'digest_{date}.md')
+                if not os.path.exists(filepath):
+                    continue
+                papers, _ = parse_markdown_digest(filepath)
+                for paper in papers:
+                    if paper.get('id') == paper_id:
+                        text = (paper.get('title', '') + ' ' + paper.get('summary', '')).lower()
+                        break
+                if text:
+                    break
+
+        keywords = re.findall(r'\b[a-z]+(?:\s+[a-z]+)?\b', text)
+        for keyword in keywords:
+            if len(keyword) > 4:
+                keyword_counts[keyword] = keyword_counts.get(keyword, 0) + 1
+
+    top_keywords = [
+        {'keyword': keyword, 'count': count}
+        for keyword, count in sorted(keyword_counts.items(), key=lambda item: -item[1])[:15]
+    ]
+
+    total_seen = 0
+    if os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, 'r', encoding='utf-8') as file_obj:
+                total_seen = len(json.load(file_obj))
+        except Exception:
+            total_seen = 0
+
+    avg_daily_likes = len(liked_ids) / max(len(dates), 1)
+    total_feedback = len(liked_ids) + len(disliked_ids)
+    like_rate = len(liked_ids) * 100 // max(total_feedback, 1)
+
+    return {
+        'liked_count': len(liked_ids),
+        'disliked_count': len(disliked_ids),
+        'favorite_count': len(favorite_ids),
+        'weekly_liked': weekly_liked,
+        'monthly_liked': monthly_liked,
+        'active_days': len(dates),
+        'avg_daily_likes': avg_daily_likes,
+        'total_seen': total_seen,
+        'total_feedback': total_feedback,
+        'like_rate': like_rate,
+        'top_keywords': top_keywords,
+    }
+
+
+def _render_stats_research():
+    page_context = _build_page_context('insights')
+    page_context = {key: value for key, value in page_context.items() if key != 'liked_count'}
+    stats_payload = _build_stats_payload()
+
+    headline_metrics = [
+        {'label': '总浏览量', 'value': stats_payload['total_seen']},
+        {'label': '喜欢', 'value': stats_payload['liked_count']},
+        {'label': '忽略', 'value': stats_payload['disliked_count']},
+        {'label': '喜欢率', 'value': f"{stats_payload['like_rate']}%"},
+    ]
+    rhythm_cards = [
+        {
+            'label': '本周喜欢',
+            'value': stats_payload['weekly_liked'],
+            'copy': '最近一周真正进入正反馈的论文数量。',
+        },
+        {
+            'label': '本月喜欢',
+            'value': stats_payload['monthly_liked'],
+            'copy': '用来判断当前方向是不是持续在产出你会留下的工作。',
+        },
+        {
+            'label': '活跃天数',
+            'value': stats_payload['active_days'],
+            'copy': '系统已经连续记录的推荐历史天数。',
+        },
+        {
+            'label': '日均喜欢',
+            'value': f"{stats_payload['avg_daily_likes']:.1f}",
+            'copy': '粗略反映你每天能从收件箱里筛出多少真正值得保留的论文。',
+        },
+    ]
+
+    return render_template(
+        'stats_research.html',
+        title='阅读统计 - arXiv Recommender',
+        headline_metrics=headline_metrics,
+        rhythm_cards=rhythm_cards,
+        **stats_payload,
+        **page_context,
+    )
+
+
+def _scholar_links(scholar):
+    links = []
+    if scholar.get('google_scholar'):
+        links.append({'label': 'Google Scholar', 'href': scholar['google_scholar'], 'tone': 'btn-brand'})
+    if scholar.get('website'):
+        links.append({'label': '个人主页', 'href': scholar['website'], 'tone': 'btn-subtle'})
+    if scholar.get('arxiv'):
+        links.append({'label': 'arXiv', 'href': scholar['arxiv'], 'tone': 'btn-ghost'})
+    return links
+
+
+def _serialize_scholar(scholar):
+    item = dict(scholar)
+    item['links'] = _scholar_links(scholar)
+    return item
+
+
+def _render_scholars_research(selected_category=None):
+    page_context = _build_page_context('track')
+    my_scholars_data = load_my_scholars()
+    my_scholars = [_serialize_scholar(scholar) for scholar in my_scholars_data.get('scholars', [])]
+
+    category_tabs = []
+    scholar_sections = []
+    total_curated = 0
+
+    for key, data in SCHOLARS.items():
+        category_tabs.append({
+            'key': key,
+            'name': data['name'],
+            'icon': data['icon'],
+            'color': data['color'],
+            'count': len(data['scholars']),
+            'description': data['description'],
+            'active': key == selected_category,
+        })
+        total_curated += len(data['scholars'])
+
+    categories_to_show = [selected_category] if selected_category and selected_category in SCHOLARS else list(SCHOLARS.keys())
+    for key in categories_to_show:
+        data = SCHOLARS.get(key)
+        if not data:
+            continue
+        scholar_sections.append({
+            'key': key,
+            'name': data['name'],
+            'icon': data['icon'],
+            'description': data['description'],
+            'scholars': [_serialize_scholar(scholar) for scholar in data['scholars']],
+        })
+
+    current_focus_title = SCHOLARS[selected_category]['name'] if selected_category in SCHOLARS else '全部分类'
+    current_focus_copy = (
+        SCHOLARS[selected_category]['description']
+        if selected_category in SCHOLARS
+        else '当前展示所有预设分类，适合先找方向，再决定谁要进入你的长期 Follow 列表。'
+    )
+
+    headline_metrics = [
+        {'label': '已关注', 'value': len(my_scholars)},
+        {'label': '预设学者', 'value': total_curated},
+        {'label': '研究分类', 'value': len(SCHOLARS)},
+        {'label': '当前展示', 'value': sum(len(section['scholars']) for section in scholar_sections)},
+    ]
+
+    return render_template(
+        'scholars_research.html',
+        title='学者追踪 - arXiv Recommender',
+        headline_metrics=headline_metrics,
+        my_scholars=my_scholars,
+        category_tabs=category_tabs,
+        category_count=len(SCHOLARS),
+        scholar_sections=scholar_sections,
+        selected_category=selected_category,
+        current_focus_title=current_focus_title,
+        current_focus_copy=current_focus_copy,
+        **page_context,
+    )
+
+
+def _render_journal_research(selected_journal='AoS', volume=None, issue=None):
+    from journal_tracker import (
+        DETECTION_CONFIG,
+        LEGACY_USER_CONFIG_PATH,
+        USER_PROFILE_PATH,
+        JournalTracker,
+        load_update_log,
+        should_check_for_updates,
+    )
+
+    preferred_config = USER_PROFILE_PATH if USER_PROFILE_PATH.exists() else LEGACY_USER_CONFIG_PATH
+    tracker = JournalTracker(str(preferred_config) if preferred_config.exists() else None)
+    papers, issues_info, journal_info = tracker.get_papers(selected_journal, volume, issue)
+    journals = tracker.get_all_journals()
+
+    decorated_papers = []
+    for idx, paper in enumerate(papers, start=1):
+        pub_bits = []
+        if paper.get('pages'):
+            pub_bits.append(f"pp. {paper['pages']}")
+        if paper.get('year'):
+            pub_bits.append(str(paper['year']))
+
+        paper_url = paper.get('url', '') or (f"https://doi.org/{paper.get('doi')}" if paper.get('doi') else '#')
+        abstract = paper.get('abstract', '')
+
+        decorated_papers.append({
+            'rank': idx,
+            'title': paper.get('title', 'No Title'),
+            'author_text': _format_author_text(paper.get('authors', [])),
+            'pub_info': ' · '.join(pub_bits) if pub_bits else 'Metadata unavailable',
+            'paper_url': paper_url,
+            'abstract_preview': abstract[:300] + '...' if len(abstract) > 300 else abstract,
+            'relevance_stars': '★' * min(int(paper.get('relevance', 0)), 5) if paper.get('relevance', 0) > 0 else '',
+            'citations': paper.get('citations', 0),
+            'citation_trend': paper.get('citation_trend', 0),
+            'doi': paper.get('doi', ''),
+            'scholar_url': f"https://scholar.google.com/scholar?q={urllib.parse.quote(paper.get('title', ''))}",
+        })
+
+    should_check, update_reason = should_check_for_updates(selected_journal)
+    update_log = load_update_log()
+    last_update = update_log.get(selected_journal, {}).get('last_check', '从未')
+    detection_description = DETECTION_CONFIG.get(selected_journal, {'description': ''}).get('description', '')
+
+    journal_name = journal_info.get('name', selected_journal) if journal_info else selected_journal
+    current_volume = issues_info.get('current_volume', '')
+    current_issue = issues_info.get('current_issue', '')
+    current_volume_label = f"Volume {current_volume}" if current_volume else ''
+    current_issue_label = f"Issue {current_issue}" if current_issue and current_issue != 'all' else ''
+    relevant_count = sum(1 for paper in papers if paper.get('relevance', 0) > 0)
+    total_citations = sum(paper.get('citations', 0) for paper in papers)
+    trending_papers = sum(1 for paper in papers if paper.get('citation_trend', 0) > 0)
+
+    page_context = _build_page_context('track')
+    headline_metrics = [
+        {'label': '当前论文', 'value': len(papers)},
+        {'label': '相关论文', 'value': relevant_count},
+        {'label': '总引用', 'value': total_citations},
+        {'label': '增长中', 'value': trending_papers},
+    ]
+
+    return render_template(
+        'journal_research.html',
+        title=f'{journal_name} - 顶刊动态',
+        journals=journals,
+        selected_journal=selected_journal,
+        journal_name=journal_name,
+        headline_metrics=headline_metrics,
+        papers=decorated_papers,
+        volumes=issues_info.get('volumes', [])[:10],
+        issues=issues_info.get('issues', [])[:50],
+        current_volume=current_volume,
+        current_issue=current_issue,
+        current_volume_label=current_volume_label,
+        current_issue_label=current_issue_label,
+        is_continuous=journal_info.get('type') == 'continuous' if journal_info else False,
+        relevant_count=relevant_count,
+        total_citations=total_citations,
+        trending_papers=trending_papers,
+        detection_description=detection_description,
+        should_check=should_check,
+        update_reason=update_reason,
+        last_update=last_update,
+        **page_context,
+    )
+
+
 # ============ 我的学者管理 ============
 MY_SCHOLARS_FILE = os.path.join(BASE_DIR, 'my_scholars.json')
 
@@ -220,7 +1275,7 @@ def save_my_scholars(scholars_data):
     # 自动备份到Git
     git_backup_user_data(f"[Scholars] {len(scholars_data.get('scholars', []))} scholars tracked")
 
-def add_my_scholar(name, affiliation='', focus='', arxiv_query='', google_scholar='', website=''):
+def add_my_scholar(name, affiliation='', focus='', arxiv_query='', google_scholar='', website='', email=''):
     """Add a scholar to user's list."""
     data = load_my_scholars()
     # 检查是否已存在
@@ -232,6 +1287,7 @@ def add_my_scholar(name, affiliation='', focus='', arxiv_query='', google_schola
         'name': name,
         'affiliation': affiliation,
         'focus': focus,
+        'email': email,
         'google_scholar': google_scholar,
         'website': website,
         'arxiv': arxiv_query or f'https://arxiv.org/search/?searchtype=author&query={urllib.parse.quote(name)}',
@@ -574,8 +1630,6 @@ def parse_markdown_digest(filepath):
     papers = []
     keywords = []
 
-    print(f"[DEBUG] parse_markdown_digest called with: {filepath}")
-
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
 
@@ -587,7 +1641,6 @@ def parse_markdown_digest(filepath):
     # Try to load daily metadata for better keywords
     date_match = re.search(r'digest_(\d{4}-\d{2}-\d{2})', filepath)
     date_str = date_match.group(1) if date_match else None
-    print(f"[DEBUG] date_str extracted: {date_str}")
 
     if date_str:
         metadata_path = os.path.join(BASE_DIR, 'cache', 'daily_metadata.json')
@@ -603,23 +1656,29 @@ def parse_markdown_digest(filepath):
     # Try to load structured breakdown from daily_recommendation.json
     breakdown_map = {}
     if date_str:
-        rec_path = os.path.join(BASE_DIR, 'cache', 'daily_recommendation.json')
-        logger.info(f"Looking for breakdown at: {rec_path}")
-        logger.info(f"File exists: {os.path.exists(rec_path)}")
-        if os.path.exists(rec_path):
+        run_paths = [
+            os.path.join(BASE_DIR, 'cache', 'recommendation_runs', f'{date_str}.json'),
+            os.path.join(BASE_DIR, 'cache', 'daily_recommendation.json'),
+        ]
+        for rec_path in run_paths:
+            if not os.path.exists(rec_path):
+                continue
             try:
                 with open(rec_path, 'r', encoding='utf-8') as f:
                     rec_data = json.load(f)
-                    logger.info(f"JSON date: {rec_data.get('date')}, looking for: {date_str}")
-                    if rec_data.get('date') == date_str:
-                        for p in rec_data.get('papers', []):
-                            pid = p.get('id')
-                            if pid:
-                                breakdown_map[pid] = {
-                                    'breakdown': p.get('score_details', {}).get('breakdown', []),
-                                    'relevance_reason': p.get('relevance_reason', '')
-                                }
-                        logger.info(f"Loaded breakdown_map with {len(breakdown_map)} entries")
+                    if rec_data.get('date') != date_str:
+                        continue
+                    for p in rec_data.get('papers', []):
+                        pid = p.get('id')
+                        if pid:
+                            breakdown = p.get('score_details', {}).get('breakdown', []) or p.get('relevance_breakdown', [])
+                            reason_text = p.get('relevance_reason') or p.get('relevance', '')
+                            breakdown_map[pid] = {
+                                'breakdown': breakdown or _breakdown_from_text(reason_text),
+                                'relevance_reason': reason_text,
+                            }
+                    if breakdown_map:
+                        break
             except Exception as e:
                 logger.error(f"Error loading breakdown: {e}")
 
@@ -664,9 +1723,8 @@ def parse_markdown_digest(filepath):
                 paper['relevance_breakdown'] = breakdown_map[pid]['breakdown']
                 if breakdown_map[pid]['relevance_reason']:
                     paper['relevance'] = breakdown_map[pid]['relevance_reason']
-                logger.info(f"Merged breakdown for {pid}: {paper['relevance_breakdown']}")
             else:
-                logger.info(f"No breakdown found for {pid}, breakdown_map has {len(breakdown_map)} entries")
+                paper['relevance_breakdown'] = _breakdown_from_text(paper.get('relevance', ''))
             papers.append(paper)
 
     return papers, keywords
@@ -675,10 +1733,8 @@ def parse_markdown_digest(filepath):
 def generate_relevance_html(paper):
     """Generate HTML for structured relevance reasons with icons."""
     breakdown = paper.get('relevance_breakdown', [])
-    logger.info(f"[HTML GEN] Paper {paper.get('id')} has relevance_breakdown: {breakdown}")
     if not breakdown:
         text = paper.get('relevance', '匹配您的研究兴趣')
-        logger.info(f"[HTML GEN] No breakdown, using fallback text: {text}")
         return f'<div class="paper-relevance-text">{text}</div>'
 
     html_items = []
@@ -722,22 +1778,38 @@ def generate_relevance_html(paper):
 _generation_status = {
     'running': False,
     'started_at': None,
-    'error': None
+    'error': None,
+    'run_id': None,
 }
 
-def _run_pipeline_background():
+def _run_pipeline_background(run_id=None, force_refresh=False):
     """在后台线程中运行 pipeline"""
     global _generation_status
     try:
         import sys
         sys.path.insert(0, BASE_DIR)
         from arxiv_recommender_v5 import run_pipeline
-        run_pipeline(force_refresh=False)
+        if run_id:
+            STATE_STORE.update_job(run_id, 'running')
+        papers = run_pipeline(force_refresh=force_refresh)
         _generation_status['running'] = False
+        if run_id:
+            STATE_STORE.update_job(
+                run_id,
+                'succeeded',
+                result={
+                    'paper_count': len(papers) if papers else 0,
+                    'mode': 'background_generation',
+                    'force_refresh': force_refresh,
+                },
+            )
+        _generation_status['error'] = None
         logger.info("Background pipeline completed successfully")
     except Exception as e:
         _generation_status['running'] = False
         _generation_status['error'] = str(e)
+        if run_id:
+            STATE_STORE.update_job(run_id, 'failed', error_text=str(e))
         logger.error(f"Background pipeline error: {e}")
 
 
@@ -746,17 +1818,30 @@ def _start_background_generation():
     global _generation_status
 
     if _generation_status['running']:
-        return  # 已经在运行
+        return _generation_status.get('run_id')  # 已经在运行
+
+    job = STATE_STORE.create_job(
+        'daily_recommendation',
+        trigger_source='auto_homepage',
+        payload={'force_refresh': False, 'mode': 'background_generation'},
+        status='queued',
+    )
 
     _generation_status = {
         'running': True,
         'started_at': datetime.now().isoformat(),
-        'error': None
+        'error': None,
+        'run_id': job['run_id'],
     }
 
-    thread = threading.Thread(target=_run_pipeline_background, daemon=True)
+    thread = threading.Thread(
+        target=_run_pipeline_background,
+        args=(job['run_id'], False),
+        daemon=True,
+    )
     thread.start()
     logger.info("Started background pipeline generation")
+    return job['run_id']
 
 
 def _render_generating_page():
@@ -831,6 +1916,10 @@ def _render_generating_page():
                 .then(data => {
                     if (data.has_recommendation && data.date === new Date().toISOString().slice(0, 10)) {
                         window.location.reload();
+                        return;
+                    }
+                    if (data.job && data.job.status === 'failed') {
+                        document.querySelector('.status').textContent = '生成失败: ' + (data.job.error_text || '未知错误');
                     }
                 })
                 .catch(() => {});
@@ -898,7 +1987,7 @@ def generate_page(date=None, auto_generate=True):
         if idx > 0:
             next_date = dates[idx - 1]
 
-    return render_html(date, papers, keywords, dates, prev_date, next_date, feedback)
+    return _render_home_research(date, papers, keywords, dates, prev_date, next_date, feedback)
 
 
 def render_html(date, papers, keywords, dates, prev_date, next_date, feedback):
@@ -1550,6 +2639,11 @@ def index():
     return generate_page()
 
 
+@app.route('/track')
+def track_page():
+    return _render_track_research()
+
+
 # Scholar Database - Important researchers in ML Theory & Statistics
 SCHOLARS = {
     'icl_transformer': {
@@ -2048,13 +3142,13 @@ SCHOLARS = {
 @app.route('/scholars')
 def scholars_page():
     """Show scholars tracking page."""
-    return generate_scholars_page()
+    return _render_scholars_research()
 
 
 @app.route('/scholars/<category>')
 def scholars_category(category):
     """Show specific scholar category."""
-    return generate_scholars_page(category)
+    return _render_scholars_research(category)
 
 
 @app.route('/api/scholars/add', methods=['POST'])
@@ -2071,7 +3165,8 @@ def api_add_scholar():
         focus=data.get('focus', ''),
         arxiv_query=data.get('arxiv_query', ''),
         google_scholar=data.get('google_scholar', ''),
-        website=data.get('website', '')
+        website=data.get('website', ''),
+        email=data.get('email', ''),
     )
     return jsonify({'success': success, 'result': result if success else str(result)})
 
@@ -2679,9 +3774,8 @@ def generate_scholars_page(selected_category=None):
 @app.route('/journal/<journal_key>/v/<volume>/i/<issue>')
 def journal_page(journal_key='AoS', volume=None, issue=None):
     """Show journal tracker page with volume/issue navigation."""
-    from journal_tracker import generate_journal_page
     logger.debug(f"journal_page called: journal_key={journal_key}, volume={volume}, issue={issue}")
-    return generate_journal_page(journal_key, volume, issue)
+    return _render_journal_research(journal_key, volume, issue)
 
 
 @app.route('/debug')
@@ -2704,13 +3798,22 @@ def debug_info():
 @app.route('/liked')
 def view_liked():
     """Show all liked papers."""
-    return generate_favorites_page('liked')
+    return _render_favorites_research('liked')
 
 
 @app.route('/disliked')
 def view_disliked():
     """Show all disliked papers."""
-    return generate_favorites_page('disliked')
+    return _render_favorites_research('disliked')
+
+
+@app.route('/library')
+def library_page():
+    tab = request.args.get('tab', 'queue')
+    queue_status = request.args.get('status')
+    collection_id = request.args.get('collection_id', type=int)
+    search_id = request.args.get('search_id', type=int)
+    return _render_library_research(tab, queue_status, collection_id, search_id)
 
 
 def generate_favorites_page(feedback_type):
@@ -3160,16 +4263,32 @@ def view_date(date):
 
 @app.route('/api/feedback', methods=['POST'])
 def handle_feedback():
-    data = request.json
-    paper_id = data.get('paper_id')
+    data = request.json or {}
+    paper_id = str(data.get('paper_id', '')).strip()
     action = data.get('action')
     paper_title = data.get('title', '')
     paper_abstract = data.get('abstract', '')
     paper_authors = data.get('authors', '')
     paper_score = data.get('score', 0)
     paper_relevance = data.get('relevance', '')
+    source = data.get('source', 'web_feedback')
+
+    if not action:
+        return jsonify({'success': False, 'error': 'Missing action'}), 400
+    if action != 'ignore_topic' and not paper_id:
+        return jsonify({'success': False, 'error': 'Missing paper_id'}), 400
+
+    event_payload = {
+        'title': paper_title,
+        'authors': paper_authors,
+        'score': paper_score,
+        'relevance': paper_relevance,
+        'source': source,
+    }
 
     feedback = load_feedback()
+    queue_item = None
+    event_id = None
 
     if action == 'like':
         if paper_id not in feedback['liked']:
@@ -3195,6 +4314,7 @@ def handle_feedback():
         if full_info:
             paper_info.update(full_info)
         add_to_favorites(paper_id, paper_info)
+        event_id = STATE_STORE.record_event('like', paper_id, event_payload)
     elif action == 'dislike':
         if paper_id not in feedback.get('disliked', []):
             feedback.setdefault('disliked', []).append(paper_id)
@@ -3202,9 +4322,71 @@ def handle_feedback():
             feedback['liked'].remove(paper_id)
         # Remove from favorites
         remove_from_favorites(paper_id)
+        event_id = STATE_STORE.record_event('dislike', paper_id, event_payload)
+    elif action in QUEUE_ACTIONS:
+        queue_item = STATE_STORE.upsert_queue_item(
+            paper_id,
+            QUEUE_ACTIONS[action],
+            source=source,
+            note=data.get('note', ''),
+            tags=data.get('tags'),
+        )
+        event_id = STATE_STORE.record_event(action, paper_id, event_payload)
+        return jsonify({
+            'success': True,
+            'queue_item': queue_item,
+            'event_id': event_id,
+        })
+    elif action in {'open_paper', 'impression', 'export_to_zotero'}:
+        event_id = STATE_STORE.record_event(action, paper_id, event_payload)
+        return jsonify({'success': True, 'event_id': event_id})
+    elif action == 'follow_author':
+        author_name = str(data.get('author', '')).strip()
+        if not author_name:
+            return jsonify({'success': False, 'error': 'Missing author'}), 400
+        success, result = add_my_scholar(
+            name=author_name,
+            focus=data.get('focus', ''),
+            arxiv_query=f'https://arxiv.org/search/?searchtype=author&query={urllib.parse.quote(author_name)}',
+        )
+        event_id = STATE_STORE.record_event(
+            'follow_author',
+            paper_id,
+            {**event_payload, 'author': author_name},
+        )
+        return jsonify({
+            'success': True,
+            'followed': success,
+            'author': author_name,
+            'result': result if success else str(result),
+            'event_id': event_id,
+        })
+    elif action == 'ignore_topic':
+        topic = str(data.get('topic', '')).strip().lower()
+        if not topic:
+            return jsonify({'success': False, 'error': 'Missing topic'}), 400
+        config = load_keywords_config()
+        dislike_topics = config.get('dislike_topics', {})
+        if isinstance(dislike_topics, list):
+            dislike_topics = {item: -1.0 for item in dislike_topics}
+        dislike_topics[topic] = -1.0
+        config['dislike_topics'] = dislike_topics
+        save_keywords_config(config)
+        event_id = STATE_STORE.record_event(
+            'ignore_topic',
+            paper_id,
+            {**event_payload, 'topic': topic},
+        )
+        return jsonify({'success': True, 'topic': topic, 'event_id': event_id})
+    else:
+        return jsonify({'success': False, 'error': f'Unsupported action: {action}'}), 400
 
     save_feedback(feedback)
-    return jsonify({'success': True, 'feedback': feedback})
+    return jsonify({
+        'success': True,
+        'feedback': feedback,
+        'event_id': event_id,
+    })
 
 
 def save_paper_to_cache(paper_id, title, abstract):
@@ -3344,30 +4526,48 @@ def get_citation(paper_id):
         return jsonify({'success': False, 'error': str(e)})
 
 
-@app.route('/api/fetch_paper/<paper_id>')
-def fetch_paper_info(paper_id):
-    """Fetch paper info from arXiv API and save to cache."""
+def _fetch_arxiv_metadata(paper_id):
     import urllib.request
     import xml.etree.ElementTree as ET
 
+    normalized_id = paper_id.replace('v1', '').replace('v2', '')
+    url = f'http://export.arxiv.org/api/query?id_list={normalized_id}'
+    req = urllib.request.Request(url, headers={'User-Agent': 'arXiv-Recommender/1.0'})
+    with urllib.request.urlopen(req, timeout=15) as response:
+        xml_data = response.read().decode('utf-8')
+
+    root = ET.fromstring(xml_data)
+    ns = {'atom': 'http://www.w3.org/2005/Atom'}
+    entry = root.find('atom:entry', ns)
+    if entry is None:
+        return None
+
+    title_elem = entry.find('atom:title', ns)
+    summary_elem = entry.find('atom:summary', ns)
+    published_elem = entry.find('atom:published', ns)
+    authors = []
+    for author in entry.findall('atom:author', ns):
+        name_elem = author.find('atom:name', ns)
+        if name_elem is not None:
+            authors.append(name_elem.text.strip())
+
+    return {
+        'paper_id': paper_id,
+        'title': title_elem.text.strip().replace('\n', ' ') if title_elem is not None else '',
+        'abstract': summary_elem.text.strip().replace('\n', ' ') if summary_elem is not None else '',
+        'authors': authors,
+        'published': published_elem.text[:10] if published_elem is not None and published_elem.text else '',
+        'link': f'https://arxiv.org/abs/{paper_id}',
+    }
+
+
+@app.route('/api/fetch_paper/<paper_id>')
+def fetch_paper_info(paper_id):
+    """Fetch paper info from arXiv API and save to cache."""
     try:
-        # Fetch from arXiv API
-        url = f'http://export.arxiv.org/api/query?id_list={paper_id.replace("v1", "").replace("v2", "")}'
-        req = urllib.request.Request(url, headers={'User-Agent': 'arXiv-Recommender/1.0'})
-        with urllib.request.urlopen(req, timeout=10) as response:
-            xml_data = response.read().decode('utf-8')
-
-        # Parse XML
-        root = ET.fromstring(xml_data)
-        ns = {'atom': 'http://www.w3.org/2005/Atom'}
-
-        entry = root.find('atom:entry', ns)
-        if entry is None:
+        metadata = _fetch_arxiv_metadata(paper_id)
+        if metadata is None:
             return jsonify({'success': False, 'error': 'Paper not found'})
-
-        title = entry.find('atom:title', ns).text.strip().replace('\n', ' ')
-        summary = entry.find('atom:summary', ns).text.strip().replace('\n', ' ')[:500]
-        authors = ', '.join([a.find('atom:name', ns).text for a in entry.findall('atom:author', ns)])
 
         # Save to cache
         cache_path = os.path.join(BASE_DIR, 'cache', 'paper_cache.json')
@@ -3380,9 +4580,9 @@ def fetch_paper_info(paper_id):
                 pass
 
         paper_cache[paper_id] = {
-            'title': title,
-            'abstract': summary,
-            'authors': authors,
+            'title': metadata['title'],
+            'abstract': metadata['abstract'][:500],
+            'authors': ', '.join(metadata['authors']),
             'date': datetime.now().strftime('%Y-%m-%d'),
             'score': 0,
             'relevance': '从 arXiv 获取'
@@ -3395,12 +4595,39 @@ def fetch_paper_info(paper_id):
         return jsonify({
             'success': True,
             'paper_id': paper_id,
-            'title': title,
-            'abstract': summary,
-            'authors': authors
+            'title': metadata['title'],
+            'abstract': metadata['abstract'][:500],
+            'authors': ', '.join(metadata['authors'])
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/export/bibtex/<paper_id>')
+def export_bibtex(paper_id):
+    try:
+        metadata = _fetch_arxiv_metadata(paper_id)
+        if metadata is None:
+            return jsonify({'success': False, 'error': 'Paper not found'}), 404
+
+        year = metadata.get('published', '')[:4] or str(datetime.now().year)
+        author_field = ' and '.join(metadata.get('authors', [])) or 'Unknown'
+        citation_key = re.sub(r'[^a-zA-Z0-9]+', '', paper_id)
+        bibtex = (
+            f"@article{{arxiv{citation_key},\n"
+            f"  title = {{{metadata['title']}}},\n"
+            f"  author = {{{author_field}}},\n"
+            f"  journal = {{arXiv preprint arXiv:{paper_id}}},\n"
+            f"  year = {{{year}}},\n"
+            f"  url = {{{metadata['link']}}}\n"
+            f"}}\n"
+        )
+        STATE_STORE.record_event('export_to_zotero', paper_id, {'source': 'bibtex_export'})
+        response = app.response_class(bibtex, mimetype='application/x-bibtex')
+        response.headers['Content-Disposition'] = f'attachment; filename="{paper_id}.bib"'
+        return response
+    except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
 
 
 @app.route('/api/refresh')
@@ -3427,23 +4654,61 @@ def refresh_recommendations():
                 <p><a href="/" style="color:#00d4ff">返回首页</a></p>
                 </body></html>'''
 
+        job = STATE_STORE.create_job(
+            'daily_recommendation',
+            trigger_source='manual_refresh',
+            payload={'force_refresh': True, 'requested_force': force},
+            status='running',
+        )
+
         # Run pipeline with force refresh
         papers = run_pipeline(force_refresh=True)
+        paper_count = len(papers) if papers else 0
+        STATE_STORE.update_job(
+            job['run_id'],
+            'succeeded',
+            result={
+                'paper_count': paper_count,
+                'mode': 'manual_refresh',
+            },
+        )
 
         return f'''<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#fff;text-align:center;">
             <h1>✅ 推荐已刷新</h1>
             <p>日期: {today}</p>
-            <p>论文数量: {len(papers)}</p>
+            <p>论文数量: {paper_count}</p>
+            <p>任务 ID: {job['run_id']}</p>
             <p><a href="/" style="color:#00d4ff">返回首页查看</a></p>
             </body></html>'''
     except Exception as e:
         import traceback
+        if 'job' in locals():
+            STATE_STORE.update_job(job['run_id'], 'failed', error_text=str(e))
         return f'''<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#fff;">
             <h1>❌ 刷新失败</h1>
             <p>错误: {str(e)}</p>
             <pre style="background:#333;padding:10px;overflow:auto;">{traceback.format_exc()}</pre>
             <p><a href="/" style="color:#00d4ff">返回首页</a></p>
             </body></html>'''
+
+
+def _serialize_job(job):
+    if not job:
+        return None
+
+    return {
+        'run_id': job.get('run_id'),
+        'job_type': job.get('job_type'),
+        'status': job.get('status'),
+        'trigger_source': job.get('trigger_source'),
+        'payload': job.get('payload_json', {}),
+        'result': job.get('result_json', {}),
+        'error_text': job.get('error_text'),
+        'created_at': job.get('created_at'),
+        'updated_at': job.get('updated_at'),
+        'started_at': job.get('started_at'),
+        'finished_at': job.get('finished_at'),
+    }
 
 
 @app.route('/api/status')
@@ -3454,17 +4719,292 @@ def get_status():
 
         today = datetime.now().strftime('%Y-%m-%d')
         cached_papers, cached_themes = load_daily_recommendation(PIPELINE_CONFIG['cache_dir'])
+        latest_job = STATE_STORE.get_latest_job('daily_recommendation')
 
         return jsonify({
             'date': today,
             'has_recommendation': cached_papers is not None,
             'paper_count': len(cached_papers) if cached_papers else 0,
             'themes': cached_themes or [],
-            'generated_at': datetime.now().isoformat()
+            'generated_at': datetime.now().isoformat(),
+            'generation': _generation_status,
+            'job': _serialize_job(latest_job),
+            'state_db': STATE_DB_FILE,
         })
     except Exception as e:
         logger.error(f"Status error: {e}")
-        return jsonify({'error': str(e)})
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/job/status')
+def get_job_status():
+    """Return latest job state or a specific run."""
+    run_id = request.args.get('run_id')
+    job_type = request.args.get('job_type', 'daily_recommendation')
+
+    job = STATE_STORE.get_job(run_id) if run_id else STATE_STORE.get_latest_job(job_type)
+    return jsonify({'success': True, 'job': _serialize_job(job)})
+
+
+@app.route('/api/collections', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def manage_collections():
+    """Manage ResearchCollection objects."""
+    if request.method == 'GET':
+        return jsonify({'success': True, 'collections': STATE_STORE.list_collections()})
+
+    data = request.get_json() or {}
+
+    if request.method == 'POST':
+        name = str(data.get('name', '')).strip()
+        if not name:
+            return jsonify({'success': False, 'error': 'Missing collection name'}), 400
+        try:
+            collection = STATE_STORE.create_collection(
+                name,
+                description=data.get('description', ''),
+                query_text=data.get('query_text', ''),
+            )
+        except sqlite3.IntegrityError:
+            return jsonify({'success': False, 'error': 'Collection name already exists'}), 409
+
+        STATE_STORE.record_event(
+            'create_collection',
+            payload={'collection_id': collection['id'], 'name': collection['name']},
+        )
+        return jsonify({'success': True, 'collection': collection})
+
+    if request.method == 'PUT':
+        collection_id = data.get('collection_id')
+        if not collection_id:
+            return jsonify({'success': False, 'error': 'Missing collection_id'}), 400
+        try:
+            collection = STATE_STORE.update_collection(
+                int(collection_id),
+                name=data.get('name'),
+                description=data.get('description'),
+                query_text=data.get('query_text'),
+                is_active=data.get('is_active'),
+            )
+        except sqlite3.IntegrityError:
+            return jsonify({'success': False, 'error': 'Collection name already exists'}), 409
+        STATE_STORE.record_event(
+            'update_collection',
+            payload={'collection_id': int(collection_id)},
+        )
+        return jsonify({'success': True, 'collection': collection})
+
+    collection_id = data.get('collection_id')
+    if not collection_id:
+        return jsonify({'success': False, 'error': 'Missing collection_id'}), 400
+
+    deleted = STATE_STORE.delete_collection(int(collection_id))
+    if deleted:
+        STATE_STORE.record_event(
+            'delete_collection',
+            payload={'collection_id': int(collection_id)},
+    )
+    return jsonify({'success': deleted})
+
+
+@app.route('/api/collections/<int:collection_id>', methods=['GET'])
+def get_collection_detail(collection_id):
+    collection = STATE_STORE.get_collection(collection_id)
+    if not collection:
+        return jsonify({'success': False, 'error': 'Collection not found'}), 404
+    return jsonify({
+        'success': True,
+        'collection': collection,
+        'papers': STATE_STORE.list_collection_papers(collection_id),
+    })
+
+
+@app.route('/api/collections/<int:collection_id>/papers', methods=['GET', 'POST', 'DELETE'])
+def add_collection_paper(collection_id):
+    """Attach a paper to a ResearchCollection."""
+    if request.method == 'GET':
+        return jsonify({
+            'success': True,
+            'papers': STATE_STORE.list_collection_papers(collection_id),
+        })
+
+    data = request.get_json() or {}
+    paper_id = str(data.get('paper_id', '')).strip()
+    if not paper_id:
+        return jsonify({'success': False, 'error': 'Missing paper_id'}), 400
+
+    if request.method == 'DELETE':
+        deleted = STATE_STORE.remove_paper_from_collection(collection_id, paper_id)
+        if deleted:
+            STATE_STORE.record_event(
+                'remove_from_collection',
+                paper_id,
+                {'collection_id': collection_id, 'source': data.get('source', 'web_collection')},
+            )
+        return jsonify({'success': deleted, 'collection_id': collection_id, 'paper_id': paper_id})
+
+    STATE_STORE.add_paper_to_collection(
+        collection_id,
+        paper_id,
+        note=data.get('note', ''),
+    )
+    event_id = STATE_STORE.record_event(
+        'add_to_collection',
+        paper_id,
+        {
+            'collection_id': collection_id,
+            'note': data.get('note', ''),
+            'source': data.get('source', 'web_collection'),
+        },
+    )
+    return jsonify({'success': True, 'collection_id': collection_id, 'paper_id': paper_id, 'event_id': event_id})
+
+
+@app.route('/api/saved-searches', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def manage_saved_searches():
+    """Manage SavedSearch objects."""
+    if request.method == 'GET':
+        return jsonify({'success': True, 'saved_searches': STATE_STORE.list_saved_searches()})
+
+    data = request.get_json() or {}
+
+    if request.method == 'POST':
+        name = str(data.get('name', '')).strip()
+        query_text = str(data.get('query_text', '')).strip()
+        if not name or not query_text:
+            return jsonify({'success': False, 'error': 'Missing name or query_text'}), 400
+        try:
+            saved_search = STATE_STORE.create_saved_search(
+                name,
+                query_text,
+                filters=data.get('filters'),
+            )
+        except sqlite3.IntegrityError:
+            return jsonify({'success': False, 'error': 'Saved search name already exists'}), 409
+
+        STATE_STORE.record_event(
+            'create_saved_search',
+            payload={
+                'saved_search_id': saved_search['id'],
+                'name': saved_search['name'],
+                'query_text': saved_search['query_text'],
+            },
+        )
+        return jsonify({'success': True, 'saved_search': saved_search})
+
+    if request.method == 'PUT':
+        search_id = data.get('search_id')
+        if not search_id:
+            return jsonify({'success': False, 'error': 'Missing search_id'}), 400
+        try:
+            saved_search = STATE_STORE.update_saved_search(
+                int(search_id),
+                name=data.get('name'),
+                query_text=data.get('query_text'),
+                filters=data.get('filters'),
+                is_active=data.get('is_active'),
+            )
+        except sqlite3.IntegrityError:
+            return jsonify({'success': False, 'error': 'Saved search name already exists'}), 409
+        STATE_STORE.record_event(
+            'update_saved_search',
+            payload={'saved_search_id': int(search_id)},
+        )
+        return jsonify({'success': True, 'saved_search': saved_search})
+
+    search_id = data.get('search_id')
+    if not search_id:
+        return jsonify({'success': False, 'error': 'Missing search_id'}), 400
+
+    deleted = STATE_STORE.delete_saved_search(int(search_id))
+    if deleted:
+        STATE_STORE.record_event(
+            'delete_saved_search',
+            payload={'saved_search_id': int(search_id)},
+    )
+    return jsonify({'success': deleted})
+
+
+@app.route('/api/saved-searches/<int:search_id>/run')
+def run_saved_search(search_id):
+    saved_search = STATE_STORE.get_saved_search(search_id)
+    if not saved_search:
+        return jsonify({'success': False, 'error': 'Saved search not found'}), 404
+
+    try:
+        from arxiv_recommender_v5 import search_by_keywords
+        query_terms = _split_query_terms(saved_search.get('query_text', ''))
+        results = search_by_keywords(query_terms, max_results=10, days_back=90)
+        STATE_STORE.record_event(
+            'run_saved_search',
+            payload={'saved_search_id': search_id, 'query_text': saved_search.get('query_text', '')},
+        )
+        return jsonify({'success': True, 'saved_search': saved_search, 'results': results})
+    except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
+
+@app.route('/api/queue', methods=['GET', 'POST'])
+def manage_queue():
+    """Manage the research reading queue."""
+    if request.method == 'GET':
+        status = request.args.get('status')
+        if status and status not in QUEUE_STATUS_VALUES:
+            return jsonify({'success': False, 'error': 'Invalid status'}), 400
+        return jsonify({'success': True, 'items': STATE_STORE.list_queue_items(status=status)})
+
+    data = request.get_json() or {}
+    paper_id = str(data.get('paper_id', '')).strip()
+    status = data.get('status')
+
+    if not paper_id or not status:
+        return jsonify({'success': False, 'error': 'Missing paper_id or status'}), 400
+    if status not in QUEUE_STATUS_VALUES:
+        return jsonify({'success': False, 'error': 'Invalid status'}), 400
+
+    item = STATE_STORE.upsert_queue_item(
+        paper_id,
+        status,
+        source=data.get('source', 'queue_api'),
+        note=data.get('note', ''),
+        tags=data.get('tags'),
+    )
+    event_id = STATE_STORE.record_event(
+        'queue_status_changed',
+        paper_id,
+        {
+            'status': status,
+            'source': data.get('source', 'queue_api'),
+            'note': data.get('note', ''),
+        },
+    )
+    return jsonify({'success': True, 'item': item, 'event_id': event_id})
+
+
+@app.route('/api/queue/bulk', methods=['POST'])
+def manage_queue_bulk():
+    data = request.get_json() or {}
+    paper_ids = [str(item).strip() for item in data.get('paper_ids', []) if str(item).strip()]
+    status = data.get('status')
+    if not paper_ids or not status:
+        return jsonify({'success': False, 'error': 'Missing paper_ids or status'}), 400
+    if status not in QUEUE_STATUS_VALUES:
+        return jsonify({'success': False, 'error': 'Invalid status'}), 400
+
+    updated = []
+    for paper_id in paper_ids:
+        item = STATE_STORE.upsert_queue_item(
+            paper_id,
+            status,
+            source=data.get('source', 'queue_bulk'),
+            note=data.get('note', ''),
+        )
+        updated.append(item)
+        STATE_STORE.record_event(
+            'queue_status_changed',
+            paper_id,
+            {'status': status, 'source': data.get('source', 'queue_bulk')},
+        )
+    return jsonify({'success': True, 'items': updated, 'count': len(updated)})
 
 
 # ==================== Keyword Search ====================
@@ -3472,7 +5012,7 @@ def get_status():
 @app.route('/search')
 def search_page():
     """Show empty search page."""
-    return render_search_page([], [])
+    return _render_search_research([], [])
 
 
 @app.route('/search/<path:keywords>')
@@ -3489,14 +5029,12 @@ def search_keywords(keywords):
     sys.path.insert(0, BASE_DIR)
 
     try:
-        from arxiv_recommender_v5 import search_by_keywords, generate_search_html
+        from arxiv_recommender_v5 import search_by_keywords
 
         # Search for papers
         papers = search_by_keywords(keyword_list, max_results=25, days_back=60)
 
-        # Generate HTML
-        html = generate_search_html(papers, keyword_list)
-        return html
+        return _render_search_research(papers, keyword_list)
 
     except Exception as e:
         logger.error(f"Search error: {e}")
@@ -3785,24 +5323,15 @@ def render_search_page(papers, keywords):
 @app.route('/settings')
 def settings_page():
     """Settings page for modifying keywords."""
-    import sys
-    sys.path.insert(0, BASE_DIR)
-
     try:
-        from arxiv_recommender_v5 import load_user_config, get_priority_topics, get_dislike_topics
+        from config_manager import get_config
 
-        config = load_user_config()
-        priority_topics = get_priority_topics()
-        dislike_topics = get_dislike_topics()
-
-        # Get settings
-        settings = config.get('settings', {})
-        papers_per_day = settings.get('papers_per_day', 20)
-        prefer_theory = settings.get('prefer_theory', True)
-
-        # Theory preference
-        theory_pref = config.get('theory_preference', {})
-        theory_enabled = theory_pref.get('enabled', True)
+        config = get_config()
+        priority_topics = list(config.core_keywords.keys())
+        dislike_topics = list(config.dislike_keywords.keys())
+        papers_per_day = config._settings.papers_per_day
+        prefer_theory = config._settings.prefer_theory
+        theory_enabled = getattr(config._settings, 'theory_enabled', True)
 
     except Exception as e:
         logger.error(f"Error loading config: {e}")
@@ -3823,6 +5352,16 @@ def settings_page():
     # Topics as text
     topics_text = ', '.join(priority_topics)
     dislike_text = ', '.join(dislike_topics)
+
+    return _render_settings_research(
+        core_keywords=core_keywords,
+        secondary_keywords=secondary_keywords,
+        theory_keywords=theory_keywords,
+        dislike_text=dislike_text,
+        papers_per_day=papers_per_day,
+        prefer_theory=prefer_theory,
+        theory_enabled=theory_enabled,
+    )
 
     return f'''<!DOCTYPE html>
 <html lang="zh-CN">
@@ -4216,7 +5755,7 @@ def settings_page():
 @app.route('/api/settings', methods=['POST'])
 def save_settings():
     """Save user settings and sync to user_profile.json (unified config)."""
-    data = request.get_json()
+    data = request.get_json() or {}
 
     try:
         from config_manager import get_config
@@ -4234,8 +5773,13 @@ def save_settings():
             priority_text = data.get('priorityTopics', '')
             core_topics = [t.strip() for t in priority_text.split(',') if t.strip()]
 
+        # Preserve demote topics because settings UI does not expose them yet.
+        existing_demote = cm.get_keywords_by_category('demote')
+
         # Clear existing keywords first
         cm._keywords.clear()
+        for topic, weight in existing_demote.items():
+            cm.set_keyword(topic, weight, 'demote', save=False)
 
         # Set core topics (default weight based on importance)
         core_weights = {
@@ -4270,8 +5814,7 @@ def save_settings():
             cm.set_keyword(topic, weight, 'secondary')
 
         # Set theory keywords in config
-        if theory_keywords:
-            cm._config['theory_keywords'] = theory_keywords
+        cm._config['theory_keywords'] = theory_keywords
 
         # Set dislike topics
         for topic in dislike_topics:
@@ -4280,6 +5823,7 @@ def save_settings():
         # Update settings
         cm._settings.papers_per_day = data.get('papersPerDay', 20)
         cm._settings.prefer_theory = data.get('preferTheory', True)
+        cm._settings.theory_enabled = data.get('theoryEnabled', True)
 
         # Save to user_profile.json
         cm.save()
@@ -4292,14 +5836,30 @@ def save_settings():
 
         # Regenerate if requested
         regenerate = data.get('regenerate', False)
+        regeneration_job = None
         if regenerate:
             try:
-                import threading
-                from arxiv_recommender_v5 import run_pipeline
-                # Run in background
-                thread = threading.Thread(target=run_pipeline, kwargs={'force_refresh': True})
+                regeneration_job = STATE_STORE.create_job(
+                    'daily_recommendation',
+                    trigger_source='settings_save',
+                    payload={'force_refresh': True, 'reason': 'settings_updated'},
+                    status='queued',
+                )
+                _generation_status.update({
+                    'running': True,
+                    'started_at': datetime.now().isoformat(),
+                    'error': None,
+                    'run_id': regeneration_job['run_id'],
+                })
+                thread = threading.Thread(
+                    target=_run_pipeline_background,
+                    args=(regeneration_job['run_id'], True),
+                    daemon=True,
+                )
                 thread.start()
             except Exception as e:
+                if regeneration_job:
+                    STATE_STORE.update_job(regeneration_job['run_id'], 'failed', error_text=str(e))
                 logger.error(f"Error regenerating: {e}")
 
         return jsonify({
@@ -4307,7 +5867,8 @@ def save_settings():
             'message': f'Saved {len(core_topics)} core, {len(secondary_topics)} secondary, {len(theory_keywords)} theory keywords',
             'core_count': len(core_topics),
             'secondary_count': len(secondary_topics),
-            'theory_count': len(theory_keywords)
+            'theory_count': len(theory_keywords),
+            'job': _serialize_job(regeneration_job) if regeneration_job else None,
         })
 
     except Exception as e:
@@ -4322,255 +5883,7 @@ def save_settings():
 @app.route('/stats')
 def reading_stats():
     """Reading statistics page."""
-    feedback = load_feedback()
-    favorites = load_favorites()
-
-    # Calculate statistics
-    liked_ids = feedback.get('liked', [])
-    disliked_ids = feedback.get('disliked', [])
-    favorite_ids = list(favorites.keys())
-
-    # Get available dates
-    dates = get_available_dates()
-
-    # Calculate this week's stats
-    from datetime import datetime, timedelta
-    today = datetime.now()
-    week_ago = today - timedelta(days=7)
-    month_ago = today - timedelta(days=30)
-
-    # Parse dates from paper IDs (format: YYMM.NNNNN)
-    def parse_paper_date(paper_id):
-        try:
-            # arXiv ID format: YYMM.NNNNN
-            year_month = paper_id.split('v')[0][:4]
-            year = 2000 + int(year_month[:2])
-            month = int(year_month[2:4])
-            return datetime(year, month, 1)
-        except:
-            return None
-
-    # Count papers by time period
-    weekly_liked = sum(1 for pid in liked_ids if parse_paper_date(pid) and parse_paper_date(pid) >= week_ago)
-    monthly_liked = sum(1 for pid in liked_ids if parse_paper_date(pid) and parse_paper_date(pid) >= month_ago)
-
-    # Load today's papers for keyword analysis
-    today_papers = []
-    today_str = today.strftime('%Y-%m-%d')
-    today_file = os.path.join(HISTORY_DIR, f'digest_{today_str}.md')
-    if os.path.exists(today_file):
-        today_papers, _ = parse_markdown_digest(today_file)
-
-    # Analyze keywords from liked papers
-    keyword_counts = {}
-    import re
-    for pid in liked_ids:
-        # Find paper in favorites or history
-        if pid in favorites:
-            text = (favorites[pid].get('title', '') + ' ' + favorites[pid].get('abstract', '')).lower()
-        else:
-            text = ''
-            for date in dates[:7]:  # Check recent dates
-                filepath = os.path.join(HISTORY_DIR, f'digest_{date}.md')
-                if os.path.exists(filepath):
-                    papers, _ = parse_markdown_digest(filepath)
-                    for p in papers:
-                        if p.get('id') == pid:
-                            text = (p.get('title', '') + ' ' + p.get('summary', '')).lower()
-                            break
-                if text:
-                    break
-
-        # Count keywords
-        keywords = re.findall(r'\b[a-z]+(?:\s+[a-z]+)?\b', text)
-        for kw in keywords:
-            if len(kw) > 4:  # Skip short words
-                keyword_counts[kw] = keyword_counts.get(kw, 0) + 1
-
-    top_keywords = sorted(keyword_counts.items(), key=lambda x: -x[1])[:15]
-
-    # Calculate total papers seen
-    total_seen = 0
-    if os.path.exists(CACHE_FILE):
-        try:
-            with open(CACHE_FILE, 'r', encoding='utf-8') as f:
-                cache_data = json.load(f)
-                total_seen = len(cache_data)
-        except:
-            pass
-
-    # Pre-calculate values for f-string
-    avg_daily_likes = len(liked_ids) / max(len(dates), 1)
-    like_rate = len(liked_ids) * 100 // max(len(liked_ids) + len(disliked_ids), 1)
-    total_feedback = len(liked_ids) + len(disliked_ids)
-
-    # Generate keywords HTML
-    keywords_html = ''.join([f'<div class="keyword-item"><span>{kw}</span><span class="keyword-count">{count}</span></div>' for kw, count in top_keywords])
-
-    return f'''<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>阅读统计 - arXiv 推荐系统</title>
-    <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
-            min-height: 100vh; color: #e0e0e0; padding: 20px;
-        }}
-        .container {{ max-width: 1000px; margin: 0 auto; }}
-        .header {{
-            text-align: center; padding: 30px 20px;
-            background: rgba(255,255,255,0.03); border-radius: 20px;
-            margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.08);
-        }}
-        .header h1 {{
-            font-size: 2.2em;
-            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #f472b6 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }}
-        .nav-tabs {{
-            display: flex; justify-content: center; gap: 15px;
-            margin-bottom: 25px; flex-wrap: wrap;
-        }}
-        .nav-tab {{
-            padding: 10px 20px; background: rgba(255,255,255,0.05);
-            border-radius: 10px; color: #888; text-decoration: none;
-            transition: all 0.2s; border: 1px solid rgba(255,255,255,0.1);
-        }}
-        .nav-tab:hover {{ background: rgba(255,255,255,0.1); color: #fff; }}
-        .nav-tab.active {{ background: rgba(124,58,237,0.3); color: #fff; border-color: rgba(124,58,237,0.5); }}
-        .stats-grid {{
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px; margin-bottom: 30px;
-        }}
-        .stat-card {{
-            background: rgba(255,255,255,0.03); border-radius: 16px; padding: 25px;
-            text-align: center; border: 1px solid rgba(255,255,255,0.06);
-            transition: all 0.3s;
-        }}
-        .stat-card:hover {{ transform: translateY(-3px); border-color: rgba(0,212,255,0.3); }}
-        .stat-number {{
-            font-size: 2.8em; font-weight: bold;
-            background: linear-gradient(135deg, #00d4ff, #7c3aed);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }}
-        .stat-label {{ color: #888; font-size: 0.9em; margin-top: 8px; }}
-        .stat-card.liked .stat-number {{ color: #10b981; -webkit-text-fill-color: #10b981; }}
-        .stat-card.disliked .stat-number {{ color: #ef4444; -webkit-text-fill-color: #ef4444; }}
-        .stat-card.favorites .stat-number {{ color: #f59e0b; -webkit-text-fill-color: #f59e0b; }}
-        .section {{
-            background: rgba(255,255,255,0.03); border-radius: 16px; padding: 25px;
-            margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.06);
-        }}
-        .section-title {{
-            font-size: 1.2em; color: #fff; margin-bottom: 20px;
-            display: flex; align-items: center; gap: 10px;
-        }}
-        .keywords-list {{
-            display: flex; flex-wrap: wrap; gap: 10px;
-        }}
-        .keyword-item {{
-            background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(0,212,255,0.3));
-            padding: 8px 16px; border-radius: 20px; color: #fff;
-            display: flex; align-items: center; gap: 8px;
-        }}
-        .keyword-count {{
-            background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px;
-            font-size: 0.85em;
-        }}
-        .progress-bar {{
-            height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;
-            overflow: hidden; margin-top: 10px;
-        }}
-        .progress-fill {{
-            height: 100%; background: linear-gradient(90deg, #00d4ff, #7c3aed);
-            border-radius: 4px; transition: width 0.5s;
-        }}
-        .footer {{ text-align: center; padding: 30px; color: #555; font-size: 0.85em; margin-top: 30px; }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>📊 阅读统计</h1>
-            <p style="color:#888;">追踪你的论文阅读习惯</p>
-        </div>
-
-        <div class="nav-tabs">
-            <a href="/" class="nav-tab">📅 今日推荐</a>
-            <a href="/search" class="nav-tab search">🔍 搜索</a>
-            <a href="/scholars" class="nav-tab scholars">🎓 学者追踪</a>
-            <a href="/journal" class="nav-tab journal">📚 顶刊追踪</a>
-            <a href="/liked" class="nav-tab liked">❤️ 喜欢</a>
-            <a href="/stats" class="nav-tab stats active">📊 统计</a>
-            <a href="/settings" class="nav-tab settings">⚙️ 设置</a>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number">{total_seen}</div>
-                <div class="stat-label">📚 总共浏览</div>
-            </div>
-            <div class="stat-card liked">
-                <div class="stat-number">{len(liked_ids)}</div>
-                <div class="stat-label">❤️ 喜欢的论文</div>
-            </div>
-            <div class="stat-card disliked">
-                <div class="stat-number">{len(disliked_ids)}</div>
-                <div class="stat-label">👎 不感兴趣</div>
-            </div>
-            <div class="stat-card favorites">
-                <div class="stat-number">{len(favorite_ids)}</div>
-                <div class="stat-label">⭐ 收藏的论文</div>
-            </div>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number">{weekly_liked}</div>
-                <div class="stat-label">📅 本周喜欢</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{monthly_liked}</div>
-                <div class="stat-label">📆 本月喜欢</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{len(dates)}</div>
-                <div class="stat-label">🗓️ 活跃天数</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{avg_daily_likes:.1f}</div>
-                <div class="stat-label">📈 日均喜欢</div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-title">🏷️ 你最关注的关键词</div>
-            <div class="keywords-list">
-                {keywords_html}
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-title">📈 喜欢率</div>
-            <div style="color:#888; margin-bottom:10px;">
-                你喜欢的论文占所有反馈的 {like_rate}%
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: {like_rate}%"></div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>arXiv Recommender Statistics | 数据保存在本地</p>
-        </div>
-    </div>
-</body>
-</html>'''
+    return _render_stats_research()
 
 
 # ==================== Related Papers ====================
@@ -4582,46 +5895,37 @@ def get_related_papers(paper_id):
     sys.path.insert(0, BASE_DIR)
 
     try:
-        # First, get the paper info
         paper_info = None
         favorites = load_favorites()
+        history_index = _load_history_paper_index()
 
-        # Check favorites first
         if paper_id in favorites:
-            paper_info = favorites[paper_id]
+            favorite = favorites[paper_id]
+            paper_info = {
+                'title': favorite.get('title', ''),
+                'abstract': favorite.get('abstract', favorite.get('summary', '')),
+            }
+        elif paper_id in history_index:
+            history_paper = history_index[paper_id]
+            paper_info = {
+                'title': history_paper.get('title', ''),
+                'abstract': history_paper.get('abstract', history_paper.get('summary', '')),
+            }
         else:
-            # Try to fetch from arXiv
-            import urllib.request
-            url = f"http://export.arxiv.org/api/query?id_list={{{paper_id}}}"
-            req = urllib.request.Request(url, headers={{'User-Agent': 'Mozilla/5.0'}})
-            import ssl
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
-
-            with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
-                import xml.etree.ElementTree as ET
-                xml_data = resp.read().decode('utf-8')
-                root = ET.fromstring(xml_data)
-                ns = {{'atom': 'http://www.w3.org/2005/Atom'}}
-
-                for entry in root.findall('atom:entry', ns):
-                    title_elem = entry.find('atom:title', ns)
-                    abstract_elem = entry.find('atom:summary', ns)
-                    paper_info = {{
-                        'title': title_elem.text.strip() if title_elem is not None else '',
-                        'abstract': abstract_elem.text.strip() if abstract_elem is not None else ''
-                    }}
+            metadata = _fetch_arxiv_metadata(paper_id)
+            if metadata is not None:
+                paper_info = {
+                    'title': metadata.get('title', ''),
+                    'abstract': metadata.get('abstract', ''),
+                }
 
         if not paper_info:
-            return jsonify({{'error': 'Paper not found', 'related': []}})
+            return jsonify({'success': False, 'error': 'Paper not found', 'related': []}), 404
 
         # Extract keywords from paper
         text = (paper_info.get('title', '') + ' ' + paper_info.get('abstract', '')).lower()
 
         # Find important terms
-        import re
-        # Extract potential keywords (2-4 word phrases)
         words = re.findall(r'\b[a-z]+\b', text)
         word_freq = {}
         for w in words:
@@ -4638,10 +5942,10 @@ def get_related_papers(paper_id):
         # Remove the original paper
         related = [p for p in related if p.get('id') != paper_id][:5]
 
-        return jsonify({{'success': True, 'related': related, 'keywords': keywords}})
+        return jsonify({'success': True, 'related': related, 'keywords': keywords})
 
     except Exception as e:
-        return jsonify({{'error': str(e), 'related': []}})
+        return jsonify({'success': False, 'error': str(e), 'related': []}), 500
 
 
 # ==================== Keywords Management API ====================
@@ -4833,7 +6137,7 @@ if __name__ == '__main__':
                         logger.info(f"  [{journal_key}] Due for update ({config['description']})")
 
                 if journals_to_update:
-                    from journal_update import update_journal
+                    from update_journals import update_journal
 
                     for journal_key in journals_to_update:
                         try:

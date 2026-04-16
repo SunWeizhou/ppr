@@ -1,0 +1,300 @@
+{% extends "base_research.html" %}
+
+{% block hero %}
+<section class="page-hero">
+    <div class="hero-panel">
+        <div class="kicker">{{ hero_kicker }}</div>
+        <h1 class="hero-title">{{ hero_title }}</h1>
+        <p class="hero-subtitle">{{ hero_subtitle }}</p>
+        <div class="metric-grid">
+            {% for metric in headline_metrics %}
+                <div class="metric-card">
+                    <span class="metric-label">{{ metric.label }}</span>
+                    <span class="metric-value">{{ metric.value }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="hero-actions">
+            <a href="/" class="action-button btn-brand">返回今日收件箱</a>
+            <a href="/search" class="action-button btn-ghost">围绕问题继续找</a>
+        </div>
+    </div>
+
+    <div class="hero-rail">
+        <div class="stack-card">
+            <div class="card-kicker">Queue Overview</div>
+            <h2 class="panel-title">阅读队列</h2>
+            <div class="mini-grid">
+                <div class="mini-stat">
+                    <span class="mini-stat-label">Inbox</span>
+                    <span class="mini-stat-value">{{ queue_counts['Inbox'] }}</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-stat-label">Skim Later</span>
+                    <span class="mini-stat-value">{{ queue_counts['Skim Later'] }}</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-stat-label">Deep Read</span>
+                    <span class="mini-stat-value">{{ queue_counts['Deep Read'] }}</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-stat-label">Saved</span>
+                    <span class="mini-stat-value">{{ queue_counts['Saved'] }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stack-card">
+            <div class="card-kicker">Asset State</div>
+            <h2 class="panel-title">列表质量</h2>
+            <div class="chip-row">
+                <span class="chip brand">{{ found_count }}/{{ total_count }} 已补全</span>
+                <span class="chip warm">{{ incomplete_count }} 待补全</span>
+                <span class="chip sage">{{ queued_count }} 已在队列中</span>
+            </div>
+            <p class="detail-copy">{{ asset_note }}</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="section-grid">
+    <div>
+        {% if missing_count > 0 %}
+            <div class="notice-card notice-warm">
+                <div>
+                    <div class="section-kicker">Missing Metadata</div>
+                    <h2 class="panel-title">有些论文只有占位信息</h2>
+                    <p class="muted-copy">当前显示 {{ found_count }}/{{ total_count }} 篇完整条目，剩余 {{ missing_count }} 篇可以按需单独补全。</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="section-head">
+            <div>
+                <div class="section-kicker">Research Assets</div>
+                <h2 class="section-title">{{ section_title }}</h2>
+                <p class="muted-copy">{{ section_subtitle }}</p>
+            </div>
+        </div>
+
+        {% if papers %}
+            <div class="paper-stream">
+                {% for paper in papers %}
+                    <article class="paper-card compact-card {% if paper.is_liked %}state-liked{% elif paper.is_disliked %}state-disliked{% endif %}"
+                        data-paper-id="{{ paper.id }}"
+                        data-title="{{ paper.title }}"
+                        data-summary="{{ (paper.summary or '')[:300] }}"
+                        data-authors="{{ paper.author_text }}"
+                        data-score="{{ paper.score or 0 }}"
+                        data-relevance="{{ paper.relevance or '' }}">
+                        <div class="paper-topline">
+                            <div class="paper-rank">
+                                <span>#{{ paper.rank }}</span>
+                                {% if paper.date %}
+                                    <span class="meta-chip">{{ paper.date }}</span>
+                                {% endif %}
+                                {% if paper.queue_status %}
+                                    <span class="state-chip {{ paper.queue_status_class }}">{{ paper.queue_status }}</span>
+                                {% endif %}
+                                {% if paper.is_incomplete %}
+                                    <span class="chip warm">待补全</span>
+                                {% endif %}
+                            </div>
+                            <div class="chip-row">
+                                <span class="score-chip">Score {{ '%.1f'|format(paper.score or 0) }}</span>
+                            </div>
+                        </div>
+
+                        <h3 class="paper-title">
+                            <a class="paper-title-link" href="{{ paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="trackOpen('{{ paper.id }}')">
+                                {{ paper.title }}
+                            </a>
+                        </h3>
+                        <div class="paper-authors">{{ paper.author_text }}</div>
+                        <p class="paper-summary">{{ paper.summary }}</p>
+                        <div class="reason-panel">
+                            <span class="reasons-title">Why stored</span>
+                            {{ paper.relevance_html | safe }}
+                        </div>
+                        <div class="action-row">
+                            <button class="action-button btn-brand" onclick="sendFeedbackAction(this, 'like')">相关</button>
+                            <button class="action-button btn-danger" onclick="sendFeedbackAction(this, 'dislike')">忽略</button>
+                            <button class="action-button btn-warm" onclick="queuePaper(this, 'Skim Later')">稍后读</button>
+                            <button class="action-button btn-sage" onclick="queuePaper(this, 'Deep Read')">精读</button>
+                            <button class="action-button btn-subtle" onclick="queuePaper(this, 'Saved')">Saved</button>
+                            <button class="action-button btn-subtle" onclick="queuePaper(this, 'Archived')">Archived</button>
+                            <button class="action-button btn-ghost" onclick="collectPaper(this)">加入 Collection</button>
+                            {% if paper.is_incomplete %}
+                                <button class="action-button btn-subtle" onclick="fetchPaperInfo('{{ paper.id }}', this)">补全信息</button>
+                            {% endif %}
+                            <button class="action-button btn-subtle" onclick="downloadPdf('{{ paper.id }}')">PDF</button>
+                            <a class="action-button btn-ghost" href="{{ paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="trackOpen('{{ paper.id }}')">打开 arXiv</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="section-kicker">No Assets Yet</div>
+                <h2 class="panel-title">{{ empty_title }}</h2>
+                <p class="muted-copy">{{ empty_copy }}</p>
+                <div class="hero-actions" style="margin-top: 14px;">
+                    <a href="/" class="action-button btn-brand">去看今日收件箱</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="aside-stack">
+        <div class="stack-card">
+            <div class="card-kicker">Collections</div>
+            <h2 class="panel-title">研究容器</h2>
+            {% if collections %}
+                <div class="list-stack">
+                    {% for collection in collections %}
+                        <div class="list-item">
+                            <div>
+                                <span class="list-item-title">{{ collection.name }}</span>
+                                <span class="list-item-subtitle">{{ collection.description or collection.query_text or 'No description yet' }}</span>
+                            </div>
+                            <span class="list-item-trailing">{{ collection.paper_count }} papers</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state compact-empty">
+                    <p class="muted-copy">把搜索结果或喜欢的论文沉淀成 collection，后面更容易做方法簇管理。</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="stack-card">
+            <div class="card-kicker">Saved Searches</div>
+            <h2 class="panel-title">问题订阅</h2>
+            {% if saved_searches %}
+                <div class="list-stack">
+                    {% for search in saved_searches %}
+                        <div class="list-item">
+                            <div>
+                                <span class="list-item-title">{{ search.name }}</span>
+                                <span class="list-item-subtitle">{{ search.query_text }}</span>
+                            </div>
+                            <span class="list-item-trailing">{{ search.updated_at[:10] if search.updated_at else '' }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state compact-empty">
+                    <p class="muted-copy">从问题出发保存搜索，比单纯堆论文更容易形成长期 alert。</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function sendFeedbackAction(button, action) {
+    const card = button.closest('.paper-card');
+    const payload = {
+        paper_id: card.dataset.paperId,
+        action: action,
+        title: card.dataset.title,
+        abstract: card.dataset.summary,
+        authors: card.dataset.authors,
+        score: parseFloat(card.dataset.score || '0'),
+        relevance: card.dataset.relevance,
+        source: 'favorites_research'
+    };
+
+    try {
+        const response = await fetch('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'request failed');
+        }
+        if (action === 'dislike') {
+            card.classList.add('state-disliked');
+            card.classList.remove('state-liked');
+            showToast('已更新反馈');
+        } else {
+            card.classList.add('state-liked');
+            card.classList.remove('state-disliked');
+            showToast('已更新反馈');
+        }
+    } catch (error) {
+        showToast('操作失败: ' + error.message, 'error');
+    }
+}
+
+async function queuePaper(button, status) {
+    const card = button.closest('.paper-card');
+    try {
+        await queuePaperStatus(card.dataset.paperId, status, {source: 'favorites_research'});
+        upsertStateChip(card, status);
+    } catch (error) {
+        showToast('队列更新失败: ' + error.message, 'error');
+    }
+}
+
+async function collectPaper(button) {
+    const card = button.closest('.paper-card');
+    try {
+        await addPaperToCollection(card.dataset.paperId, {
+            defaultName: card.dataset.title.slice(0, 48),
+            source: 'favorites_research'
+        });
+    } catch (error) {
+        showToast('加入 Collection 失败: ' + error.message, 'error');
+    }
+}
+
+function upsertStateChip(card, status) {
+    let rankBar = card.querySelector('.paper-rank');
+    let chip = rankBar.querySelector('.state-chip');
+    if (!chip) {
+        chip = document.createElement('span');
+        chip.className = 'state-chip';
+        rankBar.appendChild(chip);
+    }
+    const normalized = String(status || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    chip.className = normalized ? 'state-chip status-' + normalized : 'state-chip';
+    chip.textContent = status;
+}
+
+async function fetchPaperInfo(paperId, button) {
+    try {
+        button.disabled = true;
+        const response = await fetch('/api/fetch_paper/' + paperId);
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'fetch failed');
+        }
+        showToast('论文信息已补全');
+        window.setTimeout(() => window.location.reload(), 500);
+    } catch (error) {
+        showToast('补全失败: ' + error.message, 'error');
+        button.disabled = false;
+    }
+}
+
+function downloadPdf(paperId) {
+    window.open('/api/pdf/' + paperId, '_blank');
+}
+
+function trackOpen(paperId) {
+    trackPaperOpen(paperId, 'favorites_research');
+}
+</script>
+{% endblock %}

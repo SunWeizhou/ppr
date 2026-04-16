@@ -1,9 +1,43 @@
 {
   "journal": "Journal of the Royal Statistical Society: Series B",
-  "fetched_at": "2026-04-01T21:39:55.252040",
-  "from_year": 2025,
-  "count": 142,
+  "fetched_at": "2026-04-09T22:15:47.107383",
+  "count": 144,
   "papers": [
+    {
+      "title": "Model privacy: a unified framework for understanding model stealing attacks and defences",
+      "authors": [
+        "Ganghua Wang",
+        "Yuhong Yang",
+        "Jie Ding"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1093/jrsssb/qkag059",
+      "url": "https://doi.org/10.1093/jrsssb/qkag059",
+      "journal": "JRSS-B"
+    },
+    {
+      "title": "Nonparametric inference for censored data using deep neural networks",
+      "authors": [
+        "Wen Su",
+        "Qiang Wu",
+        "Kin-Yat Liu",
+        "Guosheng Yin",
+        "Jian Huang",
+        "Xingqiu Zhao"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1093/jrsssb/qkag060",
+      "url": "https://doi.org/10.1093/jrsssb/qkag060",
+      "journal": "JRSS-B"
+    },
     {
       "title": "Beyond the mean: limit theory and tests for infinite-mean autoregressive conditional durations",
       "authors": [
@@ -2215,5 +2249,6 @@
       "url": "https://doi.org/10.1093/jrsssb/qkae118",
       "journal": "JRSS-B"
     }
-  ]
+  ],
+  "from_year": 2025
 }
