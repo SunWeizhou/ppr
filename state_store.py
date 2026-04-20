@@ -530,6 +530,14 @@ class StateStore:
             rows = conn.execute(query, params).fetchall()
         return [self._row_to_dict(row) for row in rows]
 
+    def get_queue_item(self, paper_id: str) -> Optional[Dict]:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM reading_queue_items WHERE paper_id = ?",
+                (paper_id,),
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
     def record_event(
         self, event_type: str, paper_id: str = "", payload: Optional[Dict] = None
     ) -> int:

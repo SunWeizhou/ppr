@@ -50,6 +50,10 @@ body {
   position: relative;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
 body::before {
   content: "";
   position: fixed;
@@ -1385,6 +1389,41 @@ a {
   margin-top: 12px;
 }
 
+.more-actions-dropdown {
+  position: relative;
+  margin-top: 8px;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 20;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  min-width: 180px;
+  margin-top: 4px;
+  padding: 4px 0;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: rgba(18, 76, 121, 0.06);
+}
+
 .detail-section {
   display: flex;
   flex-direction: column;
@@ -1483,9 +1522,74 @@ a {
   gap: 8px;
 }
 
+.card-selection-check {
+  margin-right: 6px;
+}
+
 .selection-check input {
   width: 16px;
   height: 16px;
+}
+
+.list-item-selectable {
+  cursor: pointer;
+}
+
+.modal-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 37, 61, 0.38);
+  backdrop-filter: blur(10px);
+}
+
+.modal-card {
+  position: relative;
+  width: min(680px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  margin: 24px auto;
+  padding: 22px;
+  overflow: auto;
+  border-radius: 24px;
+  background: rgba(251, 248, 243, 0.98);
+  border: 1px solid rgba(17, 37, 61, 0.08);
+  box-shadow: 0 24px 80px rgba(17, 37, 61, 0.18);
+}
+
+.modal-head,
+.modal-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-actions {
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.modal-list {
+  max-height: 220px;
+  overflow: auto;
 }
 
 .collection-meta-card {

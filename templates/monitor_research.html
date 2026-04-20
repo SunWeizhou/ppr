@@ -100,6 +100,7 @@
                                         <span class="list-item-title">{{ journal.name }}</span>
                                     </div>
                                     <div class="chip-row">
+                                        <span class="meta-chip">{{ journal.update_reason or 'activity stable' }}</span>
                                         <span class="meta-chip">Last: {{ journal.last_update }}</span>
                                         {% if journal.should_check %}
                                             <span class="chip warm">Update available</span>
@@ -124,8 +125,9 @@
                     <div>
                         <div class="section-kicker">Query Subscriptions</div>
                         <h2 class="panel-title">问题订阅</h2>
-                        <p class="muted-copy">保存的搜索问题会定期检查新匹配论文。</p>
+                        <p class="muted-copy">保存的问题会定期检查新匹配论文，并聚合到 Recent Hits。</p>
                     </div>
+                    <button type="button" class="action-button btn-brand" onclick="createQuerySubscription()">新建订阅</button>
                 </div>
 
                 {% if all_saved_searches %}
@@ -136,9 +138,17 @@
                                     <div class="paper-rank">
                                         <span class="list-item-title">{{ search.name }}</span>
                                     </div>
-                                    <span class="meta-chip">{{ search.updated_at[:10] if search.updated_at else '' }}</span>
+                                    <div class="chip-row">
+                                        <span class="meta-chip">{{ search.updated_at[:10] if search.updated_at else '' }}</span>
+                                        <span class="chip brand">{{ search.latest_hit_count or 0 }} hits</span>
+                                    </div>
                                 </div>
-                                <p class="paper-summary">{{ search.query_text }}</p>
+                                <p class="paper-summary">{{ search.description or search.query_text }}</p>
+                                <div class="action-row">
+                                    <button type="button" class="action-button btn-subtle" onclick='editQuerySubscription({{ search|tojson|forceescape }})'>Edit</button>
+                                    <button type="button" class="action-button btn-warm" onclick="runQuerySubscription({{ search.id }})">Run now</button>
+                                    <button type="button" class="action-button btn-danger" onclick="deleteQuerySubscription({{ search.id }}, {{ search.name|tojson }})">Delete</button>
+                                </div>
                             </article>
                         {% endfor %}
                     </div>
@@ -181,6 +191,7 @@
                                 <div class="paper-authors">{{ paper.author_text or paper.authors or '' }}</div>
                                 <p class="paper-summary">{{ paper.summary_short or (paper.summary or '')[:200] if paper.summary else '' }}</p>
                                 <div class="action-row">
+                                    <button type="button" class="action-button btn-ghost" onclick="queueCard(this, 'Inbox')">Inbox</button>
                                     <button type="button" class="action-button btn-warm" onclick="queueCard(this, 'Skim Later')">稍后读</button>
                                     <button type="button" class="action-button btn-sage" onclick="queueCard(this, 'Deep Read')">精读</button>
                                     <button type="button" class="action-button btn-ghost" onclick="collectCard(this)">Add to Collection</button>
@@ -252,6 +263,49 @@ async function collectCard(button) {
         });
     } catch (error) {
         showToast('加入 Collection 失败: ' + error.message, 'error');
+    }
+}
+
+async function createQuerySubscription() {
+    const savedSearch = await openQuerySubscriptionModal({
+        defaultName: 'New query subscription',
+        description: 'Created from Monitor'
+    });
+    if (savedSearch) {
+        window.setTimeout(() => window.location.reload(), 250);
+    }
+}
+
+async function editQuerySubscription(savedSearch) {
+    const updated = await openQuerySubscriptionModal({savedSearch: savedSearch});
+    if (updated) {
+        window.setTimeout(() => window.location.reload(), 250);
+    }
+}
+
+async function runQuerySubscription(searchId) {
+    try {
+        const result = await requestJson('/api/saved-searches/' + searchId + '/run');
+        showToast('本次命中 ' + (result.results || []).length + ' 篇论文');
+        window.setTimeout(() => window.location.reload(), 250);
+    } catch (error) {
+        showToast('运行失败: ' + error.message, 'error');
+    }
+}
+
+async function deleteQuerySubscription(searchId, name) {
+    if (!window.confirm('确定删除问题订阅 ' + name + ' 吗？')) return;
+    try {
+        await requestJson('/api/saved-searches', {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({search_id: searchId})
+        });
+        removeSavedSearchCache(searchId);
+        showToast('问题订阅已删除');
+        window.setTimeout(() => window.location.reload(), 250);
+    } catch (error) {
+        showToast('删除失败: ' + error.message, 'error');
     }
 }
 </script>

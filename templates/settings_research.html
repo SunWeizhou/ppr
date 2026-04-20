@@ -78,7 +78,9 @@
 
                 <section class="form-card full-span">
                     <div class="section-kicker">Demotion Rules</div>
-                    <h2 class="panel-title">不感兴趣主题</h2>
+                    <h2 class="panel-title">降权与不喜欢主题</h2>
+                    <label class="field-label" for="demoteTopics">这些词会被轻度降权</label>
+                    <textarea class="form-textarea" id="demoteTopics" name="demoteTopics" placeholder="例如：benchmark-heavy, engineering system papers">{{ demote_keywords }}</textarea>
                     <label class="field-label" for="dislikeTopics">这些词会被持续降权</label>
                     <textarea class="form-textarea" id="dislikeTopics" name="dislikeTopics" placeholder="例如：benchmark-heavy, federated learning, empirical systems">{{ dislike_text }}</textarea>
                 </section>
@@ -109,14 +111,40 @@
             <section class="form-card">
                 <div class="section-kicker">arXiv Categories</div>
                 <h2 class="panel-title">订阅分类</h2>
-                <p class="field-help">arXiv 分类决定每日抓取范围。当前配置在 user_profile.json 中管理。</p>
+                <label class="checkbox-row">
+                    <input type="checkbox" id="arxivEnabled" {% if sources.arxiv_enabled %}checked{% endif %}>
+                    <span>启用 arXiv 抓取</span>
+                </label>
+                <label class="checkbox-row">
+                    <input type="checkbox" id="journalEnabled" {% if sources.journal_enabled %}checked{% endif %}>
+                    <span>启用期刊更新</span>
+                </label>
+                <label class="checkbox-row">
+                    <input type="checkbox" id="scholarEnabled" {% if sources.scholar_enabled %}checked{% endif %}>
+                    <span>启用学者源</span>
+                </label>
+                <label class="field-label" for="lookbackDays">回看天数</label>
+                <input type="number" class="form-input" id="lookbackDays" value="{{ sources.lookback_days }}" min="3" max="60">
             </section>
 
             <section class="form-card">
                 <div class="section-kicker">Zotero Integration</div>
                 <h2 class="panel-title">Zotero 同步</h2>
-                <p class="field-help">连接 Zotero 本地库获取已读文献信息，辅助推荐排序。</p>
+                <label class="checkbox-row">
+                    <input type="checkbox" id="zoteroEnabled" {% if zotero.enabled %}checked{% endif %}>
+                    <span>启用 Zotero</span>
+                </label>
+                <label class="checkbox-row">
+                    <input type="checkbox" id="zoteroAutoDetect" {% if zotero.auto_detect %}checked{% endif %}>
+                    <span>自动检测 Zotero 数据库</span>
+                </label>
+                <label class="field-label" for="zoteroPath">Zotero 路径</label>
+                <input type="text" class="form-input" id="zoteroPath" value="{{ zotero.database_path or '' }}" placeholder="/path/to/zotero.sqlite">
             </section>
+        </div>
+        <div class="button-row" style="margin-top: 24px;">
+            <button type="button" class="action-button btn-brand" onclick="saveSettings(false)">保存设置</button>
+            <button type="button" class="action-button btn-warm" onclick="saveAndRegenerate()">保存并重生成</button>
         </div>
     </div>
 
@@ -281,10 +309,18 @@ async function saveSettings(regenerate = false) {
         coreTopics: coreKws,
         secondaryTopics: secondaryKws,
         theoryKeywords: theoryKws,
+        demoteTopics: document.getElementById('demoteTopics') ? document.getElementById('demoteTopics').value : '',
         dislikeTopics: document.getElementById('dislikeTopics') ? document.getElementById('dislikeTopics').value : '',
         papersPerDay: document.getElementById('papersPerDay') ? parseInt(document.getElementById('papersPerDay').value, 10) : 20,
         preferTheory: document.getElementById('preferTheory') ? document.getElementById('preferTheory').checked : true,
         theoryEnabled: document.getElementById('theoryEnabled') ? document.getElementById('theoryEnabled').checked : true,
+        arxivEnabled: document.getElementById('arxivEnabled') ? document.getElementById('arxivEnabled').checked : true,
+        journalEnabled: document.getElementById('journalEnabled') ? document.getElementById('journalEnabled').checked : true,
+        scholarEnabled: document.getElementById('scholarEnabled') ? document.getElementById('scholarEnabled').checked : false,
+        lookbackDays: document.getElementById('lookbackDays') ? parseInt(document.getElementById('lookbackDays').value, 10) : 14,
+        zoteroEnabled: document.getElementById('zoteroEnabled') ? document.getElementById('zoteroEnabled').checked : true,
+        zoteroAutoDetect: document.getElementById('zoteroAutoDetect') ? document.getElementById('zoteroAutoDetect').checked : true,
+        zoteroPath: document.getElementById('zoteroPath') ? document.getElementById('zoteroPath').value : '',
         regenerate: regenerate
     };
 

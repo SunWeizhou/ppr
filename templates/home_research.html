@@ -80,11 +80,11 @@
             </summary>
             <div class="rail-section-body">
                 <div class="filter-list">
-                    <button type="button" class="filter-chip active" data-filter-chip data-filter="all">全部</button>
-                    <button type="button" class="filter-chip" data-filter-chip data-filter="untriaged">未处理</button>
-                    <button type="button" class="filter-chip" data-filter-chip data-filter="queued">已入队</button>
-                    <button type="button" class="filter-chip" data-filter-chip data-filter="liked">已标相关</button>
-                    <button type="button" class="filter-chip" data-filter-chip data-filter="ignored">已忽略</button>
+                    <button type="button" class="filter-chip {% if selected_filter == 'all' %}active{% endif %}" data-filter-chip data-filter="all">全部</button>
+                    <button type="button" class="filter-chip {% if selected_filter == 'untriaged' %}active{% endif %}" data-filter-chip data-filter="untriaged">未处理</button>
+                    <button type="button" class="filter-chip {% if selected_filter == 'queued' %}active{% endif %}" data-filter-chip data-filter="queued">已入队</button>
+                    <button type="button" class="filter-chip {% if selected_filter == 'relevant' %}active{% endif %}" data-filter-chip data-filter="relevant">Relevant</button>
+                    <button type="button" class="filter-chip {% if selected_filter == 'ignored' %}active{% endif %}" data-filter-chip data-filter="ignored">Ignored</button>
                 </div>
             </div>
         </details>
@@ -130,6 +130,16 @@
             </div>
             <span class="chip brand" id="visiblePaperCount">{{ papers|length }} visible</span>
         </div>
+        <div class="bulk-bar">
+            <label class="selection-check">
+                <input type="checkbox" id="bulkSelectVisible">
+                <span>选择当前可见论文</span>
+            </label>
+            <span class="chip" id="bulkSelectionCount">0 selected</span>
+            <button type="button" class="action-button btn-danger" onclick="bulkIgnoreSelected()">Ignore</button>
+            <button type="button" class="action-button btn-warm" onclick="bulkQueueSelected('Skim Later')">Skim Later</button>
+            <button type="button" class="action-button btn-sage" onclick="bulkQueueSelected('Deep Read')">Deep Read</button>
+        </div>
 
         {% if papers %}
             <div class="paper-list-scroll">
@@ -147,10 +157,14 @@
                         data-paper-first-author="{{ paper.first_author }}"
                         data-feedback-state="{% if paper.is_liked %}liked{% elif paper.is_disliked %}disliked{% else %}none{% endif %}"
                         data-queue-status="{{ paper.queue_status or '' }}"
+                        data-queue-note=""
                         tabindex="0"
                     >
                         <div class="paper-list-head">
                             <div class="paper-rank">
+                                <label class="selection-check card-selection-check">
+                                    <input type="checkbox" class="paper-select-checkbox" data-paper-select value="{{ paper.id }}">
+                                </label>
                                 <span>#{{ paper.rank }}</span>
                                 <span class="state-chip {{ paper.queue_status_class }}" data-queue-state {% if not paper.queue_status %}hidden{% endif %}>{{ paper.queue_status or '' }}</span>
                             </div>
@@ -213,7 +227,10 @@
                 <button type="button" class="action-button btn-brand" onclick="submitSelectedFeedback('like')">相关</button>
                 <button type="button" class="action-button btn-danger" onclick="submitSelectedFeedback('dislike')">忽略</button>
             </div>
-            <button type="button" class="action-button btn-linkish" onclick="followSelectedAuthor()">关注作者</button>
+            <div class="detail-actions detail-actions-grid">
+                <a id="detailLink" class="action-button btn-brand" href="{{ first_paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="openSelectedPaper(event)">Open arXiv</a>
+                <button type="button" class="action-button btn-linkish" onclick="followSelectedAuthor()">关注作者</button>
+            </div>
 
             <details class="detail-disclosure" open>
                 <summary class="detail-disclosure-summary">
@@ -229,20 +246,15 @@
                 </div>
             </details>
 
-            <details class="detail-disclosure">
-                <summary class="detail-disclosure-summary">
-                    <span class="detail-label">Library Tools</span>
-                    <span class="detail-disclosure-copy">收藏、导出、打开原文</span>
-                </summary>
-                <div class="detail-disclosure-body">
-                    <div class="detail-actions detail-actions-grid detail-actions-tools">
-                        <button type="button" class="action-button btn-ghost" onclick="collectSelectedPaper()">加入 Collection</button>
-                        <button type="button" class="action-button btn-subtle" onclick="downloadSelectedBibtex()">BibTeX</button>
-                        <button type="button" class="action-button btn-subtle" onclick="downloadSelectedPdf()">PDF</button>
-                        <a href="{{ first_paper.link or '#' }}" id="detailLink" class="action-button btn-ghost" target="_blank" rel="noopener noreferrer" onclick="openSelectedPaper(event)">打开 arXiv</a>
-                    </div>
+            <div class="more-actions-dropdown">
+                <button type="button" class="action-button btn-subtle" onclick="toggleMoreActions()">More actions</button>
+                <div class="dropdown-menu" id="moreActionsMenu" hidden>
+                    <button type="button" class="dropdown-item" onclick="collectSelectedPaper(); closeMoreActions();">Add to Collection</button>
+                    <button type="button" class="dropdown-item" onclick="downloadSelectedPdf(); closeMoreActions();">Download PDF</button>
+                    <button type="button" class="dropdown-item" onclick="downloadSelectedBibtex(); closeMoreActions();">Export BibTeX</button>
+                    <button type="button" class="dropdown-item" onclick="toggleFullExplanation(); closeMoreActions();">View full explanation</button>
                 </div>
-            </details>
+            </div>
 
             <div class="detail-section">
                 <div class="detail-label">Abstract</div>
@@ -285,10 +297,31 @@
 <script>
 const inboxList = document.getElementById('inboxPaperList');
 const filterButtons = Array.from(document.querySelectorAll('[data-filter-chip]'));
+const bulkSelectVisible = document.getElementById('bulkSelectVisible');
 let currentInboxItem = document.querySelector('.paper-list-item.active');
+const selectedPaperIds = new Set();
 
 function visibleInboxItems() {
     return Array.from(document.querySelectorAll('.paper-list-item')).filter((item) => !item.hidden);
+}
+
+function updateBulkSelectionUi() {
+    document.getElementById('bulkSelectionCount').textContent = selectedPaperIds.size + ' selected';
+    const visibleItems = visibleInboxItems();
+    const visibleSelected = visibleItems.filter((item) => selectedPaperIds.has(item.dataset.paperId));
+    if (bulkSelectVisible) {
+        bulkSelectVisible.checked = Boolean(visibleItems.length) && visibleSelected.length === visibleItems.length;
+    }
+}
+
+function syncSelectionFromCheckbox(checkbox) {
+    const paperId = checkbox.value;
+    if (checkbox.checked) {
+        selectedPaperIds.add(paperId);
+    } else {
+        selectedPaperIds.delete(paperId);
+    }
+    updateBulkSelectionUi();
 }
 
 function setActiveInboxItem(item, options = {}) {
@@ -335,7 +368,7 @@ function applyInboxFilter(filterName) {
             match = feedbackState === 'none' && !queueStatus;
         } else if (filterName === 'queued') {
             match = Boolean(queueStatus);
-        } else if (filterName === 'liked') {
+        } else if (filterName === 'relevant') {
             match = feedbackState === 'liked';
         } else if (filterName === 'ignored') {
             match = feedbackState === 'disliked';
@@ -361,6 +394,7 @@ filterButtons.forEach((button) => {
 });
 
 inboxList?.addEventListener('click', (event) => {
+    if (event.target.closest('.paper-select-checkbox')) return;
     const item = event.target.closest('.paper-list-item');
     if (item) {
         setActiveInboxItem(item);
@@ -374,6 +408,22 @@ inboxList?.addEventListener('keydown', (event) => {
         event.preventDefault();
         setActiveInboxItem(item);
     }
+});
+
+document.querySelectorAll('.paper-select-checkbox').forEach((checkbox) => {
+    checkbox.addEventListener('click', (event) => event.stopPropagation());
+    checkbox.addEventListener('change', () => syncSelectionFromCheckbox(checkbox));
+});
+
+bulkSelectVisible?.addEventListener('change', () => {
+    const targetChecked = bulkSelectVisible.checked;
+    visibleInboxItems().forEach((item) => {
+        const checkbox = item.querySelector('.paper-select-checkbox');
+        if (!checkbox) return;
+        checkbox.checked = targetChecked;
+        syncSelectionFromCheckbox(checkbox);
+    });
+    updateBulkSelectionUi();
 });
 
 async function submitSelectedFeedback(action) {
@@ -396,7 +446,7 @@ async function submitSelectedFeedback(action) {
         currentInboxItem.dataset.feedbackState = action === 'like' ? 'liked' : 'disliked';
         currentInboxItem.classList.toggle('state-liked', action === 'like');
         currentInboxItem.classList.toggle('state-disliked', action === 'dislike');
-        showToast(action === 'like' ? '已标为相关' : '已忽略该论文');
+        showToast(action === 'like' ? '已标为 Relevant' : '已忽略该论文');
     } catch (error) {
         showToast('操作失败: ' + error.message, 'error');
     }
@@ -448,11 +498,117 @@ function downloadSelectedBibtex() {
 
 function openSelectedPaper(event) {
     if (!currentInboxItem) return;
+    if (event) {
+        event.preventDefault();
+        window.open(currentInboxItem.dataset.paperLink || '#', '_blank');
+    }
     trackPaperOpen(currentInboxItem.dataset.paperId, 'home_research');
 }
+
+function toggleMoreActions() {
+    const menu = document.getElementById('moreActionsMenu');
+    if (menu) menu.hidden = !menu.hidden;
+}
+
+function closeMoreActions() {
+    const menu = document.getElementById('moreActionsMenu');
+    if (menu) menu.hidden = true;
+}
+
+function toggleFullExplanation() {
+    const rationale = document.querySelector('.detail-disclosure:last-of-type');
+    if (rationale) rationale.open = !rationale.open;
+}
+
+document.addEventListener('click', (event) => {
+    const dropdown = event.target.closest('.more-actions-dropdown');
+    if (!dropdown) closeMoreActions();
+});
 
 if (currentInboxItem) {
     setActiveInboxItem(currentInboxItem, {scroll: false});
 }
+
+function focusRelativeInboxItem(direction) {
+    const items = visibleInboxItems();
+    if (!items.length || !currentInboxItem) return;
+    const currentIndex = Math.max(items.indexOf(currentInboxItem), 0);
+    const nextIndex = Math.min(Math.max(currentIndex + direction, 0), items.length - 1);
+    setActiveInboxItem(items[nextIndex]);
+    items[nextIndex].focus();
+}
+
+async function bulkIgnoreSelected() {
+    const paperIds = Array.from(selectedPaperIds);
+    if (!paperIds.length) return;
+    for (const paperId of paperIds) {
+        const item = document.querySelector('.paper-list-item[data-paper-id="' + escapeAttrValue(paperId) + '"]');
+        if (!item) continue;
+        await requestJson('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                paper_id: item.dataset.paperId,
+                action: 'dislike',
+                title: item.dataset.paperTitle,
+                abstract: item.dataset.paperSummary,
+                authors: item.dataset.paperAuthors,
+                score: Number(item.dataset.paperScore || '0'),
+                relevance: item.dataset.paperRelevance,
+                source: 'home_bulk'
+            })
+        });
+        item.dataset.feedbackState = 'disliked';
+        item.classList.remove('state-liked');
+        item.classList.add('state-disliked');
+    }
+    showToast('批量忽略已完成');
+}
+
+async function bulkQueueSelected(status) {
+    const paperIds = Array.from(selectedPaperIds);
+    if (!paperIds.length) return;
+    try {
+        await requestJson('/api/queue/bulk', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({paper_ids: paperIds, status: status, source: 'home_bulk'})
+        });
+        paperIds.forEach((paperId) => syncPaperState(paperId, status, ''));
+        showToast('批量操作已完成: ' + status);
+    } catch (error) {
+        showToast('批量操作失败: ' + error.message, 'error');
+    }
+}
+
+document.addEventListener('keydown', (event) => {
+    const tag = event.target?.tagName;
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        focusRelativeInboxItem(1);
+    } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        focusRelativeInboxItem(-1);
+    } else if (event.key.toLowerCase() === 'r') {
+        event.preventDefault();
+        submitSelectedFeedback('like');
+    } else if (event.key.toLowerCase() === 'i') {
+        event.preventDefault();
+        submitSelectedFeedback('dislike');
+    } else if (event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        queueSelectedPaper('Skim Later');
+    } else if (event.key.toLowerCase() === 'd') {
+        event.preventDefault();
+        queueSelectedPaper('Deep Read');
+    } else if (event.key.toLowerCase() === 'o') {
+        event.preventDefault();
+        openSelectedPaper();
+    }
+});
+
+applyInboxFilter('{{ selected_filter }}');
+updateBulkSelectionUi();
 </script>
 {% endblock %}

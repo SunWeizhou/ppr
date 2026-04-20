@@ -11,7 +11,7 @@
         <div class="search-bar">
             <input type="text" id="keywordInput" class="search-input" placeholder="例如：finite-sample conformal under covariate shift" value="{{ current_query }}">
             <button class="action-button btn-brand" onclick="doSearch()">搜索</button>
-            <button class="action-button btn-warm" onclick="saveSearch()">保存为 Saved Search</button>
+            <button class="action-button btn-warm" onclick="saveSearch()">保存为 Query Subscription</button>
             <button class="action-button btn-ghost" onclick="createCollectionFromCurrentQuery()">转成 Collection</button>
         </div>
         <ul class="search-hint-list">
@@ -47,10 +47,10 @@
             <div class="card-kicker">Explore Assets</div>
             <h2 class="panel-title">问题与容器</h2>
             <div class="chip-row">
-                <span class="chip brand">{{ all_saved_searches|length }} saved searches</span>
+                <span class="chip brand">{{ all_saved_searches|length }} query subscriptions</span>
                 <span class="chip sage">{{ all_collections|length }} collections</span>
             </div>
-            <p class="detail-copy">问题先沉淀成 Saved Search；如果它已经形成方法簇或研究线索，再升级成 Collection。</p>
+            <p class="detail-copy">问题先沉淀成 Query Subscription；如果它已经形成方法簇或研究线索，再升级成 Collection。</p>
         </div>
     </div>
 </section>
@@ -125,18 +125,18 @@
 
     <div class="aside-stack">
         <div class="stack-card">
-            <div class="card-kicker">Saved Questions</div>
-            <h2 class="panel-title">已保存的问题</h2>
+            <div class="card-kicker">Query Subscriptions</div>
+            <h2 class="panel-title">已保存的问题订阅</h2>
             {% if all_saved_searches %}
                 <div class="list-stack">
                     {% for search in all_saved_searches %}
                         <div class="list-item list-item-actions">
                             <div>
                                 <span class="list-item-title">{{ search.name }}</span>
-                                <span class="list-item-subtitle">{{ search.query_text }}</span>
+                                <span class="list-item-subtitle">{{ search.description or search.query_text }}</span>
                             </div>
                             <div class="inline-actions compact-actions">
-                                <a href="/library?tab=saved-searches&search_id={{ search.id }}" class="action-button btn-subtle">查看</a>
+                                <a href="/monitor?tab=queries" class="action-button btn-subtle">查看</a>
                                 <button type="button" class="action-button btn-danger" onclick="deleteSavedSearch({{ search.id }}, {{ search.name|tojson }})">删</button>
                             </div>
                         </div>
@@ -203,21 +203,16 @@ async function saveSearch() {
         return;
     }
     const defaultName = query.length > 36 ? query.slice(0, 36) + '…' : query;
-    const name = window.prompt('Saved Search 名称', defaultName);
-    if (!name) return;
 
     try {
-        await requestJson('/api/saved-searches', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                name: name,
-                query_text: query,
-                filters: {source: 'search_research'}
-            })
+        const savedSearch = await openQuerySubscriptionModal({
+            defaultName: defaultName,
+            queryText: query,
+            description: 'Created from Explore'
         });
-        showToast('Saved Search 已创建');
-        window.setTimeout(() => window.location.reload(), 350);
+        if (savedSearch) {
+            window.setTimeout(() => window.location.reload(), 350);
+        }
     } catch (error) {
         showToast('保存失败: ' + error.message, 'error');
     }
@@ -281,14 +276,15 @@ async function followSearchCard(button) {
 }
 
 async function deleteSavedSearch(searchId, name) {
-    if (!window.confirm('确定删除 Saved Search: ' + name + ' 吗？')) return;
+    if (!window.confirm('确定删除 Query Subscription: ' + name + ' 吗？')) return;
     try {
         await requestJson('/api/saved-searches', {
             method: 'DELETE',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({search_id: searchId})
         });
-        showToast('Saved Search 已删除');
+        removeSavedSearchCache(searchId);
+        showToast('问题订阅已删除');
         window.setTimeout(() => window.location.reload(), 300);
     } catch (error) {
         showToast('删除失败: ' + error.message, 'error');

@@ -14,7 +14,7 @@ import threading
 import urllib.parse
 import subprocess
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, request, render_template, send_file
+from flask import Flask, jsonify, request, render_template, send_file, redirect
 from flask_cors import CORS
 
 from app_paths import (
@@ -267,6 +267,26 @@ def _queue_counts():
     return counts
 
 
+def _serialize_collection(collection):
+    if not collection:
+        return collection
+    item = dict(collection)
+    item['seed_query'] = item.get('query_text', '')
+    return item
+
+
+def _serialize_saved_search(saved_search):
+    if not saved_search:
+        return saved_search
+    item = dict(saved_search)
+    filters = item.get('filters_json') or {}
+    item['description'] = filters.get('description', '')
+    item['subscription_type'] = 'query'
+    item['latest_hit_count'] = int(filters.get('latest_hit_count', 0) or 0)
+    item['seed_query'] = item.get('query_text', '')
+    return item
+
+
 def _split_query_terms(query_text: str):
     query_text = str(query_text or '').strip()
     if not query_text:
@@ -359,8 +379,8 @@ def _build_page_context(active_tab: str, *, is_today: bool = False):
     liked_count = len(feedback.get('liked', []))
     queue_counts = _queue_counts()
     latest_job = _serialize_job(STATE_STORE.get_latest_job('daily_recommendation'))
-    collections = STATE_STORE.list_collections()
-    saved_searches = STATE_STORE.list_saved_searches()
+    collections = [_serialize_collection(item) for item in STATE_STORE.list_collections()]
+    saved_searches = [_serialize_saved_search(item) for item in STATE_STORE.list_saved_searches()]
 
     return {
         'active_tab': active_tab,
@@ -477,7 +497,7 @@ def _decorate_search_papers(papers):
     return decorated
 
 
-def _render_home_research(date, papers, keywords, dates, prev_date, next_date, feedback):
+def _render_home_research(date, papers, keywords, dates, prev_date, next_date, feedback, selected_filter='all'):
     keywords_config = load_keywords_config()
     today_matched_keywords = extract_today_keywords(papers, keywords_config)
     is_today = date == datetime.now().strftime('%Y-%m-%d')
@@ -500,6 +520,7 @@ def _render_home_research(date, papers, keywords, dates, prev_date, next_date, f
         daily_themes=keywords[:10],
         matched_keyword_count=len(today_matched_keywords),
         papers=decorated_papers,
+        selected_filter=selected_filter,
         date_cards=_build_date_cards(dates, date),
         prev_date=prev_date,
         next_date=next_date,
@@ -509,7 +530,7 @@ def _render_home_research(date, papers, keywords, dates, prev_date, next_date, f
 
 
 def _render_search_research(papers, keywords):
-    page_context = _build_page_context('explore')
+    page_context = _build_page_context('')
     decorated_papers = _decorate_search_papers(papers)
     current_query = ', '.join(keywords)
 
@@ -528,11 +549,14 @@ def _render_settings_research(
     *,
     core_keywords,
     secondary_keywords,
+    demote_keywords,
     theory_keywords,
     dislike_text,
     papers_per_day,
     prefer_theory,
     theory_enabled,
+    sources,
+    zotero,
     tab='profile',
 ):
     page_context = _build_page_context('settings')
@@ -542,11 +566,14 @@ def _render_settings_research(
         tab=tab,
         core_keywords=core_keywords,
         secondary_keywords=secondary_keywords,
+        demote_keywords=demote_keywords,
         theory_keywords=theory_keywords,
         dislike_text=dislike_text,
         papers_per_day=papers_per_day,
         prefer_theory=prefer_theory,
         theory_enabled=theory_enabled,
+        sources=sources,
+        zotero=zotero,
         **page_context,
     )
 
@@ -776,7 +803,7 @@ def _render_library_research(tab='collections', collection_id=None, selected_dat
     # Collections tab
     selected_collection = None
     if collection_id:
-        selected_collection = STATE_STORE.get_collection(collection_id)
+        selected_collection = _serialize_collection(STATE_STORE.get_collection(collection_id))
     elif tab == 'collections' and collections_all:
         selected_collection = collections_all[0]
 
@@ -1518,6 +1545,9 @@ def save_keywords_config(config):
             for topic, weight in config['secondary_topics'].items():
                 cm.set_keyword(topic, weight, 'secondary', save=False)
 
+        if 'theory_keywords' in config:
+            cm._config['theory_keywords'] = list(config['theory_keywords'])
+
         # 批量更新降权主题
         if 'demote_topics' in config:
             for topic, weight in config['demote_topics'].items():
@@ -1986,7 +2016,20 @@ def generate_page(date=None, auto_generate=True):
         if idx > 0:
             next_date = dates[idx - 1]
 
-    return _render_home_research(date, papers, keywords, dates, prev_date, next_date, feedback)
+    selected_filter = request.args.get('filter', 'all').strip().lower()
+    if selected_filter not in {'all', 'untriaged', 'queued', 'relevant', 'ignored'}:
+        selected_filter = 'all'
+
+    return _render_home_research(
+        date,
+        papers,
+        keywords,
+        dates,
+        prev_date,
+        next_date,
+        feedback,
+        selected_filter=selected_filter,
+    )
 
 
 def render_html(date, papers, keywords, dates, prev_date, next_date, feedback):
@@ -2563,26 +2606,8 @@ def render_html(date, papers, keywords, dates, prev_date, next_date, feedback):
             return;
         }}
 
-        // 如果有多个作者，显示选择对话框
-        if (authors.length > 1) {{
-            const authorList = authors.map((a, i) => `${{i + 1}}. ${{a}}`).join('\\n');
-            const choice = prompt('选择要关注的作者:\\n' + authorList + '\\n\\n输入序号 (1-' + authors.length + ')，或输入 0 关注全部:');
-            if (!choice) return;
-
-            const num = parseInt(choice);
-            if (num === 0) {{
-                // 关注全部作者
-                addScholars(authors, title);
-            }} else if (num >= 1 && num <= authors.length) {{
-                // 关注选中的作者
-                addScholars([authors[num - 1]], title);
-            }} else {{
-                showToast('✗ 无效的选择');
-            }}
-        }} else {{
-            // 只有一个作者，直接添加
-            addScholars(authors, title);
-        }}
+        // 旧页面默认关注第一作者，避免使用浏览器 prompt
+        addScholars([authors[0]], title);
     }}
 
     async function addScholars(authors, paperTitle) {{
@@ -2653,7 +2678,7 @@ def queue_page():
 
 @app.route('/track')
 def track_page():
-    return _render_track_research()
+    return redirect('/monitor', code=302)
 
 
 @app.route('/monitor')
@@ -3197,13 +3222,13 @@ SCHOLARS = {
 @app.route('/scholars')
 def scholars_page():
     """Show scholars tracking page."""
-    return _render_scholars_research()
+    return redirect('/monitor?tab=authors', code=302)
 
 
 @app.route('/scholars/<category>')
 def scholars_category(category):
     """Show specific scholar category."""
-    return _render_scholars_research(category)
+    return redirect('/monitor?tab=authors', code=302)
 
 
 @app.route('/api/scholars/add', methods=['POST'])
@@ -3828,9 +3853,8 @@ def generate_scholars_page(selected_category=None):
 @app.route('/journal/<journal_key>/v/<volume>')
 @app.route('/journal/<journal_key>/v/<volume>/i/<issue>')
 def journal_page(journal_key='AoS', volume=None, issue=None):
-    """Show journal tracker page with volume/issue navigation."""
-    logger.debug(f"journal_page called: journal_key={journal_key}, volume={volume}, issue={issue}")
-    return _render_journal_research(journal_key, volume, issue)
+    """Legacy journal route kept for compatibility."""
+    return redirect('/monitor?tab=venues', code=302)
 
 
 @app.route('/debug')
@@ -3853,13 +3877,13 @@ def debug_info():
 @app.route('/liked')
 def view_liked():
     """Show all liked papers."""
-    return _render_favorites_research('liked')
+    return redirect('/?filter=relevant', code=302)
 
 
 @app.route('/disliked')
 def view_disliked():
     """Show all disliked papers."""
-    return _render_favorites_research('disliked')
+    return redirect('/?filter=ignored', code=302)
 
 
 @app.route('/library')
@@ -4804,7 +4828,8 @@ def get_job_status():
 def manage_collections():
     """Manage ResearchCollection objects."""
     if request.method == 'GET':
-        return jsonify({'success': True, 'collections': STATE_STORE.list_collections()})
+        collections = [_serialize_collection(item) for item in STATE_STORE.list_collections()]
+        return jsonify({'success': True, 'collections': collections})
 
     data = request.get_json() or {}
 
@@ -4816,7 +4841,7 @@ def manage_collections():
             collection = STATE_STORE.create_collection(
                 name,
                 description=data.get('description', ''),
-                query_text=data.get('query_text', ''),
+                query_text=data.get('seed_query', data.get('query_text', '')),
             )
         except sqlite3.IntegrityError:
             return jsonify({'success': False, 'error': 'Collection name already exists'}), 409
@@ -4825,7 +4850,7 @@ def manage_collections():
             'create_collection',
             payload={'collection_id': collection['id'], 'name': collection['name']},
         )
-        return jsonify({'success': True, 'collection': collection})
+        return jsonify({'success': True, 'collection': _serialize_collection(collection)})
 
     if request.method == 'PUT':
         collection_id = data.get('collection_id')
@@ -4836,7 +4861,7 @@ def manage_collections():
                 int(collection_id),
                 name=data.get('name'),
                 description=data.get('description'),
-                query_text=data.get('query_text'),
+                query_text=data.get('seed_query', data.get('query_text')),
                 is_active=data.get('is_active'),
             )
         except sqlite3.IntegrityError:
@@ -4845,7 +4870,7 @@ def manage_collections():
             'update_collection',
             payload={'collection_id': int(collection_id)},
         )
-        return jsonify({'success': True, 'collection': collection})
+        return jsonify({'success': True, 'collection': _serialize_collection(collection)})
 
     collection_id = data.get('collection_id')
     if not collection_id:
@@ -4867,7 +4892,7 @@ def get_collection_detail(collection_id):
         return jsonify({'success': False, 'error': 'Collection not found'}), 404
     return jsonify({
         'success': True,
-        'collection': collection,
+        'collection': _serialize_collection(collection),
         'papers': STATE_STORE.list_collection_papers(collection_id),
     })
 
@@ -4917,7 +4942,8 @@ def add_collection_paper(collection_id):
 def manage_saved_searches():
     """Manage SavedSearch objects."""
     if request.method == 'GET':
-        return jsonify({'success': True, 'saved_searches': STATE_STORE.list_saved_searches()})
+        searches = [_serialize_saved_search(item) for item in STATE_STORE.list_saved_searches()]
+        return jsonify({'success': True, 'saved_searches': searches})
 
     data = request.get_json() or {}
 
@@ -4930,7 +4956,10 @@ def manage_saved_searches():
             saved_search = STATE_STORE.create_saved_search(
                 name,
                 query_text,
-                filters=data.get('filters'),
+                filters={
+                    **(data.get('filters') or {}),
+                    'description': data.get('description', ''),
+                },
             )
         except sqlite3.IntegrityError:
             return jsonify({'success': False, 'error': 'Saved search name already exists'}), 409
@@ -4943,7 +4972,7 @@ def manage_saved_searches():
                 'query_text': saved_search['query_text'],
             },
         )
-        return jsonify({'success': True, 'saved_search': saved_search})
+        return jsonify({'success': True, 'saved_search': _serialize_saved_search(saved_search)})
 
     if request.method == 'PUT':
         search_id = data.get('search_id')
@@ -4954,7 +4983,10 @@ def manage_saved_searches():
                 int(search_id),
                 name=data.get('name'),
                 query_text=data.get('query_text'),
-                filters=data.get('filters'),
+                filters={
+                    **(data.get('filters') or {}),
+                    'description': data.get('description', ''),
+                },
                 is_active=data.get('is_active'),
             )
         except sqlite3.IntegrityError:
@@ -4963,7 +4995,7 @@ def manage_saved_searches():
             'update_saved_search',
             payload={'saved_search_id': int(search_id)},
         )
-        return jsonify({'success': True, 'saved_search': saved_search})
+        return jsonify({'success': True, 'saved_search': _serialize_saved_search(saved_search)})
 
     search_id = data.get('search_id')
     if not search_id:
@@ -4988,11 +5020,19 @@ def run_saved_search(search_id):
         from arxiv_recommender_v5 import search_by_keywords
         query_terms = _split_query_terms(saved_search.get('query_text', ''))
         results = search_by_keywords(query_terms, max_results=10, days_back=90)
+        STATE_STORE.update_saved_search(
+            search_id,
+            filters={
+                **(saved_search.get('filters_json') or {}),
+                'latest_hit_count': len(results),
+            },
+        )
+        saved_search = STATE_STORE.get_saved_search(search_id)
         STATE_STORE.record_event(
             'run_saved_search',
             payload={'saved_search_id': search_id, 'query_text': saved_search.get('query_text', '')},
         )
-        return jsonify({'success': True, 'saved_search': saved_search, 'results': results})
+        return jsonify({'success': True, 'saved_search': _serialize_saved_search(saved_search), 'results': results})
     except Exception as exc:
         return jsonify({'success': False, 'error': str(exc)}), 500
 
@@ -5009,18 +5049,28 @@ def manage_queue():
     data = request.get_json() or {}
     paper_id = str(data.get('paper_id', '')).strip()
     status = data.get('status')
+    note = data.get('note')
+    tags = data.get('tags')
 
-    if not paper_id or not status:
-        return jsonify({'success': False, 'error': 'Missing paper_id or status'}), 400
+    if not paper_id:
+        return jsonify({'success': False, 'error': 'Missing paper_id'}), 400
+
+    existing = STATE_STORE.get_queue_item(paper_id)
+    if status is None:
+        status = existing.get('status') if existing else None
     if status not in QUEUE_STATUS_VALUES:
         return jsonify({'success': False, 'error': 'Invalid status'}), 400
+    if note is None and existing:
+        note = existing.get('note', '')
+    if tags is None and existing:
+        tags = existing.get('tags_json')
 
     item = STATE_STORE.upsert_queue_item(
         paper_id,
         status,
         source=data.get('source', 'queue_api'),
-        note=data.get('note', ''),
-        tags=data.get('tags'),
+        note=note or '',
+        tags=tags,
     )
     event_id = STATE_STORE.record_event(
         'queue_status_changed',
@@ -5028,7 +5078,7 @@ def manage_queue():
         {
             'status': status,
             'source': data.get('source', 'queue_api'),
-            'note': data.get('note', ''),
+            'note': note or '',
         },
     )
     return jsonify({'success': True, 'item': item, 'event_id': event_id})
@@ -5382,39 +5432,59 @@ def settings_page():
         from config_manager import get_config
 
         config = get_config()
-        priority_topics = list(config.core_keywords.keys())
+        core_keywords = list(config.core_keywords.keys())
+        secondary_keywords = list(config.get_keywords_by_category('secondary').keys())
+        demote_keywords = list(config.demote_keywords.keys())
         dislike_topics = list(config.dislike_keywords.keys())
+        theory_keywords = config._config.get('theory_keywords', [])
         papers_per_day = config._settings.papers_per_day
         prefer_theory = config._settings.prefer_theory
         theory_enabled = getattr(config._settings, 'theory_enabled', True)
+        sources = {
+            'arxiv_enabled': config._sources.arxiv_enabled,
+            'journal_enabled': config._sources.journal_enabled,
+            'scholar_enabled': config._sources.scholar_enabled,
+            'lookback_days': config._sources.lookback_days,
+        }
+        zotero = {
+            'enabled': config._zotero.enabled,
+            'auto_detect': config._zotero.auto_detect,
+            'database_path': config._zotero.database_path,
+        }
 
     except Exception as e:
         logger.error(f"Error loading config: {e}")
-        priority_topics = []
+        core_keywords = []
+        secondary_keywords = []
+        demote_keywords = []
         dislike_topics = []
+        theory_keywords = []
         papers_per_day = 20
         prefer_theory = True
         theory_enabled = True
-
-    # Load keywords config for interactive management
-    keywords_config = load_keywords_config()
-
-    # 从配置文件获取关键词 (不再硬编码，避免重复维护)
-    core_keywords = list(keywords_config.get('core_topics', {}).keys())
-    secondary_keywords = list(keywords_config.get('secondary_topics', {}).keys())
-    theory_keywords = keywords_config.get('theory_keywords', [])
+        sources = {
+            'arxiv_enabled': True,
+            'journal_enabled': True,
+            'scholar_enabled': False,
+            'lookback_days': 14,
+        }
+        zotero = {'enabled': True, 'auto_detect': True, 'database_path': ''}
 
     # Topics as text
     dislike_text = ', '.join(dislike_topics)
+    demote_text = ', '.join(demote_keywords)
 
     return _render_settings_research(
         core_keywords=core_keywords,
         secondary_keywords=secondary_keywords,
+        demote_keywords=demote_text,
         theory_keywords=theory_keywords,
         dislike_text=dislike_text,
         papers_per_day=papers_per_day,
         prefer_theory=prefer_theory,
         theory_enabled=theory_enabled,
+        sources=sources,
+        zotero=zotero,
         tab=tab,
     )
 
@@ -5819,6 +5889,11 @@ def save_settings():
         # Parse topics from arrays (new format)
         core_topics = data.get('coreTopics', [])
         secondary_topics = data.get('secondaryTopics', [])
+        demote_topics = [
+            topic.strip()
+            for topic in str(data.get('demoteTopics', '')).split(',')
+            if topic.strip()
+        ]
         theory_keywords = data.get('theoryKeywords', [])
         dislike_text = data.get('dislikeTopics', '')
         dislike_topics = [t.strip() for t in dislike_text.split(',') if t.strip()]
@@ -5828,13 +5903,8 @@ def save_settings():
             priority_text = data.get('priorityTopics', '')
             core_topics = [t.strip() for t in priority_text.split(',') if t.strip()]
 
-        # Preserve demote topics because settings UI does not expose them yet.
-        existing_demote = cm.get_keywords_by_category('demote')
-
         # Clear existing keywords first
         cm._keywords.clear()
-        for topic, weight in existing_demote.items():
-            cm.set_keyword(topic, weight, 'demote', save=False)
 
         # Set core topics (default weight based on importance)
         core_weights = {
@@ -5868,6 +5938,9 @@ def save_settings():
             weight = secondary_weights.get(topic.lower(), 2.5)
             cm.set_keyword(topic, weight, 'secondary')
 
+        for topic in demote_topics:
+            cm.set_keyword(topic, -0.8, 'demote', save=False)
+
         # Set theory keywords in config
         cm._config['theory_keywords'] = theory_keywords
 
@@ -5879,6 +5952,13 @@ def save_settings():
         cm._settings.papers_per_day = data.get('papersPerDay', 20)
         cm._settings.prefer_theory = data.get('preferTheory', True)
         cm._settings.theory_enabled = data.get('theoryEnabled', True)
+        cm._sources.arxiv_enabled = bool(data.get('arxivEnabled', True))
+        cm._sources.journal_enabled = bool(data.get('journalEnabled', True))
+        cm._sources.scholar_enabled = bool(data.get('scholarEnabled', False))
+        cm._sources.lookback_days = int(data.get('lookbackDays', cm._sources.lookback_days or 14))
+        cm._zotero.enabled = bool(data.get('zoteroEnabled', True))
+        cm._zotero.auto_detect = bool(data.get('zoteroAutoDetect', True))
+        cm._zotero.database_path = str(data.get('zoteroPath', cm._zotero.database_path or '')).strip()
 
         # Save to user_profile.json
         cm.save()
@@ -5922,6 +6002,7 @@ def save_settings():
             'message': f'Saved {len(core_topics)} core, {len(secondary_topics)} secondary, {len(theory_keywords)} theory keywords',
             'core_count': len(core_topics),
             'secondary_count': len(secondary_topics),
+            'demote_count': len(demote_topics),
             'theory_count': len(theory_keywords),
             'job': _serialize_job(regeneration_job) if regeneration_job else None,
         })
@@ -5938,7 +6019,7 @@ def save_settings():
 @app.route('/stats')
 def reading_stats():
     """Reading statistics page."""
-    return _render_stats_research()
+    return redirect('/settings?tab=system', code=302)
 
 
 # ==================== Related Papers ====================
@@ -6112,6 +6193,15 @@ def manage_keywords():
         elif kw_type == 'theory':
             if keyword in config.get('theory_keywords', []):
                 config['theory_keywords'].remove(keyword)
+                removed = True
+        elif kw_type == 'demote':
+            if keyword in config.get('demote_topics', {}):
+                del config['demote_topics'][keyword]
+                removed = True
+        elif kw_type == 'dislike':
+            dislike_topics = config.get('dislike_topics', {})
+            if isinstance(dislike_topics, dict) and keyword in dislike_topics:
+                del dislike_topics[keyword]
                 removed = True
 
         if removed:

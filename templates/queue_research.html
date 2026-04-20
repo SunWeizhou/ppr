@@ -53,6 +53,7 @@
                             data-paper-summary="{{ paper.summary or '' }}"
                             data-paper-relevance="{{ paper.relevance or '' }}"
                             data-paper-link="{{ paper.link or '' }}"
+                            data-paper-note="{{ paper.queue_note or '' }}"
                             data-paper-score="{{ paper.score or 0 }}"
                             data-queue-status="{{ paper.queue_status or '' }}"
                             onclick="selectQueuePaper(this)">
@@ -93,6 +94,14 @@
                 <p id="detailAuthors" class="detail-authors"></p>
                 <p id="detailSummary" class="detail-summary"></p>
                 <div id="detailRelevance" class="reason-panel"></div>
+                <label class="field-label" for="detailQueueNote" style="margin-top: 16px;">Note</label>
+                <textarea id="detailQueueNote" class="form-textarea" rows="4" placeholder="记录你为什么要读它，或下一步要看什么。"></textarea>
+                <div class="action-row" style="margin-top: 16px;">
+                    <a id="detailQueueLink" class="action-button btn-brand" href="#" target="_blank" rel="noopener noreferrer" onclick="openQueuePaper()">Open arXiv</a>
+                    <button type="button" class="action-button btn-subtle" onclick="downloadQueuePdf()">PDF</button>
+                    <button type="button" class="action-button btn-ghost" onclick="collectQueuePaper()">Add to Collection</button>
+                    <button type="button" class="action-button btn-subtle" onclick="saveQueueNote()">Save Note</button>
+                </div>
                 <div class="action-row" style="margin-top: 16px;">
                     <span class="section-kicker">Move to</span>
                     {% for status in queue_status_values %}
@@ -118,6 +127,8 @@ function selectQueuePaper(card) {
     document.getElementById('detailPaperTitle').textContent = card.dataset.paperTitle;
     document.getElementById('detailAuthors').textContent = card.dataset.paperAuthors;
     document.getElementById('detailSummary').textContent = card.dataset.paperSummary;
+    document.getElementById('detailQueueNote').value = card.dataset.paperNote || '';
+    document.getElementById('detailQueueLink').href = card.dataset.paperLink || '#';
 
     const relevance = card.dataset.paperRelevance;
     document.getElementById('detailRelevance').textContent = relevance || '';
@@ -129,7 +140,10 @@ function selectQueuePaper(card) {
 async function moveQueuePaper(status) {
     if (!selectedQueuePaper) return;
     const paperId = selectedQueuePaper.dataset.paperId;
-    await queuePaperStatus(paperId, status, {source: 'queue_page'});
+    await queuePaperStatus(paperId, status, {
+        source: 'queue_page',
+        note: document.getElementById('detailQueueNote').value
+    });
     selectedQueuePaper.remove();
     selectedQueuePaper = null;
     document.getElementById('detailTitle').hidden = false;
@@ -139,6 +153,43 @@ async function moveQueuePaper(status) {
     const countEl = document.querySelector('.tab-button.active .tab-count');
     if (countEl) {
         countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
+    }
+}
+
+async function saveQueueNote() {
+    if (!selectedQueuePaper) return;
+    const note = document.getElementById('detailQueueNote').value;
+    try {
+        const item = await queuePaperStatus(selectedQueuePaper.dataset.paperId, selectedQueuePaper.dataset.queueStatus || 'Inbox', {
+            source: 'queue_note',
+            note: note
+        });
+        selectedQueuePaper.dataset.paperNote = item.note || note;
+        showToast('笔记已保存');
+    } catch (error) {
+        showToast('保存失败: ' + error.message, 'error');
+    }
+}
+
+function openQueuePaper() {
+    if (!selectedQueuePaper) return;
+    trackPaperOpen(selectedQueuePaper.dataset.paperId, 'queue_page');
+}
+
+function downloadQueuePdf() {
+    if (!selectedQueuePaper) return;
+    window.open('/api/pdf/' + encodeURIComponent(selectedQueuePaper.dataset.paperId), '_blank');
+}
+
+async function collectQueuePaper() {
+    if (!selectedQueuePaper) return;
+    try {
+        await addPaperToCollection(selectedQueuePaper.dataset.paperId, {
+            defaultName: selectedQueuePaper.dataset.paperTitle.slice(0, 48),
+            source: 'queue_page'
+        });
+    } catch (error) {
+        showToast('加入 Collection 失败: ' + error.message, 'error');
     }
 }
 </script>
