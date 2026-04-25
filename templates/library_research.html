@@ -14,8 +14,7 @@
         </div>
     </div>
     <div class="actions">
-        <a href="/search" class="btn btn-tertiary">Search</a>
-        <button type="button" class="btn btn-primary" onclick="createCollectionPrompt()">New collection</button>
+        <button type="button" class="btn btn-primary" onclick="openNewCollectionModal()">New collection</button>
     </div>
 </section>
 {% endblock %}
@@ -152,7 +151,7 @@
             </div>
             <div class="detail-section">
                 <div class="detail-label">Next Step</div>
-                <a href="/search" class="btn btn-primary">围绕这个问题继续找论文</a>
+                <button type="button" class="btn btn-primary" onclick="openNewCollectionModal()">新建 Collection</button>
             </div>
         </aside>
     </section>
@@ -325,7 +324,7 @@ async function removePaperFromCollection(collectionId, button) {
     }
 }
 
-async function createCollectionPrompt() {
+async function openNewCollectionModal() {
     try {
         const collection = await openCollectionEditor({defaultName: 'New collection'});
         if (collection) {

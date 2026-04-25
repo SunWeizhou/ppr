@@ -13,13 +13,13 @@ bp = Blueprint("queue", __name__)
 def queue_page():
     import web_server
 
-    status = request.args.get("status", "")
-    if status and status not in QUEUE_STATUS_VALUES:
-        status = ""
+    status = request.args.get("status") or "Inbox"
+    if status not in QUEUE_STATUS_VALUES:
+        status = "Inbox"
     page_context = web_server._build_page_context("queue")
     page_context.update(
         {
-            "queue_items": web_server._resolve_queue_papers(status=status if status else None),
+            "queue_items": web_server._resolve_queue_papers(status=status),
             "active_status": status,
             "queue_status_values": QUEUE_STATUS_VALUES,
         }

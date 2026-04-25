@@ -9,11 +9,10 @@
         <div class="page-context">
             <span>{{ queue_counts.values() | list | sum }} papers in queue</span>
             <span class="dot"></span>
-            <span>{{ active_status or 'All statuses' }}</span>
+            <span>{{ active_status }}</span>
         </div>
     </div>
     <div class="actions">
-        <a href="/search" class="btn btn-tertiary">Find more papers</a>
         <a href="/" class="btn btn-primary">Back to Inbox</a>
     </div>
 </section>
@@ -21,7 +20,6 @@
 
 {% block content %}
 <div class="tabs">
-    <a href="/queue" class="tab-button {% if not active_status %}active{% endif %}">All <span class="count">{{ queue_counts.values() | list | sum }}</span></a>
     {% for status in queue_status_values %}
         <a href="/queue?status={{ status|urlencode }}" class="tab-button {% if active_status == status %}active{% endif %}">
             {{ status }}
@@ -33,7 +31,7 @@
 <section class="split section-gap">
     <div>
         <div class="toolbar">
-            <span class="chip brand">{{ active_status or 'All queue items' }}</span>
+            <span class="chip brand">{{ active_status }}</span>
             <span class="chip">{{ queue_items|length }} visible</span>
             <span class="spacer"></span>
             <span class="chip">Canonical states: Inbox / Skim Later / Deep Read / Saved / Archived</span>
@@ -73,7 +71,7 @@
                     </article>
                 {% endfor %}
             {% else %}
-                {{ ui.empty_state((active_status or 'Queue') ~ ' 里还没有论文', '从 Inbox 或 Search 把论文送进阅读流程。') }}
+                {{ ui.empty_state(active_status ~ ' 里还没有论文', '从 Inbox 把论文送进阅读流程。') }}
             {% endif %}
         </div>
     </div>

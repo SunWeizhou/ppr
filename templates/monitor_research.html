@@ -14,7 +14,6 @@
         </div>
     </div>
     <div class="actions">
-        <a href="/search" class="btn btn-tertiary">Search</a>
         <button type="button" class="btn btn-secondary" onclick="createAuthorSubscription()">New author</button>
         <button type="button" class="btn btn-primary" onclick="createQuerySubscription()">New query</button>
     </div>
@@ -25,7 +24,7 @@
 <div class="tabs">
     <a href="/monitor?tab=authors" class="tab-button {% if tab == 'authors' %}active{% endif %}">Authors <span class="count">{{ my_scholars|length }}</span></a>
     <a href="/monitor?tab=venues" class="tab-button {% if tab == 'venues' %}active{% endif %}">Venues <span class="count">{{ journal_cards|length }}</span></a>
-    <a href="/monitor?tab=queries" class="tab-button {% if tab == 'queries' %}active{% endif %}">Queries <span class="count">{{ all_saved_searches|length }}</span></a>
+    <a href="/monitor?tab=queries" class="tab-button {% if tab == 'queries' %}active{% endif %}">Query Subscriptions <span class="count">{{ all_saved_searches|length }}</span></a>
     <a href="/monitor?tab=recent-hits" class="tab-button {% if tab == 'recent-hits' %}active{% endif %}">Recent Hits <span class="count">{{ recent_hits|length if recent_hits else 0 }}</span></a>
 </div>
 
@@ -44,7 +43,7 @@
                         <span class="list-item-trailing">{{ journal_cards|length }}</span>
                     </div>
                     <div class="list-item">
-                        <div><span class="list-item-title">Queries</span></div>
+                        <div><span class="list-item-title">Query Subscriptions</span></div>
                         <span class="list-item-trailing">{{ all_saved_searches|length }}</span>
                     </div>
                 </div>
@@ -58,7 +57,6 @@
                 <span class="chip brand">Followed authors</span>
                 <span class="spacer"></span>
                 <button type="button" class="btn btn-primary btn-sm" onclick="createAuthorSubscription()">新建作者</button>
-                <a href="/search" class="btn btn-secondary btn-sm">从论文里继续关注作者</a>
             </div>
             <div class="card card--flush">
                 {% if my_scholars %}
@@ -126,7 +124,7 @@
             </div>
         {% elif tab == 'queries' %}
             <div class="toolbar">
-                <span class="chip brand">Query subscriptions</span>
+                <span class="chip brand">Query Subscriptions</span>
                 <span class="spacer"></span>
                 <button type="button" class="btn btn-primary btn-sm" onclick="createQuerySubscription()">新建订阅</button>
             </div>

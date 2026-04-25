@@ -15,8 +15,6 @@
         </div>
     </div>
     <div class="actions">
-        <button type="button" class="btn btn-secondary" onclick="toggleDailyBrief(true)">Daily brief</button>
-        <a href="/search" class="btn btn-tertiary">继续探索</a>
         {% if is_today %}
             <button type="button" class="btn btn-primary" onclick="confirmRefreshToday()">刷新今日结果</button>
         {% endif %}
@@ -39,34 +37,8 @@
         {% if next_date %}<a href="/date/{{ next_date }}" class="btn btn-tertiary">更新一天</a>{% endif %}
     </div>
 
-    <div class="card card--inset date-strip-card inbox-date-strip">
-        <div class="paper-topline">
-            <span class="section-kicker">Recent Days</span>
-            <div class="date-strip">
-                {% for card in date_cards[:7] %}
-                    <a href="/date/{{ card.date }}" class="date-card-link {% if card.active %}active{% endif %}">
-                        <span class="date-month">{{ card.month }}</span>
-                        <span class="date-day">{{ card.day }}</span>
-                        <span class="date-weekday">{{ card.weekday }}</span>
-                    </a>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-
     <div class="split inbox-workspace">
         <div>
-            <div class="bulk-bar" id="bulkBar">
-                <label class="selection-check">
-                    <input type="checkbox" id="bulkSelectVisible">
-                    <span>选择当前可见论文</span>
-                </label>
-                <span class="chip" id="bulkSelectionCount">0 selected</span>
-                <button type="button" class="btn btn-danger" onclick="bulkIgnoreSelected()">Ignore</button>
-                <button type="button" class="btn btn-warm" onclick="bulkQueueSelected('Skim Later')">Skim Later</button>
-                <button type="button" class="btn btn-sage" onclick="bulkQueueSelected('Deep Read')">Deep Read</button>
-            </div>
-
             {% if papers %}
                 <div class="card card--flush paper-list-scroll">
                     <div class="paper-list" id="inboxPaperList">
@@ -88,9 +60,6 @@
                             >
                                 <div class="paper-list-head">
                                     <div class="paper-rank">
-                                        <label class="selection-check card-selection-check">
-                                            <input type="checkbox" class="paper-select-checkbox" data-paper-select value="{{ paper.id }}">
-                                        </label>
                                         <span>#{{ '%02d'|format(paper.rank) }}</span>
                                         <span class="state-chip {{ paper.queue_status_class }}" data-queue-state {% if not paper.queue_status %}hidden{% endif %}>{{ paper.queue_status or '' }}</span>
                                     </div>
@@ -149,20 +118,8 @@
                     <button type="button" class="btn btn-danger" onclick="submitSelectedFeedback('dislike')">Ignore</button>
                     <a id="detailLink" class="btn btn-primary" href="{{ first_paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="openSelectedPaper(event)">Open arXiv</a>
                     <button type="button" class="btn btn-warm" onclick="queueSelectedPaper('Skim Later')">Skim Later</button>
+                    <button type="button" class="btn btn-sage" onclick="queueSelectedPaper('Deep Read')">Deep Read</button>
                 </div>
-
-                <details class="detail-disclosure" open>
-                    <summary class="detail-disclosure-summary">
-                        <span class="detail-label">Read Lane</span>
-                        <span class="detail-disclosure-copy">决定这篇论文进入哪个阅读层级</span>
-                    </summary>
-                    <div class="detail-disclosure-body">
-                        <div class="detail-actions detail-actions-grid">
-                            <button type="button" class="btn btn-warm" onclick="queueSelectedPaper('Skim Later')">Skim Later</button>
-                            <button type="button" class="btn btn-sage" onclick="queueSelectedPaper('Deep Read')">Deep Read</button>
-                        </div>
-                    </div>
-                </details>
 
                 <div class="detail-actions">
                     <button type="button" class="btn btn-tertiary" data-more-actions-toggle onclick="toggleMoreActions()">More actions</button>
@@ -190,25 +147,6 @@
                     <div class="detail-label">Why Recommended</div>
                     <div class="reason-panel" id="detailRelevance">{{ first_paper.relevance_html | safe }}</div>
                 </div>
-
-                <details class="detail-disclosure">
-                    <summary class="detail-disclosure-summary">
-                        <span class="detail-label">Ranking Rationale</span>
-                        <span class="detail-disclosure-copy">为什么它排在这里，以及什么会让它被压下去</span>
-                    </summary>
-                    <div class="detail-disclosure-body">
-                        <div class="detail-grid">
-                            <div class="detail-box">
-                                <div class="detail-label">Why Above</div>
-                                <p class="detail-copy" id="detailWhyAbove">{{ first_paper.why_above }}</p>
-                            </div>
-                            <div class="detail-box">
-                                <div class="detail-label">Why Hidden</div>
-                                <p class="detail-copy" id="detailWhyHidden">{{ first_paper.why_hidden }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </details>
             {% else %}
                 <div class="empty-state">
                     <p class="muted-copy">选择一天并生成推荐后，这里会显示单篇论文的完整解释与操作。</p>
@@ -218,84 +156,16 @@
     </div>
 </section>
 
-<div id="dailyBriefDrawerWrap" hidden>
-    <div class="drawer-scrim" onclick="toggleDailyBrief(false)"></div>
-    <aside class="drawer">
-        <div class="drawer-head">
-            <div class="stack stack-1">
-                <span class="section-kicker">Daily Brief · {{ date }}</span>
-                <h2 class="panel-title">今天为什么是这组论文</h2>
-            </div>
-            <button type="button" class="icon-btn" onclick="toggleDailyBrief(false)">×</button>
-        </div>
-        <div class="drawer-body">
-            <div class="stack stack-3">
-                <span class="detail-label">Headline</span>
-                <div class="chip-row">
-                    {% for metric in headline_metrics %}
-                        <span class="chip brand">{{ metric.label }} · {{ metric.value }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="stack stack-3">
-                <span class="detail-label">Themes</span>
-                <div class="chip-row">
-                    {% for theme in daily_themes %}
-                        <span class="topic-chip">{{ theme }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="stack stack-3">
-                <span class="detail-label">Job Status</span>
-                <p class="detail-copy">
-                    {% if latest_job %}
-                        最近一次任务由 {{ latest_job.trigger_source }} 触发，更新时间 {{ latest_job.updated_at or latest_job.created_at }}。
-                    {% else %}
-                        当前没有生成任务记录。
-                    {% endif %}
-                </p>
-                {% if is_today %}
-                    <button type="button" class="btn btn-primary" onclick="confirmRefreshToday()">Re-run today's scoring</button>
-                {% endif %}
-            </div>
-        </div>
-    </aside>
-</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 const inboxList = document.getElementById('inboxPaperList');
 const filterButtons = Array.from(document.querySelectorAll('[data-filter-chip]'));
-const bulkSelectVisible = document.getElementById('bulkSelectVisible');
-const bulkBar = document.getElementById('bulkBar');
 let currentInboxItem = document.querySelector('.paper-list-item.active');
-const selectedPaperIds = new Set();
 
 function visibleInboxItems() {
     return Array.from(document.querySelectorAll('.paper-list-item')).filter((item) => !item.hidden);
-}
-
-function updateBulkSelectionUi() {
-    document.getElementById('bulkSelectionCount').textContent = selectedPaperIds.size + ' selected';
-    const visibleItems = visibleInboxItems();
-    const visibleSelected = visibleItems.filter((item) => selectedPaperIds.has(item.dataset.paperId));
-    if (bulkSelectVisible) {
-        bulkSelectVisible.checked = Boolean(visibleItems.length) && visibleSelected.length === visibleItems.length;
-    }
-    if (bulkBar) {
-        bulkBar.classList.toggle('is-active', selectedPaperIds.size > 0);
-    }
-}
-
-function syncSelectionFromCheckbox(checkbox) {
-    const paperId = checkbox.value;
-    if (checkbox.checked) {
-        selectedPaperIds.add(paperId);
-    } else {
-        selectedPaperIds.delete(paperId);
-    }
-    updateBulkSelectionUi();
 }
 
 function setActiveInboxItem(item, options = {}) {
@@ -309,8 +179,6 @@ function setActiveInboxItem(item, options = {}) {
     document.getElementById('detailScore').textContent = 'Score ' + Number(item.dataset.paperScore || '0').toFixed(1);
     document.getElementById('detailSummary').textContent = item.querySelector('[data-detail-summary]')?.textContent || '';
     document.getElementById('detailRelevance').innerHTML = item.querySelector('[data-detail-relevance]')?.innerHTML || '';
-    document.getElementById('detailWhyAbove').textContent = item.querySelector('[data-detail-why-above]')?.textContent || '';
-    document.getElementById('detailWhyHidden').textContent = item.querySelector('[data-detail-why-hidden]')?.textContent || '';
     document.getElementById('detailCategories').innerHTML = item.querySelector('[data-detail-categories]')?.innerHTML || '';
     document.getElementById('detailLink').href = item.dataset.paperLink || '#';
     const detailQueueState = document.getElementById('detailQueueState');
@@ -359,13 +227,6 @@ function applyInboxFilter(filterName) {
     }
 }
 
-function toggleDailyBrief(forceOpen) {
-    const shell = document.getElementById('dailyBriefDrawerWrap');
-    if (!shell) return;
-    shell.hidden = forceOpen === undefined ? !shell.hidden : !forceOpen;
-    document.body.classList.toggle('modal-open', !shell.hidden);
-}
-
 filterButtons.forEach((button) => {
     button.addEventListener('click', () => {
         filterButtons.forEach((item) => item.classList.remove('active'));
@@ -375,7 +236,6 @@ filterButtons.forEach((button) => {
 });
 
 inboxList?.addEventListener('click', (event) => {
-    if (event.target.closest('.paper-select-checkbox')) return;
     const item = event.target.closest('.paper-list-item');
     if (item) {
         setActiveInboxItem(item);
@@ -389,22 +249,6 @@ inboxList?.addEventListener('keydown', (event) => {
         event.preventDefault();
         setActiveInboxItem(item);
     }
-});
-
-document.querySelectorAll('.paper-select-checkbox').forEach((checkbox) => {
-    checkbox.addEventListener('click', (event) => event.stopPropagation());
-    checkbox.addEventListener('change', () => syncSelectionFromCheckbox(checkbox));
-});
-
-bulkSelectVisible?.addEventListener('change', () => {
-    const targetChecked = bulkSelectVisible.checked;
-    visibleInboxItems().forEach((item) => {
-        const checkbox = item.querySelector('.paper-select-checkbox');
-        if (!checkbox) return;
-        checkbox.checked = targetChecked;
-        syncSelectionFromCheckbox(checkbox);
-    });
-    updateBulkSelectionUi();
 });
 
 async function submitSelectedFeedback(action) {
@@ -497,8 +341,7 @@ function closeMoreActions() {
 }
 
 function toggleFullExplanation() {
-    const rationale = document.querySelector('.detail-disclosure:last-of-type');
-    if (rationale) rationale.open = !rationale.open;
+    if (currentInboxItem) openPaperActions(currentInboxItem, 'home_research');
 }
 
 document.addEventListener('click', (event) => {
@@ -518,49 +361,6 @@ function focusRelativeInboxItem(direction) {
     const nextIndex = Math.min(Math.max(currentIndex + direction, 0), items.length - 1);
     setActiveInboxItem(items[nextIndex]);
     items[nextIndex].focus();
-}
-
-async function bulkIgnoreSelected() {
-    const paperIds = Array.from(selectedPaperIds);
-    if (!paperIds.length) return;
-    for (const paperId of paperIds) {
-        const item = document.querySelector('.paper-list-item[data-paper-id="' + escapeAttrValue(paperId) + '"]');
-        if (!item) continue;
-        await requestJson('/api/feedback', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                paper_id: item.dataset.paperId,
-                action: 'dislike',
-                title: item.dataset.paperTitle,
-                abstract: item.dataset.paperSummary,
-                authors: item.dataset.paperAuthors,
-                score: Number(item.dataset.paperScore || '0'),
-                relevance: item.dataset.paperRelevance,
-                source: 'home_bulk'
-            })
-        });
-        item.dataset.feedbackState = 'disliked';
-        item.classList.remove('state-liked');
-        item.classList.add('state-disliked');
-    }
-    showToast('批量忽略已完成');
-}
-
-async function bulkQueueSelected(status) {
-    const paperIds = Array.from(selectedPaperIds);
-    if (!paperIds.length) return;
-    try {
-        await requestJson('/api/queue/bulk', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({paper_ids: paperIds, status: status, source: 'home_bulk'})
-        });
-        paperIds.forEach((paperId) => syncPaperState(paperId, status, ''));
-        showToast('批量操作已完成: ' + status);
-    } catch (error) {
-        showToast('批量操作失败: ' + error.message, 'error');
-    }
 }
 
 document.addEventListener('keydown', (event) => {
@@ -587,12 +387,9 @@ document.addEventListener('keydown', (event) => {
     } else if (event.key.toLowerCase() === 'o') {
         event.preventDefault();
         openSelectedPaper();
-    } else if (event.key === 'Escape') {
-        toggleDailyBrief(false);
     }
 });
 
 applyInboxFilter('{{ selected_filter }}');
-updateBulkSelectionUi();
 </script>
 {% endblock %}
