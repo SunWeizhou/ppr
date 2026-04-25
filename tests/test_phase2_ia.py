@@ -13,26 +13,46 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
     def test_inbox_template_is_strict_triage_surface(self):
         template = Path("templates/home_research.html").read_text(encoding="utf-8")
 
-        required = ["Relevant", "Ignore", "Skim Later", "Deep Read", "Open arXiv", "Why Recommended"]
+        required = [
+            "Relevant",
+            "Ignore",
+            "Skim Later",
+            "Deep Read",
+            "Open arXiv",
+            "Abstract",
+            "AI Analysis",
+            "Why Recommended",
+        ]
         for text in required:
             self.assertIn(text, template)
 
-        forbidden_main_surface = [
+        forbidden_inbox_surface = [
             "Daily brief",
             "bulkBar",
             "bulkSelectVisible",
             "date-strip-card",
             "Ranking Rationale",
+            "Ranking breakdown",
             "Read Lane",
             "Full diagnostics",
+            "Download PDF",
+            "Export BibTeX",
+            "Follow author",
+            "Archive",
         ]
-        for text in forbidden_main_surface:
+        for text in forbidden_inbox_surface:
             self.assertNotIn(text, template)
 
         self.assertIn("More actions", template)
         self.assertIn("Add to Collection", template)
-        self.assertIn("Download PDF", template)
-        self.assertIn("Export BibTeX", template)
+        self.assertIn("View full explanation", template)
+        self.assertIn("暂无 AI 分析，当前显示原始摘要和规则推荐原因。", template)
+
+    def test_inbox_page_still_serves(self):
+        import web_server
+
+        response = web_server.app.test_client().get("/")
+        self.assertEqual(response.status_code, 200)
 
     def test_queue_defaults_to_inbox_and_has_only_canonical_tabs(self):
         template = Path("templates/queue_research.html").read_text(encoding="utf-8")

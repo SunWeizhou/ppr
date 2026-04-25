@@ -113,39 +113,42 @@
                     {% endfor %}
                 </div>
 
-                <div class="detail-actions detail-actions-grid detail-primary-actions">
-                    <button type="button" class="btn btn-primary" onclick="submitSelectedFeedback('like')">Relevant</button>
-                    <button type="button" class="btn btn-danger" onclick="submitSelectedFeedback('dislike')">Ignore</button>
-                    <a id="detailLink" class="btn btn-primary" href="{{ first_paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="openSelectedPaper(event)">Open arXiv</a>
-                    <button type="button" class="btn btn-warm" onclick="queueSelectedPaper('Skim Later')">Skim Later</button>
-                    <button type="button" class="btn btn-sage" onclick="queueSelectedPaper('Deep Read')">Deep Read</button>
-                </div>
-
-                <div class="detail-actions">
-                    <button type="button" class="btn btn-tertiary" data-more-actions-toggle onclick="toggleMoreActions()">More actions</button>
-                    <div class="more-actions-dropdown">
-                        <div class="card more-actions-menu" id="moreActionsMenu" hidden>
-                            <div class="list-stack">
-                                <button type="button" class="btn btn-tertiary" onclick="queueSelectedPaper('Saved'); closeMoreActions();">Save paper</button>
-                                <button type="button" class="btn btn-tertiary" onclick="queueSelectedPaper('Archived'); closeMoreActions();">Archive</button>
-                                <button type="button" class="btn btn-tertiary" onclick="followSelectedAuthor(); closeMoreActions();">Follow author</button>
-                                <button type="button" class="btn btn-tertiary" onclick="collectSelectedPaper(); closeMoreActions();">Add to Collection</button>
-                                <button type="button" class="btn btn-tertiary" onclick="downloadSelectedPdf(); closeMoreActions();">Download PDF</button>
-                                <button type="button" class="btn btn-tertiary" onclick="downloadSelectedBibtex(); closeMoreActions();">Export BibTeX</button>
-                                <button type="button" class="btn btn-tertiary" onclick="toggleFullExplanation(); closeMoreActions();">View full explanation</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="detail-section">
                     <div class="detail-label">Abstract</div>
                     <p class="detail-copy" id="detailSummary">{{ first_paper.summary }}</p>
                 </div>
 
                 <div class="detail-section">
+                    <div class="detail-label">AI Analysis</div>
+                    <p class="detail-copy" id="detailAiAnalysis">暂无 AI 分析，当前显示原始摘要和规则推荐原因。</p>
+                </div>
+
+                <div class="detail-section">
                     <div class="detail-label">Why Recommended</div>
                     <div class="reason-panel" id="detailRelevance">{{ first_paper.relevance_html | safe }}</div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-label">Actions</div>
+                    <div class="detail-actions detail-actions-grid detail-primary-actions">
+                        <button type="button" class="btn btn-primary" onclick="submitSelectedFeedback('like')">Relevant</button>
+                        <button type="button" class="btn btn-danger" onclick="submitSelectedFeedback('dislike')">Ignore</button>
+                        <a id="detailLink" class="btn btn-primary" href="{{ first_paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="openSelectedPaper(event)">Open arXiv</a>
+                        <button type="button" class="btn btn-warm" onclick="queueSelectedPaper('Skim Later')">Skim Later</button>
+                        <button type="button" class="btn btn-sage" onclick="queueSelectedPaper('Deep Read')">Deep Read</button>
+                    </div>
+
+                    <div class="detail-actions">
+                        <button type="button" class="btn btn-tertiary" data-more-actions-toggle onclick="toggleMoreActions()">More actions</button>
+                        <div class="more-actions-dropdown">
+                            <div class="card more-actions-menu" id="moreActionsMenu" hidden>
+                                <div class="list-stack">
+                                    <button type="button" class="btn btn-tertiary" onclick="collectSelectedPaper(); closeMoreActions();">Add to Collection</button>
+                                    <button type="button" class="btn btn-tertiary" onclick="toggleFullExplanation(); closeMoreActions();">View full explanation</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             {% else %}
                 <div class="empty-state">
@@ -296,29 +299,6 @@ async function collectSelectedPaper() {
     } catch (error) {
         showToast('加入 Collection 失败: ' + error.message, 'error');
     }
-}
-
-async function followSelectedAuthor() {
-    if (!currentInboxItem) return;
-    try {
-        await followAuthor(currentInboxItem.dataset.paperFirstAuthor, {
-            paperId: currentInboxItem.dataset.paperId,
-            title: currentInboxItem.dataset.paperTitle,
-            source: 'home_research'
-        });
-    } catch (error) {
-        showToast('关注失败: ' + error.message, 'error');
-    }
-}
-
-function downloadSelectedPdf() {
-    if (!currentInboxItem) return;
-    window.open('/api/pdf/' + encodeURIComponent(currentInboxItem.dataset.paperId), '_blank');
-}
-
-function downloadSelectedBibtex() {
-    if (!currentInboxItem) return;
-    downloadBibtex(currentInboxItem.dataset.paperId);
 }
 
 function openSelectedPaper(event) {
