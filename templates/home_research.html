@@ -119,8 +119,11 @@
                 </div>
 
                 <div class="detail-section" data-ai-analysis-section>
-                    <div class="detail-label">AI Analysis</div>
-                    <p class="detail-copy" id="detailAiAnalysis">暂无 AI 分析，当前显示原始摘要和规则推荐原因。</p>
+                    <div class="detail-label-row">
+                        <div class="detail-label">AI Analysis</div>
+                        <button type="button" class="btn btn-tertiary" data-ai-analysis-generate onclick="generateSelectedAiAnalysis()">Generate AI Analysis</button>
+                    </div>
+                    <div class="detail-copy" id="detailAiAnalysis" data-ai-analysis-output>暂无 AI 分析，当前显示原始摘要和规则推荐原因。</div>
                 </div>
 
                 <div class="detail-section">
@@ -166,9 +169,98 @@
 const inboxList = document.getElementById('inboxPaperList');
 const filterButtons = Array.from(document.querySelectorAll('[data-filter-chip]'));
 let currentInboxItem = document.querySelector('.paper-list-item.active');
+let aiAnalysisRequestToken = 0;
+
+const aiAnalysisLabels = {
+    one_sentence_summary: '一句话总结',
+    problem: '研究问题',
+    method: '方法思路',
+    contribution: '主要贡献',
+    limitations: '局限性',
+    why_it_matters: '为什么重要',
+    recommended_reading_level: '阅读建议'
+};
 
 function visibleInboxItems() {
     return Array.from(document.querySelectorAll('.paper-list-item')).filter((item) => !item.hidden);
+}
+
+function setAiAnalysisMessage(message) {
+    const output = document.getElementById('detailAiAnalysis');
+    if (output) output.textContent = message;
+}
+
+function selectedPaperPayload() {
+    if (!currentInboxItem) return null;
+    return {
+        id: currentInboxItem.dataset.paperId,
+        title: currentInboxItem.dataset.paperTitle,
+        abstract: currentInboxItem.dataset.paperSummary,
+        authors: currentInboxItem.dataset.paperAuthors
+    };
+}
+
+function escapeAiHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function renderAiAnalysis(analysis) {
+    const output = document.getElementById('detailAiAnalysis');
+    if (!output || !analysis) return;
+    if (analysis.status === 'not_configured') {
+        output.textContent = 'AI provider 未配置。当前显示原始摘要和规则推荐原因。';
+        return;
+    }
+    if (analysis.status === 'failed') {
+        output.textContent = 'AI 分析生成失败。你仍然可以根据摘要和推荐原因判断。';
+        return;
+    }
+    const rows = Object.entries(aiAnalysisLabels)
+        .map(([key, label]) => {
+            const value = analysis[key] || '';
+            return value ? `<div class="analysis-row"><strong>${label}</strong><span>${escapeAiHtml(value)}</span></div>` : '';
+        })
+        .filter(Boolean);
+    output.innerHTML = rows.length ? rows.join('') : '暂无 AI 分析。你可以生成分析，或继续根据摘要和推荐原因判断。';
+}
+
+async function loadSelectedAiAnalysis() {
+    const paper = selectedPaperPayload();
+    if (!paper?.id) return;
+    const token = ++aiAnalysisRequestToken;
+    setAiAnalysisMessage('暂无 AI 分析。你可以生成分析，或继续根据摘要和推荐原因判断。');
+    try {
+        const payload = await requestJson('/api/papers/' + encodeURIComponent(paper.id) + '/analysis');
+        if (token === aiAnalysisRequestToken) renderAiAnalysis(payload.analysis);
+    } catch (error) {
+        if (token === aiAnalysisRequestToken && !String(error.message || '').includes('analysis_not_found')) {
+            setAiAnalysisMessage('AI 分析暂时不可用。你仍然可以根据摘要和推荐原因判断。');
+        }
+    }
+}
+
+async function generateSelectedAiAnalysis() {
+    const paper = selectedPaperPayload();
+    if (!paper?.id) return;
+    const token = ++aiAnalysisRequestToken;
+    setAiAnalysisMessage('正在生成 AI 分析...');
+    try {
+        const payload = await requestJson('/api/papers/' + encodeURIComponent(paper.id) + '/analysis/generate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({paper, force: false})
+        });
+        if (token === aiAnalysisRequestToken) renderAiAnalysis(payload.analysis);
+    } catch (error) {
+        if (token === aiAnalysisRequestToken) {
+            setAiAnalysisMessage('AI 分析生成失败。你仍然可以根据摘要和推荐原因判断。');
+        }
+    }
 }
 
 function setActiveInboxItem(item, options = {}) {
@@ -198,6 +290,7 @@ function setActiveInboxItem(item, options = {}) {
     if (options.scroll !== false) {
         item.scrollIntoView({block: 'nearest', behavior: 'smooth'});
     }
+    loadSelectedAiAnalysis();
 }
 
 function applyInboxFilter(filterName) {
