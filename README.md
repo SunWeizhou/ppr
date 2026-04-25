@@ -1,212 +1,98 @@
-# arXiv Paper Recommender System
+# Paper Recommender / Research Triage Desk
 
-基于 Zotero 文献库的智能 arXiv 论文推荐系统
+A local-first research triage desk for arXiv papers. The product goal is not to
+give researchers more papers; it is to help them decide what to read today, move
+papers into a reading workflow, preserve long-term research assets, and monitor
+authors, venues, and queries.
 
-[English](#english) | [中文](#中文)
+The intended product structure is:
 
----
+```text
+Inbox / Queue / Library / Monitor / Settings
+```
 
-## 中文
+Inbox First is the main product rule: the home page should only serve today's
+paper triage.
 
-### 功能特点
+## Product Direction
 
-- **智能推荐**: 5层评分系统（关键词匹配 + Zotero语义相似度 + 作者影响力 + 引用分析 + 反馈学习）
-- **学者追踪**: 关注喜欢的学者，自动提升其新论文排名
-- **期刊追踪**: 追踪顶级期刊（AoS, JASA, Biometrika, JRSS-B）
-- **反馈学习**: 根据你的喜欢/不喜欢自动调整推荐权重
-- **Git自动备份**: 用户数据自动版本控制，永不丢失
-- **Web界面**: 美观的响应式界面，支持点赞、收藏、搜索
+- Inbox: today's recommendation list, filters, detail panel, why recommended,
+  Relevant/Ignore, Skim Later/Deep Read, and Open arXiv.
+- Queue: reading workflow states such as Inbox, Skim Later, Deep Read, Saved,
+  and Archived.
+- Library: collections, saved papers, and history.
+- Monitor: authors, venues, query subscriptions, and recent hits.
+- Settings: profile, sources, ranking, and system settings.
 
-### 研究方向
+Search remains a contextual capability. It should not be treated as a top-level
+navigation destination.
 
-系统针对以下统计/机器学习方向优化：
-- Statistical Learning Theory
-- In-Context Learning
-- Conformal Prediction
-- Nonparametric Estimation
-- Generalization Theory
-- Large Language Model Theory
+## Quick Start
 
-### 快速开始
-
-#### 1. 安装依赖
+Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt -c constraints.txt
 ```
 
-#### 2. 配置（必须）
+Create a private local profile from the example:
 
-创建 `user_profile.json`，配置你的研究信息：
-
-```json
-{
-  "research_focus": "你的研究方向描述",
-  "keywords": ["keyword1", "keyword2"],
-  "zotero_db_path": "你的Zotero数据库路径"
-}
+```bash
+cp user_profile.example.json user_profile.json
 ```
 
-#### 3. 启动服务器
+Edit `user_profile.json` for your research topics and optional Zotero database
+path. This file is private local state and is ignored by git.
+
+Start the Flask app:
 
 ```bash
 python web_server.py
 ```
 
-访问 http://localhost:5555
+Open http://localhost:5555.
 
-### 配置说明
+## Tests
 
-#### 必须配置的文件
-
-| 文件 | 用途 | 是否必须 |
-|------|------|----------|
-| `user_profile.json` | 用户配置（关键词、Zotero路径） | 必须 |
-| `keywords_config.json` | 关键词权重配置 | 可选，有默认值 |
-| `my_scholars.json` | 关注的学者列表 | 可选，通过Web界面添加 |
-
-#### user_profile.json 结构
-
-```json
-{
-  "research_focus": "Statistical learning theory and nonparametric methods",
-  "keywords": [
-    "conformal prediction",
-    "in-context learning",
-    "minimax optimal",
-    "sample complexity"
-  ],
-  "zotero_db_path": "/path/to/your/zotero.sqlite",
-  "preferences": {
-    "papers_per_day": 20,
-    "arxiv_categories": ["stat.ML", "cs.LG", "math.ST"]
-  }
-}
-```
-
-#### Zotero 数据库路径
-
-- **Windows**: `C:/Users/<用户名>/Zotero/zotero.sqlite`
-- **macOS**: `/Users/<用户名>/Zotero/zotero.sqlite`
-- **Linux**: `/home/<用户名>/Zotero/zotero.sqlite`
-
-### 文件结构
-
-```
-arxiv_recommender/
-├── web_server.py           # Web服务器（主入口）
-├── arxiv_recommender_v5.py # 推荐引擎
-├── config_manager.py       # 配置管理
-├── journal_tracker.py      # 期刊追踪
-├── backup_user_data.py     # Git备份工具
-├── index.html              # 主页面
-├── scholars.html           # 学者追踪页面
-├── journal.html            # 期刊追踪页面
-├── user_profile.json       # 用户配置（需自己创建）
-├── my_scholars.json        # 关注的学者
-├── cache/                  # 缓存目录
-│   ├── user_feedback.json  # 反馈数据
-│   ├── favorite_papers.json # 收藏论文
-│   └── daily_recommendation.json # 今日推荐
-└── history/                # 历史存档
-```
-
-### Git 自动备份
-
-系统自动备份用户数据到Git，防止数据丢失：
+Run the productization and regression tests with explicit discovery:
 
 ```bash
-# 查看备份历史
-python backup_user_data.py history
-
-# 手动备份
-python backup_user_data.py
-
-# 恢复数据
-python backup_user_data.py restore <commit_hash>
+python -m unittest discover -s tests -v
 ```
 
-### 定时任务
+`python -m unittest discover -v` is also expected to discover tests from the
+repository root.
 
-#### Windows
-```bash
-# 以管理员身份运行
-install_task.bat
-```
+## Runtime State
 
-#### Linux/macOS (cron)
-```bash
-0 9 * * * cd /path/to/arxiv_recommender && python arxiv_recommender_v5.py
-```
+Runtime data is intentionally not tracked:
 
----
+- `user_profile.json`, `user_config.json`, `keywords_config.json`, and
+  `my_scholars.json` are private local configuration/state.
+- `cache/` contains generated caches, recommendation runs, embeddings, PDFs,
+  and SQLite runtime files.
+- `history/` and `daily_arxiv_digest.md` contain generated digest output.
+- `reports/` is reserved for generated evaluation reports.
 
-## English
+SQLite is the target primary state source for durable workflow state. JSON and
+Markdown files should only be caches, import/export artifacts, or display
+outputs unless a future architecture document explicitly says otherwise.
 
-### Features
+## Documentation Map
 
-- **Smart Recommendations**: 5-layer scoring (Keywords + Zotero Semantic + Author Influence + Citation Analysis + Feedback Learning)
-- **Scholar Tracking**: Follow favorite scholars, auto-boost their new papers
-- **Journal Tracking**: Track top journals (AoS, JASA, Biometrika, JRSS-B)
-- **Feedback Learning**: Auto-adjust weights based on likes/dislikes
-- **Git Auto-Backup**: Automatic version control for user data
-- **Web Interface**: Beautiful responsive UI with like, favorite, search
+- `PRD.md`: canonical product direction.
+- `PRODUCT_REDESIGN_EXECUTION.md`: product redesign execution notes.
+- `docs/ARCHITECTURE.md`: current architecture, target architecture, and state
+  source policy.
+- `docs/AGENTS.md`: agent roles, PR rules, and product/architecture guardrails.
+- `docs/archive/removed-artifacts.md`: record of runtime and draft artifacts
+  removed during Phase 0 hygiene.
 
-### Quick Start
+## Development Rules
 
-#### 1. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-#### 2. Configure
-
-Create `user_profile.json`:
-
-```json
-{
-  "research_focus": "Your research focus description",
-  "keywords": ["keyword1", "keyword2"],
-  "zotero_db_path": "/path/to/zotero.sqlite"
-}
-```
-
-#### 3. Run Server
-
-```bash
-python web_server.py
-```
-
-Visit http://localhost:5555
-
-### Configuration Files
-
-| File | Purpose | Required |
-|------|---------|----------|
-| `user_profile.json` | User config (keywords, Zotero path) | Yes |
-| `keywords_config.json` | Keyword weights | No |
-| `my_scholars.json` | Followed scholars | No |
-
-### License
-
-MIT License (recommended for open source)
-
----
-
-## 需要修改的硬编码路径（开源前）
-
-以下文件包含硬编码路径，开源前需要改为相对路径或配置项：
-
-| 文件 | 行号 | 内容 |
-|------|------|------|
-| `web_server.py` | 60 | `BASE_DIR = 'D:/arxiv_recommender'` |
-| `arxiv_recommender_v5.py` | 74, 105 | Zotero路径 |
-| `journal_tracker.py` | 100, 877 | Cache和配置路径 |
-| `learn_paper.py` | 18 | 学习论文路径 |
-
-**建议**: 开源前将这些路径改为从配置文件读取或使用相对路径。
-
----
-
-Generated by arXiv Paper Recommender System
+- Keep the app local-first and easy to run.
+- Do not introduce accounts, cloud sync, LLM summaries, graph/citation rewrites,
+  or a large frontend split before the product skeleton is stable.
+- Preserve existing behavior while splitting large files into routes, services,
+  repositories, models, and viewmodels through small PRs.
+- Add or update tests for each behavior change.
