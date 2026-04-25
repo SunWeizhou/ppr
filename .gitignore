@@ -7,6 +7,8 @@ __pycache__/
 *.egg-info/
 .eggs/
 *.egg
+build/
+dist/
 
 # Virtual environments
 venv/
@@ -20,18 +22,27 @@ env/
 *.swp
 *.swo
 
-# Large binary files
+# Runtime state and generated artifacts
+user_profile.json
+user_config.json
+keywords_config.json
+my_scholars.json
+cache/*
+!cache/.gitkeep
+history/*
+!history/.gitkeep
+daily_arxiv_digest.md
+reports/*
+
+# Large binary and local data files
+*.zip
+Paper Recommend/
 *.pkl
 *.sqlite
 *.db
 *.pdf
 
-# Cache files (but keep user data)
-cache/pdfs/
-cache/*.pkl
-cache/*.sqlite
-
-# Logs (can be regenerated)
+# Logs
 logs/
 *.log
 
@@ -44,7 +55,7 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Sensitive data (if any)
+# Sensitive data
 .env
 secrets.json
 credentials.json

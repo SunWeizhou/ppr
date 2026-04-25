@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "keywords": {
+    "conformal prediction": {
+      "weight": 5.0,
+      "category": "core"
+    },
+    "in-context learning": {
+      "weight": 5.0,
+      "category": "core"
+    },
+    "minimax": {
+      "weight": 4.5,
+      "category": "core"
+    },
+    "generalization": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "statistical inference": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "nonparametric": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "excess risk": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "uniform convergence": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "benchmark": {
+      "weight": -1.0,
+      "category": "demote"
+    },
+    "real-world": {
+      "weight": -1.0,
+      "category": "demote"
+    },
+    "federated learning": {
+      "weight": -1.0,
+      "category": "dislike"
+    }
+  },
+  "theory_keywords": [
+    "theorem",
+    "proof",
+    "bound",
+    "convergence",
+    "statistical",
+    "bayesian",
+    "estimation",
+    "generalization",
+    "asymptotic",
+    "minimax",
+    "optimal",
+    "rate",
+    "complexity",
+    "guarantee"
+  ],
+  "settings": {
+    "papers_per_day": 20,
+    "lookback_days": 14,
+    "pdf_auto_download_score": 1.5,
+    "max_papers_per_author": 22,
+    "recency_bonus_days": 7,
+    "recency_bonus": 0.3,
+    "prefer_theory": true,
+    "theory_enabled": true,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2"
+  },
+  "sources": {
+    "arxiv_enabled": true,
+    "journal_enabled": true,
+    "scholar_enabled": false,
+    "lookback_days": 14
+  },
+  "zotero": {
+    "database_path": "",
+    "auto_detect": true,
+    "enabled": true
+  },
+  "venue_priority": {
+    "statistics_journals": [
+      "Annals of Statistics",
+      "JASA",
+      "Biometrika",
+      "JRSS-B"
+    ],
+    "ml_journals": [
+      "JMLR"
+    ],
+    "top_conferences": [
+      "NeurIPS",
+      "ICML",
+      "ICLR",
+      "COLT",
+      "AISTATS"
+    ],
+    "theory_conferences": [
+      "COLT",
+      "AISTATS"
+    ],
+    "statistics_bonus": 1.0,
+    "ml_journal_bonus": 0.8,
+    "conference_bonus": 0.5,
+    "theory_conference_bonus": 1.0
+  }
+}
