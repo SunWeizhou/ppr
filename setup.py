@@ -19,7 +19,7 @@ setup(
         "utils",
         "web_server",
     ],
-    packages=find_packages(include=["installer", "installer.*"]),
+    packages=find_packages(include=["app", "app.*", "installer", "installer.*"]),
     include_package_data=True,
     data_files=[
         ("", ["user_profile.example.json"]),

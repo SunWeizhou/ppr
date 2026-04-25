@@ -45,6 +45,15 @@ def git_backup_user_data(message=None):
 app = Flask(__name__)
 CORS(app)
 
+
+def legacy_route(*_args, **_kwargs):
+    """Keep old route functions importable while app/routes owns URL registration."""
+    def decorator(func):
+        return func
+
+    return decorator
+
+
 ensure_runtime_dirs()
 
 BASE_DIR = str(PROJECT_ROOT)
@@ -2717,12 +2726,12 @@ def render_html(date, papers, keywords, dates, prev_date, next_date, feedback):
 </html>'''
 
 
-@app.route('/')
+@legacy_route('/')
 def index():
     return generate_page()
 
 
-@app.route('/queue')
+@legacy_route('/queue')
 def queue_page():
     status = request.args.get('status', '')
     page_context = _build_page_context('queue')
@@ -2735,12 +2744,12 @@ def queue_page():
     return render_template('queue_research.html', **page_context)
 
 
-@app.route('/track')
+@legacy_route('/track')
 def track_page():
     return redirect('/monitor', code=302)
 
 
-@app.route('/monitor')
+@legacy_route('/monitor')
 def monitor_page():
     tab = request.args.get('tab', 'authors')
     page_context = _build_page_context('monitor')
@@ -3278,19 +3287,19 @@ SCHOLARS = {
 }
 
 
-@app.route('/scholars')
+@legacy_route('/scholars')
 def scholars_page():
     """Show scholars tracking page."""
     return redirect('/monitor?tab=authors', code=302)
 
 
-@app.route('/scholars/<category>')
+@legacy_route('/scholars/<category>')
 def scholars_category(category):
     """Show specific scholar category."""
     return redirect('/monitor?tab=authors', code=302)
 
 
-@app.route('/api/scholars/add', methods=['POST'])
+@legacy_route('/api/scholars/add', methods=['POST'])
 def api_add_scholar():
     """Add a scholar to user's list."""
     data = request.get_json()
@@ -3310,7 +3319,7 @@ def api_add_scholar():
     return jsonify({'success': success, 'result': result if success else str(result)})
 
 
-@app.route('/api/scholars/parse_gscholar', methods=['POST'])
+@legacy_route('/api/scholars/parse_gscholar', methods=['POST'])
 def api_parse_gscholar():
     """Parse Google Scholar URL and return scholar info."""
     data = request.get_json()
@@ -3322,7 +3331,7 @@ def api_parse_gscholar():
     return jsonify(result)
 
 
-@app.route('/api/scholars/remove', methods=['POST'])
+@legacy_route('/api/scholars/remove', methods=['POST'])
 def api_remove_scholar():
     """Remove a scholar from user's list."""
     data = request.get_json()
@@ -3334,7 +3343,7 @@ def api_remove_scholar():
     return jsonify({'success': success, 'message': message})
 
 
-@app.route('/api/scholars/update', methods=['POST'])
+@legacy_route('/api/scholars/update', methods=['POST'])
 def api_update_scholar():
     """Update a scholar in user's list."""
     data = request.get_json() or {}
@@ -3922,16 +3931,16 @@ def generate_scholars_page(selected_category=None):
 </html>'''
 
 
-@app.route('/journal')
-@app.route('/journal/<journal_key>')
-@app.route('/journal/<journal_key>/v/<volume>')
-@app.route('/journal/<journal_key>/v/<volume>/i/<issue>')
+@legacy_route('/journal')
+@legacy_route('/journal/<journal_key>')
+@legacy_route('/journal/<journal_key>/v/<volume>')
+@legacy_route('/journal/<journal_key>/v/<volume>/i/<issue>')
 def journal_page(journal_key='AoS', volume=None, issue=None):
     """Legacy journal route kept for compatibility."""
     return redirect('/monitor?tab=venues', code=302)
 
 
-@app.route('/debug')
+@legacy_route('/debug')
 def debug_info():
     """Debug endpoint to check parsing."""
     dates = get_available_dates()
@@ -3948,19 +3957,19 @@ def debug_info():
     })
 
 
-@app.route('/liked')
+@legacy_route('/liked')
 def view_liked():
     """Show all liked papers."""
     return redirect('/?filter=relevant', code=302)
 
 
-@app.route('/disliked')
+@legacy_route('/disliked')
 def view_disliked():
     """Show all disliked papers."""
     return redirect('/?filter=ignored', code=302)
 
 
-@app.route('/library')
+@legacy_route('/library')
 def library_page():
     tab = request.args.get('tab', 'collections')
     collection_id = request.args.get('collection_id', type=int)
@@ -4408,12 +4417,12 @@ def render_favorites_html(feedback_type, papers, liked_count, disliked_count, fo
 </html>'''
 
 
-@app.route('/date/<date>')
+@legacy_route('/date/<date>')
 def view_date(date):
     return generate_page(date)
 
 
-@app.route('/api/feedback', methods=['POST'])
+@legacy_route('/api/feedback', methods=['POST'])
 def handle_feedback():
     data = request.json or {}
     paper_id = _canonical_paper_id(data.get('paper_id', ''))
@@ -4615,7 +4624,7 @@ def find_paper_in_history(paper_id):
     return None
 
 
-@app.route('/api/feedback/stats')
+@legacy_route('/api/feedback/stats')
 def feedback_stats():
     feedback = load_feedback()
     return jsonify({
@@ -4625,7 +4634,7 @@ def feedback_stats():
     })
 
 
-@app.route('/api/pdf/<paper_id>')
+@legacy_route('/api/pdf/<paper_id>')
 def download_pdf(paper_id):
     pdf_path = os.path.join(BASE_DIR, 'cache', 'pdfs', f'{paper_id}.pdf')
     if os.path.exists(pdf_path):
@@ -4633,12 +4642,12 @@ def download_pdf(paper_id):
     return f'<script>window.location.href="https://arxiv.org/pdf/{paper_id}.pdf";</script>'
 
 
-@app.route('/api/dates')
+@legacy_route('/api/dates')
 def get_dates():
     return jsonify(get_available_dates())
 
 
-@app.route('/api/feedback/learn', methods=['POST'])
+@legacy_route('/api/feedback/learn', methods=['POST'])
 def trigger_learning():
     """Trigger feedback learning to update topic weights."""
     import sys
@@ -4664,7 +4673,7 @@ def trigger_learning():
         return jsonify({'success': False, 'error': str(e)})
 
 
-@app.route('/api/citation/<paper_id>')
+@legacy_route('/api/citation/<paper_id>')
 def get_citation(paper_id):
     """Get citation data for a paper."""
     import sys
@@ -4722,7 +4731,7 @@ def _fetch_arxiv_metadata(paper_id):
     }
 
 
-@app.route('/api/fetch_paper/<paper_id>')
+@legacy_route('/api/fetch_paper/<paper_id>')
 def fetch_paper_info(paper_id):
     """Fetch paper info from arXiv API and save to cache."""
     try:
@@ -4764,7 +4773,7 @@ def fetch_paper_info(paper_id):
         return jsonify({'success': False, 'error': str(e)})
 
 
-@app.route('/api/export/bibtex/<paper_id>')
+@legacy_route('/api/export/bibtex/<paper_id>')
 def export_bibtex(paper_id):
     try:
         metadata = _fetch_arxiv_metadata(paper_id)
@@ -4791,7 +4800,7 @@ def export_bibtex(paper_id):
         return jsonify({'success': False, 'error': str(exc)}), 500
 
 
-@app.route('/api/refresh')
+@legacy_route('/api/refresh')
 def refresh_recommendations():
     """Force refresh today's recommendations."""
     import sys
@@ -4872,7 +4881,7 @@ def _serialize_job(job):
     }
 
 
-@app.route('/api/status')
+@legacy_route('/api/status')
 def get_status():
     """Get recommendation status for today."""
     try:
@@ -4960,7 +4969,7 @@ def _build_state_snapshot():
     }
 
 
-@app.route('/api/state/export')
+@legacy_route('/api/state/export')
 def export_state_snapshot():
     snapshot = _build_state_snapshot()
     payload = json.dumps(snapshot, ensure_ascii=False, indent=2).encode('utf-8')
@@ -4973,7 +4982,7 @@ def export_state_snapshot():
     )
 
 
-@app.route('/api/state/import', methods=['POST'])
+@legacy_route('/api/state/import', methods=['POST'])
 def import_state_snapshot():
     try:
         if 'snapshot' in request.files:
@@ -5018,7 +5027,7 @@ def import_state_snapshot():
         return jsonify({'success': False, 'error': str(exc)}), 500
 
 
-@app.route('/api/job/status')
+@legacy_route('/api/job/status')
 def get_job_status():
     """Return latest job state or a specific run."""
     run_id = request.args.get('run_id')
@@ -5028,7 +5037,7 @@ def get_job_status():
     return jsonify({'success': True, 'job': _serialize_job(job)})
 
 
-@app.route('/api/collections', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@legacy_route('/api/collections', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def manage_collections():
     """Manage ResearchCollection objects."""
     if request.method == 'GET':
@@ -5089,7 +5098,7 @@ def manage_collections():
     return jsonify({'success': deleted})
 
 
-@app.route('/api/collections/<int:collection_id>', methods=['GET'])
+@legacy_route('/api/collections/<int:collection_id>', methods=['GET'])
 def get_collection_detail(collection_id):
     collection = STATE_STORE.get_collection(collection_id)
     if not collection:
@@ -5101,7 +5110,7 @@ def get_collection_detail(collection_id):
     })
 
 
-@app.route('/api/collections/<int:collection_id>/papers', methods=['GET', 'POST', 'DELETE'])
+@legacy_route('/api/collections/<int:collection_id>/papers', methods=['GET', 'POST', 'DELETE'])
 def add_collection_paper(collection_id):
     """Attach a paper to a ResearchCollection."""
     if request.method == 'GET':
@@ -5149,7 +5158,7 @@ def add_collection_paper(collection_id):
     return jsonify({'success': True, 'collection_id': collection_id, 'paper_id': paper_id, 'event_id': event_id})
 
 
-@app.route('/api/saved-searches', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@legacy_route('/api/saved-searches', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def manage_saved_searches():
     """Manage SavedSearch objects."""
     if request.method == 'GET':
@@ -5221,7 +5230,7 @@ def manage_saved_searches():
     return jsonify({'success': deleted})
 
 
-@app.route('/api/saved-searches/<int:search_id>/run')
+@legacy_route('/api/saved-searches/<int:search_id>/run')
 def run_saved_search(search_id):
     saved_search = STATE_STORE.get_saved_search(search_id)
     if not saved_search:
@@ -5248,7 +5257,7 @@ def run_saved_search(search_id):
         return jsonify({'success': False, 'error': str(exc)}), 500
 
 
-@app.route('/api/queue', methods=['GET', 'POST'])
+@legacy_route('/api/queue', methods=['GET', 'POST'])
 def manage_queue():
     """Manage the research reading queue."""
     if request.method == 'GET':
@@ -5295,7 +5304,7 @@ def manage_queue():
     return jsonify({'success': True, 'item': item, 'event_id': event_id})
 
 
-@app.route('/api/queue/bulk', methods=['POST'])
+@legacy_route('/api/queue/bulk', methods=['POST'])
 def manage_queue_bulk():
     data = request.get_json() or {}
     paper_ids = [_canonical_paper_id(item) for item in data.get('paper_ids', []) if str(item).strip()]
@@ -5324,13 +5333,13 @@ def manage_queue_bulk():
 
 # ==================== Keyword Search ====================
 
-@app.route('/search')
+@legacy_route('/search')
 def search_page():
     """Show empty search page."""
     return _render_search_research([], [])
 
 
-@app.route('/search/<path:keywords>')
+@legacy_route('/search/<path:keywords>')
 def search_keywords(keywords):
     """Search papers by custom keywords."""
     # Parse keywords
@@ -5360,7 +5369,7 @@ def search_keywords(keywords):
             </body></html>'''
 
 
-@app.route('/api/search', methods=['POST'])
+@legacy_route('/api/search', methods=['POST'])
 def api_search():
     """API endpoint for keyword search."""
     data = request.get_json()
@@ -5635,7 +5644,7 @@ def render_search_page(papers, keywords):
 
 # ==================== Settings Page ====================
 
-@app.route('/settings')
+@legacy_route('/settings')
 def settings_page():
     """Settings page for modifying keywords."""
     tab = request.args.get('tab', 'profile')
@@ -6088,7 +6097,7 @@ def settings_page():
 </html>'''
 
 
-@app.route('/api/settings', methods=['POST'])
+@legacy_route('/api/settings', methods=['POST'])
 def save_settings():
     """Save user settings and sync to user_profile.json (unified config)."""
     data = request.get_json() or {}
@@ -6227,7 +6236,7 @@ def save_settings():
 
 # ==================== Reading Statistics ====================
 
-@app.route('/stats')
+@legacy_route('/stats')
 def reading_stats():
     """Reading statistics page."""
     return redirect('/settings?tab=system', code=302)
@@ -6235,7 +6244,7 @@ def reading_stats():
 
 # ==================== Related Papers ====================
 
-@app.route('/api/related/<paper_id>')
+@legacy_route('/api/related/<paper_id>')
 def get_related_papers(paper_id):
     """Get related papers based on a given paper."""
     import sys
@@ -6297,7 +6306,7 @@ def get_related_papers(paper_id):
 
 # ==================== Keywords Management API ====================
 
-@app.route('/api/keywords', methods=['GET', 'POST', 'DELETE'])
+@legacy_route('/api/keywords', methods=['GET', 'POST', 'DELETE'])
 def manage_keywords():
     """API for managing keywords configuration.
 
@@ -6420,6 +6429,11 @@ def manage_keywords():
             return jsonify({'success': True, 'message': f'Removed keyword: {keyword}'})
         else:
             return jsonify({'success': False, 'error': 'Keyword not found'})
+
+
+from app.routes import register_blueprints
+
+register_blueprints(app)
 
 
 def main():
