@@ -1,0 +1,14 @@
+include README.md
+include user_profile.example.json
+recursive-include templates *.html
+recursive-include static *
+recursive-include docs *.md
+exclude user_profile.json
+exclude user_config.json
+exclude keywords_config.json
+exclude my_scholars.json
+exclude daily_arxiv_digest.md
+recursive-exclude cache *
+recursive-exclude history *
+recursive-exclude reports *
+recursive-exclude scripts/ralph *

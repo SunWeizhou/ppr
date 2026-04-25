@@ -1,3 +1,5 @@
+from glob import glob
+
 from setuptools import find_packages, setup
 
 
@@ -19,6 +21,11 @@ setup(
     ],
     packages=find_packages(include=["installer", "installer.*"]),
     include_package_data=True,
+    data_files=[
+        ("", ["user_profile.example.json"]),
+        ("templates", glob("templates/*.html")),
+        ("static", glob("static/*")),
+    ],
     install_requires=[
         "Flask>=3.0.0",
         "flask-cors>=4.0.0",
