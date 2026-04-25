@@ -1,23 +1,40 @@
-@echo off
-chcp 65001 >nul
-REM arXiv 论文推荐系统 - 配置向导启动脚本
+from setuptools import find_packages, setup
 
-echo.
-echo ========================================
-echo   arXiv 论文推荐系统 - 配置向导
-echo ========================================
-echo.
 
-REM 检查 Python
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo [错误] 未找到 Python，请先安装 Python 3.9+
-    pause
-    exit /b 1
+setup(
+    name="arxiv-recommender-local",
+    version="0.1.0",
+    description="Local-first arXiv paper recommendation and triage desk",
+    py_modules=[
+        "app_paths",
+        "arxiv_recommender_v5",
+        "backup_user_data",
+        "config_manager",
+        "journal_tracker",
+        "journal_update",
+        "logger_config",
+        "state_store",
+        "utils",
+        "web_server",
+    ],
+    packages=find_packages(include=["installer", "installer.*"]),
+    include_package_data=True,
+    install_requires=[
+        "Flask>=3.0.0",
+        "flask-cors>=4.0.0",
+        "requests>=2.28.0",
+        "beautifulsoup4>=4.12.0",
+        "lxml>=5.0.0",
+        "feedparser>=6.0.0",
+        "sentence-transformers>=2.2.0",
+        "transformers>=4.30.0",
+        "torch>=2.0.0",
+        "python-dateutil>=2.8.0",
+    ],
+    entry_points={
+        "console_scripts": [
+            "arxiv-recommender=web_server:main",
+        ],
+    },
+    python_requires=">=3.9",
 )
-
-REM 运行配置向导
-python -m installer.cli_wizard
-
-echo.
-pause

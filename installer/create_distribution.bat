@@ -6,9 +6,9 @@ REM ============================================
 
 setlocal EnableDelayedExpansion
 
-set DIST_NAME=arxiv_recommender_dist
-set PROJECT_ROOT=D:\arxiv_recommender
-set DIST_DIR=%PROJECT_ROOT%\%DIST_NAME%
+set "DIST_NAME=arxiv_recommender_dist"
+for %%I in ("%~dp0..") do set "PROJECT_ROOT=%%~fI"
+set "DIST_DIR=%PROJECT_ROOT%\%DIST_NAME%"
 
 echo.
 echo  ========================================

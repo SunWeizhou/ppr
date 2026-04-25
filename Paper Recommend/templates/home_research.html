@@ -1,0 +1,614 @@
+{% extends "base_research.html" %}
+
+{% block hero %}
+<section class="command-deck">
+    <div class="command-head">
+        <div class="command-copy">
+            <div class="kicker">Statistics Research Desk</div>
+            <div class="command-title-row">
+                <h1 class="command-title">Inbox</h1>
+                <span class="chip brand">{{ date }}</span>
+                <span class="chip">{{ papers|length }} papers</span>
+            </div>
+            <p class="command-summary">
+                {{ date }} 的候选论文已经按你的统计研究画像重排。首页现在只保留一个主任务：快速判断今天先读什么。
+            </p>
+            <div class="hero-chip-row command-chip-row">
+                {% for keyword in hero_keywords[:4] %}
+                    <span class="chip {% if loop.index0 < 2 %}brand{% elif loop.index0 < 5 %}warm{% else %}gold{% endif %}">{{ keyword }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="command-actions">
+            <a href="/search" class="action-button btn-brand">围绕问题继续探索</a>
+            {% if is_today %}
+                <a href="/api/refresh?force=1" class="action-button btn-subtle" onclick="return confirm('确定刷新今日推荐？')">重新生成今日结果</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="command-summary-strip">
+        {% for metric in headline_metrics %}
+            <div class="summary-pill">
+                <span class="summary-pill-label">{{ metric.label }}</span>
+                <span class="summary-pill-value">{{ metric.value }}</span>
+            </div>
+        {% endfor %}
+        <div class="summary-pill">
+            <span class="summary-pill-label">Job</span>
+            <span class="summary-pill-value">{% if latest_job %}{{ latest_job.status }}{% else %}idle{% endif %}</span>
+        </div>
+        <div class="summary-pill">
+            <span class="summary-pill-label">Queue</span>
+            <span class="summary-pill-value">{{ queue_counts.values() | list | sum }}</span>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="inbox-workspace">
+    <aside class="panel-card sidebar-panel">
+        <div class="section-head section-head-tight">
+            <div>
+                <div class="section-kicker">Timeline</div>
+                <h2 class="panel-title">近期推荐历史</h2>
+                <p class="muted-copy">最近 14 天的推荐可以直接在同一个工作台切换查看。</p>
+            </div>
+        </div>
+
+        <div class="inline-actions">
+            {% if prev_date %}<a href="/date/{{ prev_date }}" class="action-button btn-subtle">更早一天</a>{% endif %}
+            {% if next_date %}<a href="/date/{{ next_date }}" class="action-button btn-subtle">更新一天</a>{% endif %}
+        </div>
+
+        <div class="date-scroller sidebar-date-scroller">
+            {% for card in date_cards %}
+                <a href="/date/{{ card.date }}" class="date-card-link {% if card.active %}active{% endif %}">
+                    <span class="date-month">{{ card.month }}</span>
+                    <span class="date-day">{{ card.day }}</span>
+                    <span class="date-weekday">{{ card.weekday }}</span>
+                </a>
+            {% endfor %}
+        </div>
+
+        <details class="rail-section" open>
+            <summary class="rail-summary">
+                <span class="section-kicker">Filters</span>
+                <span class="rail-summary-text">先缩小今天的判断范围</span>
+            </summary>
+            <div class="rail-section-body">
+                <div class="filter-list">
+                    <button type="button" class="filter-chip {% if selected_filter == 'all' %}active{% endif %}" data-filter-chip data-filter="all">全部</button>
+                    <button type="button" class="filter-chip {% if selected_filter == 'untriaged' %}active{% endif %}" data-filter-chip data-filter="untriaged">未处理</button>
+                    <button type="button" class="filter-chip {% if selected_filter == 'queued' %}active{% endif %}" data-filter-chip data-filter="queued">已入队</button>
+                    <button type="button" class="filter-chip {% if selected_filter == 'relevant' %}active{% endif %}" data-filter-chip data-filter="relevant">Relevant</button>
+                    <button type="button" class="filter-chip {% if selected_filter == 'ignored' %}active{% endif %}" data-filter-chip data-filter="ignored">Ignored</button>
+                </div>
+            </div>
+        </details>
+
+        <details class="rail-section">
+            <summary class="rail-summary">
+                <span class="section-kicker">Daily Themes</span>
+                <span class="rail-summary-text">{{ matched_keyword_count }} 个显式命中关键词</span>
+            </summary>
+            <div class="rail-section-body">
+                <div class="chip-row">
+                    {% for theme in daily_themes %}
+                        <span class="topic-chip">{{ theme }}</span>
+                    {% endfor %}
+                </div>
+                <p class="detail-copy">这些主题更多是帮助你理解今天的排序，不需要在首页全部展开盯着看。</p>
+            </div>
+        </details>
+
+        <details class="rail-section">
+            <summary class="rail-summary">
+                <span class="section-kicker">Job Status</span>
+                <span class="rail-summary-text">{% if latest_job %}{{ latest_job.status }}{% else %}idle{% endif %}</span>
+            </summary>
+            <div class="rail-section-body">
+                <p class="detail-copy">
+                    {% if latest_job %}
+                        最近一次任务由 {{ latest_job.trigger_source }} 触发，更新时间 {{ latest_job.updated_at or latest_job.created_at }}。
+                    {% else %}
+                        当前没有生成任务记录。
+                    {% endif %}
+                </p>
+            </div>
+        </details>
+    </aside>
+
+    <div class="panel-card inbox-list-panel">
+        <div class="section-head section-head-tight">
+            <div>
+                <div class="section-kicker">Ranked Papers</div>
+                <h2 class="panel-title">今日论文列表</h2>
+                <p class="muted-copy">左侧筛日期，中间看序列，右侧做动作，不再强迫你一张一张翻卡片。</p>
+            </div>
+            <span class="chip brand" id="visiblePaperCount">{{ papers|length }} visible</span>
+        </div>
+        <div class="bulk-bar">
+            <label class="selection-check">
+                <input type="checkbox" id="bulkSelectVisible">
+                <span>选择当前可见论文</span>
+            </label>
+            <span class="chip" id="bulkSelectionCount">0 selected</span>
+            <button type="button" class="action-button btn-danger" onclick="bulkIgnoreSelected()">Ignore</button>
+            <button type="button" class="action-button btn-warm" onclick="bulkQueueSelected('Skim Later')">Skim Later</button>
+            <button type="button" class="action-button btn-sage" onclick="bulkQueueSelected('Deep Read')">Deep Read</button>
+        </div>
+
+        {% if papers %}
+            <div class="paper-list-scroll">
+            <div class="paper-list" id="inboxPaperList">
+                {% for paper in papers %}
+                    <article
+                        class="paper-list-item {% if loop.first %}active{% endif %} {% if paper.is_liked %}state-liked{% elif paper.is_disliked %}state-disliked{% endif %}"
+                        data-paper-id="{{ paper.id }}"
+                        data-paper-title="{{ paper.title }}"
+                        data-paper-authors="{{ paper.author_text }}"
+                        data-paper-summary="{{ paper.summary or '' }}"
+                        data-paper-relevance="{{ paper.relevance or '' }}"
+                        data-paper-link="{{ paper.link or '' }}"
+                        data-paper-score="{{ paper.score or 0 }}"
+                        data-paper-first-author="{{ paper.first_author }}"
+                        data-feedback-state="{% if paper.is_liked %}liked{% elif paper.is_disliked %}disliked{% else %}none{% endif %}"
+                        data-queue-status="{{ paper.queue_status or '' }}"
+                        data-queue-note=""
+                        tabindex="0"
+                    >
+                        <div class="paper-list-head">
+                            <div class="paper-rank">
+                                <label class="selection-check card-selection-check">
+                                    <input type="checkbox" class="paper-select-checkbox" data-paper-select value="{{ paper.id }}">
+                                </label>
+                                <span>#{{ paper.rank }}</span>
+                                <span class="state-chip {{ paper.queue_status_class }}" data-queue-state {% if not paper.queue_status %}hidden{% endif %}>{{ paper.queue_status or '' }}</span>
+                            </div>
+                            <div class="chip-row">
+                                <span class="score-chip">Score {{ '%.1f'|format(paper.score or 0) }}</span>
+                                {% if paper.citations %}
+                                    <span class="chip gold">{{ paper.citations }} cites</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <h3 class="paper-list-title">{{ paper.title }}</h3>
+                        <div class="paper-authors">{{ paper.author_text }}</div>
+                        <div class="paper-list-tags">
+                            {% for label in paper.category_labels %}
+                                <span class="meta-chip">{{ label }}</span>
+                            {% endfor %}
+                        </div>
+                        <p class="paper-list-summary">{{ paper.summary_short }}</p>
+
+                        <div class="detail-payload" hidden>
+                            <div data-detail-summary>{{ paper.summary }}</div>
+                            <div data-detail-relevance>{{ paper.relevance_html | safe }}</div>
+                            <div data-detail-why-above>{{ paper.why_above }}</div>
+                            <div data-detail-why-hidden>{{ paper.why_hidden }}</div>
+                            <div data-detail-categories>
+                                {% for label in paper.category_labels %}
+                                    <span class="meta-chip">{{ label }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p class="muted-copy">当前这一天还没有可展示的论文结果，可以先刷新生成，或者切换到其他日期。</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <aside class="panel-card detail-panel" id="paperDetailPanel">
+        {% if papers %}
+            {% set first_paper = papers[0] %}
+            <div class="detail-kicker">Selected Paper</div>
+            <h2 class="detail-title" id="detailTitle">{{ first_paper.title }}</h2>
+            <div class="paper-authors" id="detailAuthors">{{ first_paper.author_text }}</div>
+            <div class="detail-meta-row">
+                <span class="score-chip" id="detailScore">Score {{ '%.1f'|format(first_paper.score or 0) }}</span>
+                <span class="state-chip {{ first_paper.queue_status_class }}" id="detailQueueState" {% if not first_paper.queue_status %}hidden{% endif %}>{{ first_paper.queue_status or '' }}</span>
+            </div>
+            <div class="chip-row" id="detailCategories">
+                {% for label in first_paper.category_labels %}
+                    <span class="meta-chip">{{ label }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="detail-actions detail-actions-grid detail-actions-feedback">
+                <button type="button" class="action-button btn-brand" onclick="submitSelectedFeedback('like')">相关</button>
+                <button type="button" class="action-button btn-danger" onclick="submitSelectedFeedback('dislike')">忽略</button>
+            </div>
+            <div class="detail-actions detail-actions-grid">
+                <a id="detailLink" class="action-button btn-brand" href="{{ first_paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="openSelectedPaper(event)">Open arXiv</a>
+                <button type="button" class="action-button btn-linkish" onclick="followSelectedAuthor()">关注作者</button>
+            </div>
+
+            <details class="detail-disclosure" open>
+                <summary class="detail-disclosure-summary">
+                    <span class="detail-label">Read Lane</span>
+                    <span class="detail-disclosure-copy">决定这篇论文进入哪个阅读层级</span>
+                </summary>
+                <div class="detail-disclosure-body">
+                    <div class="detail-actions detail-actions-grid detail-actions-queue">
+                        {% for status in queue_status_values %}
+                            <button type="button" class="action-button {% if status == 'Inbox' %}btn-ghost{% elif status == 'Skim Later' %}btn-warm{% elif status == 'Deep Read' %}btn-sage{% elif status == 'Saved' %}btn-subtle{% else %}btn-subtle{% endif %}" onclick="queueSelectedPaper('{{ status }}')">{{ status }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </details>
+
+            <div class="more-actions-dropdown">
+                <button type="button" class="action-button btn-subtle" onclick="toggleMoreActions()">More actions</button>
+                <div class="dropdown-menu" id="moreActionsMenu" hidden>
+                    <button type="button" class="dropdown-item" onclick="collectSelectedPaper(); closeMoreActions();">Add to Collection</button>
+                    <button type="button" class="dropdown-item" onclick="downloadSelectedPdf(); closeMoreActions();">Download PDF</button>
+                    <button type="button" class="dropdown-item" onclick="downloadSelectedBibtex(); closeMoreActions();">Export BibTeX</button>
+                    <button type="button" class="dropdown-item" onclick="toggleFullExplanation(); closeMoreActions();">View full explanation</button>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <div class="detail-label">Abstract</div>
+                <p class="detail-copy" id="detailSummary">{{ first_paper.summary }}</p>
+            </div>
+
+            <div class="detail-section">
+                <div class="detail-label">Why This</div>
+                <div class="reason-panel" id="detailRelevance">{{ first_paper.relevance_html | safe }}</div>
+            </div>
+
+            <details class="detail-disclosure">
+                <summary class="detail-disclosure-summary">
+                    <span class="detail-label">Ranking Rationale</span>
+                    <span class="detail-disclosure-copy">为什么它排在这里，以及什么会让它被压下去</span>
+                </summary>
+                <div class="detail-disclosure-body">
+                    <div class="detail-grid">
+                        <div class="detail-box">
+                            <div class="detail-label">Why Above</div>
+                            <p class="detail-copy" id="detailWhyAbove">{{ first_paper.why_above }}</p>
+                        </div>
+                        <div class="detail-box">
+                            <div class="detail-label">Why Hidden</div>
+                            <p class="detail-copy" id="detailWhyHidden">{{ first_paper.why_hidden }}</p>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        {% else %}
+            <div class="empty-state">
+                <p class="muted-copy">选择一天并生成推荐后，这里会显示单篇论文的完整解释与操作。</p>
+            </div>
+        {% endif %}
+    </aside>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const inboxList = document.getElementById('inboxPaperList');
+const filterButtons = Array.from(document.querySelectorAll('[data-filter-chip]'));
+const bulkSelectVisible = document.getElementById('bulkSelectVisible');
+let currentInboxItem = document.querySelector('.paper-list-item.active');
+const selectedPaperIds = new Set();
+
+function visibleInboxItems() {
+    return Array.from(document.querySelectorAll('.paper-list-item')).filter((item) => !item.hidden);
+}
+
+function updateBulkSelectionUi() {
+    document.getElementById('bulkSelectionCount').textContent = selectedPaperIds.size + ' selected';
+    const visibleItems = visibleInboxItems();
+    const visibleSelected = visibleItems.filter((item) => selectedPaperIds.has(item.dataset.paperId));
+    if (bulkSelectVisible) {
+        bulkSelectVisible.checked = Boolean(visibleItems.length) && visibleSelected.length === visibleItems.length;
+    }
+}
+
+function syncSelectionFromCheckbox(checkbox) {
+    const paperId = checkbox.value;
+    if (checkbox.checked) {
+        selectedPaperIds.add(paperId);
+    } else {
+        selectedPaperIds.delete(paperId);
+    }
+    updateBulkSelectionUi();
+}
+
+function setActiveInboxItem(item, options = {}) {
+    if (!item) return;
+    document.querySelectorAll('.paper-list-item').forEach((node) => node.classList.remove('active'));
+    item.classList.add('active');
+    currentInboxItem = item;
+
+    document.getElementById('detailTitle').textContent = item.dataset.paperTitle || '';
+    document.getElementById('detailAuthors').textContent = item.dataset.paperAuthors || '';
+    document.getElementById('detailScore').textContent = 'Score ' + Number(item.dataset.paperScore || '0').toFixed(1);
+    document.getElementById('detailSummary').textContent = item.querySelector('[data-detail-summary]')?.textContent || '';
+    document.getElementById('detailRelevance').innerHTML = item.querySelector('[data-detail-relevance]')?.innerHTML || '';
+    document.getElementById('detailWhyAbove').textContent = item.querySelector('[data-detail-why-above]')?.textContent || '';
+    document.getElementById('detailWhyHidden').textContent = item.querySelector('[data-detail-why-hidden]')?.textContent || '';
+    document.getElementById('detailCategories').innerHTML = item.querySelector('[data-detail-categories]')?.innerHTML || '';
+    document.getElementById('detailLink').href = item.dataset.paperLink || '#';
+    const detailQueueState = document.getElementById('detailQueueState');
+    const queueStatus = item.dataset.queueStatus || '';
+    detailQueueState.textContent = queueStatus;
+    detailQueueState.hidden = !queueStatus;
+    const normalized = String(queueStatus || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    detailQueueState.className = normalized ? 'state-chip status-' + normalized : 'state-chip';
+
+    if (options.scroll !== false) {
+        item.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+    }
+}
+
+function applyInboxFilter(filterName) {
+    const items = Array.from(document.querySelectorAll('.paper-list-item'));
+    let visibleCount = 0;
+
+    items.forEach((item) => {
+        const feedbackState = item.dataset.feedbackState || 'none';
+        const queueStatus = item.dataset.queueStatus || '';
+        let match = true;
+
+        if (filterName === 'untriaged') {
+            match = feedbackState === 'none' && !queueStatus;
+        } else if (filterName === 'queued') {
+            match = Boolean(queueStatus);
+        } else if (filterName === 'relevant') {
+            match = feedbackState === 'liked';
+        } else if (filterName === 'ignored') {
+            match = feedbackState === 'disliked';
+        }
+
+        item.hidden = !match;
+        if (match) visibleCount += 1;
+    });
+
+    document.getElementById('visiblePaperCount').textContent = visibleCount + ' visible';
+    const firstVisible = visibleInboxItems()[0];
+    if (firstVisible) {
+        setActiveInboxItem(firstVisible, {scroll: false});
+    }
+}
+
+filterButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+        filterButtons.forEach((item) => item.classList.remove('active'));
+        button.classList.add('active');
+        applyInboxFilter(button.dataset.filter || 'all');
+    });
+});
+
+inboxList?.addEventListener('click', (event) => {
+    if (event.target.closest('.paper-select-checkbox')) return;
+    const item = event.target.closest('.paper-list-item');
+    if (item) {
+        setActiveInboxItem(item);
+    }
+});
+
+inboxList?.addEventListener('keydown', (event) => {
+    const item = event.target.closest('.paper-list-item');
+    if (!item) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        setActiveInboxItem(item);
+    }
+});
+
+document.querySelectorAll('.paper-select-checkbox').forEach((checkbox) => {
+    checkbox.addEventListener('click', (event) => event.stopPropagation());
+    checkbox.addEventListener('change', () => syncSelectionFromCheckbox(checkbox));
+});
+
+bulkSelectVisible?.addEventListener('change', () => {
+    const targetChecked = bulkSelectVisible.checked;
+    visibleInboxItems().forEach((item) => {
+        const checkbox = item.querySelector('.paper-select-checkbox');
+        if (!checkbox) return;
+        checkbox.checked = targetChecked;
+        syncSelectionFromCheckbox(checkbox);
+    });
+    updateBulkSelectionUi();
+});
+
+async function submitSelectedFeedback(action) {
+    if (!currentInboxItem) return;
+    try {
+        await requestJson('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                paper_id: currentInboxItem.dataset.paperId,
+                action: action,
+                title: currentInboxItem.dataset.paperTitle,
+                abstract: currentInboxItem.dataset.paperSummary,
+                authors: currentInboxItem.dataset.paperAuthors,
+                score: Number(currentInboxItem.dataset.paperScore || '0'),
+                relevance: currentInboxItem.dataset.paperRelevance,
+                source: 'home_research'
+            })
+        });
+        currentInboxItem.dataset.feedbackState = action === 'like' ? 'liked' : 'disliked';
+        currentInboxItem.classList.toggle('state-liked', action === 'like');
+        currentInboxItem.classList.toggle('state-disliked', action === 'dislike');
+        showToast(action === 'like' ? '已标为 Relevant' : '已忽略该论文');
+    } catch (error) {
+        showToast('操作失败: ' + error.message, 'error');
+    }
+}
+
+async function queueSelectedPaper(status) {
+    if (!currentInboxItem) return;
+    try {
+        await queuePaperStatus(currentInboxItem.dataset.paperId, status, {source: 'home_research'});
+    } catch (error) {
+        showToast('加入队列失败: ' + error.message, 'error');
+    }
+}
+
+async function collectSelectedPaper() {
+    if (!currentInboxItem) return;
+    try {
+        await addPaperToCollection(currentInboxItem.dataset.paperId, {
+            defaultName: currentInboxItem.dataset.paperTitle.slice(0, 48),
+            source: 'home_research'
+        });
+    } catch (error) {
+        showToast('加入 Collection 失败: ' + error.message, 'error');
+    }
+}
+
+async function followSelectedAuthor() {
+    if (!currentInboxItem) return;
+    try {
+        await followAuthor(currentInboxItem.dataset.paperFirstAuthor, {
+            paperId: currentInboxItem.dataset.paperId,
+            title: currentInboxItem.dataset.paperTitle,
+            source: 'home_research'
+        });
+    } catch (error) {
+        showToast('关注失败: ' + error.message, 'error');
+    }
+}
+
+function downloadSelectedPdf() {
+    if (!currentInboxItem) return;
+    window.open('/api/pdf/' + encodeURIComponent(currentInboxItem.dataset.paperId), '_blank');
+}
+
+function downloadSelectedBibtex() {
+    if (!currentInboxItem) return;
+    downloadBibtex(currentInboxItem.dataset.paperId);
+}
+
+function openSelectedPaper(event) {
+    if (!currentInboxItem) return;
+    if (event) {
+        event.preventDefault();
+        window.open(currentInboxItem.dataset.paperLink || '#', '_blank');
+    }
+    trackPaperOpen(currentInboxItem.dataset.paperId, 'home_research');
+}
+
+function toggleMoreActions() {
+    const menu = document.getElementById('moreActionsMenu');
+    if (menu) menu.hidden = !menu.hidden;
+}
+
+function closeMoreActions() {
+    const menu = document.getElementById('moreActionsMenu');
+    if (menu) menu.hidden = true;
+}
+
+function toggleFullExplanation() {
+    const rationale = document.querySelector('.detail-disclosure:last-of-type');
+    if (rationale) rationale.open = !rationale.open;
+}
+
+document.addEventListener('click', (event) => {
+    const dropdown = event.target.closest('.more-actions-dropdown');
+    if (!dropdown) closeMoreActions();
+});
+
+if (currentInboxItem) {
+    setActiveInboxItem(currentInboxItem, {scroll: false});
+}
+
+function focusRelativeInboxItem(direction) {
+    const items = visibleInboxItems();
+    if (!items.length || !currentInboxItem) return;
+    const currentIndex = Math.max(items.indexOf(currentInboxItem), 0);
+    const nextIndex = Math.min(Math.max(currentIndex + direction, 0), items.length - 1);
+    setActiveInboxItem(items[nextIndex]);
+    items[nextIndex].focus();
+}
+
+async function bulkIgnoreSelected() {
+    const paperIds = Array.from(selectedPaperIds);
+    if (!paperIds.length) return;
+    for (const paperId of paperIds) {
+        const item = document.querySelector('.paper-list-item[data-paper-id="' + escapeAttrValue(paperId) + '"]');
+        if (!item) continue;
+        await requestJson('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                paper_id: item.dataset.paperId,
+                action: 'dislike',
+                title: item.dataset.paperTitle,
+                abstract: item.dataset.paperSummary,
+                authors: item.dataset.paperAuthors,
+                score: Number(item.dataset.paperScore || '0'),
+                relevance: item.dataset.paperRelevance,
+                source: 'home_bulk'
+            })
+        });
+        item.dataset.feedbackState = 'disliked';
+        item.classList.remove('state-liked');
+        item.classList.add('state-disliked');
+    }
+    showToast('批量忽略已完成');
+}
+
+async function bulkQueueSelected(status) {
+    const paperIds = Array.from(selectedPaperIds);
+    if (!paperIds.length) return;
+    try {
+        await requestJson('/api/queue/bulk', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({paper_ids: paperIds, status: status, source: 'home_bulk'})
+        });
+        paperIds.forEach((paperId) => syncPaperState(paperId, status, ''));
+        showToast('批量操作已完成: ' + status);
+    } catch (error) {
+        showToast('批量操作失败: ' + error.message, 'error');
+    }
+}
+
+document.addEventListener('keydown', (event) => {
+    const tag = event.target?.tagName;
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        focusRelativeInboxItem(1);
+    } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        focusRelativeInboxItem(-1);
+    } else if (event.key.toLowerCase() === 'r') {
+        event.preventDefault();
+        submitSelectedFeedback('like');
+    } else if (event.key.toLowerCase() === 'i') {
+        event.preventDefault();
+        submitSelectedFeedback('dislike');
+    } else if (event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        queueSelectedPaper('Skim Later');
+    } else if (event.key.toLowerCase() === 'd') {
+        event.preventDefault();
+        queueSelectedPaper('Deep Read');
+    } else if (event.key.toLowerCase() === 'o') {
+        event.preventDefault();
+        openSelectedPaper();
+    }
+});
+
+applyInboxFilter('{{ selected_filter }}');
+updateBulkSelectionUi();
+</script>
+{% endblock %}

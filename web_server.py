@@ -13,6 +13,7 @@ import re
 import threading
 import urllib.parse
 import subprocess
+from io import BytesIO
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, render_template, send_file, redirect
 from flask_cors import CORS
@@ -32,41 +33,14 @@ logger = get_logger(__name__)
 
 # ============ Git自动备份函数 ============
 def git_backup_user_data(message=None):
-    """自动备份用户数据到Git"""
-    if message is None:
-        message = f"[Auto Backup] User data at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    """Compatibility hook for the old Git backup path.
 
-    try:
-        # 添加用户数据文件
-        user_data_files = [
-            'cache/user_feedback.json',
-            'cache/favorite_papers.json',
-            'cache/app_state.db',
-            'my_scholars.json',
-            'user_profile.json',
-        ]
-
-        for file_path in user_data_files:
-            full_path = os.path.join(BASE_DIR, file_path)
-            if os.path.exists(full_path):
-                git_add_cmd = ['git', 'add', file_path]
-                if file_path.endswith('.db'):
-                    git_add_cmd = ['git', 'add', '-f', file_path]
-                subprocess.run(git_add_cmd, cwd=BASE_DIR, capture_output=True)
-
-        # 检查是否有更改需要提交
-        result = subprocess.run(
-            ['git', 'diff', '--cached', '--quiet'],
-            cwd=BASE_DIR,
-            capture_output=True
-        )
-
-        if result.returncode != 0:
-            # 有更改，执行提交
-            subprocess.run(['git', 'commit', '-m', message], cwd=BASE_DIR, capture_output=True)
-            logger.info(f"Git backup completed: {message}")
-    except Exception as e:
-        logger.debug(f"Git backup skipped: {e}")
+    Runtime Git commits leak private reading behavior into repository history and
+    fail silently in non-Git installs. Backups are now explicit user actions, so
+    save paths call this hook safely without side effects.
+    """
+    logger.debug(f"Git backup disabled; explicit export should be used instead: {message}")
+    return False
 
 app = Flask(__name__)
 CORS(app)
@@ -145,7 +119,7 @@ def get_nav_tabs(active='', liked_count=0, is_today=False):
         active_cls = 'active' if active == cls or (active == 'index' and cls == '') else ''
         html += f'<a href="{href}" class="nav-tab {cls} {active_cls}">{text}</a>'
     if is_today:
-        html += '<a href="/api/refresh?force=1" class="nav-tab refresh" onclick="return confirm(\'确定刷新?\')">🔄</a>'
+        html += '<a href="/api/refresh?force=1" class="nav-tab refresh">🔄</a>'
     html += '</div>'
     return html
 
@@ -167,6 +141,17 @@ def safe_load_json(filepath: str, default=None):
     except (json.JSONDecodeError, Exception) as e:
         logger.warning(f"Error loading {filepath}: {e}")
         return default
+
+
+def atomic_write_json(filepath: str, payload) -> None:
+    directory = os.path.dirname(filepath)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    tmp_path = f"{filepath}.tmp"
+    with open(tmp_path, 'w', encoding='utf-8') as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+        f.write('\n')
+    os.replace(tmp_path, filepath)
 
 
 # ============ 历史文件解析缓存 ============
@@ -207,27 +192,33 @@ def parse_markdown_digest_cached(filepath: str, use_cache: bool = True):
 
 
 def load_feedback():
-    return safe_load_json(FEEDBACK_FILE, {'liked': [], 'disliked': []})
+    feedback = safe_load_json(FEEDBACK_FILE, {'liked': [], 'disliked': []})
+    normalized = _canonicalize_feedback(feedback)
+    if normalized != feedback:
+        atomic_write_json(FEEDBACK_FILE, normalized)
+    return normalized
 
 
 def save_feedback(feedback):
-    os.makedirs(os.path.dirname(FEEDBACK_FILE), exist_ok=True)
-    with open(FEEDBACK_FILE, 'w', encoding='utf-8') as f:
-        json.dump(feedback, f, ensure_ascii=False, indent=2)
+    feedback = _canonicalize_feedback(feedback)
+    atomic_write_json(FEEDBACK_FILE, feedback)
     # 自动备份到Git
     git_backup_user_data(f"[Feedback] {len(feedback.get('liked', []))} liked, {len(feedback.get('disliked', []))} disliked")
 
 
 def load_favorites():
     """Load favorite papers with full info."""
-    return safe_load_json(FAVORITES_FILE, {})
+    favorites = safe_load_json(FAVORITES_FILE, {})
+    normalized = _canonicalize_favorites(favorites)
+    if normalized != favorites:
+        atomic_write_json(FAVORITES_FILE, normalized)
+    return normalized
 
 
 def save_favorites(favorites):
     """Save favorite papers to file."""
-    os.makedirs(os.path.dirname(FAVORITES_FILE), exist_ok=True)
-    with open(FAVORITES_FILE, 'w', encoding='utf-8') as f:
-        json.dump(favorites, f, ensure_ascii=False, indent=2)
+    favorites = _canonicalize_favorites(favorites)
+    atomic_write_json(FAVORITES_FILE, favorites)
     # 自动备份到Git
     git_backup_user_data(f"[Favorites] {len(favorites)} papers saved")
 
@@ -344,6 +335,57 @@ def _normalize_queue_status(status):
     return value
 
 
+def _canonical_paper_id(paper_id):
+    try:
+        from arxiv_recommender_v5 import parse_arxiv_identity
+        return parse_arxiv_identity(paper_id).get('canonical_id') or str(paper_id or '').strip()
+    except Exception:
+        return re.sub(r'v\d+$', '', str(paper_id or '').strip())
+
+
+def _unique_canonical_ids(values):
+    seen = set()
+    result = []
+    for value in values or []:
+        canonical = _canonical_paper_id(value)
+        if canonical and canonical not in seen:
+            seen.add(canonical)
+            result.append(canonical)
+    return result
+
+
+def _canonicalize_feedback(feedback):
+    if not isinstance(feedback, dict):
+        feedback = {}
+    liked = _unique_canonical_ids(feedback.get('liked', []))
+    disliked = [
+        paper_id
+        for paper_id in _unique_canonical_ids(feedback.get('disliked', []))
+        if paper_id not in set(liked)
+    ]
+    normalized = dict(feedback)
+    normalized['liked'] = liked
+    normalized['disliked'] = disliked
+    return normalized
+
+
+def _canonicalize_favorites(favorites):
+    if not isinstance(favorites, dict):
+        return {}
+    normalized = {}
+    for raw_id, paper_info in favorites.items():
+        canonical = _canonical_paper_id(raw_id)
+        if not canonical:
+            continue
+        info = dict(paper_info) if isinstance(paper_info, dict) else {}
+        existing = normalized.get(canonical, {})
+        merged = {**info, **existing} if existing else info
+        merged['id'] = canonical
+        merged['link'] = merged.get('link') or f'https://arxiv.org/abs/{canonical}'
+        normalized[canonical] = merged
+    return normalized
+
+
 def _status_class(status):
     status = _normalize_queue_status(status)
     if not status:
@@ -363,14 +405,6 @@ def _build_nav_items(active_tab: str, liked_count: int, is_today: bool = False):
             'confirm': None,
         })
 
-    if is_today:
-        items.append({
-            'key': 'refresh',
-            'href': '/api/refresh?force=1',
-            'label': '刷新今日结果',
-            'tone': 'tone-refresh',
-            'confirm': '确定刷新今日推荐？',
-        })
     return items
 
 
@@ -395,6 +429,7 @@ def _build_page_context(active_tab: str, *, is_today: bool = False):
         'latest_job': latest_job,
         'latest_job_tone': f"job-{latest_job.get('status')}" if latest_job else 'job-idle',
         'queue_status_values': QUEUE_STATUS_VALUES,
+        'recommendation_health': _build_recommendation_health(),
     }
 
 
@@ -1323,6 +1358,32 @@ def add_my_scholar(name, affiliation='', focus='', arxiv_query='', google_schola
     save_my_scholars(data)
     return True, scholar
 
+def update_my_scholar(original_name, name, affiliation='', focus='', arxiv_query='', google_scholar='', website='', email=''):
+    """Update a scholar in user's list."""
+    data = load_my_scholars()
+    original_name = str(original_name or '').strip()
+    name = str(name or '').strip()
+    if not original_name or not name:
+        return False, "缺少学者姓名"
+
+    for scholar in data['scholars']:
+        if scholar['name'].lower() != original_name.lower():
+            continue
+        scholar.update({
+            'name': name,
+            'affiliation': affiliation,
+            'focus': focus,
+            'email': email,
+            'google_scholar': google_scholar,
+            'website': website,
+            'arxiv': arxiv_query or f'https://arxiv.org/search/?searchtype=author&query={urllib.parse.quote(name)}',
+            'updated_at': datetime.now().isoformat(),
+        })
+        save_my_scholars(data)
+        return True, scholar
+
+    return False, "学者不存在"
+
 def remove_my_scholar(name):
     """Remove a scholar from user's list."""
     data = load_my_scholars()
@@ -1342,12 +1403,10 @@ def fetch_scholar_papers_from_arxiv(scholar_name: str, max_results: int = 5) -> 
 
     # 创建 SSL 上下文
     ssl_context = ssl.create_default_context()
-    ssl_context.check_hostname = False
-    ssl_context.verify_mode = ssl.CERT_NONE
 
     # 构建查询
     query = urllib.parse.quote(f'au:"{scholar_name}"')
-    url = f'http://export.arxiv.org/api/query?search_query={query}&start=0&max_results={max_results}&sortBy=submittedDate&sortOrder=descending'
+    url = f'https://export.arxiv.org/api/query?search_query={query}&start=0&max_results={max_results}&sortBy=submittedDate&sortOrder=descending'
 
     papers = []
     try:
@@ -1433,8 +1492,6 @@ def parse_google_scholar_url(url: str) -> dict:
 
     # 创建 SSL 上下文
     ssl_context = ssl.create_default_context()
-    ssl_context.check_hostname = False
-    ssl_context.verify_mode = ssl.CERT_NONE
 
     try:
         req = urllib.request.Request(scholar_url, headers={
@@ -1617,6 +1674,7 @@ def extract_today_keywords(papers, keywords_config):
 
 def add_to_favorites(paper_id, paper_info):
     """Add a paper to favorites with full info."""
+    paper_id = _canonical_paper_id(paper_id)
     favorites = load_favorites()
     favorites[paper_id] = {
         'id': paper_id,
@@ -1637,6 +1695,7 @@ def add_to_favorites(paper_id, paper_info):
 
 def remove_from_favorites(paper_id):
     """Remove a paper from favorites."""
+    paper_id = _canonical_paper_id(paper_id)
     favorites = load_favorites()
     if paper_id in favorites:
         del favorites[paper_id]
@@ -2160,7 +2219,7 @@ def render_html(date, papers, keywords, dates, prev_date, next_date, feedback):
         <a href="/liked" class="nav-tab liked">❤️ 喜欢 ({liked_count})</a>
         <a href="/stats" class="nav-tab stats">📊 统计</a>
         <a href="/settings" class="nav-tab settings">⚙️ 设置</a>
-        {'<a href="/api/refresh?force=1" class="nav-tab refresh" onclick="return confirm(\'确定要刷新今日推荐吗？\')">🔄</a>' if is_today else ''}
+        {'<a href="/api/refresh?force=1" class="nav-tab refresh">🔄</a>' if is_today else ''}
     </div>
 '''
 
@@ -3275,6 +3334,23 @@ def api_remove_scholar():
     return jsonify({'success': success, 'message': message})
 
 
+@app.route('/api/scholars/update', methods=['POST'])
+def api_update_scholar():
+    """Update a scholar in user's list."""
+    data = request.get_json() or {}
+    success, result = update_my_scholar(
+        original_name=data.get('original_name', data.get('name', '')),
+        name=data.get('name', ''),
+        affiliation=data.get('affiliation', ''),
+        focus=data.get('focus', ''),
+        arxiv_query=data.get('arxiv_query', data.get('arxiv', '')),
+        google_scholar=data.get('google_scholar', ''),
+        website=data.get('website', ''),
+        email=data.get('email', ''),
+    )
+    return jsonify({'success': success, 'scholar': result if success else None, 'error': None if success else str(result)})
+
+
 def generate_scholars_page(selected_category=None):
     """Generate scholars tracking page."""
     # Generate category tabs
@@ -3823,8 +3899,6 @@ def generate_scholars_page(selected_category=None):
         }}
 
         async function removeScholar(name) {{
-            if (!confirm('确定要移除 ' + name + ' 吗？')) return;
-
             try {{
                 const res = await fetch('/api/scholars/remove', {{
                     method: 'POST',
@@ -4342,7 +4416,7 @@ def view_date(date):
 @app.route('/api/feedback', methods=['POST'])
 def handle_feedback():
     data = request.json or {}
-    paper_id = str(data.get('paper_id', '')).strip()
+    paper_id = _canonical_paper_id(data.get('paper_id', ''))
     action = data.get('action')
     paper_title = data.get('title', '')
     paper_abstract = data.get('abstract', '')
@@ -4469,6 +4543,7 @@ def handle_feedback():
 
 def save_paper_to_cache(paper_id, title, abstract):
     """Save paper info to cache for liked papers."""
+    paper_id = _canonical_paper_id(paper_id)
     cache_path = os.path.join(BASE_DIR, 'cache', 'paper_cache.json')
     paper_cache = {}
     if os.path.exists(cache_path):
@@ -4477,6 +4552,14 @@ def save_paper_to_cache(paper_id, title, abstract):
                 paper_cache = json.load(f)
         except:
             pass
+
+    if isinstance(paper_cache, dict):
+        normalized_cache = {}
+        for raw_id, info in paper_cache.items():
+            canonical = _canonical_paper_id(raw_id)
+            if canonical:
+                normalized_cache[canonical] = info
+        paper_cache = normalized_cache
 
     # Clean up any corrupted entries (string instead of dict)
     for k, v in list(paper_cache.items()):
@@ -4508,19 +4591,19 @@ def save_paper_to_cache(paper_id, title, abstract):
             }
 
     os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-    with open(cache_path, 'w', encoding='utf-8') as f:
-        json.dump(paper_cache, f, ensure_ascii=False, indent=2)
+    atomic_write_json(cache_path, paper_cache)
 
 
 def find_paper_in_history(paper_id):
     """Find paper info from history files - 使用缓存版本提高效率."""
+    paper_id = _canonical_paper_id(paper_id)
     dates = get_available_dates()
     for date in dates:
         filepath = os.path.join(HISTORY_DIR, f'digest_{date}.md')
         if os.path.exists(filepath):
             papers, _ = parse_markdown_digest_cached(filepath)
             for paper in papers:
-                if paper.get('id') == paper_id:
+                if _canonical_paper_id(paper.get('id')) == paper_id:
                     return {
                         'title': paper.get('title', ''),
                         'abstract': paper.get('summary', ''),
@@ -4609,7 +4692,7 @@ def _fetch_arxiv_metadata(paper_id):
     import xml.etree.ElementTree as ET
 
     normalized_id = paper_id.replace('v1', '').replace('v2', '')
-    url = f'http://export.arxiv.org/api/query?id_list={normalized_id}'
+    url = f'https://export.arxiv.org/api/query?id_list={normalized_id}'
     req = urllib.request.Request(url, headers={'User-Agent': 'arXiv-Recommender/1.0'})
     with urllib.request.urlopen(req, timeout=15) as response:
         xml_data = response.read().decode('utf-8')
@@ -4798,6 +4881,7 @@ def get_status():
         today = datetime.now().strftime('%Y-%m-%d')
         cached_papers, cached_themes = load_daily_recommendation(PIPELINE_CONFIG['cache_dir'])
         latest_job = STATE_STORE.get_latest_job('daily_recommendation')
+        recommendation_health = _build_recommendation_health(cached_papers)
 
         return jsonify({
             'date': today,
@@ -4808,10 +4892,130 @@ def get_status():
             'generation': _generation_status,
             'job': _serialize_job(latest_job),
             'state_db': STATE_DB_FILE,
+            'recommendation_health': recommendation_health,
         })
     except Exception as e:
         logger.error(f"Status error: {e}")
         return jsonify({'error': str(e)}), 500
+
+
+def _build_recommendation_health(cached_papers=None):
+    try:
+        from config_manager import get_config
+        config = get_config()
+        core_count = len(config.core_keywords)
+        secondary_count = len(config.get_keywords_by_category('secondary'))
+        theory_count = len(config.theory_keywords)
+        zotero_path = os.path.expanduser(config._zotero.database_path or '')
+        zotero_exists = bool(zotero_path and os.path.exists(zotero_path))
+        scores = [float(paper.get('score', 0) or 0) for paper in (cached_papers or [])]
+        max_score = max(scores, default=0.0)
+        low_signal_count = sum(1 for score in scores if score <= 0.7)
+        return {
+            'core_keyword_count': core_count,
+            'secondary_keyword_count': secondary_count,
+            'theory_keyword_count': theory_count,
+            'has_positive_profile': (core_count + secondary_count) > 0,
+            'max_score': max_score,
+            'low_signal_count': low_signal_count,
+            'zotero': {
+                'enabled': bool(config._zotero.enabled),
+                'configured_path': config._zotero.database_path,
+                'path_exists': zotero_exists,
+                'auto_detect': bool(config._zotero.auto_detect),
+            },
+        }
+    except Exception as exc:
+        logger.warning(f"Could not build recommendation health: {exc}")
+        return {
+            'core_keyword_count': 0,
+            'secondary_keyword_count': 0,
+            'theory_keyword_count': 0,
+            'has_positive_profile': False,
+            'zotero': {'enabled': False, 'configured_path': '', 'path_exists': False},
+        }
+
+
+SNAPSHOT_FILES = {
+    'user_profile': PROJECT_ROOT / 'user_profile.json',
+    'user_config': PROJECT_ROOT / 'user_config.json',
+    'keywords_config': PROJECT_ROOT / 'keywords_config.json',
+    'user_feedback': APP_CACHE_DIR / 'user_feedback.json',
+    'favorite_papers': APP_CACHE_DIR / 'favorite_papers.json',
+    'paper_cache': APP_CACHE_DIR / 'paper_cache.json',
+    'journal_update_log': APP_CACHE_DIR / 'journal_update_log.json',
+}
+
+
+def _build_state_snapshot():
+    files = {}
+    for key, path in SNAPSHOT_FILES.items():
+        if path.exists():
+            files[key] = safe_load_json(str(path), {})
+    return {
+        'schema_version': 'local-product-state-v1',
+        'exported_at': datetime.now().isoformat(),
+        'files': files,
+        'state_store': STATE_STORE.export_state(),
+    }
+
+
+@app.route('/api/state/export')
+def export_state_snapshot():
+    snapshot = _build_state_snapshot()
+    payload = json.dumps(snapshot, ensure_ascii=False, indent=2).encode('utf-8')
+    filename = f"arxiv_recommender_snapshot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    return send_file(
+        BytesIO(payload),
+        mimetype='application/json',
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
+@app.route('/api/state/import', methods=['POST'])
+def import_state_snapshot():
+    try:
+        if 'snapshot' in request.files:
+            snapshot = json.load(request.files['snapshot'].stream)
+        else:
+            snapshot = request.get_json(force=True, silent=False)
+        if not isinstance(snapshot, dict):
+            return jsonify({'success': False, 'error': 'Invalid snapshot'}), 400
+        if snapshot.get('schema_version') != 'local-product-state-v1':
+            return jsonify({'success': False, 'error': 'Unsupported snapshot schema'}), 400
+
+        files = snapshot.get('files', {})
+        if not isinstance(files, dict):
+            return jsonify({'success': False, 'error': 'Invalid snapshot files'}), 400
+        restored_files = []
+        for key, payload in files.items():
+            path = SNAPSHOT_FILES.get(key)
+            if path is None:
+                continue
+            atomic_write_json(str(path), payload)
+            restored_files.append(key)
+
+        state_payload = snapshot.get('state_store')
+        if state_payload is not None:
+            STATE_STORE.import_state(state_payload)
+
+        try:
+            from config_manager import reload_config
+            reload_config()
+        except Exception as exc:
+            logger.warning(f"Config reload after snapshot import failed: {exc}")
+
+        return jsonify({
+            'success': True,
+            'restored_files': restored_files,
+            'state_tables': sorted((state_payload or {}).keys()) if isinstance(state_payload, dict) else [],
+        })
+    except json.JSONDecodeError:
+        return jsonify({'success': False, 'error': 'Snapshot is not valid JSON'}), 400
+    except Exception as exc:
+        logger.error(f"State import failed: {exc}")
+        return jsonify({'success': False, 'error': str(exc)}), 500
 
 
 @app.route('/api/job/status')
@@ -4907,7 +5111,7 @@ def add_collection_paper(collection_id):
         })
 
     data = request.get_json() or {}
-    paper_id = str(data.get('paper_id', '')).strip()
+    paper_id = _canonical_paper_id(data.get('paper_id', ''))
     if not paper_id:
         return jsonify({'success': False, 'error': 'Missing paper_id'}), 400
 
@@ -4921,11 +5125,18 @@ def add_collection_paper(collection_id):
             )
         return jsonify({'success': deleted, 'collection_id': collection_id, 'paper_id': paper_id})
 
-    STATE_STORE.add_paper_to_collection(
+    added = STATE_STORE.add_paper_to_collection(
         collection_id,
         paper_id,
         note=data.get('note', ''),
     )
+    if not added:
+        return jsonify({
+            'success': False,
+            'error': 'Collection not found',
+            'collection_id': collection_id,
+            'paper_id': paper_id,
+        }), 404
     event_id = STATE_STORE.record_event(
         'add_to_collection',
         paper_id,
@@ -5047,7 +5258,7 @@ def manage_queue():
         return jsonify({'success': True, 'items': STATE_STORE.list_queue_items(status=status)})
 
     data = request.get_json() or {}
-    paper_id = str(data.get('paper_id', '')).strip()
+    paper_id = _canonical_paper_id(data.get('paper_id', ''))
     status = data.get('status')
     note = data.get('note')
     tags = data.get('tags')
@@ -5087,7 +5298,7 @@ def manage_queue():
 @app.route('/api/queue/bulk', methods=['POST'])
 def manage_queue_bulk():
     data = request.get_json() or {}
-    paper_ids = [str(item).strip() for item in data.get('paper_ids', []) if str(item).strip()]
+    paper_ids = [_canonical_paper_id(item) for item in data.get('paper_ids', []) if str(item).strip()]
     status = data.get('status')
     if not paper_ids or not status:
         return jsonify({'success': False, 'error': 'Missing paper_ids or status'}), 400
@@ -6211,6 +6422,14 @@ def manage_keywords():
             return jsonify({'success': False, 'error': 'Keyword not found'})
 
 
+def main():
+    logger.info("=" * 50)
+    logger.info("arXiv Recommender Web Server v3.0")
+    logger.info("Open http://localhost:5555 in your browser")
+    logger.info("=" * 50)
+    app.run(host='localhost', port=5555, debug=False, use_reloader=False)
+
+
 if __name__ == '__main__':
     logger.info("=" * 50)
     logger.info("arXiv Recommender Web Server v3.0")
@@ -6247,7 +6466,7 @@ if __name__ == '__main__':
             log = load_last_update_times()
             if journal_key not in log:
                 log[journal_key] = {}
-            log[journal_key]['last_check'] = datetime.now().isoformat()
+            log[journal_key]['last_check'] = datetime.now().strftime('%Y-%m-%d')
             with open(update_log_path, 'w', encoding='utf-8') as f:
                 json.dump(log, f, indent=2)
 

@@ -294,7 +294,13 @@ async function parseGoogleScholar() {
 }
 
 async function removeScholar(name) {
-    if (!window.confirm('确定移除 ' + name + ' 吗？')) return;
+    const ok = await confirmDangerAction({
+        title: '移除关注学者',
+        objectName: name,
+        message: '这会从关注列表移除该学者，不会删除已有论文状态。',
+        confirmLabel: 'Remove author'
+    });
+    if (!ok) return;
 
     try {
         const response = await fetch('/api/scholars/remove', {

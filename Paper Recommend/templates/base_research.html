@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <meta name="theme-color" content="#124c79">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='research_ui.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="{{ body_class or '' }}">
+    <div class="app-shell">
+        <header class="app-chrome">
+            <a href="/" class="brandmark">
+                <span class="brandmark-label">StatDesk</span>
+                <span class="brandmark-subtitle">local-first arXiv workflow for statistics researchers</span>
+            </a>
+            <nav class="primary-nav">
+                {% for item in nav_items %}
+                    <a
+                        href="{{ item.href }}"
+                        class="nav-link {{ item.tone }} {% if item.key == active_tab %}active{% endif %}"
+                        {% if item.confirm %}onclick="return confirm('{{ item.confirm }}')"{% endif %}
+                    >
+                        {{ item.label }}
+                    </a>
+                {% endfor %}
+            </nav>
+        </header>
+
+        <section class="app-statusbar">
+            <div class="statusbar-group">
+                <span class="chip brand">Queue {{ queue_counts.values() | list | sum }}</span>
+                <span class="chip">{{ liked_count }} relevant</span>
+                <span class="status-badge {{ latest_job_tone }}">
+                    {% if latest_job %}{{ latest_job.status }}{% else %}idle{% endif %}
+                </span>
+            </div>
+            <div class="statusbar-group">
+                <span class="chip sage">{{ all_collections|length }} collections</span>
+                <span class="chip gold">{{ all_saved_searches|length }} query subscriptions</span>
+            </div>
+        </section>
+
+        {% block hero %}{% endblock %}
+        {% block content %}{% endblock %}
+
+        <div class="footer-note">
+            数据保存在本地，界面按统计研究工作流重排。
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="collectionPickerModal" class="modal-shell" hidden>
+        <div class="modal-backdrop" onclick="closeModal('collectionPickerModal')"></div>
+        <div class="modal-card">
+            <div class="modal-head">
+                <div>
+                    <div class="section-kicker">Collection Picker</div>
+                    <h2 class="panel-title">加入 Collection</h2>
+                    <p class="muted-copy">先选择已有容器，或创建一个新的研究问题容器。</p>
+                </div>
+                <button type="button" class="action-button btn-subtle" onclick="closeModal('collectionPickerModal')">关闭</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <label class="field-label">已有 Collection</label>
+                    <div class="list-stack modal-list" id="collectionPickerList"></div>
+                </div>
+                <div class="modal-section">
+                    <label class="checkbox-row">
+                        <input type="checkbox" id="collectionCreateNewToggle" onchange="toggleCollectionCreateNew()">
+                        <span>创建新的 Collection</span>
+                    </label>
+                </div>
+                <div id="collectionPickerNewFields" class="modal-section" hidden>
+                    <label class="field-label" for="collectionPickerName">名称</label>
+                    <input class="form-input" id="collectionPickerName" type="text" placeholder="例如：Conformal Prediction">
+                    <label class="field-label" for="collectionPickerDescription">描述</label>
+                    <textarea class="form-textarea" id="collectionPickerDescription" rows="3" placeholder="这个容器围绕什么研究问题？"></textarea>
+                    <label class="field-label" for="collectionPickerSeedQuery">Seed Query</label>
+                    <input class="form-input" id="collectionPickerSeedQuery" type="text" placeholder="例如：finite-sample conformal under shift">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="action-button btn-subtle" onclick="closeModal('collectionPickerModal')">取消</button>
+                <button type="button" class="action-button btn-brand" onclick="submitCollectionPicker()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="collectionEditorModal" class="modal-shell" hidden>
+        <div class="modal-backdrop" onclick="closeModal('collectionEditorModal')"></div>
+        <div class="modal-card">
+            <div class="modal-head">
+                <div>
+                    <div class="section-kicker">Collection Editor</div>
+                    <h2 class="panel-title" id="collectionEditorTitle">Collection</h2>
+                </div>
+                <button type="button" class="action-button btn-subtle" onclick="closeModal('collectionEditorModal')">关闭</button>
+            </div>
+            <div class="modal-body">
+                <label class="field-label" for="collectionEditorName">名称</label>
+                <input class="form-input" id="collectionEditorName" type="text" placeholder="例如：Transformer Theory">
+                <label class="field-label" for="collectionEditorDescription">描述</label>
+                <textarea class="form-textarea" id="collectionEditorDescription" rows="4" placeholder="这个容器的研究意图是什么？"></textarea>
+                <label class="field-label" for="collectionEditorSeedQuery">Seed Query</label>
+                <input class="form-input" id="collectionEditorSeedQuery" type="text" placeholder="例如：minimax transformer generalization">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="action-button btn-subtle" onclick="closeModal('collectionEditorModal')">取消</button>
+                <button type="button" class="action-button btn-brand" onclick="submitCollectionEditor()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="querySubscriptionModal" class="modal-shell" hidden>
+        <div class="modal-backdrop" onclick="closeModal('querySubscriptionModal')"></div>
+        <div class="modal-card">
+            <div class="modal-head">
+                <div>
+                    <div class="section-kicker">Query Subscription</div>
+                    <h2 class="panel-title" id="querySubscriptionTitle">保存问题订阅</h2>
+                    <p class="muted-copy">把当前问题变成长期监控对象，后续在 Monitor 中看命中。</p>
+                </div>
+                <button type="button" class="action-button btn-subtle" onclick="closeModal('querySubscriptionModal')">关闭</button>
+            </div>
+            <div class="modal-body">
+                <label class="field-label" for="querySubscriptionName">显示名称</label>
+                <input class="form-input" id="querySubscriptionName" type="text" placeholder="例如：Finite-sample conformal shift">
+                <label class="field-label" for="querySubscriptionQuery">Query</label>
+                <input class="form-input" id="querySubscriptionQuery" type="text" placeholder="例如：finite-sample conformal under covariate shift">
+                <label class="field-label" for="querySubscriptionDescription">描述</label>
+                <textarea class="form-textarea" id="querySubscriptionDescription" rows="3" placeholder="为什么要长期订阅这个问题？"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="action-button btn-subtle" onclick="closeModal('querySubscriptionModal')">取消</button>
+                <button type="button" class="action-button btn-brand" onclick="submitQuerySubscription()">保存订阅</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    window.AppState = {
+        collections: {{ (all_collections or []) | tojson }},
+        savedSearches: {{ (all_saved_searches or []) | tojson }},
+        queueStatuses: {{ (queue_status_values or []) | tojson }},
+        latestJob: {{ (latest_job or {}) | tojson }},
+        modalState: {
+            collectionPickerResolver: null,
+            collectionEditorResolver: null,
+            querySubscriptionResolver: null,
+            collectionEditTarget: null,
+            collectionPickerOptions: {},
+            querySubscriptionTarget: null
+        }
+    };
+
+    function showToast(message, kind = 'success') {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.textContent = message;
+        toast.className = kind === 'error' ? 'toast visible error' : 'toast visible';
+        window.clearTimeout(window.__toastTimer);
+        window.__toastTimer = window.setTimeout(() => {
+            toast.className = kind === 'error' ? 'toast error' : 'toast';
+        }, 2200);
+    }
+
+    function escapeAttrValue(value) {
+        return String(value || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    }
+
+    async function requestJson(url, options = {}) {
+        const response = await fetch(url, options);
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || result.success === false) {
+            throw new Error(result.error || result.message || 'request failed');
+        }
+        return result;
+    }
+
+    function updateCollectionCache(collection) {
+        if (!collection || !collection.id) return;
+        const current = Array.isArray(window.AppState.collections) ? window.AppState.collections : [];
+        const next = current.filter(item => item.id !== collection.id);
+        next.push(collection);
+        next.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+        window.AppState.collections = next;
+    }
+
+    function removeCollectionCache(collectionId) {
+        window.AppState.collections = (window.AppState.collections || []).filter((item) => item.id !== collectionId);
+    }
+
+    function updateSavedSearchCache(savedSearch) {
+        if (!savedSearch || !savedSearch.id) return;
+        const current = Array.isArray(window.AppState.savedSearches) ? window.AppState.savedSearches : [];
+        const next = current.filter(item => item.id !== savedSearch.id);
+        next.push(savedSearch);
+        next.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+        window.AppState.savedSearches = next;
+    }
+
+    function removeSavedSearchCache(searchId) {
+        window.AppState.savedSearches = (window.AppState.savedSearches || []).filter((item) => item.id !== searchId);
+    }
+
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.hidden = false;
+        document.body.classList.add('modal-open');
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.hidden = true;
+        if (!document.querySelector('.modal-shell:not([hidden])')) {
+            document.body.classList.remove('modal-open');
+        }
+        const state = window.AppState.modalState;
+        if (modalId === 'collectionPickerModal' && typeof state.collectionPickerResolver === 'function') {
+            state.collectionPickerResolver(null);
+            state.collectionPickerResolver = null;
+        }
+        if (modalId === 'collectionEditorModal' && typeof state.collectionEditorResolver === 'function') {
+            state.collectionEditorResolver(null);
+            state.collectionEditorResolver = null;
+        }
+        if (modalId === 'querySubscriptionModal' && typeof state.querySubscriptionResolver === 'function') {
+            state.querySubscriptionResolver(null);
+            state.querySubscriptionResolver = null;
+        }
+    }
+
+    function renderCollectionPickerList() {
+        const container = document.getElementById('collectionPickerList');
+        if (!container) return;
+        container.innerHTML = '';
+        const collections = window.AppState.collections || [];
+        if (!collections.length) {
+            container.innerHTML = '<div class="empty-state compact-empty"><p class="muted-copy">还没有 Collection，直接新建一个。</p></div>';
+            return;
+        }
+        collections.forEach((collection, index) => {
+            const label = document.createElement('label');
+            label.className = 'list-item list-item-selectable';
+            label.innerHTML = `
+                <span class="selection-check">
+                    <input type="radio" name="collectionPickerExisting" value="${collection.id}" ${index === 0 ? 'checked' : ''}>
+                    <span>
+                        <span class="list-item-title">${collection.name}</span>
+                        <span class="list-item-subtitle">${collection.description || collection.seed_query || 'No description yet'}</span>
+                    </span>
+                </span>
+                <span class="list-item-trailing">${collection.paper_count || 0}</span>
+            `;
+            container.appendChild(label);
+        });
+    }
+
+    function toggleCollectionCreateNew() {
+        const checked = Boolean(document.getElementById('collectionCreateNewToggle')?.checked);
+        const fieldset = document.getElementById('collectionPickerNewFields');
+        if (fieldset) fieldset.hidden = !checked;
+        document.querySelectorAll('input[name="collectionPickerExisting"]').forEach((input) => {
+            input.disabled = checked;
+        });
+    }
+
+    function openCollectionPicker(options = {}) {
+        const state = window.AppState.modalState;
+        state.collectionPickerOptions = options;
+        renderCollectionPickerList();
+        document.getElementById('collectionCreateNewToggle').checked = !(window.AppState.collections || []).length;
+        document.getElementById('collectionPickerName').value = options.defaultName || '';
+        document.getElementById('collectionPickerDescription').value = options.description || '';
+        document.getElementById('collectionPickerSeedQuery').value = options.queryText || '';
+        toggleCollectionCreateNew();
+        openModal('collectionPickerModal');
+        return new Promise((resolve) => {
+            state.collectionPickerResolver = resolve;
+        });
+    }
+
+    async function submitCollectionPicker() {
+        const state = window.AppState.modalState;
+        const resolver = state.collectionPickerResolver;
+        if (typeof resolver !== 'function') return;
+
+        const creatingNew = Boolean(document.getElementById('collectionCreateNewToggle')?.checked);
+        let collection = null;
+
+        if (creatingNew) {
+            const name = document.getElementById('collectionPickerName').value.trim();
+            const description = document.getElementById('collectionPickerDescription').value.trim();
+            const seedQuery = document.getElementById('collectionPickerSeedQuery').value.trim();
+            if (!name) {
+                showToast('请填写 Collection 名称', 'error');
+                return;
+            }
+            const result = await requestJson('/api/collections', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name: name,
+                    description: description,
+                    seed_query: seedQuery
+                })
+            });
+            collection = result.collection;
+            updateCollectionCache(collection);
+            showToast('Collection 已创建');
+        } else {
+            const selected = document.querySelector('input[name="collectionPickerExisting"]:checked');
+            if (!selected) {
+                showToast('请选择一个 Collection', 'error');
+                return;
+            }
+            collection = (window.AppState.collections || []).find((item) => String(item.id) === String(selected.value));
+        }
+
+        state.collectionPickerResolver = null;
+        document.getElementById('collectionPickerModal').hidden = true;
+        document.body.classList.remove('modal-open');
+        resolver(collection || null);
+    }
+
+    async function ensureCollection(options = {}) {
+        return openCollectionPicker(options);
+    }
+
+    function openCollectionEditor(options = {}) {
+        const state = window.AppState.modalState;
+        state.collectionEditTarget = options.collection || null;
+        document.getElementById('collectionEditorTitle').textContent = options.collection ? '编辑 Collection' : '新建 Collection';
+        document.getElementById('collectionEditorName').value = options.collection?.name || options.defaultName || '';
+        document.getElementById('collectionEditorDescription').value = options.collection?.description || options.description || '';
+        document.getElementById('collectionEditorSeedQuery').value = options.collection?.seed_query || options.collection?.query_text || options.seedQuery || '';
+        openModal('collectionEditorModal');
+        return new Promise((resolve) => {
+            state.collectionEditorResolver = resolve;
+        });
+    }
+
+    async function submitCollectionEditor() {
+        const state = window.AppState.modalState;
+        const resolver = state.collectionEditorResolver;
+        if (typeof resolver !== 'function') return;
+
+        const name = document.getElementById('collectionEditorName').value.trim();
+        const description = document.getElementById('collectionEditorDescription').value.trim();
+        const seedQuery = document.getElementById('collectionEditorSeedQuery').value.trim();
+        if (!name) {
+            showToast('请填写 Collection 名称', 'error');
+            return;
+        }
+
+        const payload = {
+            name: name,
+            description: description,
+            seed_query: seedQuery
+        };
+        let result;
+        if (state.collectionEditTarget?.id) {
+            result = await requestJson('/api/collections', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    collection_id: state.collectionEditTarget.id,
+                    ...payload
+                })
+            });
+            showToast('Collection 已更新');
+        } else {
+            result = await requestJson('/api/collections', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            showToast('Collection 已创建');
+        }
+        const collection = result.collection;
+        updateCollectionCache(collection);
+        state.collectionEditorResolver = null;
+        document.getElementById('collectionEditorModal').hidden = true;
+        document.body.classList.remove('modal-open');
+        resolver(collection);
+    }
+
+    async function addPaperToCollection(paperId, options = {}) {
+        const collection = await ensureCollection(options);
+        if (!collection) return null;
+        await requestJson('/api/collections/' + collection.id + '/papers', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                paper_id: paperId,
+                note: options.note || '',
+                source: options.source || 'research_ui'
+            })
+        });
+        showToast('已加入 Collection: ' + collection.name);
+        return collection;
+    }
+
+    function openQuerySubscriptionModal(options = {}) {
+        const state = window.AppState.modalState;
+        state.querySubscriptionTarget = options.savedSearch || null;
+        document.getElementById('querySubscriptionTitle').textContent = options.savedSearch ? '编辑问题订阅' : '保存问题订阅';
+        document.getElementById('querySubscriptionName').value = options.savedSearch?.name || options.defaultName || '';
+        document.getElementById('querySubscriptionQuery').value = options.savedSearch?.query_text || options.queryText || '';
+        document.getElementById('querySubscriptionDescription').value = options.savedSearch?.description || options.description || '';
+        openModal('querySubscriptionModal');
+        return new Promise((resolve) => {
+            state.querySubscriptionResolver = resolve;
+        });
+    }
+
+    async function submitQuerySubscription() {
+        const state = window.AppState.modalState;
+        const resolver = state.querySubscriptionResolver;
+        if (typeof resolver !== 'function') return;
+        const name = document.getElementById('querySubscriptionName').value.trim();
+        const queryText = document.getElementById('querySubscriptionQuery').value.trim();
+        const description = document.getElementById('querySubscriptionDescription').value.trim();
+        if (!name || !queryText) {
+            showToast('请填写名称和 Query', 'error');
+            return;
+        }
+
+        let result;
+        if (state.querySubscriptionTarget?.id) {
+            result = await requestJson('/api/saved-searches', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    search_id: state.querySubscriptionTarget.id,
+                    name: name,
+                    query_text: queryText,
+                    description: description,
+                    filters: {
+                        ...(state.querySubscriptionTarget.filters_json || {}),
+                        source: 'query_subscription_modal'
+                    }
+                })
+            });
+            showToast('问题订阅已更新');
+        } else {
+            result = await requestJson('/api/saved-searches', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name: name,
+                    query_text: queryText,
+                    description: description,
+                    filters: {source: 'query_subscription_modal'}
+                })
+            });
+            showToast('问题订阅已创建');
+        }
+        const savedSearch = result.saved_search;
+        updateSavedSearchCache(savedSearch);
+        state.querySubscriptionResolver = null;
+        document.getElementById('querySubscriptionModal').hidden = true;
+        document.body.classList.remove('modal-open');
+        resolver(savedSearch);
+    }
+
+    async function queuePaperStatus(paperId, status, options = {}) {
+        const result = await requestJson('/api/queue', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                paper_id: paperId,
+                status: status,
+                source: options.source || 'research_ui',
+                note: options.note,
+                tags: options.tags
+            })
+        });
+        syncPaperState(paperId, status, result.item?.note || '');
+        showToast('已加入队列: ' + status);
+        return result.item;
+    }
+
+    function syncPaperState(paperId, status, note = null) {
+        const selector = '[data-paper-id="' + escapeAttrValue(paperId) + '"]';
+        document.querySelectorAll(selector).forEach((node) => {
+            node.dataset.queueStatus = status || '';
+            if (note !== null) node.dataset.queueNote = note || '';
+            node.querySelectorAll('[data-queue-state]').forEach((chip) => {
+                chip.textContent = status || '';
+                chip.hidden = !status;
+                const normalized = String(status || '')
+                    .trim()
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                chip.className = normalized ? 'state-chip status-' + normalized : 'state-chip';
+            });
+        });
+    }
+
+    async function followAuthor(author, options = {}) {
+        if (!author) {
+            showToast('缺少作者名', 'error');
+            return null;
+        }
+        const result = await requestJson('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                paper_id: options.paperId || author,
+                action: 'follow_author',
+                author: author,
+                title: options.title || '',
+                source: options.source || 'research_ui'
+            })
+        });
+        showToast(result.followed ? ('已关注作者: ' + author) : result.result || '作者已存在');
+        return result;
+    }
+
+    function downloadBibtex(paperId) {
+        window.open('/api/export/bibtex/' + encodeURIComponent(paperId), '_blank');
+    }
+
+    async function trackPaperOpen(paperId, source = 'research_ui') {
+        try {
+            await requestJson('/api/feedback', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({paper_id: paperId, action: 'open_paper', source: source})
+            });
+        } catch (error) {
+            console.debug(error);
+        }
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        ['collectionPickerModal', 'collectionEditorModal', 'querySubscriptionModal'].forEach((modalId) => {
+            const modal = document.getElementById(modalId);
+            if (modal && !modal.hidden) closeModal(modalId);
+        });
+    });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

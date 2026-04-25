@@ -1,118 +1,6 @@
 {
   "version": 2,
   "keywords": {
-    "statistical learning theory": {
-      "weight": 4.5,
-      "category": "core"
-    },
-    "conditional density estimation": {
-      "weight": 3.5,
-      "category": "core"
-    },
-    "excess risk": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "conformal prediction": {
-      "weight": 5.0,
-      "category": "core"
-    },
-    "nonparametric estimation": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "generalization bound": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "minimax": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "minimax optimal": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "minimax rate": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "optimal rate": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "asymptotic": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "non-asymptotic": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "sample complexity": {
-      "weight": 3.5,
-      "category": "core"
-    },
-    "in-context learning": {
-      "weight": 5.0,
-      "category": "core"
-    },
-    "convergence rate": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "finite-sample": {
-      "weight": 3.0,
-      "category": "core"
-    },
-    "statistical inference": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "high-dimensional statistics": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "pac-bayes": {
-      "weight": 4.0,
-      "category": "core"
-    },
-    "uniform convergence": {
-      "weight": 3.0,
-      "category": "secondary"
-    },
-    "algorithmic stability": {
-      "weight": 2.5,
-      "category": "secondary"
-    },
-    "empirical risk minimization": {
-      "weight": 2.0,
-      "category": "secondary"
-    },
-    "concentration inequalities": {
-      "weight": 3.0,
-      "category": "secondary"
-    },
-    "learning theory": {
-      "weight": 2.5,
-      "category": "secondary"
-    },
-    "transformer": {
-      "weight": 2.5,
-      "category": "secondary"
-    },
-    "transformer theory": {
-      "weight": 2.5,
-      "category": "secondary"
-    },
-    "estimation": {
-      "weight": 0.5,
-      "category": "secondary"
-    },
-    "risk": {
-      "weight": 2.5,
-      "category": "secondary"
-    },
     "federated learning": {
       "weight": -1.0,
       "category": "dislike"
@@ -136,19 +24,235 @@
     "handwriting": {
       "weight": -1.0,
       "category": "dislike"
+    },
+    "conformal prediction": {
+      "weight": 5.0,
+      "category": "core"
+    },
+    "in-context learning": {
+      "weight": 5.0,
+      "category": "core"
+    },
+    "statistical inference": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "nonparametric": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "excess risk": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "uniform convergence": {
+      "weight": 4.0,
+      "category": "core"
+    },
+    "estimation theory": {
+      "weight": 3.5,
+      "category": "core"
+    },
+    "asymptotic": {
+      "weight": 3.5,
+      "category": "core"
+    },
+    "regression": {
+      "weight": 3.0,
+      "category": "core"
+    },
+    "learning theory": {
+      "weight": 3.0,
+      "category": "core"
+    },
+    "high-dimensional": {
+      "weight": 3.0,
+      "category": "core"
+    },
+    "convergence rate": {
+      "weight": 2.5,
+      "category": "core"
+    },
+    "consistency": {
+      "weight": 3.0,
+      "category": "core"
+    },
+    "double descent": {
+      "weight": 3.0,
+      "category": "core"
+    },
+    "overparameterization": {
+      "weight": 3.0,
+      "category": "core"
+    },
+    "implicit regularization": {
+      "weight": 3.0,
+      "category": "core"
+    },
+    "kernel": {
+      "weight": 2.5,
+      "category": "core"
+    },
+    "covariate shift": {
+      "weight": 2.5,
+      "category": "core"
+    },
+    "domain adaptation": {
+      "weight": 2.5,
+      "category": "core"
+    },
+    "transfer learning theory": {
+      "weight": 2.5,
+      "category": "core"
+    },
+    "transformer theory": {
+      "weight": 2.5,
+      "category": "core"
+    },
+    "transformer": {
+      "weight": 1.0,
+      "category": "core"
+    },
+    "concentration inequality": {
+      "weight": 3.5,
+      "category": "secondary"
+    },
+    "optimal rate": {
+      "weight": 3.0,
+      "category": "secondary"
+    },
+    "lower bound": {
+      "weight": 3.0,
+      "category": "secondary"
+    },
+    "upper bound": {
+      "weight": 3.0,
+      "category": "secondary"
+    },
+    "bayesian inference": {
+      "weight": 3.5,
+      "category": "secondary"
+    },
+    "likelihood": {
+      "weight": 2.5,
+      "category": "secondary"
+    },
+    "prior distribution": {
+      "weight": 2.5,
+      "category": "secondary"
+    },
+    "posterior": {
+      "weight": 2.5,
+      "category": "secondary"
+    },
+    "optimization theory": {
+      "weight": 3.0,
+      "category": "secondary"
+    },
+    "gradient descent": {
+      "weight": 2.5,
+      "category": "secondary"
+    },
+    "convex": {
+      "weight": 2.5,
+      "category": "secondary"
+    },
+    "prompt": {
+      "weight": 2.5,
+      "category": "secondary"
+    },
+    "estimation": {
+      "weight": 0.5,
+      "category": "secondary"
+    },
+    "real-world": {
+      "weight": -1.0,
+      "category": "demote"
+    },
+    "case study": {
+      "weight": -1.0,
+      "category": "demote"
+    },
+    "deployment": {
+      "weight": -1.0,
+      "category": "demote"
+    },
+    "production": {
+      "weight": -1.0,
+      "category": "demote"
+    },
+    "industrial": {
+      "weight": -1.0,
+      "category": "demote"
+    },
+    "time series forecasting": {
+      "weight": -0.8,
+      "category": "demote"
+    },
+    "anomaly detection": {
+      "weight": -0.8,
+      "category": "demote"
+    },
+    "resume screening": {
+      "weight": -1.5,
+      "category": "demote"
+    },
+    "recommendation system": {
+      "weight": -1.0,
+      "category": "demote"
+    },
+    "healthcare": {
+      "weight": -0.8,
+      "category": "demote"
+    },
+    "finance": {
+      "weight": -0.8,
+      "category": "demote"
+    },
+    "medical": {
+      "weight": -0.8,
+      "category": "demote"
+    },
+    "system implementation": {
+      "weight": -1.0,
+      "category": "demote"
+    },
+    "efficient inference": {
+      "weight": -0.5,
+      "category": "demote"
+    },
+    "compression": {
+      "weight": -0.5,
+      "category": "demote"
+    },
+    "speedup": {
+      "weight": -0.5,
+      "category": "demote"
+    },
+    "empirical study": {
+      "weight": -0.5,
+      "category": "demote"
+    },
+    "large-scale experiment": {
+      "weight": -0.5,
+      "category": "demote"
     }
   },
   "theory_keywords": [
-    "generalization bound",
-    "excess risk",
-    "sample complexity",
-    "convergence rate",
-    "minimax optimal",
-    "lower bound",
-    "upper bound",
     "theorem",
     "proof",
-    "asymptotic"
+    "bound",
+    "convergence",
+    "statistical",
+    "bayesian",
+    "estimation",
+    "generalization",
+    "asymptotic",
+    "minimax",
+    "optimal",
+    "rate",
+    "complexity",
+    "guarantee"
   ],
   "settings": {
     "papers_per_day": 20,
@@ -158,6 +262,7 @@
     "recency_bonus_days": 7,
     "recency_bonus": 0.3,
     "prefer_theory": true,
+    "theory_enabled": true,
     "embedding_model": "sentence-transformers/all-MiniLM-L6-v2"
   },
   "sources": {

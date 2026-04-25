@@ -1,0 +1,33 @@
+{% macro page_header(kicker, title, context='', actions='') -%}
+<section class="page-header">
+    <div class="lead">
+        <span class="section-kicker">{{ kicker }}</span>
+        <h1 class="page-title">{{ title }}</h1>
+        {% if context %}<div class="page-context">{{ context }}</div>{% endif %}
+    </div>
+    {% if actions %}<div class="actions">{{ actions|safe }}</div>{% endif %}
+</section>
+{%- endmacro %}
+
+{% macro status_chip(label, class_name='') -%}
+<span class="state-chip {{ class_name }}" {% if not label %}hidden{% endif %}>{{ label }}</span>
+{%- endmacro %}
+
+{% macro empty_state(title='', copy='', action_href='', action_label='') -%}
+<div class="empty-state">
+    {% if title %}<div class="empty-title">{{ title }}</div>{% endif %}
+    {% if copy %}<p class="muted-copy">{{ copy }}</p>{% endif %}
+    {% if action_href and action_label %}
+        <a class="btn btn-primary" href="{{ action_href }}">{{ action_label }}</a>
+    {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro detail_panel(kicker, title, copy='') -%}
+<aside class="detail-panel">
+    <div class="detail-kicker">{{ kicker }}</div>
+    <h2 class="detail-title">{{ title }}</h2>
+    {% if copy %}<p class="muted-copy">{{ copy }}</p>{% endif %}
+    {% if caller is defined %}{{ caller() }}{% endif %}
+</aside>
+{%- endmacro %}

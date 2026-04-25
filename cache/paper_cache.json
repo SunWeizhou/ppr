@@ -1,5 +1,5 @@
 {
-  "2603.29415v1": {
+  "2603.29415": {
     "title": "Concentration of the bootstrap empirical process, with applications to statistical inference",
     "abstract": "Considering a general framework of bootstrap with exchangeable weights, we show some concentration inequalities for the supremum of the bootstrap empirical process.. On the one hand, we discuss the co...",
     "authors": "Guillaume Maillard, Adrien Saumard",
@@ -7,19 +7,19 @@
     "score": 6.5,
     "relevance": "命中核心主题: asymptotic; 近2天新论文; 包含理论贡献: bound, convergence"
   },
-  "2604.00966v1": {
+  "2604.00966": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.01094v1": {
+  "2604.01094": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2603.29725v1": {
+  "2603.29725": {
     "title": "Unbounded Density Ratio Estimation and Its Application to Covariate Shift Adaptation",
     "abstract": "This paper focuses on the problem of unbounded density ratio estimation -- an understudied yet critical challenge in statistical learning -- and its application to covariate shift adaptation.. Much of...",
     "authors": "Ren-Rui Liu, Jun Fan, Lei Shi, Zheng-Chu Guo",
@@ -27,103 +27,103 @@
     "score": 4.2,
     "relevance": "命中核心主题: asymptotic; 近2天新论文; 包含理论贡献: bound, convergence"
   },
-  "2603.29450v1": {
+  "2603.29450": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.00918v1": {
+  "2604.00918": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.00505v1": {
+  "2604.00505": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.00644v1": {
+  "2604.00644": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2603.29475v1": {
+  "2603.29475": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2603.29440v1": {
+  "2603.29440": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.01024v1": {
+  "2604.01024": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.00222v1": {
+  "2604.00222": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.00337v1": {
+  "2604.00337": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.00060v1": {
+  "2604.00060": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.01153v1": {
+  "2604.01153": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-04",
+    "score": 0
+  },
+  "2604.00195": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.00195v1": {
+  "2604.01160": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.01160v1": {
+  "2604.00241": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.00241v1": {
+  "2604.00410": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.00410v1": {
+  "2604.00585": {
     "title": "",
     "abstract": "",
     "date": "2026-04-02",
     "score": 0
   },
-  "2604.00585v1": {
-    "title": "",
-    "abstract": "",
-    "date": "2026-04-02",
-    "score": 0
-  },
-  "2604.01502v1": {
+  "2604.01502": {
     "title": "Non-monotonicity in Conformal Risk Control",
     "abstract": "Conformal risk control (CRC) provides distribution-free guarantees for controlling the expected loss at a user-specified level.. Existing theory typically assumes that the loss decreases monotonically...",
     "authors": "Tareq Aldirawi, Yun Li, Wenge Guo",
@@ -131,253 +131,247 @@
     "score": 7.3,
     "relevance": "命中核心主题: excess risk; 近1天新论文; 包含理论贡献: bound, minimax"
   },
-  "2604.01946v1": {
+  "2604.01946": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01568v1": {
+  "2604.01568": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01470v1": {
+  "2604.01470": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01961v1": {
+  "2604.01961": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01841v1": {
+  "2604.01841": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01430v1": {
+  "2604.01430": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01266v1": {
+  "2604.01266": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01911v1": {
+  "2604.01911": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.02034v1": {
+  "2604.02034": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01449v1": {
+  "2604.01449": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01878v1": {
+  "2604.01878": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.00683v1": {
+  "2604.00683": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01267v1": {
+  "2604.01267": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01727v1": {
+  "2604.01727": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01308v1": {
+  "2604.01308": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01413v1": {
+  "2604.01413": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.00689v1": {
+  "2604.00689": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01215v1": {
+  "2604.01215": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01170v1": {
+  "2604.01170": {
     "title": "",
     "abstract": "",
     "date": "2026-04-03",
     "score": 0
   },
-  "2604.01153v2": {
+  "2604.01434": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01434v1": {
+  "2604.00942": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.00942v1": {
+  "2604.01682": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01682v1": {
+  "2604.00655": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.00655v1": {
+  "2604.01880": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01880v1": {
+  "2604.01117": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01117v1": {
+  "2604.02270": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.02270v1": {
+  "2604.01898": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01898v1": {
+  "2604.01712": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01712v1": {
+  "2604.01466": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01466v1": {
+  "2604.00739": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.00739v1": {
+  "2604.01378": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01378v1": {
+  "2604.00811": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.00811v1": {
+  "2604.01052": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01052v1": {
+  "2604.01086": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01086v2": {
+  "2604.01345": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01345v1": {
+  "2604.01944": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01944v1": {
+  "2604.00987": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.00987v1": {
+  "2604.01896": {
     "title": "",
     "abstract": "",
     "date": "2026-04-04",
     "score": 0
   },
-  "2604.01896v1": {
-    "title": "",
-    "abstract": "",
-    "date": "2026-04-04",
-    "score": 0
-  },
-  "2604.01354v1": {
+  "2604.01354": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.01651v1": {
+  "2604.01651": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.02094v1": {
+  "2604.02094": {
     "title": "Importance sampling for Bayesian inference: polynomial-dimension dependent error bounds",
     "abstract": "Many Bayesian inference problems involve high-dimensional models where the performance of standard importance sampling (IS) methods often degrades rapidly as the dimensionality increases.. Classical a...",
     "authors": "Fabián González, Víctor Elvira, Joaquín Míguez",
@@ -385,73 +379,73 @@
     "score": 1.1,
     "relevance": "相关主题: estimation; 近4天新论文"
   },
-  "2604.00848v1": {
+  "2604.00848": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.00915v1": {
+  "2604.00915": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.01997v1": {
+  "2604.01997": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.02116v1": {
+  "2604.02116": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.01769v1": {
+  "2604.01769": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.00772v1": {
+  "2604.00772": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.01118v1": {
+  "2604.01118": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.02179v1": {
+  "2604.02179": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.01197v1": {
+  "2604.01197": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.02022v1": {
+  "2604.02022": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.00669v1": {
+  "2604.00669": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.01601v1": {
+  "2604.01601": {
     "title": "Training In-Context and In-Weights Mixtures Via Contrastive Context Sampling",
     "abstract": "We investigate training strategies that co-develop in-context learning (ICL) and in-weights learning (IWL), and the ability to switch between them based on context relevance.. Although current LLMs ex...",
     "authors": "Deeptanshu Malu, Deevyanshu Malu, Aditya Nemiwal, Sunita Sarawagi",
@@ -459,43 +453,43 @@
     "score": 0.9,
     "relevance": "命中核心主题: in-context learning; 近4天新论文"
   },
-  "2604.01329v1": {
+  "2604.01329": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.01924v1": {
+  "2604.01924": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.00813v1": {
+  "2604.00813": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.01650v1": {
+  "2604.01650": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.01702v1": {
+  "2604.01702": {
     "title": "",
     "abstract": "",
     "date": "2026-04-06",
     "score": 0
   },
-  "2604.02595v1": {
+  "2604.02595": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.03146v1": {
+  "2604.03146": {
     "title": "Characterization of Gaussian Universality Breakdown in High-Dimensional Empirical Risk Minimization",
     "abstract": "We study high-dimensional convex empirical risk minimization (ERM) under general non-Gaussian data designs.. By heuristically extending the Convex Gaussian Min-Max Theorem (CGMT) to non-Gaussian setti...",
     "authors": "Chiheb Yaakoubi, Cosme Louart, Malik Tiomoko, Zhenyu Liao",
@@ -503,7 +497,7 @@
     "score": 4.7,
     "relevance": "命中核心主题: asymptotic; 近4天新论文"
   },
-  "2604.02596v1": {
+  "2604.02596": {
     "title": "An Empirical Study of Many-Shot In-Context Learning for Machine Translation of Low-Resource Languages",
     "abstract": "In-context learning (ICL) allows large language models (LLMs) to adapt to new tasks from a few examples, making it promising for languages underrepresented in pre-training.. Recent work on many-shot I...",
     "authors": "Yinhan Lu, Gaganpreet Jhajj, Chen Zhang, Anietie Andy, David Ifeoluwa Adelani",
@@ -511,229 +505,229 @@
     "score": 3.5,
     "relevance": "命中核心主题: in-context learning; 近4天新论文"
   },
-  "2604.02394v1": {
+  "2604.02394": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02738v1": {
+  "2604.02738": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02555v1": {
+  "2604.02555": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02722v1": {
+  "2604.02722": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02832v1": {
+  "2604.02832": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02488v1": {
+  "2604.02488": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02887v1": {
+  "2604.02887": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02886v1": {
+  "2604.02886": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02520v1": {
+  "2604.02520": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02920v1": {
+  "2604.02920": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02489v1": {
+  "2604.02489": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02483v1": {
+  "2604.02483": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02697v1": {
+  "2604.02697": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.02639v1": {
+  "2604.02639": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.03015v1": {
+  "2604.03015": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.03094v1": {
+  "2604.03094": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.03014v1": {
+  "2604.03014": {
     "title": "",
     "abstract": "",
     "date": "2026-04-07",
     "score": 0
   },
-  "2604.04228v1": {
+  "2604.04228": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04218v1": {
+  "2604.04218": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03722v1": {
+  "2604.03722": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04249v1": {
+  "2604.04249": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03772v1": {
+  "2604.03772": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04278v1": {
+  "2604.04278": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04090v1": {
+  "2604.04090": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04638v1": {
+  "2604.04638": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03969v1": {
+  "2604.03969": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03488v1": {
+  "2604.03488": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03782v1": {
+  "2604.03782": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04673v1": {
+  "2604.04673": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04241v1": {
+  "2604.04241": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03976v1": {
+  "2604.03976": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04823v1": {
+  "2604.04823": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04785v1": {
+  "2604.04785": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04272v1": {
+  "2604.04272": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03827v1": {
+  "2604.03827": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03814v1": {
+  "2604.03814": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03634v1": {
+  "2604.03634": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04342v1": {
+  "2604.04342": {
     "title": "Generative models for decision-making under distributional shift",
     "abstract": "Many data-driven decision problems are formulated using a nominal distribution estimated from historical data, while performance is ultimately determined by a deployment distribution that may be shift...",
     "authors": "Xiuyuan Cheng, Yunqin Zhu, Yao Xie",
@@ -741,7 +735,7 @@
     "score": 1.4,
     "relevance": "命中核心主题: minimax; 近2天新论文; 包含理论贡献: bound, convergence"
   },
-  "2604.03939v1": {
+  "2604.03939": {
     "title": "Fused Multinomial Logistic Regression Utilizing Summary-Level External Machine-learning Information",
     "abstract": "In many modern applications, a carefully designed primary study provides individual-level data for interpretable modeling, while summary-level external information is available through black-box, effi...",
     "authors": "Chi-Shian Dai, Jun Shao",
@@ -749,115 +743,115 @@
     "score": 1.4,
     "relevance": "命中核心主题: asymptotic; 近3天新论文"
   },
-  "2604.03843v1": {
+  "2604.03843": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03649v1": {
+  "2604.03649": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04032v1": {
+  "2604.04032": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03891v1": {
+  "2604.03891": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04130v1": {
+  "2604.04130": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04334v1": {
+  "2604.04334": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03444v1": {
+  "2604.03444": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04141v1": {
+  "2604.04141": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04614v1": {
+  "2604.04614": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04265v1": {
+  "2604.04265": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04567v1": {
+  "2604.04567": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03985v1": {
+  "2604.03985": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03443v1": {
+  "2604.03443": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.03815v1": {
+  "2604.03815": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04802v1": {
+  "2604.04802": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04738v1": {
+  "2604.04738": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04589v1": {
+  "2604.04589": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.04469v1": {
+  "2604.04469": {
     "title": "",
     "abstract": "",
     "date": "2026-04-08",
     "score": 0
   },
-  "2604.05669v1": {
+  "2604.05669": {
     "title": "Efficient machine unlearning with minimax optimality",
     "abstract": "There is a growing demand for efficient data removal to comply with regulations like the GDPR and to mitigate the influence of biased or corrupted data.. This has motivated the field of machine unlear...",
     "authors": "Jingyi Xie, Linjun Zhang, Sai Li",
@@ -865,118 +859,384 @@
     "score": 6.4,
     "relevance": "命中核心主题: minimax; 近2天新论文"
   },
-  "2604.05396v1": {
+  "2604.05396": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05063v1": {
+  "2604.05063": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05974v1": {
+  "2604.05974": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05241v1": {
+  "2604.05241": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05844v1": {
+  "2604.05844": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05689v1": {
+  "2604.05689": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05057v1": {
+  "2604.05057": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05674v1": {
+  "2604.05674": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05751v1": {
+  "2604.05751": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.06039v1": {
+  "2604.06039": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05518v1": {
+  "2604.05518": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05112v1": {
+  "2604.05112": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.06086v1": {
+  "2604.06086": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05843v1": {
+  "2604.05843": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05348v1": {
+  "2604.05348": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05469v1": {
+  "2604.05469": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05943v1": {
+  "2604.05943": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05995v1": {
+  "2604.05995": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
   },
-  "2604.05522v1": {
+  "2604.05522": {
     "title": "",
     "abstract": "",
     "date": "2026-04-09",
     "score": 0
-  }
+  },
+  "2604.19857": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20634": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20238": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20209": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19846": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20777": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19572": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20414": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20172": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19072": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20632": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20276": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20500": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19351": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19137": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20422": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20627": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20468": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20115": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20764": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20568": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20381": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19993": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19936": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19162": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19091": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20331": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20420": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20659": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20441": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20311": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20296": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.20111": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19979": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19485": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19341": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19295": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19211": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19837": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19147": {
+    "title": "",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.12345": {
+    "title": "Stable identity",
+    "abstract": "",
+    "date": "2026-04-23",
+    "score": 0
+  },
+  "2604.19493": "2026-04-23",
+  "2604.20348": "2026-04-23",
+  "2604.20322": "2026-04-23",
+  "2604.19353": "2026-04-23",
+  "2604.20045": "2026-04-23",
+  "2604.20743": "2026-04-23",
+  "2604.20154": "2026-04-23",
+  "2604.19028": "2026-04-23",
+  "2604.20630": "2026-04-23",
+  "2604.20551": "2026-04-23",
+  "2604.19312": "2026-04-23",
+  "2604.20161": "2026-04-23",
+  "2604.20368": "2026-04-23",
+  "2604.20487": "2026-04-23",
+  "2604.19851": "2026-04-23",
+  "2604.19381": "2026-04-23",
+  "2604.19725": "2026-04-23",
+  "2604.19395": "2026-04-23",
+  "2604.19177": "2026-04-23",
+  "2604.19639": "2026-04-23"
 }

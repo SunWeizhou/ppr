@@ -12,8 +12,6 @@ import json
 import os
 
 SSL_CONTEXT = ssl.create_default_context()
-SSL_CONTEXT.check_hostname = False
-SSL_CONTEXT.verify_mode = ssl.CERT_NONE
 
 # 使用相对路径
 from pathlib import Path
@@ -27,7 +25,7 @@ def fetch_paper(arxiv_id: str):
     arxiv_id = arxiv_id.replace('https://arxiv.org/abs/', '').replace('http://arxiv.org/abs/', '')
     arxiv_id = arxiv_id.split('v')[0]  # Remove version
 
-    url = f"http://export.arxiv.org/api/query?id_list={arxiv_id}"
+    url = f"https://export.arxiv.org/api/query?id_list={arxiv_id}"
 
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})

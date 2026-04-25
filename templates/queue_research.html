@@ -1,114 +1,122 @@
 {% extends "base_research.html" %}
+{% import "_components.html" as ui %}
 
 {% block hero %}
-<section class="page-hero">
-    <div class="hero-panel">
-        <div class="kicker">Reading Workflow</div>
-        <h1 class="hero-title">Queue / 阅读流程</h1>
-        <p class="hero-subtitle">
-            管理你的阅读流程：从快速筛选到深度精读，每篇论文都有明确的状态。
-        </p>
-        <div class="metric-grid">
-            {% for status in queue_status_values %}
-                <div class="metric-card">
-                    <span class="metric-label">{{ status }}</span>
-                    <span class="metric-value">{{ queue_counts.get(status, 0) }}</span>
-                </div>
-            {% endfor %}
+<section class="page-header">
+    <div class="lead">
+        <span class="section-kicker">Reading Flow</span>
+        <h1 class="page-title">Queue</h1>
+        <div class="page-context">
+            <span>{{ queue_counts.values() | list | sum }} papers in queue</span>
+            <span class="dot"></span>
+            <span>{{ active_status or 'All statuses' }}</span>
         </div>
-        <div class="hero-actions">
-            <a href="/" class="action-button btn-brand">回到 Inbox</a>
-        </div>
+    </div>
+    <div class="actions">
+        <a href="/search" class="btn btn-tertiary">Find more papers</a>
+        <a href="/" class="btn btn-primary">Back to Inbox</a>
     </div>
 </section>
 {% endblock %}
 
 {% block content %}
-<div class="tab-strip">
+<div class="tabs">
+    <a href="/queue" class="tab-button {% if not active_status %}active{% endif %}">All <span class="count">{{ queue_counts.values() | list | sum }}</span></a>
     {% for status in queue_status_values %}
         <a href="/queue?status={{ status|urlencode }}" class="tab-button {% if active_status == status %}active{% endif %}">
             {{ status }}
-            <span class="tab-count">{{ queue_counts.get(status, 0) }}</span>
+            <span class="count">{{ queue_counts.get(status, 0) }}</span>
         </a>
     {% endfor %}
 </div>
 
-<section class="library-layout">
-    <div class="library-main">
-        <div class="panel-card section-card">
-            <div class="section-head section-head-tight">
-                <div>
-                    <div class="section-kicker">Papers</div>
-                    <h2 class="panel-title">{{ active_status or 'All' }}</h2>
-                </div>
-            </div>
+<section class="split section-gap">
+    <div>
+        <div class="toolbar">
+            <span class="chip brand">{{ active_status or 'All queue items' }}</span>
+            <span class="chip">{{ queue_items|length }} visible</span>
+            <span class="spacer"></span>
+            <span class="chip">Canonical states: Inbox / Skim Later / Deep Read / Saved / Archived</span>
+        </div>
 
+        <div class="card card--flush">
             {% if queue_items %}
-                <div class="paper-stream">
-                    {% for paper in queue_items %}
-                        <article class="paper-card compact-card library-paper-card"
-                            data-paper-id="{{ paper.id }}"
-                            data-paper-title="{{ paper.title }}"
-                            data-paper-authors="{{ paper.author_text }}"
-                            data-paper-summary="{{ paper.summary or '' }}"
-                            data-paper-relevance="{{ paper.relevance or '' }}"
-                            data-paper-link="{{ paper.link or '' }}"
-                            data-paper-note="{{ paper.queue_note or '' }}"
-                            data-paper-score="{{ paper.score or 0 }}"
-                            data-queue-status="{{ paper.queue_status or '' }}"
-                            onclick="selectQueuePaper(this)">
-                            <div class="paper-topline">
-                                <div class="paper-rank">
-                                    <span class="state-chip {{ paper.queue_status_class }}" data-queue-state>{{ paper.queue_status }}</span>
-                                    {% if paper.date %}
-                                        <span class="meta-chip">{{ paper.date }}</span>
-                                    {% endif %}
-                                </div>
-                                <div class="chip-row">
-                                    <span class="score-chip">Score {{ '%.1f'|format(paper.score or 0) }}</span>
-                                </div>
+                {% for paper in queue_items %}
+                    <article
+                        class="row queue-row"
+                        data-paper-id="{{ paper.id }}"
+                        data-paper-title="{{ paper.title }}"
+                        data-paper-authors="{{ paper.author_text }}"
+                        data-paper-summary="{{ paper.summary or '' }}"
+                        data-paper-relevance="{{ paper.relevance or '' }}"
+                        data-paper-link="{{ paper.link or '' }}"
+                        data-paper-note="{{ paper.queue_note or '' }}"
+                        data-paper-score="{{ paper.score or 0 }}"
+                        data-queue-status="{{ paper.queue_status or '' }}"
+                        onclick="selectQueuePaper(this)"
+                    >
+                        <div class="row-lead">
+                            <span class="row-rank">{{ paper.queue_status or 'Inbox' }}</span>
+                        </div>
+                        <div class="row-body">
+                            <div class="row-title">{{ paper.title }}</div>
+                            <div class="row-meta">{{ paper.author_text }}</div>
+                            <div class="row-summary">{{ paper.summary_short }}</div>
+                            <div class="row-tags">
+                                <span class="state-chip {{ paper.queue_status_class }}" data-queue-state>{{ paper.queue_status }}</span>
+                                {% if paper.date %}<span class="tag tag--mono">{{ paper.date }}</span>{% endif %}
                             </div>
-                            <h3 class="paper-title">
-                                <a class="paper-title-link" href="{{ paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); trackPaperOpen('{{ paper.id }}', 'queue_page')">{{ paper.title }}</a>
-                            </h3>
-                            <div class="paper-authors">{{ paper.author_text }}</div>
-                            <p class="paper-summary">{{ paper.summary_short }}</p>
-                        </article>
-                    {% endfor %}
-                </div>
+                        </div>
+                        <div class="row-trail">
+                            <span class="score-chip">{{ '%.1f'|format(paper.score or 0) }}</span>
+                        </div>
+                    </article>
+                {% endfor %}
             {% else %}
-                <div class="empty-state">
-                    <p class="muted-copy">这个状态下还没有论文。从 Inbox 或搜索页把论文送进阅读流程。</p>
-                </div>
+                {{ ui.empty_state((active_status or 'Queue') ~ ' 里还没有论文', '从 Inbox 或 Search 把论文送进阅读流程。') }}
             {% endif %}
         </div>
     </div>
 
-    <div class="library-rail" id="queueDetailPanel">
-        <div class="stack-card">
-            <div class="card-kicker">Detail</div>
-            <h2 class="panel-title" id="detailTitle">选择一篇论文查看详情</h2>
-            <p class="muted-copy" id="detailHint">点击左侧列表中的论文查看摘要和操作。</p>
-            <div id="detailContent" hidden>
-                <h3 id="detailPaperTitle" class="detail-paper-title"></h3>
-                <p id="detailAuthors" class="detail-authors"></p>
-                <p id="detailSummary" class="detail-summary"></p>
-                <div id="detailRelevance" class="reason-panel"></div>
-                <label class="field-label" for="detailQueueNote" style="margin-top: 16px;">Note</label>
-                <textarea id="detailQueueNote" class="form-textarea" rows="4" placeholder="记录你为什么要读它，或下一步要看什么。"></textarea>
-                <div class="action-row" style="margin-top: 16px;">
-                    <a id="detailQueueLink" class="action-button btn-brand" href="#" target="_blank" rel="noopener noreferrer" onclick="openQueuePaper()">Open arXiv</a>
-                    <button type="button" class="action-button btn-subtle" onclick="downloadQueuePdf()">PDF</button>
-                    <button type="button" class="action-button btn-ghost" onclick="collectQueuePaper()">Add to Collection</button>
-                    <button type="button" class="action-button btn-subtle" onclick="saveQueueNote()">Save Note</button>
-                </div>
-                <div class="action-row" style="margin-top: 16px;">
-                    <span class="section-kicker">Move to</span>
-                    {% for status in queue_status_values %}
-                        <button type="button" class="action-button {% if status == 'Skim Later' %}btn-warm{% elif status == 'Deep Read' %}btn-sage{% elif status == 'Inbox' %}btn-ghost{% elif status == 'Saved' %}btn-brand{% else %}btn-subtle{% endif %}" onclick="moveQueuePaper('{{ status }}')">{{ status }}</button>
-                    {% endfor %}
-                </div>
+    <div class="detail-panel" id="queueDetailPanel">
+        <div class="detail-kicker">Selected Queue Item</div>
+        <h2 class="detail-title" id="detailTitle">选择一篇论文查看详情</h2>
+        <p class="muted-copy" id="detailHint">左侧列表只负责选择，右侧负责决定下一步。</p>
+        <div id="detailContent" hidden>
+            <p id="detailAuthors" class="detail-authors"></p>
+            <div class="detail-meta-row">
+                <span class="score-chip" id="detailScore">Score 0.0</span>
+                <span class="state-chip" id="detailQueueState" hidden></span>
             </div>
+            <div class="detail-section">
+                <div class="detail-label">Abstract</div>
+                <p id="detailSummary" class="detail-copy"></p>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Why This Paper</div>
+                <div id="detailRelevance" class="reason-panel"></div>
+            </div>
+            <label class="field-label" for="detailQueueNote">Note</label>
+            <textarea id="detailQueueNote" class="form-textarea" rows="4" placeholder="记录你为什么要读它，或下一步要看什么。"></textarea>
+            <div class="detail-actions detail-actions-grid mt-2">
+                <a id="detailQueueLink" class="btn btn-primary" href="#" target="_blank" rel="noopener noreferrer" onclick="openQueuePaper()">Open arXiv</a>
+                <button type="button" class="btn btn-tertiary" onclick="downloadQueuePdf()">PDF</button>
+                <button type="button" class="btn btn-secondary" onclick="collectQueuePaper()">Add to Collection</button>
+                <button type="button" class="btn btn-sage" onclick="saveQueueNote()">Save Note</button>
+            </div>
+            <details class="detail-disclosure" open>
+                <summary class="detail-disclosure-summary">
+                    <span class="detail-label">Move To</span>
+                    <span class="detail-disclosure-copy">保持五个状态都可见且可回退</span>
+                </summary>
+                <div class="detail-disclosure-body">
+                    <div class="detail-actions detail-actions-grid">
+                        {% for status in queue_status_values %}
+                            <button type="button" class="btn {% if status == 'Skim Later' %}btn-warm{% elif status == 'Deep Read' %}btn-sage{% elif status == 'Saved' %}btn-secondary{% else %}btn-tertiary{% endif %}" onclick="moveQueuePaper('{{ status }}')">{{ status }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </details>
         </div>
     </div>
 </section>
@@ -120,20 +128,27 @@ let selectedQueuePaper = null;
 
 function selectQueuePaper(card) {
     selectedQueuePaper = card;
-    document.getElementById('detailTitle').hidden = true;
     document.getElementById('detailHint').hidden = true;
     document.getElementById('detailContent').hidden = false;
 
-    document.getElementById('detailPaperTitle').textContent = card.dataset.paperTitle;
+    document.getElementById('detailTitle').textContent = card.dataset.paperTitle;
     document.getElementById('detailAuthors').textContent = card.dataset.paperAuthors;
     document.getElementById('detailSummary').textContent = card.dataset.paperSummary;
     document.getElementById('detailQueueNote').value = card.dataset.paperNote || '';
     document.getElementById('detailQueueLink').href = card.dataset.paperLink || '#';
+    document.getElementById('detailScore').textContent = 'Score ' + Number(card.dataset.paperScore || '0').toFixed(1);
+
+    const queueState = document.getElementById('detailQueueState');
+    const status = card.dataset.queueStatus || '';
+    queueState.textContent = status;
+    queueState.hidden = !status;
+    queueState.className = status ? 'state-chip status-' + status.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'state-chip';
 
     const relevance = card.dataset.paperRelevance;
-    document.getElementById('detailRelevance').textContent = relevance || '';
+    const detailRelevance = document.getElementById('detailRelevance');
+    detailRelevance.innerHTML = relevance ? '<div class="relevance-item"><span class="relevance-icon">💡</span><span class="relevance-text">' + relevance + '</span></div>' : '';
 
-    document.querySelectorAll('.library-paper-card').forEach(c => c.classList.remove('is-selected'));
+    document.querySelectorAll('.queue-row').forEach(c => c.classList.remove('is-selected'));
     card.classList.add('is-selected');
 }
 
@@ -146,14 +161,9 @@ async function moveQueuePaper(status) {
     });
     selectedQueuePaper.remove();
     selectedQueuePaper = null;
-    document.getElementById('detailTitle').hidden = false;
+    document.getElementById('detailTitle').textContent = '选择一篇论文查看详情';
     document.getElementById('detailHint').hidden = false;
     document.getElementById('detailContent').hidden = true;
-
-    const countEl = document.querySelector('.tab-button.active .tab-count');
-    if (countEl) {
-        countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
-    }
 }
 
 async function saveQueueNote() {
@@ -192,5 +202,7 @@ async function collectQueuePaper() {
         showToast('加入 Collection 失败: ' + error.message, 'error');
     }
 }
+
+document.querySelector('.queue-row')?.click();
 </script>
 {% endblock %}

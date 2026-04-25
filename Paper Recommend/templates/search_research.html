@@ -1,0 +1,294 @@
+{% extends "base_research.html" %}
+
+{% block hero %}
+<section class="page-hero">
+    <div class="search-hero">
+        <div class="kicker">Question-Driven Explore</div>
+        <h1 class="hero-title">Explore</h1>
+        <p class="hero-subtitle">
+            搜索不只是临时查找，而是把一个研究问题变成长期订阅、Collection 和后续阅读动作的起点。
+        </p>
+        <div class="search-bar">
+            <input type="text" id="keywordInput" class="search-input" placeholder="例如：finite-sample conformal under covariate shift" value="{{ current_query }}">
+            <button class="action-button btn-brand" onclick="doSearch()">搜索</button>
+            <button class="action-button btn-warm" onclick="saveSearch()">保存为 Query Subscription</button>
+            <button class="action-button btn-ghost" onclick="createCollectionFromCurrentQuery()">转成 Collection</button>
+        </div>
+        <ul class="search-hint-list">
+            <li>优先用简短英文短语，避免把完整自然语言问题直接塞进去。</li>
+            <li>一个 query 对应一个问题，保存后才会形成长期 alert。</li>
+            <li>从结果里把值得继续跟踪的工作送进队列或 Collection，而不是只看完就走。</li>
+        </ul>
+        {% if keywords %}
+            <div class="chip-row" style="margin-top: 18px;">
+                {% for keyword in keywords %}
+                    <span class="chip brand">{{ keyword }}</span>
+                {% endfor %}
+            </div>
+            <div class="search-results-meta">找到 {{ papers|length }} 篇相关论文 · 搜索时间 {{ date }}</div>
+        {% endif %}
+    </div>
+
+    <div class="hero-rail">
+        <div class="stack-card">
+            <div class="card-kicker">Queue</div>
+            <h2 class="panel-title">当前阅读状态</h2>
+            <div class="mini-grid">
+                {% for status in queue_status_values %}
+                    <div class="mini-stat">
+                        <span class="mini-stat-label">{{ status }}</span>
+                        <span class="mini-stat-value">{{ queue_counts.get(status, 0) }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="stack-card">
+            <div class="card-kicker">Explore Assets</div>
+            <h2 class="panel-title">问题与容器</h2>
+            <div class="chip-row">
+                <span class="chip brand">{{ all_saved_searches|length }} query subscriptions</span>
+                <span class="chip sage">{{ all_collections|length }} collections</span>
+            </div>
+            <p class="detail-copy">问题先沉淀成 Query Subscription；如果它已经形成方法簇或研究线索，再升级成 Collection。</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="search-layout">
+    <div>
+        {% if papers %}
+            <div class="paper-stream">
+                {% for paper in papers %}
+                    <article class="paper-card compact-card library-paper-card"
+                        data-paper-id="{{ paper.id }}"
+                        data-paper-title="{{ paper.title }}"
+                        data-paper-authors="{{ paper.author_text }}"
+                        data-paper-summary="{{ paper.summary or '' }}"
+                        data-paper-relevance="{{ paper.relevance_reason or '' }}"
+                        data-paper-link="{{ paper.link or '' }}"
+                        data-paper-score="{{ paper.score or 0 }}"
+                        data-paper-first-author="{{ paper.first_author }}"
+                        data-queue-status="{{ paper.queue_status or '' }}">
+                        <div class="paper-topline">
+                            <div class="paper-rank">
+                                <span>#{{ paper.rank }}</span>
+                                <span class="state-chip {{ paper.queue_status_class }}" data-queue-state {% if not paper.queue_status %}hidden{% endif %}>{{ paper.queue_status or '' }}</span>
+                            </div>
+                            <div class="chip-row">
+                                <span class="score-chip">Score {{ '%.1f'|format(paper.score or 0) }}</span>
+                                {% for label in paper.category_labels %}
+                                    <span class="meta-chip">{{ label }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <h3 class="paper-title">
+                            <a class="paper-title-link" href="{{ paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="trackPaperOpen('{{ paper.id }}', 'search_research')">{{ paper.title }}</a>
+                        </h3>
+                        <div class="paper-authors">{{ paper.author_text }}</div>
+                        <p class="paper-summary">{{ paper.summary_short }}</p>
+                        <div class="reason-panel">
+                            <span class="reasons-title">Why matched</span>
+                            <div class="relevance-item">
+                                <span class="relevance-text">{{ paper.relevance_reason }}</span>
+                            </div>
+                        </div>
+                        <div class="action-row">
+                            <button type="button" class="action-button btn-warm" onclick="queueSearchCard(this, 'Skim Later')">稍后读</button>
+                            <button type="button" class="action-button btn-sage" onclick="queueSearchCard(this, 'Deep Read')">精读</button>
+                            <button type="button" class="action-button btn-subtle" onclick="queueSearchCard(this, 'Saved')">Saved</button>
+                            <button type="button" class="action-button btn-subtle" onclick="queueSearchCard(this, 'Archived')">Archived</button>
+                            <button type="button" class="action-button btn-ghost" onclick="collectSearchCard(this)">加入 Collection</button>
+                            <button type="button" class="action-button btn-subtle" onclick="followSearchCard(this)">关注作者</button>
+                            <button type="button" class="action-button btn-subtle" onclick="downloadBibtex(getSearchCard(this).dataset.paperId)">BibTeX</button>
+                            <a class="action-button btn-ghost" href="{{ paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="trackPaperOpen('{{ paper.id }}', 'search_research')">打开 arXiv</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% elif keywords %}
+            <div class="empty-state">
+                <div class="section-kicker">No Results</div>
+                <h2 class="panel-title">这次没有命中结果</h2>
+                <p class="muted-copy">可以试试更短的 query，或者把复杂问题拆成两个统计关键词。</p>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="section-kicker">Start With A Question</div>
+                <h2 class="panel-title">从研究问题开始，而不是从单篇论文开始</h2>
+                <p class="muted-copy">例如：`minimax nonparametric adaptation`、`finite-sample conformal shift`、`icl generalization bound`。</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="aside-stack">
+        <div class="stack-card">
+            <div class="card-kicker">Query Subscriptions</div>
+            <h2 class="panel-title">已保存的问题订阅</h2>
+            {% if all_saved_searches %}
+                <div class="list-stack">
+                    {% for search in all_saved_searches %}
+                        <div class="list-item list-item-actions">
+                            <div>
+                                <span class="list-item-title">{{ search.name }}</span>
+                                <span class="list-item-subtitle">{{ search.description or search.query_text }}</span>
+                            </div>
+                            <div class="inline-actions compact-actions">
+                                <a href="/monitor?tab=queries" class="action-button btn-subtle">查看</a>
+                                <button type="button" class="action-button btn-danger" onclick="deleteSavedSearch({{ search.id }}, {{ search.name|tojson }})">删</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state compact-empty">
+                    <p class="muted-copy">先做一次高质量搜索，再把它保存成长期关注对象。</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="stack-card">
+            <div class="card-kicker">Collections</div>
+            <h2 class="panel-title">研究容器</h2>
+            {% if all_collections %}
+                <div class="list-stack">
+                    {% for collection in all_collections %}
+                        <a href="/library?tab=collections&collection_id={{ collection.id }}" class="list-item list-item-link">
+                            <div>
+                                <span class="list-item-title">{{ collection.name }}</span>
+                                <span class="list-item-subtitle">{{ collection.description or collection.query_text or 'No description yet' }}</span>
+                            </div>
+                            <span class="list-item-trailing">{{ collection.paper_count }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state compact-empty">
+                    <p class="muted-copy">Collection 更适合沉淀一个方法族或研究线索，而不是一次性结果列表。</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function getSearchCard(element) {
+    return element.closest('[data-paper-id]');
+}
+
+function doSearch() {
+    const input = document.getElementById('keywordInput').value.trim();
+    if (!input) return;
+    const keywords = input.split(/[,，\s]+/).filter(Boolean);
+    if (keywords.length) {
+        window.location.href = '/search/' + encodeURIComponent(keywords.join(','));
+    }
+}
+
+document.getElementById('keywordInput')?.addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        doSearch();
+    }
+});
+
+async function saveSearch() {
+    const query = document.getElementById('keywordInput').value.trim();
+    if (!query) {
+        showToast('先输入一个问题再保存', 'error');
+        return;
+    }
+    const defaultName = query.length > 36 ? query.slice(0, 36) + '…' : query;
+
+    try {
+        const savedSearch = await openQuerySubscriptionModal({
+            defaultName: defaultName,
+            queryText: query,
+            description: 'Created from Explore'
+        });
+        if (savedSearch) {
+            window.setTimeout(() => window.location.reload(), 350);
+        }
+    } catch (error) {
+        showToast('保存失败: ' + error.message, 'error');
+    }
+}
+
+async function createCollectionFromCurrentQuery() {
+    const query = document.getElementById('keywordInput').value.trim();
+    if (!query) {
+        showToast('先输入一个问题', 'error');
+        return;
+    }
+    try {
+        const collection = await ensureCollection({
+            defaultName: query.slice(0, 40),
+            queryText: query,
+            description: 'Created from Explore'
+        });
+        if (collection) {
+            window.location.href = '/library?tab=collections&collection_id=' + collection.id;
+        }
+    } catch (error) {
+        showToast('创建 Collection 失败: ' + error.message, 'error');
+    }
+}
+
+async function queueSearchCard(button, status) {
+    const card = getSearchCard(button);
+    if (!card) return;
+    try {
+        await queuePaperStatus(card.dataset.paperId, status, {source: 'search_research'});
+    } catch (error) {
+        showToast('加入队列失败: ' + error.message, 'error');
+    }
+}
+
+async function collectSearchCard(button) {
+    const card = getSearchCard(button);
+    if (!card) return;
+    try {
+        await addPaperToCollection(card.dataset.paperId, {
+            defaultName: card.dataset.paperTitle.slice(0, 48),
+            source: 'search_research'
+        });
+    } catch (error) {
+        showToast('加入 Collection 失败: ' + error.message, 'error');
+    }
+}
+
+async function followSearchCard(button) {
+    const card = getSearchCard(button);
+    if (!card) return;
+    try {
+        await followAuthor(card.dataset.paperFirstAuthor, {
+            paperId: card.dataset.paperId,
+            title: card.dataset.paperTitle,
+            source: 'search_research'
+        });
+    } catch (error) {
+        showToast('关注失败: ' + error.message, 'error');
+    }
+}
+
+async function deleteSavedSearch(searchId, name) {
+    if (!window.confirm('确定删除 Query Subscription: ' + name + ' 吗？')) return;
+    try {
+        await requestJson('/api/saved-searches', {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({search_id: searchId})
+        });
+        removeSavedSearchCache(searchId);
+        showToast('问题订阅已删除');
+        window.setTimeout(() => window.location.reload(), 300);
+    } catch (error) {
+        showToast('删除失败: ' + error.message, 'error');
+    }
+}
+</script>
+{% endblock %}

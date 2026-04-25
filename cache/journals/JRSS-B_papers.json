@@ -1,8 +1,108 @@
 {
   "journal": "Journal of the Royal Statistical Society: Series B",
-  "fetched_at": "2026-04-09T22:15:47.107383",
-  "count": 144,
+  "fetched_at": "2026-04-20T20:50:17.577593",
+  "count": 151,
   "papers": [
+    {
+      "title": "Authors’ reply to the Discussion of ‘Augmented balancing weights as linear regression' by Bruns-Smith et al",
+      "authors": [
+        "David Bruns-Smith",
+        "Oliver Dukes",
+        "Avi Feller",
+        "Elizabeth L Ogburn"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1093/jrsssb/qkag070",
+      "url": "https://doi.org/10.1093/jrsssb/qkag070",
+      "journal": "JRSS-B"
+    },
+    {
+      "title": "Autoregressive networks with dependent edges",
+      "authors": [
+        "Jinyuan Chang",
+        "Qin Fang",
+        "Eric D Kolaczyk",
+        "Peter W MacDonald",
+        "Qiwei Yao"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1093/jrsssb/qkag063",
+      "url": "https://doi.org/10.1093/jrsssb/qkag063",
+      "journal": "JRSS-B"
+    },
+    {
+      "title": "Byzantine-tolerant distributed learning of finite mixture models",
+      "authors": [
+        "Qiong Zhang",
+        "Yan Shuo Tan",
+        "Jiahua Chen"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1093/jrsssb/qkag065",
+      "url": "https://doi.org/10.1093/jrsssb/qkag065",
+      "journal": "JRSS-B"
+    },
+    {
+      "title": "Generalized point process additive models",
+      "authors": [
+        "Kuang-Yao Lee",
+        "Jiehuan Sun",
+        "Bing Li",
+        "Lexin Li"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1093/jrsssb/qkag061",
+      "url": "https://doi.org/10.1093/jrsssb/qkag061",
+      "journal": "JRSS-B"
+    },
+    {
+      "title": "Modelling with categorical features via exact fusion and sparsity regularization",
+      "authors": [
+        "Kayhan Behdin",
+        "Riade Benbaki",
+        "Peter Radchenko",
+        "Rahul Mazumder"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1093/jrsssb/qkag062",
+      "url": "https://doi.org/10.1093/jrsssb/qkag062",
+      "journal": "JRSS-B"
+    },
+    {
+      "title": "Combining evidence across filtrations",
+      "authors": [
+        "Yo Joong Choe",
+        "Aaditya Ramdas"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1093/jrsssb/qkag058",
+      "url": "https://doi.org/10.1093/jrsssb/qkag058",
+      "journal": "JRSS-B"
+    },
     {
       "title": "Model privacy: a unified framework for understanding model stealing attacks and defences",
       "authors": [
@@ -73,17 +173,17 @@
       "journal": "JRSS-B"
     },
     {
-      "title": "Authors reply to the Discussion of 'Statistical exploration of the Manifold Hypothesis' by Whiteley et al",
+      "title": "Authors’ reply to discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Nick Whiteley",
         "Annie Gray",
         "Patrick Rubin-Delanchy"
       ],
       "year": "2026",
-      "month": "03",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "435-443",
       "doi": "10.1093/jrsssb/qkag056",
       "url": "https://doi.org/10.1093/jrsssb/qkag056",
       "journal": "JRSS-B"
@@ -121,17 +221,17 @@
       "journal": "JRSS-B"
     },
     {
-      "title": "Statistical exploration of the Manifold Hypothesis",
+      "title": "Statistical exploration of the manifold hypothesis",
       "authors": [
         "Nick Whiteley",
         "Annie Gray",
         "Patrick Rubin-Delanchy"
       ],
       "year": "2026",
-      "month": "03",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "353-385",
       "doi": "10.1093/jrsssb/qkag055",
       "url": "https://doi.org/10.1093/jrsssb/qkag055",
       "journal": "JRSS-B"
@@ -275,15 +375,16 @@
       "journal": "JRSS-B"
     },
     {
-      "title": "Martin Schlather &amp; Milan Stehlik’s contribution to the Discussion of “Statistical exploration of the Manifold Hypothesis” by Whiteley et al",
+      "title": "Martin Schlather and Milan Stehlík’s contribution to the Discussion of ‘Statistical exploration of the manifold hypothesis’ by N. Whiteley et al.",
       "authors": [
-        "Martin Schlather"
+        "Martin Schlather",
+        "Milan Stehlík"
       ],
       "year": "2026",
-      "month": "02",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "423-424",
       "doi": "10.1093/jrsssb/qkag048",
       "url": "https://doi.org/10.1093/jrsssb/qkag048",
       "journal": "JRSS-B"
@@ -338,144 +439,144 @@
       "journal": "JRSS-B"
     },
     {
-      "title": "Safaa K. Kadhem's contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al",
+      "title": "Safaa K. Kadhem’s contribution to the Discussion on ‘Statistical exploration of the manifold hypothesis’ by Nick Whiteley, Annie Grayb, and Patrick Rubin-Delanchy",
       "authors": [
         "Safaa K Kadhem"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "412-414",
       "doi": "10.1093/jrsssb/qkag047",
       "url": "https://doi.org/10.1093/jrsssb/qkag047",
       "journal": "JRSS-B"
     },
     {
-      "title": "Alexander Modell’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al",
+      "title": "Alexander Modell’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Alexander Modell"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "396-397",
       "doi": "10.1093/jrsssb/qkag034",
       "url": "https://doi.org/10.1093/jrsssb/qkag034",
       "journal": "JRSS-B"
     },
     {
-      "title": "Wanjie Wang's contribution to the Discussion of `Statistical exploration of the Manifold Hypothesis' by Whiteley et al",
+      "title": "Wanjie Wang’s contribution to the Discussion of ‘Statistical exploration of the manifold hypothesis’ by Whiteley et al.",
       "authors": [
         "Wanjie Wang"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "394-394",
       "doi": "10.1093/jrsssb/qkag045",
       "url": "https://doi.org/10.1093/jrsssb/qkag045",
       "journal": "JRSS-B"
     },
     {
-      "title": "Gesine Reinert’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al’",
+      "title": "Gesine Reinert’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Gesine Reinert"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "395-395",
       "doi": "10.1093/jrsssb/qkag008",
       "url": "https://doi.org/10.1093/jrsssb/qkag008",
       "journal": "JRSS-B"
     },
     {
-      "title": "Masaaki Imaizumi's contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al",
+      "title": "Masaaki Imaizumi's contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Masaaki Imaizumi"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "391-392",
       "doi": "10.1093/jrsssb/qkag014",
       "url": "https://doi.org/10.1093/jrsssb/qkag014",
       "journal": "JRSS-B"
     },
     {
-      "title": "Rocco Caprio and Adam Johansen's contribution to the Discussion of 'Statistical exploration of the Manifold Hypothesis' by Whiteley et al",
+      "title": "Rocco Caprio and Adam M. Johansen’s contribution to the Discussion of ‘Statistical exploration of the manifold hypothesis’ by Whiteley et al.",
       "authors": [
         "Rocco Caprio",
         "Adam M Johansen"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "404-406",
       "doi": "10.1093/jrsssb/qkag041",
       "url": "https://doi.org/10.1093/jrsssb/qkag041",
       "journal": "JRSS-B"
     },
     {
-      "title": "Junhyung Chang and Xiaoyu Lei's contribution to the Discussion of 'Statistical exploration of the Manifold Hypothesis' by Whiteley et al",
+      "title": "Junhyung Chang and Xiaoyu Lei’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Junhyung Chang",
         "Xiaoyu Lei"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "406-407",
       "doi": "10.1093/jrsssb/qkag033",
       "url": "https://doi.org/10.1093/jrsssb/qkag033",
       "journal": "JRSS-B"
     },
     {
-      "title": "Zihao Wen and David L. Dowe's contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al",
+      "title": "Zihao Wen and David L. Dowe’s contribution to the Discussion of ‘Statistical exploration of the manifold hypothesis’ by Whiteley et al.",
       "authors": [
         "Zihao Wen",
         "David L Dowe"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "432-433",
       "doi": "10.1093/jrsssb/qkag039",
       "url": "https://doi.org/10.1093/jrsssb/qkag039",
       "journal": "JRSS-B"
     },
     {
-      "title": "Seconder of the vote of thanks to Whiteley et al. and Contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’",
+      "title": "Seconder of the vote of thanks to Whiteley et al. and Contribution to the Discussion of ‘Statistical exploration of the manifold hypothesis’",
       "authors": [
         "Eddie Aamari"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "388-389",
       "doi": "10.1093/jrsssb/qkag040",
       "url": "https://doi.org/10.1093/jrsssb/qkag040",
       "journal": "JRSS-B"
     },
     {
-      "title": "Joshua Agterberg’s contribution to the Discussion of 'Statistical exploration of the Manifold Hypothesis' by Whiteley et al",
+      "title": "Joshua Agterberg’s Discussion of ‘Statistical exploration of the manifold hypothesis’ by Whiteley et al.",
       "authors": [
         "Joshua Agterberg"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "400-402",
       "doi": "10.1093/jrsssb/qkag038",
       "url": "https://doi.org/10.1093/jrsssb/qkag038",
       "journal": "JRSS-B"
@@ -502,53 +603,53 @@
         "Tengyao Wang"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "386-387",
       "doi": "10.1093/jrsssb/qkag002",
       "url": "https://doi.org/10.1093/jrsssb/qkag002",
       "journal": "JRSS-B"
     },
     {
-      "title": "Thomas Maullin’s contribution to the Discussion of 'Statistical exploration of the Manifold Hypothesis' by Whiteley et al",
+      "title": "Thomas Maullin-Sapey’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Thomas Maullin-Sapey"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "416-418",
       "doi": "10.1093/jrsssb/qkag035",
       "url": "https://doi.org/10.1093/jrsssb/qkag035",
       "journal": "JRSS-B"
     },
     {
-      "title": "Joshua Cape’s contribution to the Discussion of 'Statistical exploration of the Manifold Hypothesis' by Whiteley et al",
+      "title": "Joshua Cape’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Joshua Cape"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "390-391",
       "doi": "10.1093/jrsssb/qkag032",
       "url": "https://doi.org/10.1093/jrsssb/qkag032",
       "journal": "JRSS-B"
     },
     {
-      "title": "Poorbita Kundu’s and Johannes Schmidt-Hieber’s contribution to the Discussion of 'Statistical exploration of the Manifold Hypothesis' by Whiteley et al",
+      "title": "Poorbita Kundu’s and Johannes Schmidt-Hieber’s contribution to the Discussion of ‘Statistical exploration of the manifold hypothesis’ by Whiteley et al.",
       "authors": [
         "Poorbita Kundu",
         "Johannes Schmidt-Hieber"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "414-416",
       "doi": "10.1093/jrsssb/qkag036",
       "url": "https://doi.org/10.1093/jrsssb/qkag036",
       "journal": "JRSS-B"
@@ -586,7 +687,7 @@
       "journal": "JRSS-B"
     },
     {
-      "title": "Simon et al. Contribution to the Discussion of “Statistical exploration of the Manifold Hypothesis” by Whiteley et al",
+      "title": "Simon et al.’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Horst Simon",
         "Mohammed El-Amine Azz",
@@ -594,10 +695,10 @@
         "Emilio Porcu"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "421-423",
       "doi": "10.1093/jrsssb/qkag023",
       "url": "https://doi.org/10.1093/jrsssb/qkag023",
       "journal": "JRSS-B"
@@ -635,31 +736,31 @@
       "journal": "JRSS-B"
     },
     {
-      "title": "Melanie Weber’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al",
+      "title": "Melanie Weber’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Melanie Weber"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "430-431",
       "doi": "10.1093/jrsssb/qkag015",
       "url": "https://doi.org/10.1093/jrsssb/qkag015",
       "journal": "JRSS-B"
     },
     {
-      "title": "Kiho Park, Yo Joong Choe, and Yibo Jiang's contribution to the Discussion of `Statistical exploration of the Manifold Hypothesis' by Whitely, Gray and Rubin-Delanchy",
+      "title": "Kiho Park, Yo Joong Choe, and Yibo Jiang’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Kiho Park",
         "Yo Joong Choe",
         "Yibo Jiang"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "418-419",
       "doi": "10.1093/jrsssb/qkag030",
       "url": "https://doi.org/10.1093/jrsssb/qkag030",
       "journal": "JRSS-B"
@@ -679,59 +780,59 @@
       "journal": "JRSS-B"
     },
     {
-      "title": "Fukang Zhu and Xiangyu Guo’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al",
+      "title": "Fukang Zhu and Xiangyu Guo’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Fukang Zhu",
         "Xiangyu Guo"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "433-435",
       "doi": "10.1093/jrsssb/qkag027",
       "url": "https://doi.org/10.1093/jrsssb/qkag027",
       "journal": "JRSS-B"
     },
     {
-      "title": "Sanna Passino and Heard’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al",
+      "title": "Sanna Passino and Heard’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Francesco Sanna Passino",
         "Nicholas A Heard"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "420-421",
       "doi": "10.1093/jrsssb/qkag029",
       "url": "https://doi.org/10.1093/jrsssb/qkag029",
       "journal": "JRSS-B"
     },
     {
-      "title": "Michael Trosset's contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whitely et al",
+      "title": "Michael Trosset’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whitely et al.",
       "authors": [
         "Michael W Trosset"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "393-393",
       "doi": "10.1093/jrsssb/qkag026",
       "url": "https://doi.org/10.1093/jrsssb/qkag026",
       "journal": "JRSS-B"
     },
     {
-      "title": "Yanbo Tang’s contribution to the discussion of “Statistical exploration of the Manifold Hypothesis” by Whiteley et al",
+      "title": "Yanbo Tang’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Yanbo Tang"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "399-400",
       "doi": "10.1093/jrsssb/qkag028",
       "url": "https://doi.org/10.1093/jrsssb/qkag028",
       "journal": "JRSS-B"
@@ -751,16 +852,16 @@
       "journal": "JRSS-B"
     },
     {
-      "title": "Alberto Bordino and Olga Klopp’s contribution to the Discussion of “Statistical exploration of the Manifold Hypothesis” by Whiteley et al",
+      "title": "Alberto Bordino and Olga Klopp’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Alberto Bordino",
         "Olga Klopp"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "402-404",
       "doi": "10.1093/jrsssb/qkag017",
       "url": "https://doi.org/10.1093/jrsssb/qkag017",
       "journal": "JRSS-B"
@@ -787,65 +888,65 @@
       "journal": "JRSS-B"
     },
     {
-      "title": "Ian Gallagher’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al",
+      "title": "Ian Gallagher’s contribution to the Discussion of ‘Statistical exploration of the manifold hypothesis’ by Whiteley et al.",
       "authors": [
         "Ian Gallagher"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "410-411",
       "doi": "10.1093/jrsssb/qkag021",
       "url": "https://doi.org/10.1093/jrsssb/qkag021",
       "journal": "JRSS-B"
     },
     {
-      "title": "M. Stehlík and M. Schlather's contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al",
+      "title": "Milan Stehlík and Martin Schlather’s contribution to the Discussion of ‘Statistical exploration of the manifold hypothesis’ by Whiteley et al.",
       "authors": [
         "Milan Stehlík",
         "Martin Schlather"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "425-426",
       "doi": "10.1093/jrsssb/qkag011",
       "url": "https://doi.org/10.1093/jrsssb/qkag011",
       "journal": "JRSS-B"
     },
     {
-      "title": "Andrew Gelman’s contribution to the discussion of “Statistical exploration of the manifold hypothesis” by Whiteley et al",
+      "title": "Andrew Gelman’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Andrew Gelman"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "411-411",
       "doi": "10.1093/jrsssb/qkag019",
       "url": "https://doi.org/10.1093/jrsssb/qkag019",
       "journal": "JRSS-B"
     },
     {
-      "title": "Cheng and Tong’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al",
+      "title": "Bing Cheng and Howell Tong’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Bing Cheng",
         "Howell Tong"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "407-409",
       "doi": "10.1093/jrsssb/qkag010",
       "url": "https://doi.org/10.1093/jrsssb/qkag010",
       "journal": "JRSS-B"
     },
     {
-      "title": "Tian, Ma, Yu and Hu’s Contribution to the Discussion of ‘Statistical Exploration of the Manifold Hypothesis’ by Whiteley et al",
+      "title": "Maozai Tian, Shaopei Ma, Zhen Yu, and Yanan Hu’s contribution to the Discussion of ‘Statistical exploration of the manifold hypothesis’ by Whiteley et al.",
       "authors": [
         "Maozai Tian",
         "Shaopei Ma",
@@ -853,10 +954,10 @@
         "Yanan Hu"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "426-430",
       "doi": "10.1093/jrsssb/qkag012",
       "url": "https://doi.org/10.1093/jrsssb/qkag012",
       "journal": "JRSS-B"
@@ -891,43 +992,43 @@
       "journal": "JRSS-B"
     },
     {
-      "title": "Yinqiu He’s contribution to the Discussion of ’Statistical exploration of the Manifold Hypothesis’ by Whiteley et al",
+      "title": "Yinqiu He’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Yinqiu He"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "398-399",
       "doi": "10.1093/jrsssb/qkag009",
       "url": "https://doi.org/10.1093/jrsssb/qkag009",
       "journal": "JRSS-B"
     },
     {
-      "title": "“Professor Garib Nath Singh’s contribution to the Discussion of “Statistical exploration of the Manifold Hypothesis” by Nick Whiteley et al”",
+      "title": "Professor Garib Nath Singh’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Nick Whiteley et al.",
       "authors": [
         "Garib Nath Singh"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "424-424",
       "doi": "10.1093/jrsssb/qkag016",
       "url": "https://doi.org/10.1093/jrsssb/qkag016",
       "journal": "JRSS-B"
     },
     {
-      "title": "Dr Arun Chind’s contribution to the Discussion of Statistical exploration of the Manifold Hypothesis by Whiteley, et al",
+      "title": "Dr Arun Chind’s contribution to the Discussion of ‘Statistical exploration of the Manifold Hypothesis’ by Whiteley et al.",
       "authors": [
         "Arun Peter Chind"
       ],
       "year": "2026",
-      "month": "01",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "409-410",
       "doi": "10.1093/jrsssb/qkag013",
       "url": "https://doi.org/10.1093/jrsssb/qkag013",
       "journal": "JRSS-B"
@@ -1169,11 +1270,11 @@
     {
       "title": "Correction to: Inference of dependency knowledge graph for Electronic Health Records",
       "authors": [],
-      "year": "2025",
-      "month": "11",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "year": "2026",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "697-697",
       "doi": "10.1093/jrsssb/qkaf071",
       "url": "https://doi.org/10.1093/jrsssb/qkaf071",
       "journal": "JRSS-B"
@@ -1231,11 +1332,11 @@
         "Yuhong Yang",
         "Jie Ding"
       ],
-      "year": "2025",
-      "month": "10",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "year": "2026",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "657-676",
       "doi": "10.1093/jrsssb/qkaf062",
       "url": "https://doi.org/10.1093/jrsssb/qkaf062",
       "journal": "JRSS-B"
@@ -1246,11 +1347,11 @@
         "Eliana Duarte",
         "Liam Solus"
       ],
-      "year": "2025",
-      "month": "10",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "year": "2026",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "567-610",
       "doi": "10.1093/jrsssb/qkaf059",
       "url": "https://doi.org/10.1093/jrsssb/qkaf059",
       "journal": "JRSS-B"
@@ -1261,11 +1362,11 @@
         "Xinyu Zhang",
         "Kung-Sik Chan"
       ],
-      "year": "2025",
-      "month": "10",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "year": "2026",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "677-696",
       "doi": "10.1093/jrsssb/qkaf064",
       "url": "https://doi.org/10.1093/jrsssb/qkaf064",
       "journal": "JRSS-B"
@@ -1277,11 +1378,11 @@
         "Federico Camerlenghi",
         "Tommaso Rigon"
       ],
-      "year": "2025",
-      "month": "10",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "year": "2026",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "540-566",
       "doi": "10.1093/jrsssb/qkaf058",
       "url": "https://doi.org/10.1093/jrsssb/qkaf058",
       "journal": "JRSS-B"
@@ -1296,11 +1397,11 @@
         "Junwei Lu",
         "Tianxi Cai"
       ],
-      "year": "2025",
-      "month": "09",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "year": "2026",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "637-656",
       "doi": "10.1093/jrsssb/qkaf061",
       "url": "https://doi.org/10.1093/jrsssb/qkaf061",
       "journal": "JRSS-B"
@@ -1314,11 +1415,11 @@
         "Qi Long",
         "Weijie J Su"
       ],
-      "year": "2025",
-      "month": "09",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "year": "2026",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "491-515",
       "doi": "10.1093/jrsssb/qkaf056",
       "url": "https://doi.org/10.1093/jrsssb/qkaf056",
       "journal": "JRSS-B"
@@ -1329,13 +1430,30 @@
         "Axel Bücher",
         "Torben Staud"
       ],
-      "year": "2025",
-      "month": "09",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "year": "2026",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "611-636",
       "doi": "10.1093/jrsssb/qkaf060",
       "url": "https://doi.org/10.1093/jrsssb/qkaf060",
+      "journal": "JRSS-B"
+    },
+    {
+      "title": "Scalable Bayesian inference for heat kernel Gaussian processes on manifolds",
+      "authors": [
+        "Junhui He",
+        "Guoxuan Ma",
+        "Jian Kang",
+        "Ying Yang"
+      ],
+      "year": "2026",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "516-539",
+      "doi": "10.1093/jrsssb/qkaf057",
+      "url": "https://doi.org/10.1093/jrsssb/qkaf057",
       "journal": "JRSS-B"
     },
     {
@@ -1353,16 +1471,16 @@
       "journal": "JRSS-B"
     },
     {
-      "title": "A stratified <i>L</i>2-discrepancy with application to space-filling designs",
+      "title": "A stratified\n                    <i>L</i>\n                    2-discrepancy with application to space-filling designs",
       "authors": [
         "Ye Tian",
         "Hongquan Xu"
       ],
-      "year": "2025",
-      "month": "09",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "year": "2026",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "464-490",
       "doi": "10.1093/jrsssb/qkaf055",
       "url": "https://doi.org/10.1093/jrsssb/qkaf055",
       "journal": "JRSS-B"
@@ -1391,11 +1509,11 @@
         "Jongmin Lee",
         "Sungkyu Jung"
       ],
-      "year": "2025",
-      "month": "08",
-      "volume": "",
-      "issue": "",
-      "pages": "",
+      "year": "2026",
+      "month": "04",
+      "volume": "88",
+      "issue": "2",
+      "pages": "444-463",
       "doi": "10.1093/jrsssb/qkaf054",
       "url": "https://doi.org/10.1093/jrsssb/qkaf054",
       "journal": "JRSS-B"

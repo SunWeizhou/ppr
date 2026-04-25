@@ -104,7 +104,10 @@ class ConfigManager:
                 with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
                     raw = json.load(f)
                 logger.info(f"Loaded config from {CONFIG_FILE}")
+                raw, migrated = self._merge_legacy_config_if_needed(raw)
                 self._parse_config(raw)
+                if migrated:
+                    self.save()
                 self._last_loaded = time.time()
             except Exception as e:
                 logger.error(f"Error loading config: {e}")
@@ -118,6 +121,79 @@ class ConfigManager:
         raw = self._get_defaults()
         self._parse_config(raw)
         self._config_mtime = time.time()
+
+    def _merge_legacy_config_if_needed(self, raw: Dict) -> tuple[Dict, bool]:
+        """Backfill v2 profile fields from legacy local config files.
+
+        Older installs may have a v2 ``user_profile.json`` that only contains
+        dislikes, while the actual positive ranking profile still lives in
+        ``keywords_config.json`` or ``user_config.json``. A local-first product
+        should recover those signals automatically instead of silently ranking
+        only by recency.
+        """
+        raw = dict(raw or {})
+        keywords = dict(raw.get('keywords') or {})
+        has_positive_topics = any(
+            item.get('category') in {'core', 'secondary'}
+            and float(item.get('weight', 0) or 0) > 0
+            for item in keywords.values()
+            if isinstance(item, dict)
+        )
+        migrated = False
+        base_dir = CONFIG_FILE.parent
+
+        legacy_keywords_path = base_dir / "keywords_config.json"
+        if (not has_positive_topics or not raw.get('theory_keywords')) and legacy_keywords_path.exists():
+            try:
+                legacy = json.loads(legacy_keywords_path.read_text(encoding='utf-8'))
+                for category_key, category in (
+                    ('core_topics', 'core'),
+                    ('secondary_topics', 'secondary'),
+                    ('demote_topics', 'demote'),
+                ):
+                    for name, weight in (legacy.get(category_key) or {}).items():
+                        if name not in keywords:
+                            keywords[name] = {'weight': weight, 'category': category}
+                            migrated = True
+
+                dislike = legacy.get('dislike_topics') or {}
+                if isinstance(dislike, list):
+                    dislike = {name: -1.0 for name in dislike}
+                for name, weight in dislike.items():
+                    if name not in keywords:
+                        keywords[name] = {'weight': weight, 'category': 'dislike'}
+                        migrated = True
+
+                if not raw.get('theory_keywords') and legacy.get('theory_keywords'):
+                    raw['theory_keywords'] = legacy.get('theory_keywords') or []
+                    migrated = True
+            except (OSError, ValueError, json.JSONDecodeError) as exc:
+                logger.warning(f"Could not migrate legacy keywords config: {exc}")
+
+        legacy_user_path = base_dir / "user_config.json"
+        if not has_positive_topics and legacy_user_path.exists():
+            try:
+                legacy_user = json.loads(legacy_user_path.read_text(encoding='utf-8'))
+                topics = legacy_user.get('research_focus', {}).get('topics', [])
+                for topic in topics:
+                    key = str(topic).strip().lower()
+                    if key and key not in keywords:
+                        keywords[key] = {
+                            'weight': float(legacy_user.get('research_focus', {}).get('weight', 3.0) or 3.0),
+                            'category': 'core',
+                        }
+                        migrated = True
+                theory = legacy_user.get('theory_preference', {}).get('theory_keywords', [])
+                if not raw.get('theory_keywords') and theory:
+                    raw['theory_keywords'] = theory
+                    migrated = True
+            except (OSError, ValueError, json.JSONDecodeError) as exc:
+                logger.warning(f"Could not migrate legacy user config: {exc}")
+
+        if migrated:
+            raw['version'] = max(int(raw.get('version', 1) or 1), 2)
+            raw['keywords'] = keywords
+        return raw, migrated
 
     @property
     def defaults(self) -> Dict:
@@ -324,6 +400,11 @@ class ConfigManager:
             for name, kw in self._keywords.items()
             if kw.category == 'demote'
         }
+
+    @property
+    def theory_keywords(self) -> List[str]:
+        """获取理论信号关键词"""
+        return list(self._config.get('theory_keywords', []))
 
     @property
     def dislike_keywords(self) -> Dict[str, float]:

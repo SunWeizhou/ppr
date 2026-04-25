@@ -7,6 +7,8 @@ Zotero 智能提取器
 import os
 import re
 import sqlite3
+import sys
+import glob
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from collections import Counter
@@ -39,10 +41,11 @@ class ZoteroExtractor:
                 os.path.expanduser("~/Zotero/zotero.sqlite"),
                 os.path.expanduser("~/Documents/Zotero/zotero.sqlite"),
             ]
-        elif os.name == 'darwin':  # macOS
+        elif sys.platform == 'darwin':  # macOS
             possible_paths = [
                 os.path.expanduser("~/Zotero/zotero.sqlite"),
                 os.path.expanduser("~/Library/Application Support/Zotero/zotero.sqlite"),
+                os.path.expanduser("~/Library/Application Support/Zotero/Profiles/*/zotero.sqlite"),
             ]
         else:  # Linux
             possible_paths = [
@@ -51,9 +54,11 @@ class ZoteroExtractor:
             ]
 
         for path in possible_paths:
-            if os.path.exists(path):
-                self.db_path = path
-                return path
+            matches = glob.glob(path) if any(char in path for char in "*?[") else [path]
+            for resolved_path in matches:
+                if os.path.exists(resolved_path):
+                    self.db_path = resolved_path
+                    return resolved_path
 
         return None
 

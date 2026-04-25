@@ -18,8 +18,6 @@ import ssl
 from datetime import datetime
 
 SSL_CONTEXT = ssl.create_default_context()
-SSL_CONTEXT.check_hostname = False
-SSL_CONTEXT.verify_mode = ssl.CERT_NONE
 
 # Top 4 Statistics Journals
 TOP_JOURNALS = {

@@ -17,8 +17,6 @@ logger = logging.getLogger(__name__)
 # ==================== SSL Context ====================
 # Configurable SSL context - can be made stricter in production
 SSL_CONTEXT = ssl.create_default_context()
-SSL_CONTEXT.check_hostname = False
-SSL_CONTEXT.verify_mode = ssl.CERT_NONE
 
 
 # ==================== Keyword Utilities ====================

@@ -27,8 +27,34 @@ from config_manager import get_config, reload_config, ConfigManager
 
 # SSL context
 SSL_CONTEXT = ssl.create_default_context()
-SSL_CONTEXT.check_hostname = False
-SSL_CONTEXT.verify_mode = ssl.CERT_NONE
+
+
+def parse_arxiv_identity(raw_id_or_url: str) -> Dict[str, str]:
+    """Return stable arXiv identity fields from an id or abs/pdf URL."""
+    raw = str(raw_id_or_url or '').strip()
+    source_url = raw
+    candidate = raw
+    if '/abs/' in candidate:
+        candidate = candidate.rsplit('/abs/', 1)[-1]
+    elif '/pdf/' in candidate:
+        candidate = candidate.rsplit('/pdf/', 1)[-1]
+    candidate = candidate.split('?', 1)[0].split('#', 1)[0].removesuffix('.pdf')
+    candidate = candidate.strip('/')
+
+    match = re.match(r'^(?P<base>(?:\d{4}\.\d{4,5}|[a-z.-]+/\d{7}))(?P<version>v\d+)?$', candidate)
+    if match:
+        base_id = match.group('base')
+        version = match.group('version') or ''
+    else:
+        base_id = candidate
+        version = ''
+
+    return {
+        'base_id': base_id,
+        'version': version,
+        'canonical_id': base_id,
+        'source_url': source_url or f'https://arxiv.org/abs/{base_id}',
+    }
 
 # ==================== Configuration ====================
 
@@ -375,6 +401,136 @@ def learn_from_feedback(feedback: Dict, papers: List[Dict]) -> Dict[str, float]:
 
     return topic_weights
 
+
+class FeedbackLearner:
+    """Learn durable topic signals from local feedback and cached history."""
+
+    def __init__(self, feedback_file: str, cache_dir: str):
+        self.feedback_file = feedback_file
+        self.cache_dir = cache_dir
+
+    def _load_feedback(self) -> Dict:
+        try:
+            with open(self.feedback_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (OSError, json.JSONDecodeError):
+            return {'liked': [], 'disliked': []}
+
+    def _iter_cached_papers(self) -> List[Dict]:
+        papers = []
+        run_dir = os.path.join(self.cache_dir, 'recommendation_runs')
+        if os.path.isdir(run_dir):
+            for filename in sorted(os.listdir(run_dir)):
+                if not filename.endswith('.json'):
+                    continue
+                try:
+                    with open(os.path.join(run_dir, filename), 'r', encoding='utf-8') as f:
+                        papers.extend(json.load(f).get('papers', []))
+                except (OSError, json.JSONDecodeError):
+                    continue
+
+        for filename in ('daily_recommendation.json', 'favorite_papers.json', 'paper_cache.json'):
+            path = os.path.join(self.cache_dir, filename)
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            except (OSError, json.JSONDecodeError):
+                continue
+            if isinstance(data, dict) and 'papers' in data:
+                papers.extend(data.get('papers') or [])
+            elif isinstance(data, dict):
+                for paper_id, value in data.items():
+                    if isinstance(value, dict):
+                        item = dict(value)
+                        item.setdefault('id', paper_id)
+                        papers.append(item)
+        return papers
+
+    @staticmethod
+    def _paper_keys(paper: Dict) -> set:
+        identity = parse_arxiv_identity(paper.get('id') or paper.get('link') or '')
+        keys = {paper.get('id', ''), identity['base_id'], identity['canonical_id']}
+        return {key for key in keys if key}
+
+    def _topic_counts(self, paper_ids: List[str], paper_index: Dict[str, Dict]) -> Counter:
+        topics = list(dict.fromkeys(
+            get_priority_topics()
+            + get_dislike_topics()
+            + DEFAULT_PRIORITY_TOPICS
+            + ['federated learning', 'benchmark']
+        ))
+        counts = Counter()
+        for paper_id in paper_ids:
+            identity = parse_arxiv_identity(paper_id)
+            paper = paper_index.get(paper_id) or paper_index.get(identity['base_id'])
+            if not paper:
+                continue
+            text = f"{paper.get('title', '')} {paper.get('abstract', paper.get('summary', ''))}".lower()
+            for topic in topics:
+                if topic.lower() in text:
+                    counts[topic] += 1
+        return counts
+
+    def learn_from_feedback(self, min_feedback: int = 3) -> Dict:
+        feedback = self._load_feedback()
+        liked_ids = feedback.get('liked', [])
+        disliked_ids = feedback.get('disliked', [])
+        feedback_count = len(liked_ids) + len(disliked_ids)
+        if feedback_count < min_feedback:
+            return {
+                'status': 'insufficient_feedback',
+                'feedback_count': feedback_count,
+                'adjustments': {},
+                'liked_topics': {},
+                'disliked_topics': {},
+            }
+
+        paper_index = {}
+        for paper in self._iter_cached_papers():
+            if not isinstance(paper, dict):
+                continue
+            for key in self._paper_keys(paper):
+                paper_index[key] = paper
+
+        liked_topics = self._topic_counts(liked_ids, paper_index)
+        disliked_topics = self._topic_counts(disliked_ids, paper_index)
+        adjustments = {}
+        for topic in set(liked_topics) | set(disliked_topics):
+            delta = liked_topics.get(topic, 0) - disliked_topics.get(topic, 0)
+            if delta:
+                adjustments[topic] = round(delta * 0.25, 3)
+
+        return {
+            'status': 'learned',
+            'feedback_count': feedback_count,
+            'adjustments': adjustments,
+            'liked_topics': dict(liked_topics),
+            'disliked_topics': dict(disliked_topics),
+        }
+
+
+class CitationAnalyzer:
+    """Small Semantic Scholar citation client used by the Flask API."""
+
+    def __init__(self, cache_dir: str):
+        self.cache_dir = cache_dir
+
+    def fetch_citation_data(self, paper_id: str) -> Dict[str, int]:
+        identity = parse_arxiv_identity(paper_id)
+        url = (
+            "https://api.semanticscholar.org/graph/v1/paper/"
+            f"ARXIV:{urllib.parse.quote(identity['base_id'])}"
+            "?fields=citationCount,influentialCitationCount,referenceCount"
+        )
+        req = urllib.request.Request(url, headers={'User-Agent': 'arXiv-Recommender/1.0'})
+        with urllib.request.urlopen(req, timeout=15, context=SSL_CONTEXT) as response:
+            data = json.loads(response.read().decode('utf-8'))
+        return {
+            'citations': int(data.get('citationCount') or 0),
+            'influential_citations': int(data.get('influentialCitationCount') or 0),
+            'references': int(data.get('referenceCount') or 0),
+        }
+
 TOP_INSTITUTIONS = [
     'MIT', 'Stanford', 'CMU', 'Carnegie Mellon', 'Berkeley', 'UC Berkeley',
     'Oxford', 'Cambridge', 'ETH Zurich', 'Princeton', 'Harvard',
@@ -662,7 +818,7 @@ class MultiSourceFetcher:
                     'sortOrder': 'descending'
                 }
 
-                url = f"http://export.arxiv.org/api/query?{urllib.parse.urlencode(params)}"
+                url = f"https://export.arxiv.org/api/query?{urllib.parse.urlencode(params)}"
 
                 req = urllib.request.Request(url, headers={'User-Agent': 'arxiv-recommender/2.4'})
                 with urllib.request.urlopen(req, timeout=60, context=SSL_CONTEXT) as response:
@@ -714,7 +870,7 @@ class MultiSourceFetcher:
             'sortOrder': 'descending'
         }
 
-        url = f"http://export.arxiv.org/api/query?{urllib.parse.urlencode(params)}"
+        url = f"https://export.arxiv.org/api/query?{urllib.parse.urlencode(params)}"
 
         for attempt in range(3):
             try:
@@ -786,7 +942,7 @@ class MultiSourceFetcher:
                 'sortOrder': 'descending'
             }
 
-            url = f"http://export.arxiv.org/api/query?{urllib.parse.urlencode(params)}"
+            url = f"https://export.arxiv.org/api/query?{urllib.parse.urlencode(params)}"
 
             try:
                 xml_data = fetch_with_retry(url)
@@ -849,8 +1005,12 @@ class MultiSourceFetcher:
                 paper['published'] = published_elem.text if published_elem is not None else ''
 
                 link_elem = entry.find('atom:id', ns)
-                paper['id'] = link_elem.text.split('/abs/')[-1] if link_elem is not None else ''
-                paper['link'] = link_elem.text if link_elem is not None else ''
+                identity = parse_arxiv_identity(link_elem.text if link_elem is not None else '')
+                paper['id'] = identity['canonical_id']
+                paper['base_id'] = identity['base_id']
+                paper['version'] = identity['version']
+                paper['source_url'] = identity['source_url']
+                paper['link'] = identity['source_url']
                 paper['source'] = 'arXiv'
 
                 categories = []
@@ -887,7 +1047,7 @@ class EnhancedScorer:
         cm = get_config()
         self.CORE_TOPICS = cm.core_keywords
         self.SECONDARY_TOPICS = cm.get_keywords_by_category('secondary')
-        self.THEORY_KEYWORDS = cm._config.get('theory_keywords', [])
+        self.THEORY_KEYWORDS = cm.theory_keywords
         self.DEMOTE_TOPICS = cm.demote_keywords
         self.DISLIKE_TOPICS = list(cm.dislike_keywords.keys())
         self.THEORY_ENABLED = cm._settings.theory_enabled
@@ -993,10 +1153,8 @@ class EnhancedScorer:
 
         # 6. 理论关键词加分（从用户配置）
         if self.THEORY_ENABLED:
-            theory_keywords = ['theorem', 'proof', 'bound', 'convergence', 'statistical',
-                              'bayesian', 'estimation', 'generalization']
-            for kw in theory_keywords:
-                if self._count_keyword(title, kw) > 0:
+            for kw in self.THEORY_KEYWORDS:
+                if self._count_keyword(title + ' ' + abstract, kw) > 0:
                     score += 0.4
 
         # 7. dislike topics 惩罚 (使用词边界匹配，与其他主题一致)
@@ -1183,13 +1341,15 @@ class EnhancedScorer:
 
         # 7. 理论深度
         if self.THEORY_ENABLED:
-            theory_keywords = ['theorem', 'proof', 'bound', 'convergence', 'minimax', 'optimal rate']
-            theory_matches = [kw for kw in theory_keywords if kw in title_lower or kw in abstract_lower]
-            if len(theory_matches) >= 2:
+            theory_matches = [
+                kw for kw in self.THEORY_KEYWORDS
+                if self._count_keyword(title_lower + ' ' + abstract_lower, kw) > 0
+            ]
+            if theory_matches:
                 reasons.append({
                     'type': 'theory',
                     'icon': '📐',
-                    'text': f"包含理论贡献: {', '.join(theory_matches[:2])}",
+                    'text': f"包含理论信号: {', '.join(theory_matches[:2])}",
                     'location': '',
                     'score_impact': 0.5
                 })
@@ -2182,7 +2342,7 @@ def search_by_keywords(keywords: List[str], max_results: int = 20, days_back: in
         'sortOrder': 'descending'
     }
 
-    url = f"http://export.arxiv.org/api/query?{urllib.parse.urlencode(params)}"
+    url = f"https://export.arxiv.org/api/query?{urllib.parse.urlencode(params)}"
     logger.debug(f"Query URL: {url}")
 
     try:
@@ -2218,8 +2378,12 @@ def search_by_keywords(keywords: List[str], max_results: int = 20, days_back: in
                 paper['published'] = published_elem.text if published_elem is not None else ''
 
                 link_elem = entry.find('atom:id', ns)
-                paper['id'] = link_elem.text.split('/abs/')[-1] if link_elem is not None else ''
-                paper['link'] = link_elem.text if link_elem is not None else ''
+                identity = parse_arxiv_identity(link_elem.text if link_elem is not None else '')
+                paper['id'] = identity['canonical_id']
+                paper['base_id'] = identity['base_id']
+                paper['version'] = identity['version']
+                paper['source_url'] = identity['source_url']
+                paper['link'] = identity['source_url']
                 paper['source'] = 'arXiv'
 
                 categories = []

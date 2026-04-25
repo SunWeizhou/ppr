@@ -20,8 +20,6 @@ from app_paths import CACHE_DIR as APP_CACHE_DIR
 from journal_tracker import JOURNALS, fetch_jmlr_papers
 
 SSL_CONTEXT = ssl.create_default_context()
-SSL_CONTEXT.check_hostname = False
-SSL_CONTEXT.verify_mode = ssl.CERT_NONE
 
 # 传统统计期刊通过 Crossref 分页抓取；JMLR 走站点解析。
 TOP_JOURNALS = {

@@ -132,8 +132,8 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 8,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Replaced Library Tools disclosure with More actions dropdown. 4 items hidden behind dropdown."
     },
     {
       "id": "US-009",

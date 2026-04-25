@@ -1,6 +1,6 @@
 {
   "journal": "Annals of Statistics",
-  "fetched_at": "2026-04-09T22:15:30.396697",
+  "fetched_at": "2026-04-20T20:49:49.784904",
   "count": 147,
   "papers": [
     {
@@ -438,21 +438,6 @@
       "journal": "AoS"
     },
     {
-      "title": "Information theoretic limits of robust sub-Gaussian mean estimation under star-shaped constraints",
-      "authors": [
-        "Akshay Prasadan",
-        "Matey Neykov"
-      ],
-      "year": "2026",
-      "month": "02",
-      "volume": "54",
-      "issue": "1",
-      "pages": "",
-      "doi": "10.1214/25-aos2576",
-      "url": "https://doi.org/10.1214/25-aos2576",
-      "journal": "AoS"
-    },
-    {
       "title": "Dualizing Le Cam’s method for functional estimation I: General theory",
       "authors": [
         "Yury Polyanskiy",
@@ -465,6 +450,21 @@
       "pages": "",
       "doi": "10.1214/25-aos2498",
       "url": "https://doi.org/10.1214/25-aos2498",
+      "journal": "AoS"
+    },
+    {
+      "title": "Information theoretic limits of robust sub-Gaussian mean estimation under star-shaped constraints",
+      "authors": [
+        "Akshay Prasadan",
+        "Matey Neykov"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "54",
+      "issue": "1",
+      "pages": "",
+      "doi": "10.1214/25-aos2576",
+      "url": "https://doi.org/10.1214/25-aos2576",
       "journal": "AoS"
     },
     {
@@ -503,21 +503,6 @@
       "journal": "AoS"
     },
     {
-      "title": "Berry–Esseen bounds for design-based causal inference with possibly diverging treatment levels and varying group sizes",
-      "authors": [
-        "Lei Shi",
-        "Peng Ding"
-      ],
-      "year": "2026",
-      "month": "02",
-      "volume": "54",
-      "issue": "1",
-      "pages": "",
-      "doi": "10.1214/25-aos2569",
-      "url": "https://doi.org/10.1214/25-aos2569",
-      "journal": "AoS"
-    },
-    {
       "title": "Multivariate root-n-consistent smoothing parameter-free matching estimators and estimators of inverse density weighted expectations",
       "authors": [
         "Hajo Holzmann",
@@ -530,6 +515,21 @@
       "pages": "",
       "doi": "10.1214/25-aos2568",
       "url": "https://doi.org/10.1214/25-aos2568",
+      "journal": "AoS"
+    },
+    {
+      "title": "Berry–Esseen bounds for design-based causal inference with possibly diverging treatment levels and varying group sizes",
+      "authors": [
+        "Lei Shi",
+        "Peng Ding"
+      ],
+      "year": "2026",
+      "month": "02",
+      "volume": "54",
+      "issue": "1",
+      "pages": "",
+      "doi": "10.1214/25-aos2569",
+      "url": "https://doi.org/10.1214/25-aos2569",
       "journal": "AoS"
     },
     {
@@ -962,21 +962,6 @@
       "journal": "AoS"
     },
     {
-      "title": "High-dimensional statistical inference for linkage disequilibrium score regression and its cross-ancestry extensions",
-      "authors": [
-        "Fei Xue",
-        "Bingxin Zhao"
-      ],
-      "year": "2025",
-      "month": "10",
-      "volume": "53",
-      "issue": "5",
-      "pages": "",
-      "doi": "10.1214/25-aos2523",
-      "url": "https://doi.org/10.1214/25-aos2523",
-      "journal": "AoS"
-    },
-    {
       "title": "Deep horseshoe Gaussian processes",
       "authors": [
         "Ismaël Castillo",
@@ -989,6 +974,21 @@
       "pages": "",
       "doi": "10.1214/25-aos2522",
       "url": "https://doi.org/10.1214/25-aos2522",
+      "journal": "AoS"
+    },
+    {
+      "title": "High-dimensional statistical inference for linkage disequilibrium score regression and its cross-ancestry extensions",
+      "authors": [
+        "Fei Xue",
+        "Bingxin Zhao"
+      ],
+      "year": "2025",
+      "month": "10",
+      "volume": "53",
+      "issue": "5",
+      "pages": "",
+      "doi": "10.1214/25-aos2523",
+      "url": "https://doi.org/10.1214/25-aos2523",
       "journal": "AoS"
     },
     {
@@ -1592,21 +1592,6 @@
       "journal": "AoS"
     },
     {
-      "title": "Asymptotic distributions of largest Pearson correlation coefficients under dependent structures",
-      "authors": [
-        "Tiefeng Jiang",
-        "Tuan Pham"
-      ],
-      "year": "2025",
-      "month": "06",
-      "volume": "53",
-      "issue": "3",
-      "pages": "",
-      "doi": "10.1214/24-aos2462",
-      "url": "https://doi.org/10.1214/24-aos2462",
-      "journal": "AoS"
-    },
-    {
       "title": "Conformal inference for random objects",
       "authors": [
         "Hang Zhou",
@@ -1619,6 +1604,21 @@
       "pages": "",
       "doi": "10.1214/25-aos2495",
       "url": "https://doi.org/10.1214/25-aos2495",
+      "journal": "AoS"
+    },
+    {
+      "title": "Asymptotic distributions of largest Pearson correlation coefficients under dependent structures",
+      "authors": [
+        "Tiefeng Jiang",
+        "Tuan Pham"
+      ],
+      "year": "2025",
+      "month": "06",
+      "volume": "53",
+      "issue": "3",
+      "pages": "",
+      "doi": "10.1214/24-aos2462",
+      "url": "https://doi.org/10.1214/24-aos2462",
       "journal": "AoS"
     },
     {

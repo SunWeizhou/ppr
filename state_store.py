@@ -7,6 +7,7 @@ grow in small, auditable slices instead of scattering more JSON files.
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import threading
 import uuid
@@ -26,6 +27,14 @@ def _utc_now() -> str:
 
 def _to_json(value: Optional[object], default: object) -> str:
     return json.dumps(value if value is not None else default, ensure_ascii=False)
+
+
+def _canonical_paper_id(paper_id: str) -> str:
+    value = str(paper_id or "").strip()
+    match = re.search(r"(\d{4}\.\d{4,5})(v\d+)?", value)
+    if match:
+        return match.group(1)
+    return re.sub(r"v\d+$", "", value)
 
 
 class StateStore:
@@ -87,7 +96,10 @@ class StateStore:
                     paper_id TEXT NOT NULL,
                     note TEXT NOT NULL DEFAULT '',
                     added_at TEXT NOT NULL,
-                    PRIMARY KEY (collection_id, paper_id)
+                    PRIMARY KEY (collection_id, paper_id),
+                    FOREIGN KEY (collection_id)
+                        REFERENCES research_collections(id)
+                        ON DELETE CASCADE
                 );
 
                 CREATE TABLE IF NOT EXISTS saved_searches (
@@ -124,6 +136,75 @@ class StateStore:
                 VALUES('schema_version', '1')
                 """
             )
+            self._migrate_arxiv_paper_ids(conn)
+
+    def _migrate_arxiv_paper_ids(self, conn: sqlite3.Connection) -> None:
+        queue_rows = conn.execute(
+            "SELECT paper_id, status, source, note, tags_json, updated_at FROM reading_queue_items"
+        ).fetchall()
+        for row in queue_rows:
+            old_id = row["paper_id"]
+            new_id = _canonical_paper_id(old_id)
+            if not new_id or new_id == old_id:
+                continue
+            existing = conn.execute(
+                "SELECT paper_id, updated_at FROM reading_queue_items WHERE paper_id = ?",
+                (new_id,),
+            ).fetchone()
+            if existing:
+                if str(row["updated_at"] or "") >= str(existing["updated_at"] or ""):
+                    conn.execute(
+                        """
+                        UPDATE reading_queue_items
+                        SET status = ?, source = ?, note = ?, tags_json = ?, updated_at = ?
+                        WHERE paper_id = ?
+                        """,
+                        (
+                            row["status"],
+                            row["source"],
+                            row["note"],
+                            row["tags_json"],
+                            row["updated_at"],
+                            new_id,
+                        ),
+                    )
+                conn.execute("DELETE FROM reading_queue_items WHERE paper_id = ?", (old_id,))
+            else:
+                conn.execute(
+                    "UPDATE reading_queue_items SET paper_id = ? WHERE paper_id = ?",
+                    (new_id, old_id),
+                )
+
+        collection_rows = conn.execute(
+            "SELECT collection_id, paper_id, note, added_at FROM collection_papers"
+        ).fetchall()
+        for row in collection_rows:
+            old_id = row["paper_id"]
+            new_id = _canonical_paper_id(old_id)
+            if not new_id or new_id == old_id:
+                continue
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO collection_papers(collection_id, paper_id, note, added_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (row["collection_id"], new_id, row["note"], row["added_at"]),
+            )
+            conn.execute(
+                "DELETE FROM collection_papers WHERE collection_id = ? AND paper_id = ?",
+                (row["collection_id"], old_id),
+            )
+
+        event_rows = conn.execute(
+            "SELECT id, paper_id FROM interaction_events WHERE paper_id LIKE '%v%'"
+        ).fetchall()
+        for row in event_rows:
+            new_id = _canonical_paper_id(row["paper_id"])
+            if new_id and new_id != row["paper_id"]:
+                conn.execute(
+                    "UPDATE interaction_events SET paper_id = ? WHERE id = ?",
+                    (new_id, row["id"]),
+                )
 
     @staticmethod
     def _row_to_dict(row: sqlite3.Row) -> Dict:
@@ -348,8 +429,15 @@ class StateStore:
     def add_paper_to_collection(
         self, collection_id: int, paper_id: str, note: str = ""
     ) -> bool:
+        paper_id = _canonical_paper_id(paper_id)
         now = _utc_now()
         with self._lock, self._connect() as conn:
+            parent = conn.execute(
+                "SELECT id FROM research_collections WHERE id = ?",
+                (collection_id,),
+            ).fetchone()
+            if parent is None:
+                return False
             conn.execute(
                 """
                 INSERT OR REPLACE INTO collection_papers(
@@ -378,6 +466,7 @@ class StateStore:
         return [self._row_to_dict(row) for row in rows]
 
     def remove_paper_from_collection(self, collection_id: int, paper_id: str) -> bool:
+        paper_id = _canonical_paper_id(paper_id)
         now = _utc_now()
         with self._lock, self._connect() as conn:
             result = conn.execute(
@@ -488,6 +577,7 @@ class StateStore:
         note: str = "",
         tags: Optional[List[str]] = None,
     ) -> Dict:
+        paper_id = _canonical_paper_id(paper_id)
         if status not in QUEUE_STATUS_VALUES:
             raise ValueError(f"Invalid queue status: {status}")
         now = _utc_now()
@@ -531,6 +621,7 @@ class StateStore:
         return [self._row_to_dict(row) for row in rows]
 
     def get_queue_item(self, paper_id: str) -> Optional[Dict]:
+        paper_id = _canonical_paper_id(paper_id)
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT * FROM reading_queue_items WHERE paper_id = ?",
@@ -541,6 +632,7 @@ class StateStore:
     def record_event(
         self, event_type: str, paper_id: str = "", payload: Optional[Dict] = None
     ) -> int:
+        paper_id = _canonical_paper_id(paper_id)
         now = _utc_now()
         with self._lock, self._connect() as conn:
             cursor = conn.execute(
@@ -551,6 +643,76 @@ class StateStore:
                 (event_type, paper_id, _to_json(payload, {}), now),
             )
             return int(cursor.lastrowid)
+
+    def export_state(self) -> Dict[str, List[Dict]]:
+        tables = [
+            "job_runs",
+            "research_collections",
+            "collection_papers",
+            "saved_searches",
+            "reading_queue_items",
+            "interaction_events",
+        ]
+        snapshot: Dict[str, List[Dict]] = {}
+        with self._connect() as conn:
+            for table in tables:
+                rows = conn.execute(f"SELECT * FROM {table}").fetchall()
+                snapshot[table] = [self._row_to_dict(row) for row in rows]
+        return snapshot
+
+    def import_state(self, snapshot: Dict[str, List[Dict]]) -> None:
+        if not isinstance(snapshot, dict):
+            raise ValueError("Invalid state snapshot")
+
+        table_columns = {
+            "job_runs": [
+                "run_id", "job_type", "status", "trigger_source", "payload_json",
+                "result_json", "error_text", "created_at", "updated_at", "started_at",
+                "finished_at",
+            ],
+            "research_collections": [
+                "id", "name", "description", "query_text", "is_active", "created_at",
+                "updated_at",
+            ],
+            "collection_papers": ["collection_id", "paper_id", "note", "added_at"],
+            "saved_searches": [
+                "id", "name", "query_text", "filters_json", "is_active", "created_at",
+                "updated_at",
+            ],
+            "reading_queue_items": [
+                "paper_id", "status", "source", "note", "tags_json", "updated_at",
+            ],
+            "interaction_events": ["id", "event_type", "paper_id", "payload_json", "created_at"],
+        }
+
+        with self._lock, self._connect() as conn:
+            conn.execute("PRAGMA foreign_keys = OFF")
+            for table in reversed(list(table_columns.keys())):
+                conn.execute(f"DELETE FROM {table}")
+
+            for table, columns in table_columns.items():
+                rows = snapshot.get(table, [])
+                if not isinstance(rows, list):
+                    raise ValueError(f"Invalid rows for {table}")
+                placeholders = ", ".join(["?"] * len(columns))
+                column_sql = ", ".join(columns)
+                for row in rows:
+                    if not isinstance(row, dict):
+                        continue
+                    values = [row.get(column) for column in columns]
+                    if "paper_id" in columns:
+                        paper_idx = columns.index("paper_id")
+                        values[paper_idx] = _canonical_paper_id(values[paper_idx])
+                    for idx, column in enumerate(columns):
+                        if column.endswith("_json") and not isinstance(values[idx], str):
+                            values[idx] = _to_json(values[idx], [] if column == "tags_json" else {})
+                    conn.execute(
+                        f"INSERT OR REPLACE INTO {table}({column_sql}) VALUES ({placeholders})",
+                        values,
+                    )
+
+            conn.execute("PRAGMA foreign_keys = ON")
+            self._migrate_arxiv_paper_ids(conn)
 
 
 _state_store: Optional[StateStore] = None

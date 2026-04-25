@@ -1,48 +1,41 @@
 {% extends "base_research.html" %}
 
 {% block hero %}
-<section class="page-hero">
-    <div class="hero-panel">
-        <div class="kicker">Preferences</div>
-        <h1 class="hero-title">Settings / 偏好与配置</h1>
-        <p class="hero-subtitle">
-            管理研究画像、数据来源、排序偏好和系统状态。
-        </p>
-        <div class="metric-grid">
-            <div class="metric-card">
-                <span class="metric-label">Core Topics</span>
-                <span class="metric-value">{{ core_keywords|length }}</span>
-            </div>
-            <div class="metric-card">
-                <span class="metric-label">Collections</span>
-                <span class="metric-value">{{ all_collections|length }}</span>
-            </div>
-            <div class="metric-card">
-                <span class="metric-label">Queue Total</span>
-                <span class="metric-value">{{ queue_counts.values() | list | sum }}</span>
-            </div>
+<section class="page-header">
+    <div class="lead">
+        <span class="section-kicker">Preferences</span>
+        <h1 class="page-title">Settings</h1>
+        <div class="page-context">
+            <span>{{ core_keywords|length }} core topics</span>
+            <span class="dot"></span>
+            <span>{{ queue_counts.values() | list | sum }} queue items</span>
+            <span class="dot"></span>
+            <span>{{ all_collections|length }} collections</span>
         </div>
+    </div>
+    <div class="actions">
+        <button type="button" class="btn btn-secondary" onclick="saveSettings(false)">保存设置</button>
+        <button type="button" class="btn btn-primary" onclick="saveAndRegenerate()">保存并重生成</button>
     </div>
 </section>
 {% endblock %}
 
 {% block content %}
-<div class="tab-strip">
-    <a href="/settings?tab=profile" class="tab-button {% if tab == 'profile' %}active{% endif %}">Profile</a>
-    <a href="/settings?tab=sources" class="tab-button {% if tab == 'sources' %}active{% endif %}">Sources</a>
-    <a href="/settings?tab=ranking" class="tab-button {% if tab == 'ranking' %}active{% endif %}">Ranking</a>
-    <a href="/settings?tab=system" class="tab-button {% if tab == 'system' %}active{% endif %}">System</a>
-</div>
+<section class="settings-frame">
+    <nav class="settings-nav">
+        <a href="/settings?tab=profile" class="settings-nav-link {% if tab == 'profile' %}is-active{% endif %}"><span>Profile</span></a>
+        <a href="/settings?tab=sources" class="settings-nav-link {% if tab == 'sources' %}is-active{% endif %}"><span>Sources</span></a>
+        <a href="/settings?tab=ranking" class="settings-nav-link {% if tab == 'ranking' %}is-active{% endif %}"><span>Ranking</span></a>
+        <a href="/settings?tab=system" class="settings-nav-link {% if tab == 'system' %}is-active{% endif %}"><span>System</span></a>
+    </nav>
 
-<section class="settings-layout">
-    {% if tab == 'profile' %}
     <div class="settings-panel">
-        <form id="settingsForm">
-            <div class="form-grid">
-                <section class="form-card full-span" id="keywords">
+        {% if tab == 'profile' %}
+            <form id="settingsForm" class="settings-panel">
+                <section class="form-card">
                     <div class="section-kicker">Keyword Profile</div>
                     <h2 class="panel-title">研究关键词</h2>
-                    <p class="field-help">通过不同层级的关键词，告诉系统什么是你的主问题、外围问题，以及什么样的论文更像"理论工作"。</p>
+                    <p class="field-help">通过不同层级的关键词，告诉系统什么是你的主问题、外围问题，以及什么样的论文更像“理论工作”。</p>
 
                     <div class="keyword-section-label">Core Topics</div>
                     <div class="keyword-tags-container" id="coreKeywords">
@@ -65,18 +58,18 @@
                         {% endfor %}
                     </div>
 
-                    <div class="keyword-add-form">
+                    <div class="keyword-add-form mt-4">
                         <input type="text" id="newKeyword" placeholder="输入新关键词..." onkeypress="if(event.key==='Enter'){event.preventDefault();addKeyword();}">
-                        <select id="keywordType">
+                        <select id="keywordType" class="input-sm">
                             <option value="core">Core</option>
                             <option value="secondary">Secondary</option>
                             <option value="theory">Theory</option>
                         </select>
-                        <button type="button" class="action-button btn-brand" onclick="addKeyword()">添加</button>
+                        <button type="button" class="btn btn-primary" onclick="addKeyword()">添加</button>
                     </div>
                 </section>
 
-                <section class="form-card full-span">
+                <section class="form-card">
                     <div class="section-kicker">Demotion Rules</div>
                     <h2 class="panel-title">降权与不喜欢主题</h2>
                     <label class="field-label" for="demoteTopics">这些词会被轻度降权</label>
@@ -84,74 +77,57 @@
                     <label class="field-label" for="dislikeTopics">这些词会被持续降权</label>
                     <textarea class="form-textarea" id="dislikeTopics" name="dislikeTopics" placeholder="例如：benchmark-heavy, federated learning, empirical systems">{{ dislike_text }}</textarea>
                 </section>
-            </div>
 
-            <div class="button-row" style="margin-top: 24px;">
-                <button type="submit" class="action-button btn-brand">保存设置</button>
-                <button type="button" class="action-button btn-warm" onclick="saveAndRegenerate()">保存并重生成</button>
-            </div>
-        </form>
-    </div>
+                <section class="form-card">
+                    <div class="section-kicker">How To Use</div>
+                    <h2 class="panel-title">调参建议</h2>
+                    <ul class="search-hint-list mt-2">
+                        <li>核心关键词用于直接驱动排序，是最强信号。</li>
+                        <li>次级关键词适合扩展一个领域边界，避免首页过窄。</li>
+                        <li>理论关键词不代表主题，而是帮助识别 theorem / proof / bound 这类工作。</li>
+                    </ul>
+                </section>
+            </form>
 
-    <div class="aside-stack">
-        <div class="stack-card">
-            <div class="card-kicker">How To Use</div>
-            <h2 class="panel-title">调参建议</h2>
-            <ul class="search-hint-list" style="margin-top: 8px;">
-                <li>核心关键词用于直接驱动排序，是最强信号。</li>
-                <li>次级关键词适合扩展一个领域边界，避免首页过窄。</li>
-                <li>理论关键词不代表主题，而是帮助识别 theorem / proof / bound 这类工作。</li>
-            </ul>
-        </div>
-    </div>
-
-    {% elif tab == 'sources' %}
-    <div class="settings-panel">
-        <div class="form-grid">
-            <section class="form-card">
-                <div class="section-kicker">arXiv Categories</div>
-                <h2 class="panel-title">订阅分类</h2>
-                <label class="checkbox-row">
-                    <input type="checkbox" id="arxivEnabled" {% if sources.arxiv_enabled %}checked{% endif %}>
-                    <span>启用 arXiv 抓取</span>
-                </label>
-                <label class="checkbox-row">
-                    <input type="checkbox" id="journalEnabled" {% if sources.journal_enabled %}checked{% endif %}>
-                    <span>启用期刊更新</span>
-                </label>
-                <label class="checkbox-row">
-                    <input type="checkbox" id="scholarEnabled" {% if sources.scholar_enabled %}checked{% endif %}>
-                    <span>启用学者源</span>
-                </label>
-                <label class="field-label" for="lookbackDays">回看天数</label>
-                <input type="number" class="form-input" id="lookbackDays" value="{{ sources.lookback_days }}" min="3" max="60">
-            </section>
-
-            <section class="form-card">
-                <div class="section-kicker">Zotero Integration</div>
-                <h2 class="panel-title">Zotero 同步</h2>
-                <label class="checkbox-row">
-                    <input type="checkbox" id="zoteroEnabled" {% if zotero.enabled %}checked{% endif %}>
-                    <span>启用 Zotero</span>
-                </label>
-                <label class="checkbox-row">
-                    <input type="checkbox" id="zoteroAutoDetect" {% if zotero.auto_detect %}checked{% endif %}>
-                    <span>自动检测 Zotero 数据库</span>
-                </label>
-                <label class="field-label" for="zoteroPath">Zotero 路径</label>
-                <input type="text" class="form-input" id="zoteroPath" value="{{ zotero.database_path or '' }}" placeholder="/path/to/zotero.sqlite">
-            </section>
-        </div>
-        <div class="button-row" style="margin-top: 24px;">
-            <button type="button" class="action-button btn-brand" onclick="saveSettings(false)">保存设置</button>
-            <button type="button" class="action-button btn-warm" onclick="saveAndRegenerate()">保存并重生成</button>
-        </div>
-    </div>
-
-    {% elif tab == 'ranking' %}
-    <div class="settings-panel">
-        <form id="settingsForm">
+        {% elif tab == 'sources' %}
             <div class="form-grid">
+                <section class="form-card">
+                    <div class="section-kicker">arXiv Categories</div>
+                    <h2 class="panel-title">订阅分类</h2>
+                    <label class="checkbox-row">
+                        <input type="checkbox" id="arxivEnabled" {% if sources.arxiv_enabled %}checked{% endif %}>
+                        <span>启用 arXiv 抓取</span>
+                    </label>
+                    <label class="checkbox-row">
+                        <input type="checkbox" id="journalEnabled" {% if sources.journal_enabled %}checked{% endif %}>
+                        <span>启用期刊更新</span>
+                    </label>
+                    <label class="checkbox-row">
+                        <input type="checkbox" id="scholarEnabled" {% if sources.scholar_enabled %}checked{% endif %}>
+                        <span>启用学者源</span>
+                    </label>
+                    <label class="field-label" for="lookbackDays">回看天数</label>
+                    <input type="number" class="form-input" id="lookbackDays" value="{{ sources.lookback_days }}" min="3" max="60">
+                </section>
+
+                <section class="form-card">
+                    <div class="section-kicker">Zotero Integration</div>
+                    <h2 class="panel-title">Zotero 同步</h2>
+                    <label class="checkbox-row">
+                        <input type="checkbox" id="zoteroEnabled" {% if zotero.enabled %}checked{% endif %}>
+                        <span>启用 Zotero</span>
+                    </label>
+                    <label class="checkbox-row">
+                        <input type="checkbox" id="zoteroAutoDetect" {% if zotero.auto_detect %}checked{% endif %}>
+                        <span>自动检测 Zotero 数据库</span>
+                    </label>
+                    <label class="field-label" for="zoteroPath">Zotero 路径</label>
+                    <input type="text" class="form-input" id="zoteroPath" value="{{ zotero.database_path or '' }}" placeholder="/path/to/zotero.sqlite">
+                </section>
+            </div>
+
+        {% elif tab == 'ranking' %}
+            <form id="settingsForm" class="form-grid">
                 <section class="form-card">
                     <div class="section-kicker">Recommendation Volume</div>
                     <h2 class="panel-title">每日输出规模</h2>
@@ -172,69 +148,108 @@
                         <span>启用理论信号加分</span>
                     </label>
                 </section>
-            </div>
 
-            <div class="button-row" style="margin-top: 24px;">
-                <button type="submit" class="action-button btn-brand">保存设置</button>
-                <button type="button" class="action-button btn-warm" onclick="saveAndRegenerate()">保存并重生成</button>
-            </div>
-        </form>
-    </div>
+                <section class="form-card full-span">
+                    <div class="section-kicker">Guideline</div>
+                    <h2 class="panel-title">调参原则</h2>
+                    <p class="detail-copy">Ranking 页只应该控制排序偏好，不应该承载主题定义。主题定义留在 Profile，系统健康留在 System。</p>
+                </section>
+            </form>
 
-    {% elif tab == 'system' %}
-    <div class="settings-panel">
-        <div class="form-grid">
-            <section class="form-card full-span">
-                <div class="section-kicker">Job Status</div>
-                <h2 class="panel-title">系统状态</h2>
-                <div class="list-stack">
-                    <div class="list-item">
-                        <div>
-                            <span class="list-item-title">Latest Job</span>
-                            <span class="list-item-subtitle">
-                                {% if latest_job %}
-                                    {{ latest_job.trigger_source }} · {{ latest_job.updated_at or latest_job.created_at }}
-                                {% else %}
-                                    No job records
-                                {% endif %}
+        {% elif tab == 'system' %}
+            <div class="form-grid">
+                <section class="form-card full-span">
+                    <div class="section-kicker">Job Status</div>
+                    <h2 class="panel-title">系统状态</h2>
+                    <div class="list-stack">
+                        <div class="list-item">
+                            <div>
+                                <span class="list-item-title">Latest Job</span>
+                                <span class="list-item-subtitle">
+                                    {% if latest_job %}
+                                        {{ latest_job.trigger_source }} · {{ latest_job.updated_at or latest_job.created_at }}
+                                    {% else %}
+                                        No job records
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <span class="state-chip {% if latest_job %}{{ latest_job_tone }}{% endif %}">
+                                {% if latest_job %}{{ latest_job.status }}{% else %}idle{% endif %}
                             </span>
                         </div>
-                        <span class="status-badge {{ latest_job_tone }}">
-                            {% if latest_job %}{{ latest_job.status }}{% else %}idle{% endif %}
-                        </span>
-                    </div>
-                    <div class="list-item">
-                        <div>
-                            <span class="list-item-title">Queue Total</span>
+                        <div class="list-item">
+                            <div><span class="list-item-title">Queue Total</span></div>
+                            <span class="list-item-trailing">{{ queue_counts.values() | list | sum }}</span>
                         </div>
-                        <span class="list-item-trailing">{{ queue_counts.values() | list | sum }}</span>
-                    </div>
-                    <div class="list-item">
-                        <div>
-                            <span class="list-item-title">Collections</span>
-                        </div>
-                        <span class="list-item-trailing">{{ all_collections|length }}</span>
-                    </div>
-                </div>
-            </section>
+	                        <div class="list-item">
+	                            <div><span class="list-item-title">Collections</span></div>
+	                            <span class="list-item-trailing">{{ all_collections|length }}</span>
+	                        </div>
+	                        <div class="list-item">
+	                            <div>
+	                                <span class="list-item-title">Recommendation Profile</span>
+	                                <span class="list-item-subtitle">
+	                                    {{ recommendation_health.core_keyword_count }} core · {{ recommendation_health.secondary_keyword_count }} secondary · {{ recommendation_health.theory_keyword_count }} theory signals
+	                                </span>
+	                            </div>
+	                            <span class="state-chip {% if recommendation_health.has_positive_profile %}status-saved{% else %}job-failed{% endif %}">
+	                                {% if recommendation_health.has_positive_profile %}healthy{% else %}needs topics{% endif %}
+	                            </span>
+	                        </div>
+	                        <div class="list-item">
+	                            <div>
+	                                <span class="list-item-title">Zotero</span>
+	                                <span class="list-item-subtitle">
+	                                    {% if recommendation_health.zotero.configured_path %}
+	                                        {{ recommendation_health.zotero.configured_path }}
+	                                    {% else %}
+	                                        Auto-detect enabled; no explicit path configured
+	                                    {% endif %}
+	                                </span>
+	                            </div>
+	                            <span class="state-chip {% if recommendation_health.zotero.path_exists %}status-saved{% else %}job-degraded{% endif %}">
+	                                {% if recommendation_health.zotero.path_exists %}connected{% else %}keyword mode{% endif %}
+	                            </span>
+	                        </div>
+	                    </div>
+	                </section>
 
-            <section class="form-card">
-                <div class="section-kicker">Data Management</div>
-                <h2 class="panel-title">数据导入导出</h2>
-                <p class="field-help">所有数据保存在本地。可以导入导出进行备份。</p>
-                <div class="button-row">
-                    <button type="button" class="action-button btn-subtle">Import State</button>
-                    <button type="button" class="action-button btn-subtle">Export State</button>
-                </div>
-            </section>
-        </div>
+                <section class="form-card">
+                    <div class="section-kicker">Data Management</div>
+                    <h2 class="panel-title">数据导入导出</h2>
+                    <p class="field-help">所有数据保存在本地。可以导入导出进行备份。</p>
+                    <div class="button-row">
+                        <button type="button" class="btn btn-tertiary" onclick="triggerStateImport()">Import State</button>
+                        <button type="button" class="btn btn-tertiary" onclick="exportState()">Export State</button>
+                    </div>
+                    <input type="file" id="stateImportFile" accept="application/json,.json" hidden>
+                </section>
+            </div>
+        {% endif %}
     </div>
-    {% endif %}
 </section>
 {% endblock %}
 
 {% block scripts %}
 <script>
+const currentSettingsDefaults = {
+    coreTopics: {{ core_keywords | tojson }},
+    secondaryTopics: {{ secondary_keywords | tojson }},
+    theoryKeywords: {{ theory_keywords | tojson }},
+    demoteTopics: {{ demote_keywords | tojson }},
+    dislikeTopics: {{ dislike_text | tojson }},
+    papersPerDay: {{ papers_per_day | tojson }},
+    preferTheory: {{ prefer_theory | tojson }},
+    theoryEnabled: {{ theory_enabled | tojson }},
+    arxivEnabled: {{ sources.arxiv_enabled | tojson }},
+    journalEnabled: {{ sources.journal_enabled | tojson }},
+    scholarEnabled: {{ sources.scholar_enabled | tojson }},
+    lookbackDays: {{ sources.lookback_days | tojson }},
+    zoteroEnabled: {{ zotero.enabled | tojson }},
+    zoteroAutoDetect: {{ zotero.auto_detect | tojson }},
+    zoteroPath: {{ (zotero.database_path or '') | tojson }}
+};
+
 async function addKeyword() {
     const input = document.getElementById('newKeyword');
     if (!input) return;
@@ -301,26 +316,35 @@ if (settingsForm) {
 }
 
 async function saveSettings(regenerate = false) {
-    const coreKws = Array.from(document.querySelectorAll('#coreKeywords .keyword-tag-item')).map(el => el.dataset.keyword);
-    const secondaryKws = Array.from(document.querySelectorAll('#secondaryKeywords .keyword-tag-item')).map(el => el.dataset.keyword);
-    const theoryKws = Array.from(document.querySelectorAll('#theoryKeywords .keyword-tag-item')).map(el => el.dataset.keyword);
+    const coreContainer = document.getElementById('coreKeywords');
+    const secondaryContainer = document.getElementById('secondaryKeywords');
+    const theoryContainer = document.getElementById('theoryKeywords');
+    const coreKws = coreContainer
+        ? Array.from(coreContainer.querySelectorAll('.keyword-tag-item')).map(el => el.dataset.keyword)
+        : currentSettingsDefaults.coreTopics;
+    const secondaryKws = secondaryContainer
+        ? Array.from(secondaryContainer.querySelectorAll('.keyword-tag-item')).map(el => el.dataset.keyword)
+        : currentSettingsDefaults.secondaryTopics;
+    const theoryKws = theoryContainer
+        ? Array.from(theoryContainer.querySelectorAll('.keyword-tag-item')).map(el => el.dataset.keyword)
+        : currentSettingsDefaults.theoryKeywords;
 
     const data = {
         coreTopics: coreKws,
         secondaryTopics: secondaryKws,
         theoryKeywords: theoryKws,
-        demoteTopics: document.getElementById('demoteTopics') ? document.getElementById('demoteTopics').value : '',
-        dislikeTopics: document.getElementById('dislikeTopics') ? document.getElementById('dislikeTopics').value : '',
-        papersPerDay: document.getElementById('papersPerDay') ? parseInt(document.getElementById('papersPerDay').value, 10) : 20,
-        preferTheory: document.getElementById('preferTheory') ? document.getElementById('preferTheory').checked : true,
-        theoryEnabled: document.getElementById('theoryEnabled') ? document.getElementById('theoryEnabled').checked : true,
-        arxivEnabled: document.getElementById('arxivEnabled') ? document.getElementById('arxivEnabled').checked : true,
-        journalEnabled: document.getElementById('journalEnabled') ? document.getElementById('journalEnabled').checked : true,
-        scholarEnabled: document.getElementById('scholarEnabled') ? document.getElementById('scholarEnabled').checked : false,
-        lookbackDays: document.getElementById('lookbackDays') ? parseInt(document.getElementById('lookbackDays').value, 10) : 14,
-        zoteroEnabled: document.getElementById('zoteroEnabled') ? document.getElementById('zoteroEnabled').checked : true,
-        zoteroAutoDetect: document.getElementById('zoteroAutoDetect') ? document.getElementById('zoteroAutoDetect').checked : true,
-        zoteroPath: document.getElementById('zoteroPath') ? document.getElementById('zoteroPath').value : '',
+        demoteTopics: document.getElementById('demoteTopics') ? document.getElementById('demoteTopics').value : currentSettingsDefaults.demoteTopics,
+        dislikeTopics: document.getElementById('dislikeTopics') ? document.getElementById('dislikeTopics').value : currentSettingsDefaults.dislikeTopics,
+        papersPerDay: document.getElementById('papersPerDay') ? parseInt(document.getElementById('papersPerDay').value, 10) : currentSettingsDefaults.papersPerDay,
+        preferTheory: document.getElementById('preferTheory') ? document.getElementById('preferTheory').checked : currentSettingsDefaults.preferTheory,
+        theoryEnabled: document.getElementById('theoryEnabled') ? document.getElementById('theoryEnabled').checked : currentSettingsDefaults.theoryEnabled,
+        arxivEnabled: document.getElementById('arxivEnabled') ? document.getElementById('arxivEnabled').checked : currentSettingsDefaults.arxivEnabled,
+        journalEnabled: document.getElementById('journalEnabled') ? document.getElementById('journalEnabled').checked : currentSettingsDefaults.journalEnabled,
+        scholarEnabled: document.getElementById('scholarEnabled') ? document.getElementById('scholarEnabled').checked : currentSettingsDefaults.scholarEnabled,
+        lookbackDays: document.getElementById('lookbackDays') ? parseInt(document.getElementById('lookbackDays').value, 10) : currentSettingsDefaults.lookbackDays,
+        zoteroEnabled: document.getElementById('zoteroEnabled') ? document.getElementById('zoteroEnabled').checked : currentSettingsDefaults.zoteroEnabled,
+        zoteroAutoDetect: document.getElementById('zoteroAutoDetect') ? document.getElementById('zoteroAutoDetect').checked : currentSettingsDefaults.zoteroAutoDetect,
+        zoteroPath: document.getElementById('zoteroPath') ? document.getElementById('zoteroPath').value : currentSettingsDefaults.zoteroPath,
         regenerate: regenerate
     };
 
@@ -345,6 +369,40 @@ async function saveSettings(regenerate = false) {
 
 function saveAndRegenerate() {
     saveSettings(true);
+}
+
+function exportState() {
+    window.location.href = '/api/state/export';
+}
+
+function triggerStateImport() {
+    const input = document.getElementById('stateImportFile');
+    if (input) input.click();
+}
+
+const stateImportFile = document.getElementById('stateImportFile');
+if (stateImportFile) {
+    stateImportFile.addEventListener('change', async function() {
+        if (!this.files || !this.files[0]) return;
+        const formData = new FormData();
+        formData.append('snapshot', this.files[0]);
+        try {
+            const response = await fetch('/api/state/import', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'import failed');
+            }
+            showToast('状态已导入，正在刷新');
+            setTimeout(() => window.location.reload(), 900);
+        } catch (error) {
+            showToast('导入失败: ' + error.message, 'error');
+        } finally {
+            this.value = '';
+        }
+    });
 }
 </script>
 {% endblock %}

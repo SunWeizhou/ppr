@@ -1,118 +1,123 @@
 {% extends "base_research.html" %}
 
 {% block hero %}
-<section class="page-hero">
-    <div class="hero-panel">
-        <div class="kicker">Long-term Tracking</div>
-        <h1 class="hero-title">Monitor / 长期关注</h1>
-        <p class="hero-subtitle">
-            追踪关注的学者、期刊、订阅问题，聚合所有匹配的新论文。
-        </p>
-        <div class="metric-grid">
-            <div class="metric-card">
-                <span class="metric-label">Authors</span>
-                <span class="metric-value">{{ my_scholars|length }}</span>
-            </div>
-            <div class="metric-card">
-                <span class="metric-label">Venues</span>
-                <span class="metric-value">{{ journal_cards|length }}</span>
-            </div>
-            <div class="metric-card">
-                <span class="metric-label">Queries</span>
-                <span class="metric-value">{{ all_saved_searches|length }}</span>
-            </div>
+<section class="page-header">
+    <div class="lead">
+        <span class="section-kicker">Long-term Tracking</span>
+        <h1 class="page-title">Monitor</h1>
+        <div class="page-context">
+            <span>{{ my_scholars|length }} authors</span>
+            <span class="dot"></span>
+            <span>{{ journal_cards|length }} venues</span>
+            <span class="dot"></span>
+            <span>{{ all_saved_searches|length }} query subscriptions</span>
         </div>
-        <div class="hero-actions">
-            <a href="/" class="action-button btn-brand">回到 Inbox</a>
-        </div>
+    </div>
+    <div class="actions">
+        <a href="/search" class="btn btn-tertiary">Search</a>
+        <button type="button" class="btn btn-secondary" onclick="createAuthorSubscription()">New author</button>
+        <button type="button" class="btn btn-primary" onclick="createQuerySubscription()">New query</button>
     </div>
 </section>
 {% endblock %}
 
 {% block content %}
-<div class="tab-strip">
-    <a href="/monitor?tab=authors" class="tab-button {% if tab == 'authors' %}active{% endif %}">Authors</a>
-    <a href="/monitor?tab=venues" class="tab-button {% if tab == 'venues' %}active{% endif %}">Venues</a>
-    <a href="/monitor?tab=queries" class="tab-button {% if tab == 'queries' %}active{% endif %}">Queries</a>
-    <a href="/monitor?tab=recent-hits" class="tab-button {% if tab == 'recent-hits' %}active{% endif %}">Recent Hits</a>
+<div class="tabs">
+    <a href="/monitor?tab=authors" class="tab-button {% if tab == 'authors' %}active{% endif %}">Authors <span class="count">{{ my_scholars|length }}</span></a>
+    <a href="/monitor?tab=venues" class="tab-button {% if tab == 'venues' %}active{% endif %}">Venues <span class="count">{{ journal_cards|length }}</span></a>
+    <a href="/monitor?tab=queries" class="tab-button {% if tab == 'queries' %}active{% endif %}">Queries <span class="count">{{ all_saved_searches|length }}</span></a>
+    <a href="/monitor?tab=recent-hits" class="tab-button {% if tab == 'recent-hits' %}active{% endif %}">Recent Hits <span class="count">{{ recent_hits|length if recent_hits else 0 }}</span></a>
 </div>
 
-<section class="library-layout">
-    <div class="library-main">
-        {% if tab == 'authors' %}
-            <div class="panel-card section-card">
-                <div class="section-head section-head-tight">
-                    <div>
-                        <div class="section-kicker">Followed Authors</div>
-                        <h2 class="panel-title">关注的学者</h2>
+<section class="split split--rail-left section-gap">
+    <aside class="rail">
+        <div class="rail-group">
+            <span class="rail-group-label">Summary</span>
+            <div class="card">
+                <div class="list-stack">
+                    <div class="list-item">
+                        <div><span class="list-item-title">Authors</span></div>
+                        <span class="list-item-trailing">{{ my_scholars|length }}</span>
+                    </div>
+                    <div class="list-item">
+                        <div><span class="list-item-title">Venues</span></div>
+                        <span class="list-item-trailing">{{ journal_cards|length }}</span>
+                    </div>
+                    <div class="list-item">
+                        <div><span class="list-item-title">Queries</span></div>
+                        <span class="list-item-trailing">{{ all_saved_searches|length }}</span>
                     </div>
                 </div>
+            </div>
+        </div>
+    </aside>
 
+    <div>
+        {% if tab == 'authors' %}
+            <div class="toolbar">
+                <span class="chip brand">Followed authors</span>
+                <span class="spacer"></span>
+                <button type="button" class="btn btn-primary btn-sm" onclick="createAuthorSubscription()">新建作者</button>
+                <a href="/search" class="btn btn-secondary btn-sm">从论文里继续关注作者</a>
+            </div>
+            <div class="card card--flush">
                 {% if my_scholars %}
-                    <div class="paper-stream">
-                        {% for scholar in my_scholars %}
-                            <article class="paper-card compact-card">
-                                <div class="paper-topline">
-                                    <div class="paper-rank">
-                                        <span class="list-item-title">{{ scholar.name }}</span>
-                                    </div>
-                                    {% if scholar.affiliation %}
-                                        <span class="meta-chip">{{ scholar.affiliation }}</span>
-                                    {% endif %}
+                    {% for scholar in my_scholars %}
+                        <article class="row">
+                            <div class="row-lead"><span class="row-rank">{{ scholar.name[:2] }}</span></div>
+                            <div class="row-body">
+                                <div class="row-title row-title--person">{{ scholar.name }}</div>
+                                <div class="row-meta">{{ scholar.affiliation or 'Affiliation unavailable' }}</div>
+                                {% if scholar.focus %}<div class="row-summary">{{ scholar.focus }}</div>{% endif %}
+                                <div class="row-tags">
+                                    {% if scholar.description %}<span class="tag">{{ scholar.description[:72] ~ ('…' if scholar.description|length > 72 else '') }}</span>{% endif %}
                                 </div>
-                                {% if scholar.focus %}
-                                    <p class="paper-summary">{{ scholar.focus }}</p>
-                                {% endif %}
-                                {% if scholar.description %}
-                                    <p class="muted-copy" style="margin-top: 4px;">{{ scholar.description }}</p>
-                                {% endif %}
-                                <div class="action-row">
+                            </div>
+                            <div class="row-trail">
+                                <div class="row-actions row-actions-compact">
                                     {% if scholar.links %}
-                                        {% for link in scholar.links %}
-                                            <a href="{{ link.url }}" class="action-button btn-subtle" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
+                                        {% for link in scholar.links[:1] %}
+                                            <a href="{{ link.url }}" class="btn btn-tertiary btn-sm" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
                                         {% endfor %}
                                     {% endif %}
+                                    <button type="button" class="btn btn-tertiary btn-sm" onclick='editAuthorSubscription({{ scholar|tojson|forceescape }})'>Edit</button>
                                 </div>
-                            </article>
-                        {% endfor %}
-                    </div>
+                            </div>
+                        </article>
+                    {% endfor %}
                 {% else %}
                     <div class="empty-state">
-                        <p class="muted-copy">还没有关注任何学者。在 Inbox 或搜索页点击"关注作者"开始追踪。</p>
+                        <p class="muted-copy">还没有关注任何学者。在 Inbox 或 Search 中点击“关注作者”开始追踪。</p>
                     </div>
                 {% endif %}
             </div>
         {% elif tab == 'venues' %}
-            <div class="panel-card section-card">
-                <div class="section-head section-head-tight">
-                    <div>
-                        <div class="section-kicker">Tracked Venues</div>
-                        <h2 class="panel-title">追踪的期刊/会议</h2>
-                    </div>
-                </div>
-
+            <div class="toolbar">
+                <span class="chip brand">Tracked venues</span>
+                <span class="spacer"></span>
+                <span class="chip">按照更新活跃度展示</span>
+            </div>
+            <div class="card card--flush">
                 {% if journal_cards %}
-                    <div class="paper-stream">
-                        {% for journal in journal_cards %}
-                            <article class="paper-card compact-card">
-                                <div class="paper-topline">
-                                    <div class="paper-rank">
-                                        <span class="list-item-title">{{ journal.name }}</span>
-                                    </div>
-                                    <div class="chip-row">
-                                        <span class="meta-chip">{{ journal.update_reason or 'activity stable' }}</span>
-                                        <span class="meta-chip">Last: {{ journal.last_update }}</span>
-                                        {% if journal.should_check %}
-                                            <span class="chip warm">Update available</span>
-                                        {% endif %}
-                                    </div>
+                    {% for journal in journal_cards %}
+                        <article class="row">
+                            <div class="row-lead"><span class="row-rank">§</span></div>
+                            <div class="row-body">
+                                <div class="row-title">{{ journal.name }}</div>
+                                <div class="row-meta">{{ journal.update_reason or 'activity stable' }}</div>
+                                {% if journal.description %}<div class="row-summary">{{ journal.description }}</div>{% endif %}
+                                <div class="row-tags">
+                                    <span class="tag tag--mono">Last {{ journal.last_update }}</span>
+                                    {% if journal.should_check %}
+                                        <span class="state-chip status-new">Update available</span>
+                                    {% else %}
+                                        <span class="state-chip status-archived">Stable</span>
+                                    {% endif %}
                                 </div>
-                                {% if journal.description %}
-                                    <p class="paper-summary">{{ journal.description }}</p>
-                                {% endif %}
-                            </article>
-                        {% endfor %}
-                    </div>
+                            </div>
+                            <div class="row-trail"></div>
+                        </article>
+                    {% endfor %}
                 {% else %}
                     <div class="empty-state">
                         <p class="muted-copy">还没有追踪任何期刊。在设置中配置关注的期刊和会议。</p>
@@ -120,120 +125,82 @@
                 {% endif %}
             </div>
         {% elif tab == 'queries' %}
-            <div class="panel-card section-card">
-                <div class="section-head section-head-tight">
-                    <div>
-                        <div class="section-kicker">Query Subscriptions</div>
-                        <h2 class="panel-title">问题订阅</h2>
-                        <p class="muted-copy">保存的问题会定期检查新匹配论文，并聚合到 Recent Hits。</p>
-                    </div>
-                    <button type="button" class="action-button btn-brand" onclick="createQuerySubscription()">新建订阅</button>
-                </div>
-
+            <div class="toolbar">
+                <span class="chip brand">Query subscriptions</span>
+                <span class="spacer"></span>
+                <button type="button" class="btn btn-primary btn-sm" onclick="createQuerySubscription()">新建订阅</button>
+            </div>
+            <div class="card card--flush">
                 {% if all_saved_searches %}
-                    <div class="paper-stream">
-                        {% for search in all_saved_searches %}
-                            <article class="paper-card compact-card">
-                                <div class="paper-topline">
-                                    <div class="paper-rank">
-                                        <span class="list-item-title">{{ search.name }}</span>
-                                    </div>
-                                    <div class="chip-row">
-                                        <span class="meta-chip">{{ search.updated_at[:10] if search.updated_at else '' }}</span>
-                                        <span class="chip brand">{{ search.latest_hit_count or 0 }} hits</span>
-                                    </div>
+                    {% for search in all_saved_searches %}
+                        <article class="row">
+                            <div class="row-lead"><span class="row-rank">Q</span></div>
+                            <div class="row-body">
+                                <div class="row-title row-title--mono">{{ search.name }}</div>
+                                <div class="row-meta">{{ search.description or search.query_text }}</div>
+                                <div class="row-tags">
+                                    <span class="tag tag--mono">{{ search.updated_at[:10] if search.updated_at else '' }}</span>
+                                    <span class="state-chip status-new">{{ search.latest_hit_count or 0 }} hits</span>
                                 </div>
-                                <p class="paper-summary">{{ search.description or search.query_text }}</p>
-                                <div class="action-row">
-                                    <button type="button" class="action-button btn-subtle" onclick='editQuerySubscription({{ search|tojson|forceescape }})'>Edit</button>
-                                    <button type="button" class="action-button btn-warm" onclick="runQuerySubscription({{ search.id }})">Run now</button>
-                                    <button type="button" class="action-button btn-danger" onclick="deleteQuerySubscription({{ search.id }}, {{ search.name|tojson }})">Delete</button>
+                            </div>
+                            <div class="row-trail">
+                                <div class="row-actions row-actions-compact">
+                                    <button type="button" class="btn btn-warm btn-sm" onclick="runQuerySubscription({{ search.id }})">Run</button>
+                                    <button type="button" class="btn btn-tertiary btn-sm" onclick='editQuerySubscription({{ search|tojson|forceescape }})'>Edit</button>
                                 </div>
-                            </article>
-                        {% endfor %}
-                    </div>
+                            </div>
+                        </article>
+                    {% endfor %}
                 {% else %}
                     <div class="empty-state">
-                        <p class="muted-copy">还没有保存的搜索。在搜索页将问题保存为订阅。</p>
+                        <p class="muted-copy">还没有保存的搜索。在 Search 页将问题保存为订阅。</p>
                     </div>
                 {% endif %}
             </div>
-        {% elif tab == 'recent-hits' %}
-            <div class="panel-card section-card">
-                <div class="section-head section-head-tight">
-                    <div>
-                        <div class="section-kicker">All Matches</div>
-                        <h2 class="panel-title">Recent Hits</h2>
-                        <p class="muted-copy">聚合所有订阅的最新匹配论文。</p>
-                    </div>
-                </div>
-
+        {% else %}
+            <div class="toolbar">
+                <span class="chip brand">Recent hits</span>
+                <span class="spacer"></span>
+                <span class="chip">可一键送入 Inbox / Queue / Collection</span>
+            </div>
+            <div class="card card--flush">
                 {% if recent_hits %}
-                    <div class="paper-stream">
-                        {% for paper in recent_hits %}
-                            <article class="paper-card compact-card library-paper-card"
-                                data-paper-id="{{ paper.id }}"
-                                data-paper-title="{{ paper.title }}"
-                                data-paper-authors="{{ paper.author_text or paper.authors or '' }}"
-                                data-paper-summary="{{ paper.summary or '' }}"
-                                data-paper-link="{{ paper.link or '' }}"
-                                data-paper-score="{{ paper.score or 0 }}">
-                                <div class="paper-topline">
-                                    <div class="paper-rank">
-                                        <span class="list-item-title">{{ paper.title }}</span>
-                                    </div>
-                                    <div class="chip-row">
-                                        {% if paper.source_type %}
-                                            <span class="chip brand">{{ paper.source_type }}</span>
-                                        {% endif %}
-                                    </div>
+                    {% for paper in recent_hits %}
+                        <article class="row library-paper-card"
+                            data-paper-id="{{ paper.id }}"
+                            data-paper-title="{{ paper.title }}"
+                            data-paper-authors="{{ paper.author_text or paper.authors or '' }}"
+                            data-paper-summary="{{ paper.summary or '' }}"
+                            data-paper-link="{{ paper.link or '' }}"
+                            data-paper-score="{{ paper.score or 0 }}"
+                            data-paper-first-author="{{ paper.first_author or '' }}">
+                            <div class="row-lead"><span class="row-rank">{{ paper.source_type[:1] if paper.source_type else 'H' }}</span></div>
+                            <div class="row-body">
+                                <div class="row-title">{{ paper.title }}</div>
+                                <div class="row-meta">{{ paper.author_text or paper.authors or '' }}</div>
+                                <div class="row-summary">{{ paper.summary_short or (paper.summary or '')[:200] if paper.summary else '' }}</div>
+                                <div class="row-tags">
+                                    {% if paper.source_type %}
+                                        <span class="state-chip status-new">{{ paper.source_type }}</span>
+                                    {% endif %}
                                 </div>
-                                <div class="paper-authors">{{ paper.author_text or paper.authors or '' }}</div>
-                                <p class="paper-summary">{{ paper.summary_short or (paper.summary or '')[:200] if paper.summary else '' }}</p>
-                                <div class="action-row">
-                                    <button type="button" class="action-button btn-ghost" onclick="queueCard(this, 'Inbox')">Inbox</button>
-                                    <button type="button" class="action-button btn-warm" onclick="queueCard(this, 'Skim Later')">稍后读</button>
-                                    <button type="button" class="action-button btn-sage" onclick="queueCard(this, 'Deep Read')">精读</button>
-                                    <button type="button" class="action-button btn-ghost" onclick="collectCard(this)">Add to Collection</button>
+                            </div>
+                            <div class="row-trail">
+                                <div class="row-actions row-actions-compact">
+                                    <button type="button" class="btn btn-tertiary btn-sm" onclick="queueCard(this, 'Inbox')">Inbox</button>
+                                    <button type="button" class="btn btn-tertiary btn-sm" onclick="openPaperActions(this, 'monitor_recent_hits')">More</button>
                                 </div>
-                            </article>
-                        {% endfor %}
-                    </div>
+                            </div>
+                        </article>
+                    {% endfor %}
                 {% else %}
                     <div class="empty-state">
-                        <p class="muted-copy">暂时没有新的匹配论文。订阅学者、期刊或搜索问题后，新论文会在这里聚合。</p>
+                        <p class="muted-copy">暂时没有新的匹配论文。订阅学者、期刊或问题后，新论文会在这里聚合。</p>
                     </div>
                 {% endif %}
             </div>
         {% endif %}
     </div>
-
-    <aside class="library-aside">
-        <div class="panel-card section-card">
-            <div class="section-kicker">Summary</div>
-            <h2 class="panel-title">订阅概览</h2>
-            <div class="list-stack">
-                <div class="list-item">
-                    <div>
-                        <span class="list-item-title">Authors</span>
-                    </div>
-                    <span class="list-item-trailing">{{ my_scholars|length }}</span>
-                </div>
-                <div class="list-item">
-                    <div>
-                        <span class="list-item-title">Venues</span>
-                    </div>
-                    <span class="list-item-trailing">{{ journal_cards|length }}</span>
-                </div>
-                <div class="list-item">
-                    <div>
-                        <span class="list-item-title">Queries</span>
-                    </div>
-                    <span class="list-item-trailing">{{ all_saved_searches|length }}</span>
-                </div>
-            </div>
-        </div>
-    </aside>
 </section>
 {% endblock %}
 
@@ -266,6 +233,22 @@ async function collectCard(button) {
     }
 }
 
+async function createAuthorSubscription() {
+    const author = await openAuthorSubscriptionModal({
+        defaultName: ''
+    });
+    if (author) {
+        window.setTimeout(() => window.location.reload(), 250);
+    }
+}
+
+async function editAuthorSubscription(author) {
+    const updated = await openAuthorSubscriptionModal({author: author});
+    if (updated) {
+        window.setTimeout(() => window.location.reload(), 250);
+    }
+}
+
 async function createQuerySubscription() {
     const savedSearch = await openQuerySubscriptionModal({
         defaultName: 'New query subscription',
@@ -278,7 +261,9 @@ async function createQuerySubscription() {
 
 async function editQuerySubscription(savedSearch) {
     const updated = await openQuerySubscriptionModal({savedSearch: savedSearch});
-    if (updated) {
+    if (updated?.deleted) {
+        window.setTimeout(() => window.location.reload(), 250);
+    } else if (updated) {
         window.setTimeout(() => window.location.reload(), 250);
     }
 }
@@ -294,7 +279,13 @@ async function runQuerySubscription(searchId) {
 }
 
 async function deleteQuerySubscription(searchId, name) {
-    if (!window.confirm('确定删除问题订阅 ' + name + ' 吗？')) return;
+    const ok = await confirmDangerAction({
+        title: '删除 Query Subscription',
+        objectName: name,
+        message: '这会停止这个问题的长期命中追踪，但不会删除已经加入 Queue 或 Collection 的论文。',
+        confirmLabel: 'Delete subscription'
+    });
+    if (!ok) return;
     try {
         await requestJson('/api/saved-searches', {
             method: 'DELETE',

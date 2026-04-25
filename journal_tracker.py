@@ -23,8 +23,6 @@ import xml.etree.ElementTree as ET
 from app_paths import CACHE_DIR as APP_CACHE_DIR, LEGACY_USER_CONFIG_PATH, PROJECT_ROOT, USER_PROFILE_PATH
 
 SSL_CONTEXT = ssl.create_default_context()
-SSL_CONTEXT.check_hostname = False
-SSL_CONTEXT.verify_mode = ssl.CERT_NONE
 
 # Detection frequency settings
 DETECTION_CONFIG = {
@@ -103,7 +101,7 @@ JOURNALS = {
 CACHE_DIR = str(APP_CACHE_DIR)
 CACHE_FILE = os.path.join(CACHE_DIR, 'journal_cache.json')
 CITATION_HISTORY_FILE = os.path.join(CACHE_DIR, 'citation_history.json')
-UPDATE_LOG_FILE = os.path.join(CACHE_DIR, 'update_log.json')
+UPDATE_LOG_FILE = os.path.join(CACHE_DIR, 'journal_update_log.json')
 CACHE_EXPIRY_HOURS = 12
 
 
@@ -274,7 +272,7 @@ def should_check_for_updates(journal_key: str) -> Tuple[bool, str]:
     update_log = load_update_log()
 
     last_check = update_log.get(journal_key, {}).get('last_check', '2000-01-01')
-    last_check_date = datetime.strptime(last_check, '%Y-%m-%d')
+    last_check_date = datetime.fromisoformat(last_check[:10])
     days_since_check = (datetime.now() - last_check_date).days
 
     if config['frequency'] == 'daily':

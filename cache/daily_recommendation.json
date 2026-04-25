@@ -1,34 +1,36 @@
 {
-  "date": "2026-04-09",
+  "date": "2026-04-23",
   "papers": [
     {
-      "title": "Efficient machine unlearning with minimax optimality",
+      "title": "A Nonparametric Goodness-of-Fit Test for High-Dimensional Generalized Gaussian Distributions via Nearest-Neighbor Graphs",
       "authors": [
-        "Jingyi Xie",
-        "Linjun Zhang",
-        "Sai Li"
+        "Mehmet Sıddık Çadırcı",
+        "Yener Ünal"
       ],
-      "abstract": "There is a growing demand for efficient data removal to comply with regulations like the GDPR and to mitigate the influence of biased or corrupted data. This has motivated the field of machine unlearning, which aims to eliminate the influence of specific data subsets without the cost of full retraining. In this work, we propose a statistical framework for machine unlearning with generic loss functions and establish theoretical guarantees. For squared loss, especially, we develop Unlearning Least Squares (ULS) and establish its minimax optimality for estimating the model parameter of remaining data when only the pre-trained estimator, forget samples, and a small subsample of the remaining data are available. Our results reveal that the estimation error decomposes into an oracle term and an unlearning cost determined by the forget proportion and the forget model bias. We further establish asymptotically valid inference procedures without requiring full retraining. Numerical experiments and real-data applications demonstrate that the proposed method achieves performance close to retraining while requiring substantially less data access.",
-      "published": "2026-04-07T10:09:58Z",
-      "id": "2604.05669v1",
-      "link": "http://arxiv.org/abs/2604.05669v1",
+      "abstract": "The multivariate generalised Gaussian distribution (MGGD) is commonly used to model high-dimensional vectors with non-Gaussian radial behaviour, ranging from sharp-peaked to heavy-tailed profiles. However, because many classical multivariate tests are based on covariance inversion or high-dimensional density estimation, formal goodness-of-fit assessment for MGGD models remains challenging in modern regimes where the dimension is comparable to or exceeds the sample size. We introduce an affine-invariant, fully non-parametric goodness-of-fit procedure based on the nearest neighbour (NN) graph topology and the adapted zero principle. Following robust standardisation, we construct an independent reference sample from the adapted standardised MGGD and measure, on the combined NN graph, the cross-edge count to assess how well the observed and reference point clouds exhibit the mixture behaviour anticipated by the model. Calibration performed using a refitted parametric bootstrap accounts for nuisance-parameter uncertainty, thus ensuring reliable size under a composite specification. In this paper, we establish asymptotic validity under high-dimensional scaling and demonstrate consistency with respect to fixed elliptical departures, providing a geometric interpretation based on radial concentration and shell separation. Our simulation studies across a broad spectrum of dimensions and tail shapes reveal accurate Type I error control and robust power relative to heavy- and light-tailed alternatives, thus improving upon energy-distance benchmarks and normality-oriented graphical tests in contexts where MGGD modelling is most applicable.",
+      "published": "2026-04-21T14:12:50Z",
+      "id": "2604.19493",
+      "base_id": "2604.19493",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.19493v1",
+      "link": "http://arxiv.org/abs/2604.19493v1",
       "source": "arXiv",
       "categories": [
-        "stat.ML",
-        "cs.LG"
+        "stat.ME",
+        "stat.CO"
       ],
-      "comment": "",
-      "score": 6.421666666666666,
+      "comment": "22 pages, 5 pages",
+      "score": 7.105,
       "score_details": {
-        "relevance": 8.166666666666666,
-        "author": 3.0,
-        "depth": 1.7,
+        "relevance": 10,
+        "author": 0.0,
+        "depth": 0.7,
         "semantic": 0.0,
         "breakdown": [
           {
             "type": "core_topic",
             "icon": "🎯",
-            "text": "命中核心主题: minimax",
+            "text": "命中核心主题: nonparametric",
             "location": "标题",
             "score_impact": 3.2
           },
@@ -38,16 +40,23 @@
             "text": "近2天新论文",
             "location": "",
             "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: estimation, asymptotic",
+            "location": "",
+            "score_impact": 0.5
           }
         ]
       },
-      "summary": "There is a growing demand for efficient data removal to comply with regulations like the GDPR and to mitigate the influence of biased or corrupted data.. This has motivated the field of machine unlearning, which aims to eliminate the influence of specific data subsets without the cost of full retraining.. In this work, we propose a statistical fram...",
-      "relevance_reason": "命中核心主题: minimax; 近2天新论文",
+      "summary": "The multivariate generalised Gaussian distribution (MGGD) is commonly used to model high-dimensional vectors with non-Gaussian radial behaviour, ranging from sharp-peaked to heavy-tailed profiles.. However, because many classical multivariate tests are based on covariance inversion or high-dimensional density estimation, formal goodness-of-fit asse...",
+      "relevance_reason": "命中核心主题: nonparametric; 近2天新论文; 包含理论信号: estimation, asymptotic",
       "relevance_breakdown": [
         {
           "type": "core_topic",
           "icon": "🎯",
-          "text": "命中核心主题: minimax",
+          "text": "命中核心主题: nonparametric",
           "location": "标题",
           "score_impact": 3.2
         },
@@ -57,35 +66,44 @@
           "text": "近2天新论文",
           "location": "",
           "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: estimation, asymptotic",
+          "location": "",
+          "score_impact": 0.5
         }
       ]
     },
     {
-      "title": "Reason Analogically via Cross-domain Prior Knowledge: An Empirical Study of Cross-domain Knowledge Transfer for In-Context Learning",
+      "title": "Bimanual Robot Manipulation via Multi-Agent In-Context Learning",
       "authors": [
-        "Le Liu",
-        "Zhiming Li",
-        "Jianzhi Yan",
-        "Zike Yuan",
-        "Shiwei Chen",
-        "Youcheng Pan",
-        "Buzhou Tang",
-        "Qingcai Chen",
-        "Yang Xiang",
-        "Danny Dongning Sun"
+        "Alessio Palma",
+        "Indro Spinelli",
+        "Vignesh Prasad",
+        "Luca Scofano",
+        "Yufeng Jin",
+        "Georgia Chalvatzaki",
+        "Fabio Galasso"
       ],
-      "abstract": "Despite its success, existing in-context learning (ICL) relies on in-domain expert demonstrations, limiting its applicability when expert annotations are scarce. We posit that different domains may share underlying reasoning structures, enabling source-domain demonstrations to improve target-domain inference despite semantic mismatch. To test this hypothesis, we conduct a comprehensive empirical study of different retrieval methods to validate the feasibility of achieving cross-domain knowledge transfer under the in-context learning setting. Our results demonstrate conditional positive transfer in cross-domain ICL. We identify a clear example absorption threshold: beyond it, positive transfer becomes more likely, and additional demonstrations yield larger gains. Further analysis suggests that these gains stem from reasoning structure repair by retrieved cross-domain examples, rather than semantic cues. Overall, our study validates the feasibility of leveraging cross-domain knowledge transfer to improve cross-domain ICL performance, motivating the community to explore designing more effective retrieval approaches for this novel direction.\\footnote{Our implementation is available at https://github.com/littlelaska/ICL-TF4LR}",
-      "published": "2026-04-07T03:48:08Z",
-      "id": "2604.05396v1",
-      "link": "http://arxiv.org/abs/2604.05396v1",
+      "abstract": "Language Models (LLMs) have emerged as powerful reasoning engines for embodied control. In particular, In-Context Learning (ICL) enables off-the-shelf, text-only LLMs to predict robot actions without any task-specific training while preserving their generalization capabilities. Applying ICL to bimanual manipulation remains challenging, as the high-dimensional joint action space and tight inter-arm coordination constraints rapidly overwhelm standard context windows. To address this, we introduce BiCICLe (Bimanual Coordinated In-Context Learning), the first framework that enables standard LLMs to perform few-shot bimanual manipulation without fine-tuning. BiCICLe frames bimanual control as a multi-agent leader-follower problem, decoupling the action space into sequential, conditioned single-arm predictions. This naturally extends to Arms' Debate, an iterative refinement process, and to the introduction of a third LLM-as-Judge to evaluate and select the most plausible coordinated trajectories. Evaluated on 13 tasks from the TWIN benchmark, BiCICLe achieves up to 71.1% average success rate, outperforming the best training-free baseline by 6.7 percentage points and surpassing most supervised methods. We further demonstrate strong few-shot generalization on novel tasks.",
+      "published": "2026-04-22T08:51:07Z",
+      "id": "2604.20348",
+      "base_id": "2604.20348",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.20348v1",
+      "link": "http://arxiv.org/abs/2604.20348v1",
       "source": "arXiv",
       "categories": [
-        "cs.AI"
+        "cs.RO",
+        "cs.AI",
+        "cs.MA"
       ],
       "comment": "",
-      "score": 4.375,
+      "score": 5.46,
       "score_details": {
-        "relevance": 6.25,
+        "relevance": 7.800000000000001,
         "author": 0.0,
         "depth": 0.0,
         "semantic": 0.0,
@@ -100,14 +118,21 @@
           {
             "type": "recency",
             "icon": "🆕",
-            "text": "近2天新论文",
+            "text": "近1天新论文",
             "location": "",
             "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: generalization, rate",
+            "location": "",
+            "score_impact": 0.5
           }
         ]
       },
-      "summary": "Despite its success, existing in-context learning (ICL) relies on in-domain expert demonstrations, limiting its applicability when expert annotations are scarce.. We posit that different domains may share underlying reasoning structures, enabling source-domain demonstrations to improve target-domain inference despite semantic mismatch.. To test thi...",
-      "relevance_reason": "命中核心主题: in-context learning; 近2天新论文",
+      "summary": "Language Models (LLMs) have emerged as powerful reasoning engines for embodied control.. In particular, In-Context Learning (ICL) enables off-the-shelf, text-only LLMs to predict robot actions without any task-specific training while preserving their generalization capabilities.. Applying ICL to bimanual manipulation remains challenging, as the hig...",
+      "relevance_reason": "命中核心主题: in-context learning; 近1天新论文; 包含理论信号: generalization, rate",
       "relevance_breakdown": [
         {
           "type": "core_topic",
@@ -119,161 +144,105 @@
         {
           "type": "recency",
           "icon": "🆕",
-          "text": "近2天新论文",
-          "location": "",
-          "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "Robust mean estimation under star-shaped constraints with heavy-tailed noise",
-      "authors": [
-        "Tuorui Peng",
-        "Akshay Prasadan",
-        "Matey Neykov"
-      ],
-      "abstract": "We study the problem of robust mean estimation with adversarially contaminated data under star-shaped constraints in a heavy-tailed noise setting, where only a finite second moment $ σ^2 $ is assumed.\n  For a contamination level $ \\varepsilon$ below some constant, we show that the minimax rate of the squared $ \\ell_2 $ loss is $ \\max( δ^{*2}, \\varepsilon σ^2) \\wedge d^2 $ for a star-shaped set with diameter $ d $ (set $d = \\infty$ if the set is unbounded), with $ δ^* $ determined via the local entropy $ \\log M^\\mathrm{ loc }(δ,c) $ as\n  \\begin{align*}\n  δ^*:= \\sup\\bigg\\{δ\\geq 0: N\\frac{δ^2}{σ^2}\\leq \\log M^\\mathrm{ loc }(δ,c) \\bigg\\},\n  \\end{align*}\n  where $ c $ is a sufficiently large constant. Crucially, we require that the sample size satisfies $N \\gtrsim \\mathop{ \\sup }\\limits_{δ\\geq 0} \\log M^\\mathrm{ loc }(δ,c)$. We also show that the minimax rate is $ \\max(δ^{*2},\\varepsilon ^2σ^2) \\wedge d^2 $ for known or sign-symmetric distributions, matching the rate achieved in the Gaussian case.",
-      "published": "2026-04-06T18:11:07Z",
-      "id": "2604.05063v1",
-      "link": "http://arxiv.org/abs/2604.05063v1",
-      "source": "arXiv",
-      "categories": [
-        "math.ST"
-      ],
-      "comment": "56 pages",
-      "score": 4.2749999999999995,
-      "score_details": {
-        "relevance": 5.4,
-        "author": 0.0,
-        "depth": 3.3,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "core_topic",
-            "icon": "🎯",
-            "text": "命中核心主题: minimax",
-            "location": "摘要",
-            "score_impact": 1.2
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近3天新论文",
-            "location": "",
-            "score_impact": 0.3
-          },
-          {
-            "type": "theory",
-            "icon": "📐",
-            "text": "包含理论贡献: bound, minimax",
-            "location": "",
-            "score_impact": 0.5
-          }
-        ]
-      },
-      "summary": "We study the problem of robust mean estimation with adversarially contaminated data under star-shaped constraints in a heavy-tailed noise setting, where only a finite second moment $ σ^2 $ is assumed.. For a contamination level $ \\varepsilon$ below some constant, we show that the minimax rate of the squared $ \\ell_2 $ loss is $ \\max( δ^{*2}, \\varep...",
-      "relevance_reason": "命中核心主题: minimax; 近3天新论文; 包含理论贡献: bound, minimax",
-      "relevance_breakdown": [
-        {
-          "type": "core_topic",
-          "icon": "🎯",
-          "text": "命中核心主题: minimax",
-          "location": "摘要",
-          "score_impact": 1.2
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近3天新论文",
+          "text": "近1天新论文",
           "location": "",
           "score_impact": 0.3
         },
         {
           "type": "theory",
           "icon": "📐",
-          "text": "包含理论贡献: bound, minimax",
+          "text": "包含理论信号: generalization, rate",
           "location": "",
           "score_impact": 0.5
         }
       ]
     },
     {
-      "title": "Nonparametric Statistical Inference for Multivariate Niche Overlap",
+      "title": "Zero-Inflated Logistic Regression Models with Shared Design: Identifiability, Existence of Estimates, and a Relabeling Rule",
       "authors": [
-        "Jonas Beck",
-        "Solomon Harrar"
+        "Yui Tomo",
+        "Shinto Eguchi",
+        "Daisuke Yoneoka"
       ],
-      "abstract": "In ecological studies niche overlap is often used to quantify species interaction and dynamics. This paper develops a robust, nonparametric statistical framework for quantifying and analyzing multivariate niche overlap. Parametric methods are often constrained by restrictive assumptions and tend to underperform in complex multivariate settings. We introduce a nonparametric overlap index and propose estimators for it. Further, we investigate asymptotic properties of the estimators. We also propose bootstrap-based inference procedures that enable statistical testing and simultaneous confidence intervals in small sample settings. Extensive numerical examples demonstrate that our proposed methods maintain correct size and exhibit robust power across various scenarios. We illustrate the practical utility of our methodology using stable isotope measurements from multiple fish species and provide distinct ecological insights regarding species niche differentiation.",
-      "published": "2026-04-07T15:06:50Z",
-      "id": "2604.05974v1",
-      "link": "http://arxiv.org/abs/2604.05974v1",
+      "abstract": "The zero-inflated logistic regression model accommodates binary responses with excess zeros, which often arise from a latent mixture of susceptible and insusceptible subpopulations or asymmetric misclassification of the response. The model has two components: regression for the binary response and a latent binary indicator for the zero-inflation state. In applied settings, it is common to use the same design matrix for both components if there is no prior knowledge. However, this shared-design specification lacks guaranteed identifiability of the regression parameters, as established in prior works. This paper investigates the theoretical properties of the zero-inflated logistic regression model under the shared-design setting and computational methods for applications. First, to motivate the use of the zero-inflated model, we prove that ignoring the zero-inflation mechanism can lead to a sign flip in the pseudo-true coefficient value relative to the true value. We then establish sufficient conditions for the existence of the maximum likelihood estimate. As a main result, we establish that the model under the shared-design setting is identifiable up to exchange symmetry of the parameters for two components and that the expected log-likelihood has a unique maximizer on the resulting quotient space. The posterior bimodality is examined using a Pólya-Gamma Gibbs sampler with replica exchange. Finally, we propose a simple relabeling rule to select a single ordered parameter pair, and evaluate its performance through simulation studies and an application to self-reported diabetes data.",
+      "published": "2026-04-22T08:20:25Z",
+      "id": "2604.20322",
+      "base_id": "2604.20322",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.20322v1",
+      "link": "http://arxiv.org/abs/2604.20322v1",
       "source": "arXiv",
       "categories": [
         "stat.ME"
       ],
       "comment": "",
-      "score": 3.535,
+      "score": 4.8999999999999995,
       "score_details": {
-        "relevance": 4.9,
+        "relevance": 7.0,
         "author": 0.0,
-        "depth": 0.7,
+        "depth": 0.0,
         "semantic": 0.0,
         "breakdown": [
           {
             "type": "core_topic",
             "icon": "🎯",
-            "text": "命中核心主题: asymptotic",
-            "location": "摘要",
-            "score_impact": 1.2
+            "text": "命中核心主题: regression",
+            "location": "标题",
+            "score_impact": 2.4000000000000004
           },
           {
             "type": "recency",
             "icon": "🆕",
-            "text": "近2天新论文",
+            "text": "近1天新论文",
             "location": "",
             "score_impact": 0.3
           }
         ]
       },
-      "summary": "In ecological studies niche overlap is often used to quantify species interaction and dynamics.. This paper develops a robust, nonparametric statistical framework for quantifying and analyzing multivariate niche overlap.. Parametric methods are often constrained by restrictive assumptions and tend to underperform in complex multivariate settings.",
-      "relevance_reason": "命中核心主题: asymptotic; 近2天新论文",
+      "summary": "The zero-inflated logistic regression model accommodates binary responses with excess zeros, which often arise from a latent mixture of susceptible and insusceptible subpopulations or asymmetric misclassification of the response.. The model has two components: regression for the binary response and a latent binary indicator for the zero-inflation s...",
+      "relevance_reason": "命中核心主题: regression; 近1天新论文",
       "relevance_breakdown": [
         {
           "type": "core_topic",
           "icon": "🎯",
-          "text": "命中核心主题: asymptotic",
-          "location": "摘要",
-          "score_impact": 1.2
+          "text": "命中核心主题: regression",
+          "location": "标题",
+          "score_impact": 2.4000000000000004
         },
         {
           "type": "recency",
           "icon": "🆕",
-          "text": "近2天新论文",
+          "text": "近1天新论文",
           "location": "",
           "score_impact": 0.3
         }
       ]
     },
     {
-      "title": "Information Geometry and Asymptotic Theory for SMML Estimators",
+      "title": "Asymptotic e-processes",
       "authors": [
-        "Enes Makalic",
-        "Daniel F. Schmidt"
+        "Pierre-François Massiani",
+        "Sebastian Schulze",
+        "Mattes Mollenhauer"
       ],
-      "abstract": "We develop an asymptotic theory for strict minimum message length (SMML) estimators in regular parametric models with countable data spaces. We show that, asymptotically, the optimal SMML partition is induced by a weighted Fisher--Voronoi tessellation in parameter space, pulled back through the maximum likelihood estimator. We further show that each SMML codepoint is asymptotically a weighted average of the maximum likelihood estimates associated with observations in its cell. These results imply that the SMML estimator is consistent and converges at the usual parametric $n^{-1/2}$ rate under standard regularity conditions. We also give a Kullback--Leibler projection interpretation of SMML codepoints and a decomposition of the expected SMML codelength into an assertion entropy and an expected conditional cross-entropy. In exponential families, the theory simplifies further: SMML codepoints satisfy a moment-matching condition, and optimal SMML cells are induced by a polyhedral partition of the sufficient-statistic space.",
-      "published": "2026-04-06T23:06:42Z",
-      "id": "2604.05241v1",
-      "link": "http://arxiv.org/abs/2604.05241v1",
+      "abstract": "We introduce the concept of an asymptotic e-process, which is a doubly indexed stochastic process $(E_{m,n})_{m,n\\in\\mathbb{N}}$ that approximates an e-process with monitoring time $n$ in terms of a suitable limiting behavior for an approximation parameter $m\\to \\infty$. This theory is motivated by practical applications in sequential hypothesis testing, in which e-variables can only be constructed approximately from observations due to model misspecification or estimation errors. We derive an asymptotic version of Ville's inequality, which bounds excursion probabilities of $(E_{m,n})_{m,n\\in\\mathbb{N}}$ over some threshold uniformly over $n$ up to a time horizon $r_m$ that is determined by the quality of process approximation over $m$. We investigate properties of asymptotic e-processes, their connections to asymptotic supermartingales, and provide examples of how they can be constructed from asymptotic e-variables.",
+      "published": "2026-04-21T11:34:24Z",
+      "id": "2604.19353",
+      "base_id": "2604.19353",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.19353v1",
+      "link": "http://arxiv.org/abs/2604.19353v1",
       "source": "arXiv",
       "categories": [
-        "math.ST"
+        "math.ST",
+        "stat.ME"
       ],
-      "comment": "",
-      "score": 3.13,
+      "comment": "37 pages, 3 figures. Under review, may be subject to changes",
+      "score": 4.801666666666668,
       "score_details": {
-        "relevance": 4.0,
+        "relevance": 6.216666666666668,
         "author": 0.0,
-        "depth": 2.2,
+        "depth": 3.0,
         "semantic": 0.0,
         "breakdown": [
           {
@@ -281,364 +250,7 @@
             "icon": "🎯",
             "text": "命中核心主题: asymptotic",
             "location": "标题",
-            "score_impact": 3.2
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近3天新论文",
-            "location": "",
-            "score_impact": 0.3
-          }
-        ]
-      },
-      "summary": "We develop an asymptotic theory for strict minimum message length (SMML) estimators in regular parametric models with countable data spaces.. We show that, asymptotically, the optimal SMML partition is induced by a weighted Fisher--Voronoi tessellation in parameter space, pulled back through the maximum likelihood estimator.. We further show that e...",
-      "relevance_reason": "命中核心主题: asymptotic; 近3天新论文",
-      "relevance_breakdown": [
-        {
-          "type": "core_topic",
-          "icon": "🎯",
-          "text": "命中核心主题: asymptotic",
-          "location": "标题",
-          "score_impact": 3.2
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近3天新论文",
-          "location": "",
-          "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "Modeling Patient Care Trajectories with Transformer Hawkes Processes",
-      "authors": [
-        "Saumya Pandey",
-        "Varun Chandola"
-      ],
-      "abstract": "Patient healthcare utilization consists of irregularly time-stamped events, such as outpatient visits, inpatient admissions, and emergency encounters, forming individualized care trajectories. Modeling these trajectories is crucial for understanding utilization patterns and predicting future care needs, but is challenging due to temporal irregularity and severe class imbalance. In this work, we build on the Transformer Hawkes Process framework to model patient trajectories in continuous time. By combining Transformer-based history encoding with Hawkes process dynamics, the model captures event dependencies and jointly predicts event type and time-to-event. To address extreme imbalance, we introduce an imbalance-aware training strategy using inverse square-root class weighting. This improves sensitivity to rare but clinically important events without altering the data distribution. Experiments on real-world data demonstrate improved performance and provide clinically meaningful insights for identifying high-risk patient populations.",
-      "published": "2026-04-07T13:10:49Z",
-      "id": "2604.05844v1",
-      "link": "http://arxiv.org/abs/2604.05844v1",
-      "source": "arXiv",
-      "categories": [
-        "cs.LG",
-        "q-bio.QM"
-      ],
-      "comment": "",
-      "score": 2.9166666666666665,
-      "score_details": {
-        "relevance": 4.166666666666667,
-        "author": 0.0,
-        "depth": 0.0,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "secondary_topic",
-            "icon": "📌",
-            "text": "相关主题: transformer",
-            "location": "",
-            "score_impact": 0.5
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近2天新论文",
-            "location": "",
-            "score_impact": 0.3
-          }
-        ]
-      },
-      "summary": "Patient healthcare utilization consists of irregularly time-stamped events, such as outpatient visits, inpatient admissions, and emergency encounters, forming individualized care trajectories.. Modeling these trajectories is crucial for understanding utilization patterns and predicting future care needs, but is challenging due to temporal irregular...",
-      "relevance_reason": "相关主题: transformer; 近2天新论文",
-      "relevance_breakdown": [
-        {
-          "type": "secondary_topic",
-          "icon": "📌",
-          "text": "相关主题: transformer",
-          "location": "",
-          "score_impact": 0.5
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近2天新论文",
-          "location": "",
-          "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "CRFT: Consistent-Recurrent Feature Flow Transformer for Cross-Modal Image Registration",
-      "authors": [
-        "Xuecong Liu",
-        "Mengzhu Ding",
-        "Zixuan Sun",
-        "Zhang Li",
-        "Xichao Teng"
-      ],
-      "abstract": "We present Consistent-Recurrent Feature Flow Transformer (CRFT), a unified coarse-to-fine framework based on feature flow learning for robust cross-modal image registration. CRFT learns a modality-independent feature flow representation within a transformer-based architecture that jointly performs feature alignment and flow estimation. The coarse stage establishes global correspondences through multi-scale feature correlation, while the fine stage refines local details via hierarchical feature fusion and adaptive spatial reasoning. To enhance geometric adaptability, an iterative discrepancy-guided attention mechanism with a Spatial Geometric Transform (SGT) recurrently refines the flow field, progressively capturing subtle spatial inconsistencies and enforcing feature-level consistency. This design enables accurate alignment under large affine and scale variations while maintaining structural coherence across modalities. Extensive experiments on diverse cross-modal datasets demonstrate that CRFT consistently outperforms state-of-the-art registration methods in both accuracy and robustness. Beyond registration, CRFT provides a generalizable paradigm for multimodal spatial correspondence, offering broad applicability to remote sensing, autonomous navigation, and medical imaging. Code and datasets are publicly available at https://github.com/NEU-Liuxuecong/CRFT.",
-      "published": "2026-04-07T10:40:27Z",
-      "id": "2604.05689v1",
-      "link": "http://arxiv.org/abs/2604.05689v1",
-      "source": "arXiv",
-      "categories": [
-        "cs.CV",
-        "cs.AI"
-      ],
-      "comment": "Accepted to CVPR 2026",
-      "score": 2.8999999999999995,
-      "score_details": {
-        "relevance": 3.5,
-        "author": 3.0,
-        "depth": 0.0,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "secondary_topic",
-            "icon": "📌",
-            "text": "相关主题: transformer",
-            "location": "",
-            "score_impact": 0.5
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近2天新论文",
-            "location": "",
-            "score_impact": 0.3
-          }
-        ]
-      },
-      "summary": "We present Consistent-Recurrent Feature Flow Transformer (CRFT), a unified coarse-to-fine framework based on feature flow learning for robust cross-modal image registration.. CRFT learns a modality-independent feature flow representation within a transformer-based architecture that jointly performs feature alignment and flow estimation.. The coarse...",
-      "relevance_reason": "相关主题: transformer; 近2天新论文",
-      "relevance_breakdown": [
-        {
-          "type": "secondary_topic",
-          "icon": "📌",
-          "text": "相关主题: transformer",
-          "location": "",
-          "score_impact": 0.5
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近2天新论文",
-          "location": "",
-          "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "Blind-Spot Mass: A Good-Turing Framework for Quantifying Deployment Coverage Risk in Machine Learning Systems",
-      "authors": [
-        "Biplab Pal",
-        "Santanu Bhattacharya",
-        "Madanjit Singh"
-      ],
-      "abstract": "Blind-spot mass is a Good-Turing framework for quantifying deployment coverage risk in machine learning. In modern ML systems, operational state distributions are often heavy-tailed, implying that a long tail of valid but rare states is structurally under-supported in finite training and evaluation data. This creates a form of 'coverage blindness': models can appear accurate on standard test sets yet remain unreliable across large regions of the deployment state space.\n  We propose blind-spot mass B_n(tau), a deployment metric estimating the total probability mass assigned to states whose empirical support falls below a threshold tau. B_n(tau) is computed using Good-Turing unseen-species estimation and yields a principled estimate of how much of the operational distribution lies in reliability-critical, under-supported regimes. We further derive a coverage-imposed accuracy ceiling, decomposing overall performance into supported and blind components and separating capacity limits from data limits.\n  We validate the framework in wearable human activity recognition (HAR) using wrist-worn inertial data. We then replicate the same analysis in the MIMIC-IV hospital database with 275 admissions, where the blind-spot mass curve converges to the same 95% at tau = 5 across clinical state abstractions. This replication across structurally independent domains - differing in modality, feature space, label space, and application - shows that blind-spot mass is a general ML methodology for quantifying combinatorial coverage risk, not an application-specific artifact.\n  Blind-spot decomposition identifies which activities or clinical regimes dominate risk, providing actionable guidance for industrial practitioners on targeted data collection, normalization/renormalization, and physics- or domain-informed constraints for safer deployment.",
-      "published": "2026-04-06T18:06:38Z",
-      "id": "2604.05057v1",
-      "link": "http://arxiv.org/abs/2604.05057v1",
-      "source": "arXiv",
-      "categories": [
-        "cs.LG",
-        "stat.ML"
-      ],
-      "comment": "15 pages, 7 figures, 1 table; submitted to Journal of Machine Learning Research (JMLR)",
-      "score": 2.675,
-      "score_details": {
-        "relevance": 3.5,
-        "author": 1.5,
-        "depth": 0.0,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "secondary_topic",
-            "icon": "📌",
-            "text": "相关主题: estimation",
-            "location": "",
-            "score_impact": 0.1
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近3天新论文",
-            "location": "",
-            "score_impact": 0.3
-          }
-        ]
-      },
-      "summary": "Blind-spot mass is a Good-Turing framework for quantifying deployment coverage risk in machine learning.. In modern ML systems, operational state distributions are often heavy-tailed, implying that a long tail of valid but rare states is structurally under-supported in finite training and evaluation data.. This creates a form of 'coverage blindness...",
-      "relevance_reason": "相关主题: estimation; 近3天新论文",
-      "relevance_breakdown": [
-        {
-          "type": "secondary_topic",
-          "icon": "📌",
-          "text": "相关主题: estimation",
-          "location": "",
-          "score_impact": 0.1
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近3天新论文",
-          "location": "",
-          "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "From Incomplete Architecture to Quantified Risk: Multimodal LLM-Driven Security Assessment for Cyber-Physical Systems",
-      "authors": [
-        "Shaofei Huang",
-        "Christopher M. Poskitt",
-        "Lwin Khin Shar"
-      ],
-      "abstract": "Cyber-physical systems often contend with incomplete architectural documentation or outdated information resulting from legacy technologies, knowledge management gaps, and the complexity of integrating diverse subsystems over extended operational lifecycles. This architectural incompleteness impedes reliable security assessment, as inaccurate or missing architectural knowledge limits the identification of system dependencies, attack surfaces, and risk propagation pathways. To address this foundational challenge, this paper introduces ASTRAL (Architecture-Centric Security Threat Risk Assessment using LLMs), an architecture-centric security assessment technique implemented in a prototype tool powered by multimodal LLMs. The proposed approach assists practitioners in reconstructing and analysing CPS architectures when documentation is fragmented or absent. By leveraging prompt chaining, few-shot learning, and architectural reasoning, ASTRAL extracts and synthesises system representations from disparate data sources. By integrating LLM reasoning with architectural modelling, our approach supports adaptive threat identification and quantitative risk estimation for cyber-physical systems. We evaluated the approach through an ablation study across multiple CPS case studies and an expert evaluation involving 14 experienced cybersecurity practitioners. Practitioner feedback suggests that ASTRAL is useful and reliable for supporting architecture-centric security assessment. Overall, the results indicate that the approach can support more informed cyber risk management decisions.",
-      "published": "2026-04-07T10:25:04Z",
-      "id": "2604.05674v1",
-      "link": "http://arxiv.org/abs/2604.05674v1",
-      "source": "arXiv",
-      "categories": [
-        "cs.CR",
-        "cs.AI"
-      ],
-      "comment": "Under submission",
-      "score": 2.4499999999999997,
-      "score_details": {
-        "relevance": 3.5,
-        "author": 0.0,
-        "depth": 0.0,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "secondary_topic",
-            "icon": "📌",
-            "text": "相关主题: estimation",
-            "location": "",
-            "score_impact": 0.1
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近2天新论文",
-            "location": "",
-            "score_impact": 0.3
-          }
-        ]
-      },
-      "summary": "Cyber-physical systems often contend with incomplete architectural documentation or outdated information resulting from legacy technologies, knowledge management gaps, and the complexity of integrating diverse subsystems over extended operational lifecycles.. This architectural incompleteness impedes reliable security assessment, as inaccurate or m...",
-      "relevance_reason": "相关主题: estimation; 近2天新论文",
-      "relevance_breakdown": [
-        {
-          "type": "secondary_topic",
-          "icon": "📌",
-          "text": "相关主题: estimation",
-          "location": "",
-          "score_impact": 0.1
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近2天新论文",
-          "location": "",
-          "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "Brain-to-Speech: Prosody Feature Engineering and Transformer-Based Reconstruction",
-      "authors": [
-        "Mohammed Salah Al-Radhi",
-        "Géza Németh",
-        "Andon Tchechmedjiev",
-        "Binbin Xu"
-      ],
-      "abstract": "This chapter presents a novel approach to brain-to-speech (BTS) synthesis from intracranial electroencephalography (iEEG) data, emphasizing prosody-aware feature engineering and advanced transformer-based models for high-fidelity speech reconstruction. Driven by the increasing interest in decoding speech directly from brain activity, this work integrates neuroscience, artificial intelligence, and signal processing to generate accurate and natural speech. We introduce a novel pipeline for extracting key prosodic features directly from complex brain iEEG signals, including intonation, pitch, and rhythm. To effectively utilize these crucial features for natural-sounding speech, we employ advanced deep learning models. Furthermore, this chapter introduces a novel transformer encoder architecture specifically designed for brain-to-speech tasks. Unlike conventional models, our architecture integrates the extracted prosodic features to significantly enhance speech reconstruction, resulting in generated speech with improved intelligibility and expressiveness. A detailed evaluation demonstrates superior performance over established baseline methods, such as traditional Griffin-Lim and CNN-based reconstruction, across both quantitative and perceptual metrics. By demonstrating these advancements in feature extraction and transformer-based learning, this chapter contributes to the growing field of AI-driven neuroprosthetics, paving the way for assistive technologies that restore communication for individuals with speech impairments. Finally, we discuss promising future research directions, including the integration of diffusion models and real-time inference systems.",
-      "published": "2026-04-07T11:54:53Z",
-      "id": "2604.05751v1",
-      "link": "http://arxiv.org/abs/2604.05751v1",
-      "source": "arXiv",
-      "categories": [
-        "eess.SP",
-        "cs.LG",
-        "cs.SD"
-      ],
-      "comment": "OpenAccess chapter: 10.1007/978-3-032-10561-5_16. In: Curry, E., et al. Artificial Intelligence, Data and Robotics (2026)",
-      "score": 2.3333333333333335,
-      "score_details": {
-        "relevance": 3.3333333333333335,
-        "author": 0.0,
-        "depth": 0.0,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "secondary_topic",
-            "icon": "📌",
-            "text": "相关主题: transformer",
-            "location": "",
-            "score_impact": 0.5
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近2天新论文",
-            "location": "",
-            "score_impact": 0.3
-          }
-        ]
-      },
-      "summary": "This chapter presents a novel approach to brain-to-speech (BTS) synthesis from intracranial electroencephalography (iEEG) data, emphasizing prosody-aware feature engineering and advanced transformer-based models for high-fidelity speech reconstruction.. Driven by the increasing interest in decoding speech directly from brain activity, this work int...",
-      "relevance_reason": "相关主题: transformer; 近2天新论文",
-      "relevance_breakdown": [
-        {
-          "type": "secondary_topic",
-          "icon": "📌",
-          "text": "相关主题: transformer",
-          "location": "",
-          "score_impact": 0.5
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近2天新论文",
-          "location": "",
-          "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "Value Mirror Descent for Reinforcement Learning",
-      "authors": [
-        "Zhichao Jia",
-        "Guanghui Lan"
-      ],
-      "abstract": "Value iteration-type methods have been extensively studied for computing a nearly optimal value function in reinforcement learning (RL). Under a generative sampling model, these methods can achieve sharper sample complexity than policy optimization approaches, particularly in their dependence on the discount factor. In practice, they are often employed for offline training or in simulated environments. In this paper, we consider discounted Markov decision processes with state space S, action space A, discount factor $γ\\in(0,1)$ and costs in $[0,1]$. We introduce a novel value optimization method, termed value mirror descent (VMD), which integrates mirror descent from convex optimization into the classical value iteration framework. In the deterministic setting with known transition kernels, we show that VMD converges linearly. For the stochastic setting with a generative model, we develop a stochastic variant, SVMD, which incorporates variance reduction commonly used in stochastic value iteration-type methods. For RL problems with general convex regularizers, SVMD attains a near-optimal sample complexity of $\\tilde{O}(|S||A|(1-γ)^{-3}ε^{-2})$. Moreover, we establish that the Bregman divergence between the generated and optimal policies remains bounded throughout the iterations. This property is absent in existing stochastic value iteration-type methods but is important for enabling effective online (continual) learning following offline training. Under a strongly convex regularizer, SVMD achieves sample complexity of $\\tilde{O}(|S||A|(1-γ)^{-5}ε^{-1})$, improving performance in the high-accuracy regime. Furthermore, we prove convergence of the generated policy to the optimal policy. Overall, the proposed method, its analysis, and the resulting guarantees, constitute new contributions to the RL and optimization literature.",
-      "published": "2026-04-07T16:34:16Z",
-      "id": "2604.06039v1",
-      "link": "http://arxiv.org/abs/2604.06039v1",
-      "source": "arXiv",
-      "categories": [
-        "math.OC",
-        "cs.LG",
-        "math.PR"
-      ],
-      "comment": "",
-      "score": 2.2275,
-      "score_details": {
-        "relevance": 2.625,
-        "author": 0.0,
-        "depth": 2.6,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "core_topic",
-            "icon": "🎯",
-            "text": "命中核心主题: sample complexity",
-            "location": "摘要",
-            "score_impact": 1.05
+            "score_impact": 2.8000000000000003
           },
           {
             "type": "recency",
@@ -650,21 +262,21 @@
           {
             "type": "theory",
             "icon": "📐",
-            "text": "包含理论贡献: bound, convergence",
+            "text": "包含理论信号: estimation, asymptotic",
             "location": "",
             "score_impact": 0.5
           }
         ]
       },
-      "summary": "Value iteration-type methods have been extensively studied for computing a nearly optimal value function in reinforcement learning (RL).. Under a generative sampling model, these methods can achieve sharper sample complexity than policy optimization approaches, particularly in their dependence on the discount factor.. In practice, they are often em...",
-      "relevance_reason": "命中核心主题: sample complexity; 近2天新论文; 包含理论贡献: bound, convergence",
+      "summary": "We introduce the concept of an asymptotic e-process, which is a doubly indexed stochastic process $(E_{m,n})_{m,n\\in\\mathbb{N}}$ that approximates an e-process with monitoring time $n$ in terms of a suitable limiting behavior for an approximation parameter $m\\to \\infty$.. This theory is motivated by practical applications in sequential hypothesis t...",
+      "relevance_reason": "命中核心主题: asymptotic; 近2天新论文; 包含理论信号: estimation, asymptotic",
       "relevance_breakdown": [
         {
           "type": "core_topic",
           "icon": "🎯",
-          "text": "命中核心主题: sample complexity",
-          "location": "摘要",
-          "score_impact": 1.05
+          "text": "命中核心主题: asymptotic",
+          "location": "标题",
+          "score_impact": 2.8000000000000003
         },
         {
           "type": "recency",
@@ -676,489 +288,497 @@
         {
           "type": "theory",
           "icon": "📐",
-          "text": "包含理论贡献: bound, convergence",
+          "text": "包含理论信号: estimation, asymptotic",
           "location": "",
           "score_impact": 0.5
         }
       ]
     },
     {
-      "title": "Optimal Centered Active Excitation in Linear System Identification",
+      "title": "A general nonparametric framework for testing hypotheses about function-valued parameters",
       "authors": [
-        "Kaito Ito",
-        "Alexandre Proutiere"
+        "Albert Osom",
+        "Ali Shojaie",
+        "Aaron Hudson"
       ],
-      "abstract": "We propose an active learning algorithm for linear system identification with optimal centered noise excitation. Notably, our algorithm, based on ordinary least squares and semidefinite programming, attains the minimal sample complexity while allowing for efficient computation of an estimate of a system matrix. More specifically, we first establish lower bounds of the sample complexity for any active learning algorithm to attain the prescribed accuracy and confidence levels. Next, we derive a sample complexity upper bound of the proposed algorithm, which matches the lower bound for any algorithm up to universal factors. Our tight bounds are easy to interpret and explicitly show their dependence on the system parameters such as the state dimension.",
-      "published": "2026-04-07T07:16:16Z",
-      "id": "2604.05518v1",
-      "link": "http://arxiv.org/abs/2604.05518v1",
+      "abstract": "We present a general nonparametric approach for testing whether a statistical parameter defined through conditional distributions is constant across the conditioning variables. Such hypotheses arise naturally in problems such as assessing treatment effect heterogeneity, conditional associational effects, and conditional mean dependence. Our framework studies function-valued parameters obtained by evaluating a smooth statistical functional on conditional probability distributions. We establish an explicit connection between our test and procedures based on studying the norm of the function-valued parameter. Unlike many existing norm-based tests, which exhibit poor asymptotic behavior under the null, the proposed test statistic admits a tractable limiting null distribution. We illustrate the applicability of the proposed test through several examples, assess its operating characteristics in simulation studies, and apply it to data from a breast cancer trial to identify predictive biomarkers for response to adjuvant chemotherapy.",
+      "published": "2026-04-21T22:57:48Z",
+      "id": "2604.20045",
+      "base_id": "2604.20045",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.20045v1",
+      "link": "http://arxiv.org/abs/2604.20045v1",
       "source": "arXiv",
       "categories": [
-        "math.OC",
-        "cs.LG",
-        "eess.SY",
-        "stat.ML"
+        "stat.ME"
       ],
-      "comment": "11 pages",
-      "score": 2.1075,
+      "comment": "",
+      "score": 4.077500000000001,
       "score_details": {
-        "relevance": 2.625,
+        "relevance": 5.675000000000001,
         "author": 0.0,
-        "depth": 1.8,
+        "depth": 0.7,
         "semantic": 0.0,
         "breakdown": [
           {
             "type": "core_topic",
             "icon": "🎯",
-            "text": "命中核心主题: sample complexity",
+            "text": "命中核心主题: nonparametric",
+            "location": "标题",
+            "score_impact": 3.2
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近2天新论文",
+            "location": "",
+            "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: statistical, asymptotic",
+            "location": "",
+            "score_impact": 0.5
+          }
+        ]
+      },
+      "summary": "We present a general nonparametric approach for testing whether a statistical parameter defined through conditional distributions is constant across the conditioning variables.. Such hypotheses arise naturally in problems such as assessing treatment effect heterogeneity, conditional associational effects, and conditional mean dependence.. Our frame...",
+      "relevance_reason": "命中核心主题: nonparametric; 近2天新论文; 包含理论信号: statistical, asymptotic",
+      "relevance_breakdown": [
+        {
+          "type": "core_topic",
+          "icon": "🎯",
+          "text": "命中核心主题: nonparametric",
+          "location": "标题",
+          "score_impact": 3.2
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近2天新论文",
+          "location": "",
+          "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: statistical, asymptotic",
+          "location": "",
+          "score_impact": 0.5
+        }
+      ]
+    },
+    {
+      "title": "ProfileGLMM: a R Package Extending Bayesian Profile Regression using Generalised Linear Mixed Models",
+      "authors": [
+        "Matteo Amestoy",
+        "Mark A. van de Wiel",
+        "Wessel N. van Wieringen"
+      ],
+      "abstract": "ProfileGLMM is an R package integrating Generalised Linear Mixed Models (GLMMs) as the outcome model for Bayesian profile regression. This statistical framework simultaneously i) explains the variation in the outcome and ii) clusters the observations based on a specified set of interdependent clustering covariates. The derived cluster memberships are then incorporated, alongside others, as explanatory variables in the regression to model the outcome. This framework efficiently handles complex, highly correlated covariate structures whose direct inclusion in a standard regression model would be statistically sub-optimal. ProfileGLMM significantly extends Bayesian profile regression's scope by resolving two key constraints of previous implementations: 1) it allows the analysis of hierarchical and longitudinal data structures through the inclusion of random effects, and 2) it enables the study of interactions between latent clusters and other observable covariates. ProfileGLMM accommodates various data types, supporting both continuous or binary outcomes and both categorical and continuous clustering covariates. Built on fast Rcpp code with minimal mandatory parameters, ProfileGLMM offers a flexible analytical tool. It significantly enhances the utility of profile regression for researchers in fields such as epidemiology, social sciences, and clinical studies dealing with complex data.",
+      "published": "2026-04-22T16:30:22Z",
+      "id": "2604.20743",
+      "base_id": "2604.20743",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.20743v1",
+      "link": "http://arxiv.org/abs/2604.20743v1",
+      "source": "arXiv",
+      "categories": [
+        "stat.ME",
+        "stat.CO"
+      ],
+      "comment": "",
+      "score": 3.9900000000000007,
+      "score_details": {
+        "relevance": 5.700000000000001,
+        "author": 0.0,
+        "depth": 0.0,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "core_topic",
+            "icon": "🎯",
+            "text": "命中核心主题: regression",
+            "location": "标题",
+            "score_impact": 2.4000000000000004
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近1天新论文",
+            "location": "",
+            "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: statistical, bayesian",
+            "location": "",
+            "score_impact": 0.5
+          }
+        ]
+      },
+      "summary": "ProfileGLMM is an R package integrating Generalised Linear Mixed Models (GLMMs) as the outcome model for Bayesian profile regression.. This statistical framework simultaneously i) explains the variation in the outcome and ii) clusters the observations based on a specified set of interdependent clustering covariates.. The derived cluster memberships...",
+      "relevance_reason": "命中核心主题: regression; 近1天新论文; 包含理论信号: statistical, bayesian",
+      "relevance_breakdown": [
+        {
+          "type": "core_topic",
+          "icon": "🎯",
+          "text": "命中核心主题: regression",
+          "location": "标题",
+          "score_impact": 2.4000000000000004
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近1天新论文",
+          "location": "",
+          "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: statistical, bayesian",
+          "location": "",
+          "score_impact": 0.5
+        }
+      ]
+    },
+    {
+      "title": "Maximum Likelihood Reconstruction for Multi-Look Digital Holography with Markov-Modeled Speckle Correlation",
+      "authors": [
+        "Xi Chen",
+        "Arian Maleki",
+        "Shirin Jalali"
+      ],
+      "abstract": "Multi-look acquisition is a widely used strategy for reducing speckle noise in coherent imaging systems such as digital holography. By acquiring multiple measurements, speckle can be suppressed through averaging or joint reconstruction, typically under the assumption that speckle realizations across looks are statistically independent. In practice, however, hardware constraints limit measurement diversity, leading to inter-look correlation that degrades the performance of conventional methods. In this work, we study the reconstruction of speckle-free reflectivity from complex-valued multi-look measurements in the presence of correlated speckle. We model the inter-look dependence using a first-order Markov process and derive the corresponding likelihood under a first-order Markov approximation, resulting in a constrained maximum likelihood estimation problem. To solve this problem, we develop an efficient projected gradient descent framework that combines gradient-based updates with implicit regularization via deep image priors, and leverages Monte Carlo approximation and matrix-free operators for scalable computation. Simulation results demonstrate that the proposed approach remains robust under strong inter-look correlation, achieving performance close to the ideal independent-look scenario and consistently outperforming methods that ignore such dependencies. These results highlight the importance of explicitly modeling inter-look correlation and provide a practical framework for multi-look holographic reconstruction under realistic acquisition conditions. Our code is available at: https://github.com/Computational-Imaging-RU/MLE-Holography-Markov.",
+      "published": "2026-04-22T03:36:52Z",
+      "id": "2604.20154",
+      "base_id": "2604.20154",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.20154v1",
+      "link": "http://arxiv.org/abs/2604.20154v1",
+      "source": "arXiv",
+      "categories": [
+        "eess.IV",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "comment": "",
+      "score": 3.838333333333334,
+      "score_details": {
+        "relevance": 5.483333333333334,
+        "author": 0.0,
+        "depth": 0.0,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "core_topic",
+            "icon": "🎯",
+            "text": "命中核心主题: implicit regularization",
+            "location": "摘要",
+            "score_impact": 0.8999999999999999
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近1天新论文",
+            "location": "",
+            "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: estimation",
+            "location": "",
+            "score_impact": 0.5
+          }
+        ]
+      },
+      "summary": "Multi-look acquisition is a widely used strategy for reducing speckle noise in coherent imaging systems such as digital holography.. By acquiring multiple measurements, speckle can be suppressed through averaging or joint reconstruction, typically under the assumption that speckle realizations across looks are statistically independent.. In practic...",
+      "relevance_reason": "命中核心主题: implicit regularization; 近1天新论文; 包含理论信号: estimation",
+      "relevance_breakdown": [
+        {
+          "type": "core_topic",
+          "icon": "🎯",
+          "text": "命中核心主题: implicit regularization",
+          "location": "摘要",
+          "score_impact": 0.8999999999999999
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近1天新论文",
+          "location": "",
+          "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: estimation",
+          "location": "",
+          "score_impact": 0.5
+        }
+      ]
+    },
+    {
+      "title": "Learning Posterior Predictive Distributions for Node Classification from Synthetic Graph Priors",
+      "authors": [
+        "Jeongwhan Choi",
+        "Jongwoo Kim",
+        "Woosung Kang",
+        "Noseong Park"
+      ],
+      "abstract": "One of the most challenging problems in graph machine learning is generalizing across graphs with diverse properties. Graph neural networks (GNNs) face a fundamental limitation: they require separate training for each new graph, preventing universal generalization across diverse graph datasets. A critical challenge facing GNNs lies in their reliance on labeled training data for each individual graph, a requirement that hinders the capacity for universal node classification due to the heterogeneity inherent in graphs -- differences in homophily levels, community structures, and feature distributions across datasets. Inspired by the success of large language models (LLMs) that achieve in-context learning through massive-scale pre-training on diverse datasets, we introduce NodePFN. This universal node classification method generalizes to arbitrary graphs without graph-specific training. NodePFN learns posterior predictive distributions (PPDs) by training only on thousands of synthetic graphs generated from carefully designed priors. Our synthetic graph generation covers real-world graphs through the use of random networks with controllable homophily levels and structural causal models for complex feature-label relationships. We develop a dual-branch architecture combining context-query attention mechanisms with local message passing to enable graph-aware in-context learning. Extensive evaluation on 23 benchmarks demonstrates that a single pre-trained NodePFN achieves 71.27 average accuracy. These results validate that universal graph learning patterns can be effectively learned from synthetic priors, establishing a new paradigm for generalization in node classification.",
+      "published": "2026-04-21T03:23:34Z",
+      "id": "2604.19028",
+      "base_id": "2604.19028",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.19028v1",
+      "link": "http://arxiv.org/abs/2604.19028v1",
+      "source": "arXiv",
+      "categories": [
+        "cs.LG"
+      ],
+      "comment": "Accepted to ICLR 2026. OpenReview: https://openreview.net/forum?id=FmxRzlu0rT",
+      "score": 3.7950000000000004,
+      "score_details": {
+        "relevance": 5.1000000000000005,
+        "author": 1.5,
+        "depth": 0.0,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "core_topic",
+            "icon": "🎯",
+            "text": "命中核心主题: in-context learning",
+            "location": "摘要",
+            "score_impact": 1.5
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近2天新论文",
+            "location": "",
+            "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: generalization",
+            "location": "",
+            "score_impact": 0.5
+          }
+        ]
+      },
+      "summary": "One of the most challenging problems in graph machine learning is generalizing across graphs with diverse properties.. Graph neural networks (GNNs) face a fundamental limitation: they require separate training for each new graph, preventing universal generalization across diverse graph datasets.. A critical challenge facing GNNs lies in their relia...",
+      "relevance_reason": "命中核心主题: in-context learning; 近2天新论文; 包含理论信号: generalization",
+      "relevance_breakdown": [
+        {
+          "type": "core_topic",
+          "icon": "🎯",
+          "text": "命中核心主题: in-context learning",
+          "location": "摘要",
+          "score_impact": 1.5
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近2天新论文",
+          "location": "",
+          "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: generalization",
+          "location": "",
+          "score_impact": 0.5
+        }
+      ]
+    },
+    {
+      "title": "Double Robust Weighted Regression with Missing Confounders",
+      "authors": [
+        "Md. Shaddam Hossain Bagmar",
+        "Hua Shen"
+      ],
+      "abstract": "Missing confounders are common in observational studies and present fundamental challenges for causal effect estimation by weakening identification and increasing sensitivity to model misspecification. Within the missing-indicator framework, existing methods rely on a single working model and achieve consistency only when that model is correctly specified, and are therefore singly robust. In this article, we develop a doubly robust missing indicator weighted ordinary least squares (MI-WOLS) estimator with partially observed confounders. The MI-WOLS estimator incorporates the treatment assignment mechanism, commonly known as the propensity score model, into the weighting structure of the outcome regression. Building on the missing-indicator framework, we define propensity score based regression weights that satisfy a covariate-balancing condition in the presence of confounder missingness. Under the missingness-strongly-ignorable treatment allocation assumption and assuming either a Conditionally Independent Treatment or Conditionally Independent Outcome structure, the MI-WOLS estimator is consistent when at least the treatment or the outcome model is correctly specified. Simulation studies support the theoretical robustness of the MI-WOLS estimator, demonstrating negligible bias, accurate sandwich-based variance estimation, and near-nominal coverage probability across a wide range of data-generating scenarios. An illustrative application to kidney function outcomes further demonstrates the interpretability and practical feasibility of the method, offering a flexible, doubly robust alternative to existing singly robust estimators.",
+      "published": "2026-04-22T14:45:00Z",
+      "id": "2604.20630",
+      "base_id": "2604.20630",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.20630v1",
+      "link": "http://arxiv.org/abs/2604.20630v1",
+      "source": "arXiv",
+      "categories": [
+        "stat.ME"
+      ],
+      "comment": "",
+      "score": 3.663333333333333,
+      "score_details": {
+        "relevance": 5.233333333333333,
+        "author": 0.0,
+        "depth": 0.0,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "core_topic",
+            "icon": "🎯",
+            "text": "命中核心主题: regression",
+            "location": "标题",
+            "score_impact": 2.4000000000000004
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近1天新论文",
+            "location": "",
+            "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: estimation",
+            "location": "",
+            "score_impact": 0.5
+          }
+        ]
+      },
+      "summary": "Missing confounders are common in observational studies and present fundamental challenges for causal effect estimation by weakening identification and increasing sensitivity to model misspecification.. Within the missing-indicator framework, existing methods rely on a single working model and achieve consistency only when that model is correctly s...",
+      "relevance_reason": "命中核心主题: regression; 近1天新论文; 包含理论信号: estimation",
+      "relevance_breakdown": [
+        {
+          "type": "core_topic",
+          "icon": "🎯",
+          "text": "命中核心主题: regression",
+          "location": "标题",
+          "score_impact": 2.4000000000000004
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近1天新论文",
+          "location": "",
+          "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: estimation",
+          "location": "",
+          "score_impact": 0.5
+        }
+      ]
+    },
+    {
+      "title": "On Bayesian Softmax-Gated Mixture-of-Experts Models",
+      "authors": [
+        "Nicola Bariletto",
+        "Huy Nguyen",
+        "Nhat Ho",
+        "Alessandro Rinaldo"
+      ],
+      "abstract": "Mixture-of-experts models provide a flexible framework for learning complex probabilistic input-output relationships by combining multiple expert models through an input-dependent gating mechanism. These models have become increasingly prominent in modern machine learning, yet their theoretical properties in the Bayesian framework remain largely unexplored. In this paper, we study Bayesian mixture-of-experts models, focusing on the ubiquitous softmax-based gating mechanism. Specifically, we investigate the asymptotic behavior of the posterior distribution for three fundamental statistical tasks: density estimation, parameter estimation, and model selection. First, we establish posterior contraction rates for density estimation, both in the regimes with a fixed, known number of experts and with a random learnable number of experts. We then analyze parameter estimation and derive convergence guarantees based on tailored Voronoi-type losses, which account for the complex identifiability structure of mixture-of-experts models. Finally, we propose and analyze two complementary strategies for selecting the number of experts. Taken together, these results provide one of the first systematic theoretical analyses of Bayesian mixture-of-experts models with softmax gating, and yield several theory-grounded insights for practical model design.",
+      "published": "2026-04-22T13:37:00Z",
+      "id": "2604.20551",
+      "base_id": "2604.20551",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.20551v1",
+      "link": "http://arxiv.org/abs/2604.20551v1",
+      "source": "arXiv",
+      "categories": [
+        "stat.ML",
+        "cs.LG"
+      ],
+      "comment": "",
+      "score": 3.6375000000000006,
+      "score_details": {
+        "relevance": 4.875000000000001,
+        "author": 0.0,
+        "depth": 1.5,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "core_topic",
+            "icon": "🎯",
+            "text": "命中核心主题: asymptotic",
             "location": "摘要",
             "score_impact": 1.05
           },
           {
             "type": "recency",
             "icon": "🆕",
-            "text": "近2天新论文",
+            "text": "近1天新论文",
             "location": "",
             "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: convergence, statistical",
+            "location": "",
+            "score_impact": 0.5
           }
         ]
       },
-      "summary": "We propose an active learning algorithm for linear system identification with optimal centered noise excitation.. Notably, our algorithm, based on ordinary least squares and semidefinite programming, attains the minimal sample complexity while allowing for efficient computation of an estimate of a system matrix.. More specifically, we first establi...",
-      "relevance_reason": "命中核心主题: sample complexity; 近2天新论文",
+      "summary": "Mixture-of-experts models provide a flexible framework for learning complex probabilistic input-output relationships by combining multiple expert models through an input-dependent gating mechanism.. These models have become increasingly prominent in modern machine learning, yet their theoretical properties in the Bayesian framework remain largely u...",
+      "relevance_reason": "命中核心主题: asymptotic; 近1天新论文; 包含理论信号: convergence, statistical",
       "relevance_breakdown": [
         {
           "type": "core_topic",
           "icon": "🎯",
-          "text": "命中核心主题: sample complexity",
+          "text": "命中核心主题: asymptotic",
           "location": "摘要",
           "score_impact": 1.05
         },
         {
           "type": "recency",
           "icon": "🆕",
-          "text": "近2天新论文",
+          "text": "近1天新论文",
           "location": "",
           "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "Vintix II: Decision Pre-Trained Transformer is a Scalable In-Context Reinforcement Learner",
-      "authors": [
-        "Andrei Polubarov",
-        "Lyubaykin Nikita",
-        "Alexander Derevyagin",
-        "Artyom Grishin",
-        "Igor Saprygin",
-        "Aleksandr Serkov",
-        "Mark Averchenko",
-        "Daniil Tikhonov",
-        "Maksim Zhdanov",
-        "Alexander Nikulin",
-        "Ilya Zisman",
-        "Albina Klepach",
-        "Alexey Zemtsov",
-        "Vladislav Kurenkov"
-      ],
-      "abstract": "Recent progress in in-context reinforcement learning (ICRL) has demonstrated its potential for training generalist agents that can acquire new tasks directly at inference. Algorithm Distillation (AD) pioneered this paradigm and was subsequently scaled to multi-domain settings, although its ability to generalize to unseen tasks remained limited. The Decision Pre-Trained Transformer (DPT) was introduced as an alternative, showing stronger in-context reinforcement learning abilities in simplified domains, but its scalability had not been established. In this work, we extend DPT to diverse multi-domain environments, applying Flow Matching as a natural training choice that preserves its interpretation as Bayesian posterior sampling. As a result, we obtain an agent trained across hundreds of diverse tasks that achieves clear gains in generalization to the held-out test set. This agent improves upon prior AD scaling and demonstrates stronger performance in both online and offline inference, reinforcing ICRL as a viable alternative to expert distillation for training generalist agents.",
-      "published": "2026-04-06T19:18:12Z",
-      "id": "2604.05112v1",
-      "link": "http://arxiv.org/abs/2604.05112v1",
-      "source": "arXiv",
-      "categories": [
-        "cs.LG",
-        "cs.AI",
-        "cs.RO"
-      ],
-      "comment": "ICLR 2026, Poster",
-      "score": 1.975,
-      "score_details": {
-        "relevance": 2.5,
-        "author": 1.5,
-        "depth": 0.0,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "secondary_topic",
-            "icon": "📌",
-            "text": "相关主题: transformer",
-            "location": "",
-            "score_impact": 0.5
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近3天新论文",
-            "location": "",
-            "score_impact": 0.3
-          }
-        ]
-      },
-      "summary": "Recent progress in in-context reinforcement learning (ICRL) has demonstrated its potential for training generalist agents that can acquire new tasks directly at inference.. Algorithm Distillation (AD) pioneered this paradigm and was subsequently scaled to multi-domain settings, although its ability to generalize to unseen tasks remained limited.. T...",
-      "relevance_reason": "相关主题: transformer; 近3天新论文",
-      "relevance_breakdown": [
+        },
         {
-          "type": "secondary_topic",
-          "icon": "📌",
-          "text": "相关主题: transformer",
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: convergence, statistical",
           "location": "",
           "score_impact": 0.5
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近3天新论文",
-          "location": "",
-          "score_impact": 0.3
         }
       ]
     },
     {
-      "title": "LAG-XAI: A Lie-Inspired Affine Geometric Framework for Interpretable Paraphrasing in Transformer Latent Spaces",
+      "title": "On the Conditioning Consistency Gap in Conditional Neural Processes",
       "authors": [
-        "Olexander Mazurets",
-        "Olexander Barmak",
-        "Leonid Bedratyuk",
-        "Iurii Krak"
+        "Robin Young"
       ],
-      "abstract": "Modern Transformer-based language models achieve strong performance in natural language processing tasks, yet their latent semantic spaces remain largely uninterpretable black boxes. This paper introduces LAG-XAI (Lie Affine Geometry for Explainable AI), a novel geometric framework that models paraphrasing not as discrete word substitutions, but as a structured affine transformation within the embedding space. By conceptualizing paraphrasing as a continuous geometric flow on a semantic manifold, we propose a computationally efficient mean-field approximation, inspired by local Lie group actions. This allows us to decompose paraphrase transitions into geometrically interpretable components: rotation, deformation, and translation. Experiments on the noisy PIT-2015 Twitter corpus, encoded with Sentence-BERT, reveal a \"linear transparency\" phenomenon. The proposed affine operator achieves an AUC of 0.7713. By normalizing against random chance (AUC 0.5), the model captures approximately 80% of the non-linear baseline's effective classification capacity (AUC 0.8405), offering explicit parametric interpretability in exchange for a marginal drop in absolute accuracy. The model identifies fundamental geometric invariants, including a stable matrix reconfiguration angle (~27.84°) and near-zero deformation, indicating local isometry. Cross-domain generalization is confirmed via direct cross-corpus validation on an independent TURL dataset. Furthermore, the practical utility of LAG-XAI is demonstrated in LLM hallucination detection: using a \"cheap geometric check,\" the model automatically detected 95.3% of factual distortions on the HaluEval dataset by registering deviations beyond the permissible semantic corridor. This approach provides a mathematically grounded, resource-efficient path toward the mechanistic interpretability of Transformers.",
-      "published": "2026-04-07T17:02:21Z",
-      "id": "2604.06086v1",
-      "link": "http://arxiv.org/abs/2604.06086v1",
+      "abstract": "Neural processes are meta-learning models that map context sets to predictive distributions. While inspired by stochastic processes, NPs do not generally satisfy the Kolmogorov consistency conditions required to define a valid stochastic process. This inconsistency is widely acknowledged but poorly understood. Practitioners note that NPs work well despite the violation, without quantifying what this means. We address this gap by defining the conditioning consistency gap, a KL divergence measuring how much a conditional neural process's (CNP) predictions change when a point is added to the context versus conditioned upon. Our main results show that for CNPs with bounded encoders and Lipschitz decoders, the consistency gap is $O(1/n^2)$ in context size $n$, and that this rate is tight. These bounds establish the precise sense in which CNPs approximate valid stochastic processes. The inconsistency is negligible for moderate context sizes but can be significant in the few-shot regime.",
+      "published": "2026-04-21T10:20:19Z",
+      "id": "2604.19312",
+      "base_id": "2604.19312",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.19312v1",
+      "link": "http://arxiv.org/abs/2604.19312v1",
       "source": "arXiv",
       "categories": [
-        "cs.CL",
-        "cs.AI"
-      ],
-      "comment": "",
-      "score": 1.75,
-      "score_details": {
-        "relevance": 2.5,
-        "author": 0.0,
-        "depth": 0.0,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "secondary_topic",
-            "icon": "📌",
-            "text": "相关主题: transformer",
-            "location": "",
-            "score_impact": 0.5
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近2天新论文",
-            "location": "",
-            "score_impact": 0.3
-          }
-        ]
-      },
-      "summary": "Modern Transformer-based language models achieve strong performance in natural language processing tasks, yet their latent semantic spaces remain largely uninterpretable black boxes.. This paper introduces LAG-XAI (Lie Affine Geometry for Explainable AI), a novel geometric framework that models paraphrasing not as discrete word substitutions, but a...",
-      "relevance_reason": "相关主题: transformer; 近2天新论文",
-      "relevance_breakdown": [
-        {
-          "type": "secondary_topic",
-          "icon": "📌",
-          "text": "相关主题: transformer",
-          "location": "",
-          "score_impact": 0.5
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近2天新论文",
-          "location": "",
-          "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "EEG-MFTNet: An Enhanced EEGNet Architecture with Multi-Scale Temporal Convolutions and Transformer Fusion for Cross-Session Motor Imagery Decoding",
-      "authors": [
-        "Panagiotis Andrikopoulos",
-        "Siamak Mehrkanoon"
-      ],
-      "abstract": "Brain-computer interfaces (BCIs) enable direct communication between the brain and external devices, providing critical support for individuals with motor impairments. However, accurate motor imagery (MI) decoding from electroencephalography (EEG) remains challenging due to noise and cross-session variability. This study introduces EEG-MFTNet, a novel deep learning model based on the EEGNet architecture, enhanced with multi-scale temporal convolutions and a Transformer encoder stream. These components are designed to capture both short and long-range temporal dependencies in EEG signals. The model is evaluated on the SHU dataset using a subject-dependent cross-session setup, outperforming baseline models, including EEGNet and its recent derivatives. EEG-MFTNet achieves an average classification accuracy of 58.9% while maintaining low computational complexity and inference latency. The results highlight the model's potential for real-time BCI applications and underscore the importance of architectural innovations in improving MI decoding. This work contributes to the development of more robust and adaptive BCI systems, with implications for assistive technologies and neurorehabilitation.",
-      "published": "2026-04-07T13:10:34Z",
-      "id": "2604.05843v1",
-      "link": "http://arxiv.org/abs/2604.05843v1",
-      "source": "arXiv",
-      "categories": [
-        "cs.LG",
-        "cs.AI"
-      ],
-      "comment": "6 pages, 4 figs",
-      "score": 1.75,
-      "score_details": {
-        "relevance": 2.5,
-        "author": 0.0,
-        "depth": 0.0,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "secondary_topic",
-            "icon": "📌",
-            "text": "相关主题: transformer",
-            "location": "",
-            "score_impact": 0.5
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近2天新论文",
-            "location": "",
-            "score_impact": 0.3
-          }
-        ]
-      },
-      "summary": "Brain-computer interfaces (BCIs) enable direct communication between the brain and external devices, providing critical support for individuals with motor impairments.. However, accurate motor imagery (MI) decoding from electroencephalography (EEG) remains challenging due to noise and cross-session variability.. This study introduces EEG-MFTNet, a ...",
-      "relevance_reason": "相关主题: transformer; 近2天新论文",
-      "relevance_breakdown": [
-        {
-          "type": "secondary_topic",
-          "icon": "📌",
-          "text": "相关主题: transformer",
-          "location": "",
-          "score_impact": 0.5
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近2天新论文",
-          "location": "",
-          "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "From Retinal Evidence to Safe Decisions: RETINA-SAFE and ECRT for Hallucination Risk Triage in Medical LLMs",
-      "authors": [
-        "Zhe Yu",
-        "Wenpeng Xing",
-        "Meng Han"
-      ],
-      "abstract": "Hallucinations in medical large language models (LLMs) remain a safety-critical issue, particularly when available evidence is insufficient or conflicting. We study this problem in diabetic retinopathy (DR) decision settings and introduce RETINA-SAFE, an evidence-grounded benchmark aligned with retinal grading records, comprising 12,522 samples. RETINA-SAFE is organized into three evidence-relation tasks: E-Align (evidence-consistent), E-Conflict (evidence-conflicting), and E-Gap (evidence-insufficient). We further propose ECRT (Evidence-Conditioned Risk Triage), a two-stage white-box detection framework: Stage 1 performs Safe/Unsafe risk triage, and Stage 2 refines unsafe cases into contradiction-driven versus evidence-gap risks. ECRT leverages internal representation and logit shifts under CTX/NOCTX conditions, with class-balanced training for robust learning. Under evidence-grouped (not patient-disjoint) splits across multiple backbones, ECRT provides strong Stage-1 risk triage and explicit subtype attribution, improves Stage-1 balanced accuracy by +0.15 to +0.19 over external uncertainty and self-consistency baselines and by +0.02 to +0.07 over the strongest adapted supervised baseline, and consistently exceeds a single-stage white-box ablation on Stage-1 balanced accuracy. These findings support white-box internal signals grounded in retinal evidence as a practical route to interpretable medical LLM risk triage.",
-      "published": "2026-04-07T02:40:13Z",
-      "id": "2604.05348v1",
-      "link": "http://arxiv.org/abs/2604.05348v1",
-      "source": "arXiv",
-      "categories": [
-        "cs.AI"
-      ],
-      "comment": "",
-      "score": 1.6333333333333333,
-      "score_details": {
-        "relevance": 2.3333333333333335,
-        "author": 0.0,
-        "depth": 0.0,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "secondary_topic",
-            "icon": "📌",
-            "text": "相关主题: risk",
-            "location": "",
-            "score_impact": 0.5
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近2天新论文",
-            "location": "",
-            "score_impact": 0.3
-          }
-        ]
-      },
-      "summary": "Hallucinations in medical large language models (LLMs) remain a safety-critical issue, particularly when available evidence is insufficient or conflicting.. We study this problem in diabetic retinopathy (DR) decision settings and introduce RETINA-SAFE, an evidence-grounded benchmark aligned with retinal grading records, comprising 12,522 samples.. ...",
-      "relevance_reason": "相关主题: risk; 近2天新论文",
-      "relevance_breakdown": [
-        {
-          "type": "secondary_topic",
-          "icon": "📌",
-          "text": "相关主题: risk",
-          "location": "",
-          "score_impact": 0.5
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近2天新论文",
-          "location": "",
-          "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "Task Ecologies and the Evolution of World-Tracking Representations in Large Language Models",
-      "authors": [
-        "Giulio Valentino Dalla Riva"
-      ],
-      "abstract": "We study language models as evolving model organisms and ask when autoregressive next-token learning selects for world-tracking representations. For any encoding of latent world states, the Bayes-optimal next-token cross-entropy decomposes into the irreducible conditional entropy plus a Jensen--Shannon excess term. That excess vanishes if and only if the encoding preserves the training ecology's equivalence classes. This yields a precise notion of ecological veridicality for language models and identifies the minimum-complexity zero-excess solution as the quotient partition by training equivalence. We then determine when this fixed-encoding analysis applies to transformer families: frozen dense and frozen Mixture-of-Experts transformers satisfy it, in-context learning does not enlarge the model's separation set, and per-task adaptation breaks the premise. The framework predicts two characteristic failure modes: simplicity pressure preferentially removes low-gain distinctions, and training-optimal models can still incur positive excess on deployment ecologies that refine the training ecology. A conditional dynamic extension shows how inter-model selection and post-training can recover such gap distinctions under explicit heredity, variation, and selection assumptions. Exact finite-ecology checks and controlled microgpt experiments validate the static decomposition, split-merge threshold, off-ecology failure pattern, and two-ecology rescue mechanism in a regime where the relevant quantities are directly observable. The goal is not to model frontier systems at scale, but to use small language models as laboratory organisms for theory about representational selection.",
-      "published": "2026-04-07T06:06:49Z",
-      "id": "2604.05469v1",
-      "link": "http://arxiv.org/abs/2604.05469v1",
-      "source": "arXiv",
-      "categories": [
-        "stat.ME",
-        "cs.LG",
-        "stat.ML"
-      ],
-      "comment": "",
-      "score": 1.4583333333333333,
-      "score_details": {
-        "relevance": 2.0833333333333335,
-        "author": 0.0,
-        "depth": 0.0,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "core_topic",
-            "icon": "🎯",
-            "text": "命中核心主题: in-context learning",
-            "location": "摘要",
-            "score_impact": 1.5
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近2天新论文",
-            "location": "",
-            "score_impact": 0.3
-          }
-        ]
-      },
-      "summary": "We study language models as evolving model organisms and ask when autoregressive next-token learning selects for world-tracking representations.. For any encoding of latent world states, the Bayes-optimal next-token cross-entropy decomposes into the irreducible conditional entropy plus a Jensen--Shannon excess term.. That excess vanishes if and onl...",
-      "relevance_reason": "命中核心主题: in-context learning; 近2天新论文",
-      "relevance_breakdown": [
-        {
-          "type": "core_topic",
-          "icon": "🎯",
-          "text": "命中核心主题: in-context learning",
-          "location": "摘要",
-          "score_impact": 1.5
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近2天新论文",
-          "location": "",
-          "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "MARL-GPT: Foundation Model for Multi-Agent Reinforcement Learning",
-      "authors": [
-        "Maria Nesterova",
-        "Mikhail Kolosov",
-        "Anton Andreychuk",
-        "Egor Cherepanov",
-        "Oleg Bulichev",
-        "Alexey Kovalev",
-        "Konstantin Yakovlev",
-        "Aleksandr Panov",
-        "Alexey Skrynnik"
-      ],
-      "abstract": "Recent advances in multi-agent reinforcement learning (MARL) have demonstrated success in numerous challenging domains and environments, but typically require specialized models for each task. In this work, we propose a coherent methodology that makes it possible for a single GPT-based model to learn and perform well across diverse MARL environments and tasks, including StarCraft Multi-Agent Challenge, Google Research Football and POGEMA. Our method, MARL-GPT, applies offline reinforcement learning to train at scale on the expert trajectories (400M for SMACv2, 100M for GRF, and 1B for POGEMA) combined with a single transformer-based observation encoder that requires no task-specific tuning. Experiments show that MARL-GPT achieves competitive performance compared to specialized baselines in all tested environments. Thus, our findings suggest that it is, indeed, possible to build a multi-task transformer-based model for a wide variety of (significantly different) multi-agent problems paving the way to the fundamental MARL model (akin to ChatGPT, Llama, Mistral etc. in natural language modeling).",
-      "published": "2026-04-07T14:40:01Z",
-      "id": "2604.05943v1",
-      "link": "http://arxiv.org/abs/2604.05943v1",
-      "source": "arXiv",
-      "categories": [
-        "cs.AI"
-      ],
-      "comment": "Accepted at AAMAS 2026 (AAAI Track)",
-      "score": 1.3916666666666666,
-      "score_details": {
-        "relevance": 1.6666666666666667,
-        "author": 1.5,
-        "depth": 0.0,
-        "semantic": 0.0,
-        "breakdown": [
-          {
-            "type": "secondary_topic",
-            "icon": "📌",
-            "text": "相关主题: transformer",
-            "location": "",
-            "score_impact": 0.5
-          },
-          {
-            "type": "institution",
-            "icon": "🏛️",
-            "text": "来自 Google Research",
-            "location": "",
-            "score_impact": 1.5
-          },
-          {
-            "type": "recency",
-            "icon": "🆕",
-            "text": "近2天新论文",
-            "location": "",
-            "score_impact": 0.3
-          }
-        ]
-      },
-      "summary": "Recent advances in multi-agent reinforcement learning (MARL) have demonstrated success in numerous challenging domains and environments, but typically require specialized models for each task.. In this work, we propose a coherent methodology that makes it possible for a single GPT-based model to learn and perform well across diverse MARL environmen...",
-      "relevance_reason": "相关主题: transformer; 来自 Google Research; 近2天新论文",
-      "relevance_breakdown": [
-        {
-          "type": "secondary_topic",
-          "icon": "📌",
-          "text": "相关主题: transformer",
-          "location": "",
-          "score_impact": 0.5
-        },
-        {
-          "type": "institution",
-          "icon": "🏛️",
-          "text": "来自 Google Research",
-          "location": "",
-          "score_impact": 1.5
-        },
-        {
-          "type": "recency",
-          "icon": "🆕",
-          "text": "近2天新论文",
-          "location": "",
-          "score_impact": 0.3
-        }
-      ]
-    },
-    {
-      "title": "The Model Agreed, But Didn't Learn: Diagnosing Surface Compliance in Large Language Models",
-      "authors": [
-        "Xiaojie Gu",
-        "Ziying Huang",
-        "Weicong Hong",
-        "Jian Xie",
-        "Renze Lou",
-        "Kai Zhang"
-      ],
-      "abstract": "Large Language Models (LLMs) internalize vast world knowledge as parametric memory, yet inevitably inherit the staleness and errors of their source corpora. Consequently, ensuring the reliability and malleability of these internal representations is imperative for trustworthy real-world deployment. Knowledge editing offers a pivotal paradigm for surgically modifying memory without retraining. However, while recent editors demonstrate high success rates on standard benchmarks, it remains questionable whether current evaluation frameworks that rely on assessing output under specific prompting conditions can reliably authenticate genuine memory modification. In this work, we introduce a simple diagnostic framework that subjects models to discriminative self-assessment under in-context learning (ICL) settings that better reflect real-world application environments, specifically designed to scrutinize the subtle behavioral nuances induced by memory modifications. This probing reveals a pervasive phenomenon of Surface Compliance, where editors achieve high benchmark scores by merely mimicking target outputs without structurally overwriting internal beliefs. Moreover, we find that recursive modifications accumulate representational residues, triggering cognitive instability and permanently diminishing the reversibility of the model's memory state. These insights underscore the risks of current editing paradigms and highlight the pivotal role of robust memory modification in building trustworthy, long-term sustainable LLM systems. Code is available at https://github.com/XiaojieGu/SA-MCQ.",
-      "published": "2026-04-07T15:20:41Z",
-      "id": "2604.05995v1",
-      "link": "http://arxiv.org/abs/2604.05995v1",
-      "source": "arXiv",
-      "categories": [
-        "cs.CL",
-        "cs.AI",
         "cs.LG"
       ],
-      "comment": "ACL 2026 Findings",
-      "score": 1.325,
+      "comment": "",
+      "score": 3.5500000000000003,
       "score_details": {
-        "relevance": 1.25,
-        "author": 3.0,
-        "depth": 0.0,
+        "relevance": 4.9,
+        "author": 0.0,
+        "depth": 0.8,
         "semantic": 0.0,
         "breakdown": [
           {
             "type": "core_topic",
             "icon": "🎯",
-            "text": "命中核心主题: in-context learning",
-            "location": "摘要",
-            "score_impact": 1.5
+            "text": "命中核心主题: consistency",
+            "location": "标题",
+            "score_impact": 2.4000000000000004
           },
           {
             "type": "recency",
@@ -1166,18 +786,25 @@
             "text": "近2天新论文",
             "location": "",
             "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: rate",
+            "location": "",
+            "score_impact": 0.5
           }
         ]
       },
-      "summary": "Large Language Models (LLMs) internalize vast world knowledge as parametric memory, yet inevitably inherit the staleness and errors of their source corpora.. Consequently, ensuring the reliability and malleability of these internal representations is imperative for trustworthy real-world deployment.. Knowledge editing offers a pivotal paradigm for ...",
-      "relevance_reason": "命中核心主题: in-context learning; 近2天新论文",
+      "summary": "Neural processes are meta-learning models that map context sets to predictive distributions.. While inspired by stochastic processes, NPs do not generally satisfy the Kolmogorov consistency conditions required to define a valid stochastic process.. This inconsistency is widely acknowledged but poorly understood.",
+      "relevance_reason": "命中核心主题: consistency; 近2天新论文; 包含理论信号: rate",
       "relevance_breakdown": [
         {
           "type": "core_topic",
           "icon": "🎯",
-          "text": "命中核心主题: in-context learning",
-          "location": "摘要",
-          "score_impact": 1.5
+          "text": "命中核心主题: consistency",
+          "location": "标题",
+          "score_impact": 2.4000000000000004
         },
         {
           "type": "recency",
@@ -1185,43 +812,496 @@
           "text": "近2天新论文",
           "location": "",
           "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: rate",
+          "location": "",
+          "score_impact": 0.5
         }
       ]
     },
     {
-      "title": "Cross-Modal Coreference Alignment: Enabling Reliable Information Transfer in Omni-LLMs",
+      "title": "SMART: A Spectral Transfer Approach to Multi-Task Learning",
       "authors": [
-        "Hongcheng Liu",
-        "Yuhao Wang",
-        "Zhe Chen",
-        "Pingjie Wang",
-        "Zhiyuan Zhu",
-        "Yixuan Hou",
-        "Yanfeng Wang",
-        "Yu Wang"
+        "Boxin Zhao",
+        "Mladen Kolar",
+        "Jinchi Lv"
       ],
-      "abstract": "Omni Large Language Models (Omni-LLMs) have demonstrated impressive capabilities in holistic multi-modal perception, yet they consistently falter in complex scenarios requiring synergistic omni-modal reasoning. Beyond understanding global multimodal context, effective reasoning also hinges on fine-grained cross-modal alignment, especially identifying shared referents across modalities, yet this aspect has been largely overlooked. To bridge this gap, we formalize the challenge as a cross-modal coreference problem, where a model must localize a referent in a source modality and re-identify it in a target modality. Building on this paradigm, we introduce CrossOmni, a dataset comprising nine tasks equipped with human-designed reasoning rationales to evaluate and enhance this capability. Experiments on 13 Omni-LLMs reveal systematic weaknesses in cross-modal coreference, which we attribute to the absence of coreference-aware thinking patterns. To address this, we enhance cross-modal alignment via two strategies: a training-free In-Context Learning method and a training-based SFT+GRPO framework designed to induce such thinking patterns. Both approaches yield substantial performance gains and generalize effectively to collaborative reasoning tasks. Overall, our findings highlight cross-modal coreference as a crucial missing piece for advancing robust omni-modal reasoning.",
-      "published": "2026-04-07T07:19:42Z",
-      "id": "2604.05522v1",
-      "link": "http://arxiv.org/abs/2604.05522v1",
+      "abstract": "Multi-task learning is effective for related applications, but its performance can deteriorate when the target sample size is small. Transfer learning can borrow strength from related studies; yet, many existing methods rely on restrictive bounded-difference assumptions between the source and target models. We propose SMART, a spectral transfer method for multi-task linear regression that instead assumes spectral similarity: the target left and right singular subspaces lie within the corresponding source subspaces and are sparsely aligned with the source singular bases. Such an assumption is natural when studies share latent structures and enables transfer beyond the bounded-difference settings. SMART estimates the target coefficient matrix through structured regularization that incorporates spectral information from a source study. Importantly, it requires only a fitted source model rather than the raw source data, making it useful when data sharing is limited. Although the optimization problem is nonconvex, we develop a practical ADMM-based algorithm. We establish general, non-asymptotic error bounds and a minimax lower bound in the noiseless-source regime. Under additional regularity conditions, these results yield near-minimax Frobenius error rates up to logarithmic factors. Simulations confirm improved estimation accuracy and robustness to negative transfer, and analysis of multi-modal single-cell data demonstrates better predictive performance. The Python implementation of SMART, along with the code to reproduce all experiments in this paper, is publicly available at https://github.com/boxinz17/smart.",
+      "published": "2026-04-22T04:00:31Z",
+      "id": "2604.20161",
+      "base_id": "2604.20161",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.20161v1",
+      "link": "http://arxiv.org/abs/2604.20161v1",
+      "source": "arXiv",
+      "categories": [
+        "cs.LG",
+        "stat.ME",
+        "stat.ML"
+      ],
+      "comment": "53 pages, 4 figures, 1 table",
+      "score": 3.4491666666666663,
+      "score_details": {
+        "relevance": 4.391666666666667,
+        "author": 0.0,
+        "depth": 2.5,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "core_topic",
+            "icon": "🎯",
+            "text": "命中核心主题: asymptotic",
+            "location": "摘要",
+            "score_impact": 1.05
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近1天新论文",
+            "location": "",
+            "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: bound, estimation",
+            "location": "",
+            "score_impact": 0.5
+          }
+        ]
+      },
+      "summary": "Multi-task learning is effective for related applications, but its performance can deteriorate when the target sample size is small.. Transfer learning can borrow strength from related studies; yet, many existing methods rely on restrictive bounded-difference assumptions between the source and target models.. We propose SMART, a spectral transfer m...",
+      "relevance_reason": "命中核心主题: asymptotic; 近1天新论文; 包含理论信号: bound, estimation",
+      "relevance_breakdown": [
+        {
+          "type": "core_topic",
+          "icon": "🎯",
+          "text": "命中核心主题: asymptotic",
+          "location": "摘要",
+          "score_impact": 1.05
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近1天新论文",
+          "location": "",
+          "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: bound, estimation",
+          "location": "",
+          "score_impact": 0.5
+        }
+      ]
+    },
+    {
+      "title": "LaplacianFormer:Rethinking Linear Attention with Laplacian Kernel",
+      "authors": [
+        "Zhe Feng",
+        "Sen Lian",
+        "Changwei Wang",
+        "Muyang Zhang",
+        "Tianlong Tan",
+        "Rongtao Xu",
+        "Weiliang Meng",
+        "Xiaopeng Zhang"
+      ],
+      "abstract": "The quadratic complexity of softmax attention presents a major obstacle for scaling Transformers to high-resolution vision tasks. Existing linear attention variants often replace the softmax with Gaussian kernels to reduce complexity, but such approximations lack theoretical grounding and tend to oversuppress mid-range token interactions. We propose LaplacianFormer, a Transformer variant that employs a Laplacian kernel as a principled alternative to softmax, motivated by empirical observations and theoretical analysis. To address expressiveness degradation under low-rank approximations, we introduce a provably injective feature map that retains fine-grained token information. For efficient computation, we adopt a Nyström approximation of the kernel matrix and solve the resulting system using Newton--Schulz iteration, avoiding costly matrix inversion and SVD. We further develop custom CUDA implementations for both the kernel and solver, enabling high-throughput forward and backward passes suitable for edge deployment. Experiments on ImageNet show that LaplacianFormer achieves strong performance-efficiency trade-offs while improving attention expressiveness.",
+      "published": "2026-04-22T09:04:54Z",
+      "id": "2604.20368",
+      "base_id": "2604.20368",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.20368v1",
+      "link": "http://arxiv.org/abs/2604.20368v1",
+      "source": "arXiv",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "comment": "",
+      "score": 2.87,
+      "score_details": {
+        "relevance": 4.1000000000000005,
+        "author": 0.0,
+        "depth": 0.0,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "core_topic",
+            "icon": "🎯",
+            "text": "命中核心主题: kernel",
+            "location": "标题",
+            "score_impact": 2.0
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近1天新论文",
+            "location": "",
+            "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: complexity",
+            "location": "",
+            "score_impact": 0.5
+          }
+        ]
+      },
+      "summary": "The quadratic complexity of softmax attention presents a major obstacle for scaling Transformers to high-resolution vision tasks.. Existing linear attention variants often replace the softmax with Gaussian kernels to reduce complexity, but such approximations lack theoretical grounding and tend to oversuppress mid-range token interactions.. We prop...",
+      "relevance_reason": "命中核心主题: kernel; 近1天新论文; 包含理论信号: complexity",
+      "relevance_breakdown": [
+        {
+          "type": "core_topic",
+          "icon": "🎯",
+          "text": "命中核心主题: kernel",
+          "location": "标题",
+          "score_impact": 2.0
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近1天新论文",
+          "location": "",
+          "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: complexity",
+          "location": "",
+          "score_impact": 0.5
+        }
+      ]
+    },
+    {
+      "title": "Knowledge Capsules: Structured Nonparametric Memory Units for LLMs",
+      "authors": [
+        "Bin Ju",
+        "Shenfeng Weng",
+        "Danying Zhou",
+        "Kunkai Su",
+        "Rongkai Xu"
+      ],
+      "abstract": "Large language models (LLMs) encode knowledge in parametric weights, making it costly to update or extend without retraining. Retrieval-augmented generation (RAG) mitigates this limitation by appending retrieved text to the input, but operates purely through context expansion, where external knowledge competes as tokens within the attention mechanism. As a result, its influence is indirect and often unstable, particularly in long context and multi hop reasoning scenarios. We propose Knowledge Capsules, structured nonparametric memory units that represent normalized relational knowledge and can be constructed directly from document corpora using a frozen base model. Instead of injecting knowledge as text, we introduce an External Key Value Injection (KVI) framework that compiles capsules into attention-compatible key value representations, enabling external knowledge to directly participate in the model's attention computation. By shifting knowledge integration from context-level augmentation to memory level interaction, the proposed framework consistently outperforms RAG and GraphRAG across multiple QA benchmarks, with improved stability and accuracy in long context and multi hop reasoning, while requiring no parameter updates.",
+      "published": "2026-04-22T12:21:00Z",
+      "id": "2604.20487",
+      "base_id": "2604.20487",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.20487v1",
+      "link": "http://arxiv.org/abs/2604.20487v1",
+      "source": "arXiv",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "comment": "",
+      "score": 2.8,
+      "score_details": {
+        "relevance": 4.0,
+        "author": 0.0,
+        "depth": 0.0,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "core_topic",
+            "icon": "🎯",
+            "text": "命中核心主题: nonparametric",
+            "location": "标题",
+            "score_impact": 3.2
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近1天新论文",
+            "location": "",
+            "score_impact": 0.3
+          }
+        ]
+      },
+      "summary": "Large language models (LLMs) encode knowledge in parametric weights, making it costly to update or extend without retraining.. Retrieval-augmented generation (RAG) mitigates this limitation by appending retrieved text to the input, but operates purely through context expansion, where external knowledge competes as tokens within the attention mechan...",
+      "relevance_reason": "命中核心主题: nonparametric; 近1天新论文",
+      "relevance_breakdown": [
+        {
+          "type": "core_topic",
+          "icon": "🎯",
+          "text": "命中核心主题: nonparametric",
+          "location": "标题",
+          "score_impact": 3.2
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近1天新论文",
+          "location": "",
+          "score_impact": 0.3
+        }
+      ]
+    },
+    {
+      "title": "Is Four Enough? Automated Reasoning Approaches and Dual Bounds for Condorcet Dimensions of Elections",
+      "authors": [
+        "Itai Zilberstein",
+        "Ratip Emin Berker",
+        "George Li",
+        "Ruben Martins"
+      ],
+      "abstract": "In an election where $n$ voters rank $m$ candidates, a Condorcet winning set is a committee of $k$ candidates such that for any outside candidate, a majority of voters prefer some committee member. Condorcet's paradox shows that some elections admit no Condorcet winning sets with a single candidate (i.e., $k=1$), and the same can be shown for $k=2$. On the other hand, recent work proves that a set of size $k=5$ exists for every election. This leaves an important theoretical gap between the best known lower bound $(k\\geq 3)$ and upper bound $(k \\leq 5)$ for the number of candidates needed to guarantee existence. We aim to close the gap between the existence guarantees and impossibility results for Condorcet winning sets. We explore an automated reasoning approach to tighten these bounds. We design a mixed-integer linear program (MILP) to search for elections that would serve as counter-examples to conjectured bounds. We employ a number of optimizations, such as symmetry breaking, subsampling, and constraint generation, to enhance the search and model effectively infinite electorates. Furthermore, we analyze the dual of the linear programming relaxation as a path towards obtaining a new upper bound. Despite extensive search on moderate-sized elections, we fail to find any election requiring a committee larger than size 3. Motivated by our experimental results in this direction, we simplify the dual linear program and formulate a conjecture which, if true, implies that a winning set of size 4 always exists. Our automated reasoning results provide strong empirical evidence that the Condorcet dimension of any election may be smaller than currently known upper bounds, at least for small instances. We offer a general-purpose framework for searching elections in ranked voting and a new, concrete analytical path via duality toward proving that smaller committees suffice.",
+      "published": "2026-04-21T15:25:12Z",
+      "id": "2604.19851",
+      "base_id": "2604.19851",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.19851v1",
+      "link": "http://arxiv.org/abs/2604.19851v1",
+      "source": "arXiv",
+      "categories": [
+        "cs.GT",
+        "cs.AI"
+      ],
+      "comment": "Appears at the 8th Games, Agents, and Incentives Workshop (GAIW-26). Held as part of the Workshops at the 25th International Conference on Autonomous Agents and Multiagent Systems",
+      "score": 2.78,
+      "score_details": {
+        "relevance": 3.8,
+        "author": 0.0,
+        "depth": 0.8,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "secondary_topic",
+            "icon": "📌",
+            "text": "相关主题: lower bound",
+            "location": "",
+            "score_impact": 0.6000000000000001
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近2天新论文",
+            "location": "",
+            "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: bound, guarantee",
+            "location": "",
+            "score_impact": 0.5
+          }
+        ]
+      },
+      "summary": "In an election where $n$ voters rank $m$ candidates, a Condorcet winning set is a committee of $k$ candidates such that for any outside candidate, a majority of voters prefer some committee member.. Condorcet's paradox shows that some elections admit no Condorcet winning sets with a single candidate (i.e., $k=1$), and the same can be shown for $k=2...",
+      "relevance_reason": "相关主题: lower bound; 近2天新论文; 包含理论信号: bound, guarantee",
+      "relevance_breakdown": [
+        {
+          "type": "secondary_topic",
+          "icon": "📌",
+          "text": "相关主题: lower bound",
+          "location": "",
+          "score_impact": 0.6000000000000001
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近2天新论文",
+          "location": "",
+          "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: bound, guarantee",
+          "location": "",
+          "score_impact": 0.5
+        }
+      ]
+    },
+    {
+      "title": "Sharp recovery and landscape guarantees for the nonconvex matrix LASSO",
+      "authors": [
+        "Andrew D. McRae",
+        "Richard Y. Zhang"
+      ],
+      "abstract": "Low-rank matrix recovery can be solved to statistical optimality by convex matrix optimization under the classical assumption of restricted isometry property (RIP). However, for large problems, the convex formulation is commonly replaced by a smooth rank-constrained factored nonconvex problem for which algorithmic theory typically only guarantees convergence to second-order critical points. In this paper, we develop a sharp and statistically optimal theory for second-order critical points of the factored nonconvex matrix LASSO (nuclear-norm--regularized least-squares estimator) under RIP with particular emphasis on the overparametrized regime where the search rank $r$ exceeds the ground-truth rank $r_*$. Our recovery error bounds reveal the precise role of nuclear norm regularization, interpolating between the classical convex rate and known rates for the unregularized nonconvex problem. Complementing this positive result, we give examples showing that, contrary to popular belief, rank overparametrization does not always improve the optimization landscape even under RIP. This negative result raises questions about the fundamental statistical recovery capability of rank-constrained nonconvex approaches in comparison to convex approaches which have worse computational scaling. All of our results generalize to arbitrary convex functions with nuclear-norm regularization under restricted strong convexity and smoothness. In particular, we give sharp conditions under which second-order critical points of the nonconvex problem either (1) approximately recover low-rank approximate minima of the convex problem or (2) exactly recover a low-rank global optimum if one exists.",
+      "published": "2026-04-21T12:04:07Z",
+      "id": "2604.19381",
+      "base_id": "2604.19381",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.19381v1",
+      "link": "http://arxiv.org/abs/2604.19381v1",
+      "source": "arXiv",
+      "categories": [
+        "math.OC",
+        "math.ST"
+      ],
+      "comment": "",
+      "score": 2.7516666666666665,
+      "score_details": {
+        "relevance": 3.2666666666666666,
+        "author": 0.0,
+        "depth": 3.1,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "secondary_topic",
+            "icon": "📌",
+            "text": "相关主题: convex",
+            "location": "",
+            "score_impact": 0.5
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近2天新论文",
+            "location": "",
+            "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: convergence, statistical",
+            "location": "",
+            "score_impact": 0.5
+          }
+        ]
+      },
+      "summary": "Low-rank matrix recovery can be solved to statistical optimality by convex matrix optimization under the classical assumption of restricted isometry property (RIP).. However, for large problems, the convex formulation is commonly replaced by a smooth rank-constrained factored nonconvex problem for which algorithmic theory typically only guarantees ...",
+      "relevance_reason": "相关主题: convex; 近2天新论文; 包含理论信号: convergence, statistical",
+      "relevance_breakdown": [
+        {
+          "type": "secondary_topic",
+          "icon": "📌",
+          "text": "相关主题: convex",
+          "location": "",
+          "score_impact": 0.5
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近2天新论文",
+          "location": "",
+          "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: convergence, statistical",
+          "location": "",
+          "score_impact": 0.5
+        }
+      ]
+    },
+    {
+      "title": "Fast computation and theoretical guarantees for the NPMLE in exponential family mixtures",
+      "authors": [
+        "Yan Zhang"
+      ],
+      "abstract": "This work makes two advances in the study of the (approximate) nonparametric maximum likelihood estimator (NPMLE) for exponential family mixture models. First, we develop a data-compression strategy that reduces the cost of repeated likelihood evaluations in NPMLE computation to logarithmic order in the sample size. Second, we show that, for a broad class of approximate NPMLEs, the resulting marginal density estimator attains an almost parametric rate of convergence.",
+      "published": "2026-04-21T17:49:11Z",
+      "id": "2604.19725",
+      "base_id": "2604.19725",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.19725v1",
+      "link": "http://arxiv.org/abs/2604.19725v1",
+      "source": "arXiv",
+      "categories": [
+        "math.ST",
+        "stat.CO"
+      ],
+      "comment": "",
+      "score": 2.666666666666667,
+      "score_details": {
+        "relevance": 3.316666666666667,
+        "author": 0.0,
+        "depth": 2.3,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "core_topic",
+            "icon": "🎯",
+            "text": "命中核心主题: nonparametric",
+            "location": "摘要",
+            "score_impact": 1.2
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近2天新论文",
+            "location": "",
+            "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: convergence, rate",
+            "location": "",
+            "score_impact": 0.5
+          }
+        ]
+      },
+      "summary": "This work makes two advances in the study of the (approximate) nonparametric maximum likelihood estimator (NPMLE) for exponential family mixture models.. First, we develop a data-compression strategy that reduces the cost of repeated likelihood evaluations in NPMLE computation to logarithmic order in the sample size.. Second, we show that, for a br...",
+      "relevance_reason": "命中核心主题: nonparametric; 近2天新论文; 包含理论信号: convergence, rate",
+      "relevance_breakdown": [
+        {
+          "type": "core_topic",
+          "icon": "🎯",
+          "text": "命中核心主题: nonparametric",
+          "location": "摘要",
+          "score_impact": 1.2
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近2天新论文",
+          "location": "",
+          "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: convergence, rate",
+          "location": "",
+          "score_impact": 0.5
+        }
+      ]
+    },
+    {
+      "title": "Does Self-Consistency Improve the Recall of Encyclopedic Knowledge?",
+      "authors": [
+        "Sho Hoshino",
+        "Ukyo Honda",
+        "Peinan Zhang"
+      ],
+      "abstract": "While self-consistency is known to improve performance on symbolic reasoning, its effect on the recall of encyclopedic knowledge is unclear due to a lack of targeted evaluation grounds. To address this, we establish such a knowledge recall split for the popular MMLU benchmark by applying a data-driven heuristic from prior work. We validate this split by showing that the performance patterns on the symbolic reasoning and knowledge recall subsets mirror those of GSM8K and MedMCQA, respectively. Using this solid ground, we find that self-consistency consistently improves performance across both symbolic reasoning and knowledge recall, even though its underlying CoT prompting is primarily effective for symbolic reasoning. As a result, we achieve an 89\\% accuracy on MMLU, the best performance to date with the use of GPT-4o.",
+      "published": "2026-04-21T12:24:05Z",
+      "id": "2604.19395",
+      "base_id": "2604.19395",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.19395v1",
+      "link": "http://arxiv.org/abs/2604.19395v1",
       "source": "arXiv",
       "categories": [
         "cs.CL"
       ],
-      "comment": "",
-      "score": 1.325,
+      "comment": "ACL 2026",
+      "score": 2.625,
       "score_details": {
-        "relevance": 1.25,
-        "author": 3.0,
+        "relevance": 3.75,
+        "author": 0.0,
         "depth": 0.0,
         "semantic": 0.0,
         "breakdown": [
           {
             "type": "core_topic",
             "icon": "🎯",
-            "text": "命中核心主题: in-context learning",
-            "location": "摘要",
-            "score_impact": 1.5
+            "text": "命中核心主题: consistency",
+            "location": "标题",
+            "score_impact": 2.4000000000000004
           },
           {
             "type": "recency",
@@ -1232,15 +1312,15 @@
           }
         ]
       },
-      "summary": "Omni Large Language Models (Omni-LLMs) have demonstrated impressive capabilities in holistic multi-modal perception, yet they consistently falter in complex scenarios requiring synergistic omni-modal reasoning.. Beyond understanding global multimodal context, effective reasoning also hinges on fine-grained cross-modal alignment, especially identify...",
-      "relevance_reason": "命中核心主题: in-context learning; 近2天新论文",
+      "summary": "While self-consistency is known to improve performance on symbolic reasoning, its effect on the recall of encyclopedic knowledge is unclear due to a lack of targeted evaluation grounds.. To address this, we establish such a knowledge recall split for the popular MMLU benchmark by applying a data-driven heuristic from prior work.. We validate this s...",
+      "relevance_reason": "命中核心主题: consistency; 近2天新论文",
       "relevance_breakdown": [
         {
           "type": "core_topic",
           "icon": "🎯",
-          "text": "命中核心主题: in-context learning",
-          "location": "摘要",
-          "score_impact": 1.5
+          "text": "命中核心主题: consistency",
+          "location": "标题",
+          "score_impact": 2.4000000000000004
         },
         {
           "type": "recency",
@@ -1250,19 +1330,157 @@
           "score_impact": 0.3
         }
       ]
+    },
+    {
+      "title": "Multiscale Cochran-Mantel-Haenszel Scanning for Conditional Dependency",
+      "authors": [
+        "Gyeonghun Kang",
+        "Jialiang Mao",
+        "Li Ma"
+      ],
+      "abstract": "We propose a nonparametric approach to testing conditional independence and estimating conditional association, generalizing the Cochran-Mantel-Haenszel (CMH) test and odds-ratio estimator to continuous sample spaces. It leverages a multiscale scanning approach to decompose the sample space into a cascade of $2\\times 2 \\times T$ tables. Following the CMH test, we condition on the marginal order statistics, which are \"almost ancillary\" regarding conditional dependency. This strategy helps overcome a key challenge faced by other methods that discretize the sample space: we achieve consistency without requiring stratum sample sizes to grow to infinity, a constraint often difficult to satisfy in practice. Our method produces easy-to-compute test statistics with a known asymptotic null distribution under the conditional sampling model, scaling almost linearly with the sample size. Our simulation results demonstrate reliable Type I error control, even with small samples and high-dimensional conditioning, and competitive power compared to state-of-the-art tests. Finally, a case study on Uber ride-share data highlights the method's unique dual capability, inherited from the CMH, to both test and identify the nature of the inferred conditional association. By providing summary statistics that capture the strength and direction of local associations, our method offers practitioners a useful tool for learning conditional dependencies.",
+      "published": "2026-04-21T07:41:18Z",
+      "id": "2604.19177",
+      "base_id": "2604.19177",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.19177v1",
+      "link": "http://arxiv.org/abs/2604.19177v1",
+      "source": "arXiv",
+      "categories": [
+        "stat.ME"
+      ],
+      "comment": "",
+      "score": 2.5375,
+      "score_details": {
+        "relevance": 3.475,
+        "author": 0.0,
+        "depth": 0.7,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "core_topic",
+            "icon": "🎯",
+            "text": "命中核心主题: nonparametric",
+            "location": "摘要",
+            "score_impact": 1.2
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近2天新论文",
+            "location": "",
+            "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: asymptotic",
+            "location": "",
+            "score_impact": 0.5
+          }
+        ]
+      },
+      "summary": "We propose a nonparametric approach to testing conditional independence and estimating conditional association, generalizing the Cochran-Mantel-Haenszel (CMH) test and odds-ratio estimator to continuous sample spaces.. It leverages a multiscale scanning approach to decompose the sample space into a cascade of $2\\times 2 \\times T$ tables.. Following...",
+      "relevance_reason": "命中核心主题: nonparametric; 近2天新论文; 包含理论信号: asymptotic",
+      "relevance_breakdown": [
+        {
+          "type": "core_topic",
+          "icon": "🎯",
+          "text": "命中核心主题: nonparametric",
+          "location": "摘要",
+          "score_impact": 1.2
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近2天新论文",
+          "location": "",
+          "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: asymptotic",
+          "location": "",
+          "score_impact": 0.5
+        }
+      ]
+    },
+    {
+      "title": "Safety-Critical Contextual Control via Online Riemannian Optimization with World Models",
+      "authors": [
+        "Tongxin Li"
+      ],
+      "abstract": "Modern world models are becoming too complex to admit explicit dynamical descriptions. We study safety-critical contextual control, where a Planner must optimize a task objective using only feasibility samples from a black-box Simulator, conditioned on a context signal $ξ_t$. We develop a sample-based Penalized Predictive Control (PPC) framework grounded in online Riemannian optimization, in which the Simulator compresses the feasibility manifold into a score-based density $\\hat{p}(u \\mid ξ_t)$ that endows the action space with a Riemannian geometry guiding the Planner's gradient descent. The barrier curvature $κ(ξ_t)$, the minimum curvature of the conditional log-density $-\\ln\\hat{p}(\\cdot\\midξ_t)$, governs both convergence rate and safety margin, replacing the Lipschitz constant of the unknown dynamics. Our main result is a contextual safety bound showing that the distance from the true feasibility manifold is controlled by the score estimation error and a ratio that depends on $κ(ξ_t)$, both of which improve with richer context. Simulations on a dynamic navigation task confirm that contextual PPC substantially outperforms marginal and frozen density models, with the advantage growing after environment shifts.",
+      "published": "2026-04-21T16:28:36Z",
+      "id": "2604.19639",
+      "base_id": "2604.19639",
+      "version": "v1",
+      "source_url": "http://arxiv.org/abs/2604.19639v1",
+      "link": "http://arxiv.org/abs/2604.19639v1",
+      "source": "arXiv",
+      "categories": [
+        "eess.SY",
+        "cs.AI"
+      ],
+      "comment": "20 pages, 12 figures",
+      "score": 2.4974999999999996,
+      "score_details": {
+        "relevance": 3.225,
+        "author": 0.0,
+        "depth": 1.6,
+        "semantic": 0.0,
+        "breakdown": [
+          {
+            "type": "core_topic",
+            "icon": "🎯",
+            "text": "命中核心主题: convergence rate",
+            "location": "摘要",
+            "score_impact": 0.75
+          },
+          {
+            "type": "recency",
+            "icon": "🆕",
+            "text": "近2天新论文",
+            "location": "",
+            "score_impact": 0.3
+          },
+          {
+            "type": "theory",
+            "icon": "📐",
+            "text": "包含理论信号: bound, convergence",
+            "location": "",
+            "score_impact": 0.5
+          }
+        ]
+      },
+      "summary": "Modern world models are becoming too complex to admit explicit dynamical descriptions.. We study safety-critical contextual control, where a Planner must optimize a task objective using only feasibility samples from a black-box Simulator, conditioned on a context signal $ξ_t$.. We develop a sample-based Penalized Predictive Control (PPC) framework ...",
+      "relevance_reason": "命中核心主题: convergence rate; 近2天新论文; 包含理论信号: bound, convergence",
+      "relevance_breakdown": [
+        {
+          "type": "core_topic",
+          "icon": "🎯",
+          "text": "命中核心主题: convergence rate",
+          "location": "摘要",
+          "score_impact": 0.75
+        },
+        {
+          "type": "recency",
+          "icon": "🆕",
+          "text": "近2天新论文",
+          "location": "",
+          "score_impact": 0.3
+        },
+        {
+          "type": "theory",
+          "icon": "📐",
+          "text": "包含理论信号: bound, convergence",
+          "location": "",
+          "score_impact": 0.5
+        }
+      ]
     }
   ],
-  "themes": [
-    "in-context learning",
-    "minimax",
-    "asymptotic",
-    "sample complexity",
-    "non-asymptotic",
-    "conformal prediction",
-    "minimax optimal",
-    "excess risk",
-    "optimal rate",
-    "convergence rate"
-  ],
-  "generated_at": "2026-04-09T08:42:12.548201"
+  "themes": [],
+  "generated_at": "2026-04-23T19:24:57.624592"
 }

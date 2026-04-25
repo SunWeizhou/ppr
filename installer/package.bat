@@ -6,10 +6,10 @@ REM ============================================
 
 setlocal EnableDelayedExpansion
 
-set PROJECT_ROOT=D:\arxiv_recommender
-set DIST_DIR=%PROJECT_ROOT%\dist
-set DIST_NAME=arxiv_recommender
-set ZIP_FILE=%DIST_DIR%\%DIST_NAME%.zip
+for %%I in ("%~dp0..") do set "PROJECT_ROOT=%%~fI"
+set "DIST_DIR=%PROJECT_ROOT%\dist"
+set "DIST_NAME=arxiv_recommender"
+set "ZIP_FILE=%DIST_DIR%\%DIST_NAME%.zip"
 
 echo.
 echo  ╔═════════════════════════════════════════════════════════╗

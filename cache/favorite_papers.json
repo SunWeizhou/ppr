@@ -1,6 +1,6 @@
 {
-  "2603.29415v1": {
-    "id": "2603.29415v1",
+  "2603.29415": {
+    "id": "2603.29415",
     "title": "Concentration of the bootstrap empirical process, with applications to statistical inference",
     "authors": "Guillaume Maillard, Adrien Saumard",
     "abstract": "Considering a general framework of bootstrap with exchangeable weights, we show some concentration inequalities for the supremum of the bootstrap empirical process.. On the one hand, we discuss the co...",
@@ -12,8 +12,8 @@
     "date_added": "2026-04-02 14:57:35",
     "date_published": "2026-04-02"
   },
-  "2603.29725v1": {
-    "id": "2603.29725v1",
+  "2603.29725": {
+    "id": "2603.29725",
     "title": "Unbounded Density Ratio Estimation and Its Application to Covariate Shift Adaptation",
     "authors": "Ren-Rui Liu, Jun Fan, Lei Shi, Zheng-Chu Guo",
     "abstract": "This paper focuses on the problem of unbounded density ratio estimation -- an understudied yet critical challenge in statistical learning -- and its application to covariate shift adaptation.. Much of...",
@@ -25,8 +25,8 @@
     "date_added": "2026-04-02 21:18:04",
     "date_published": "2026-04-02"
   },
-  "2604.01502v1": {
-    "id": "2604.01502v1",
+  "2604.01502": {
+    "id": "2604.01502",
     "title": "Non-monotonicity in Conformal Risk Control",
     "authors": "Tareq Aldirawi, Yun Li, Wenge Guo",
     "abstract": "Conformal risk control (CRC) provides distribution-free guarantees for controlling the expected loss at a user-specified level.. Existing theory typically assumes that the loss decreases monotonically...",
@@ -38,8 +38,8 @@
     "date_added": "2026-04-03 09:53:16",
     "date_published": "2026-04-03"
   },
-  "2604.02094v1": {
-    "id": "2604.02094v1",
+  "2604.02094": {
+    "id": "2604.02094",
     "title": "Importance sampling for Bayesian inference: polynomial-dimension dependent error bounds",
     "authors": "Fabián González, Víctor Elvira, Joaquín Míguez",
     "abstract": "Many Bayesian inference problems involve high-dimensional models where the performance of standard importance sampling (IS) methods often degrades rapidly as the dimensionality increases.. Classical a...",
@@ -51,8 +51,8 @@
     "date_added": "2026-04-06 09:02:30",
     "date_published": "2026-04-06"
   },
-  "2604.01601v1": {
-    "id": "2604.01601v1",
+  "2604.01601": {
+    "id": "2604.01601",
     "title": "Training In-Context and In-Weights Mixtures Via Contrastive Context Sampling",
     "authors": "Deeptanshu Malu, Deevyanshu Malu, Aditya Nemiwal, Sunita Sarawagi",
     "abstract": "We investigate training strategies that co-develop in-context learning (ICL) and in-weights learning (IWL), and the ability to switch between them based on context relevance.. Although current LLMs ex...",
@@ -64,8 +64,8 @@
     "date_added": "2026-04-06 21:48:43",
     "date_published": "2026-04-06"
   },
-  "2604.02596v1": {
-    "id": "2604.02596v1",
+  "2604.02596": {
+    "id": "2604.02596",
     "title": "An Empirical Study of Many-Shot In-Context Learning for Machine Translation of Low-Resource Languages",
     "authors": "Yinhan Lu, Gaganpreet Jhajj, Chen Zhang, Anietie Andy, David Ifeoluwa Adelani",
     "abstract": "In-context learning (ICL) allows large language models (LLMs) to adapt to new tasks from a few examples, making it promising for languages underrepresented in pre-training.. Recent work on many-shot I...",
@@ -77,8 +77,8 @@
     "date_added": "2026-04-07 08:09:14",
     "date_published": "2026-04-07"
   },
-  "2604.03146v1": {
-    "id": "2604.03146v1",
+  "2604.03146": {
+    "id": "2604.03146",
     "title": "Characterization of Gaussian Universality Breakdown in High-Dimensional Empirical Risk Minimization",
     "authors": "Chiheb Yaakoubi, Cosme Louart, Malik Tiomoko, Zhenyu Liao",
     "abstract": "We study high-dimensional convex empirical risk minimization (ERM) under general non-Gaussian data designs.. By heuristically extending the Convex Gaussian Min-Max Theorem (CGMT) to non-Gaussian setti...",
@@ -90,8 +90,8 @@
     "date_added": "2026-04-07 08:30:25",
     "date_published": "2026-04-07"
   },
-  "2604.04342v1": {
-    "id": "2604.04342v1",
+  "2604.04342": {
+    "id": "2604.04342",
     "title": "Generative models for decision-making under distributional shift",
     "authors": "Xiuyuan Cheng, Yunqin Zhu, Yao Xie",
     "abstract": "Many data-driven decision problems are formulated using a nominal distribution estimated from historical data, while performance is ultimately determined by a deployment distribution that may be shift...",
@@ -103,8 +103,8 @@
     "date_added": "2026-04-08 10:13:30",
     "date_published": "2026-04-08"
   },
-  "2604.03939v1": {
-    "id": "2604.03939v1",
+  "2604.03939": {
+    "id": "2604.03939",
     "title": "Fused Multinomial Logistic Regression Utilizing Summary-Level External Machine-learning Information",
     "authors": "Chi-Shian Dai, Jun Shao",
     "abstract": "In many modern applications, a carefully designed primary study provides individual-level data for interpretable modeling, while summary-level external information is available through black-box, effi...",
@@ -116,8 +116,8 @@
     "date_added": "2026-04-08 09:42:05",
     "date_published": "2026-04-08"
   },
-  "2604.05669v1": {
-    "id": "2604.05669v1",
+  "2604.05669": {
+    "id": "2604.05669",
     "title": "Efficient machine unlearning with minimax optimality",
     "authors": "Jingyi Xie, Linjun Zhang, Sai Li",
     "abstract": "There is a growing demand for efficient data removal to comply with regulations like the GDPR and to mitigate the influence of biased or corrupted data.. This has motivated the field of machine unlear...",
@@ -128,5 +128,18 @@
     "categories": [],
     "date_added": "2026-04-09 08:42:42",
     "date_published": "2026-04-09"
+  },
+  "2604.12345": {
+    "id": "2604.12345",
+    "title": "Stable identity",
+    "authors": "",
+    "abstract": "",
+    "summary": "",
+    "link": "https://arxiv.org/abs/2604.12345",
+    "score": 0,
+    "relevance": "",
+    "categories": [],
+    "date_added": "2026-04-23 19:16:37",
+    "date_published": "2026-04-23"
   }
 }

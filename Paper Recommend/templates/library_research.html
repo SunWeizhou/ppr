@@ -1,0 +1,405 @@
+{% extends "base_research.html" %}
+
+{% block hero %}
+<section class="page-hero">
+    <div class="hero-panel">
+        <div class="kicker">Research Assets</div>
+        <h1 class="hero-title">Library / 研究资产库</h1>
+        <p class="hero-subtitle">
+            管理 Collection、已保存论文和历史推荐记录。
+        </p>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <span class="metric-label">Collections</span>
+                <span class="metric-value">{{ all_collections|length }}</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Saved Papers</span>
+                <span class="metric-value">{{ saved_papers_count }}</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">History Days</span>
+                <span class="metric-value">{{ history_dates|length }}</span>
+            </div>
+        </div>
+        <div class="hero-actions">
+            <a href="/" class="action-button btn-brand">回到 Inbox</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="tab-strip">
+    <a href="/library?tab=collections{% if selected_collection %}&collection_id={{ selected_collection.id }}{% endif %}" class="tab-button {% if tab == 'collections' %}active{% endif %}">Collections</a>
+    <a href="/library?tab=saved" class="tab-button {% if tab == 'saved' %}active{% endif %}">Saved Papers</a>
+    <a href="/library?tab=history{% if selected_date %}&date={{ selected_date }}{% endif %}" class="tab-button {% if tab == 'history' %}active{% endif %}">History</a>
+</div>
+
+<section class="library-layout">
+    <div class="library-main">
+        {% if tab == 'collections' %}
+            <div class="panel-card section-card">
+                <div class="section-head section-head-tight">
+                    <div>
+                        <div class="section-kicker">Research Collections</div>
+                        <h2 class="panel-title">{{ selected_collection.name if selected_collection else 'Collections' }}</h2>
+                        <p class="muted-copy">
+                            {% if selected_collection %}
+                                {{ selected_collection.description or selected_collection.seed_query or '' }}
+                            {% else %}
+                                用 Collection 把论文沉淀成主题容器。
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="inline-actions">
+                        <button type="button" class="action-button btn-brand" onclick="createCollectionPrompt()">New collection</button>
+                        {% if selected_collection %}
+                            <button type="button" class="action-button btn-subtle" onclick='editCollection({{ selected_collection|tojson|forceescape }})'>Edit</button>
+                            <button type="button" class="action-button btn-danger" onclick="deleteCollection({{ selected_collection.id }}, {{ selected_collection.name|tojson }})">Delete</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if selected_collection %}
+                    <div class="collection-meta-card">
+                        <div class="chip-row">
+                            {% if selected_collection.seed_query %}
+                                <span class="chip brand">Seed Query: {{ selected_collection.seed_query }}</span>
+                            {% endif %}
+                            <span class="chip">{{ selected_collection.updated_at[:10] if selected_collection.updated_at else '' }}</span>
+                        </div>
+                    </div>
+                    <div class="keyword-add-form">
+                        <input type="text" id="collectionPaperFilter" placeholder="按标题或作者筛选">
+                        <select id="collectionStatusFilter">
+                            <option value="all">所有状态</option>
+                            {% for status in queue_status_values %}
+                                <option value="{{ status }}">{{ status }}</option>
+                            {% endfor %}
+                            <option value="none">未入队</option>
+                        </select>
+                        <button type="button" class="action-button btn-subtle" onclick="applyCollectionFilters()">筛选</button>
+                    </div>
+                {% endif %}
+
+                {% if selected_collection %}
+                    {% if selected_collection_papers %}
+                        <div class="paper-stream" style="margin-top: 18px;">
+                            {% for paper in selected_collection_papers %}
+                                <article class="paper-card compact-card library-paper-card"
+                                    data-paper-id="{{ paper.id }}"
+                                    data-paper-title="{{ paper.title }}"
+                                    data-paper-authors="{{ paper.author_text }}"
+                                    data-paper-summary="{{ paper.summary or '' }}"
+                                    data-paper-relevance="{{ paper.relevance or '' }}"
+                                    data-paper-link="{{ paper.link or '' }}"
+                                    data-paper-score="{{ paper.score or 0 }}"
+                                    data-paper-first-author="{{ paper.first_author }}"
+                                    data-queue-status="{{ paper.queue_status or '' }}"
+                                    data-paper-filter="{{ (paper.title ~ ' ' ~ paper.author_text)|lower }}">
+                                    <div class="paper-topline">
+                                        <div class="paper-rank">
+                                            <span>#{{ paper.rank }}</span>
+                                            <span class="state-chip {{ paper.queue_status_class }}" data-queue-state {% if not paper.queue_status %}hidden{% endif %}>{{ paper.queue_status or '' }}</span>
+                                        </div>
+                                        <div class="chip-row">
+                                            <span class="score-chip">Score {{ '%.1f'|format(paper.score or 0) }}</span>
+                                        </div>
+                                    </div>
+                                    <h3 class="paper-title">
+                                        <a class="paper-title-link" href="{{ paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="trackPaperOpen('{{ paper.id }}', 'library_collection')">{{ paper.title }}</a>
+                                    </h3>
+                                    <div class="paper-authors">{{ paper.author_text }}</div>
+                                    <p class="paper-summary">{{ paper.summary_short }}</p>
+                                    <div class="action-row">
+                                        <button type="button" class="action-button btn-warm" onclick="queueCard(this, 'Skim Later')">稍后读</button>
+                                        <button type="button" class="action-button btn-sage" onclick="queueCard(this, 'Deep Read')">精读</button>
+                                        <button type="button" class="action-button btn-subtle" onclick="downloadBibtex(getCardPaper(this).dataset.paperId)">BibTeX</button>
+                                        <button type="button" class="action-button btn-danger" onclick="removePaperFromCollection({{ selected_collection.id }}, this)">Remove</button>
+                                    </div>
+                                </article>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <p class="muted-copy">这个 Collection 里还没有论文。</p>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <p class="muted-copy">先创建一个 Collection，或从右侧选择已有的。</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% elif tab == 'saved' %}
+            <div class="panel-card section-card">
+                <div class="section-head section-head-tight">
+                    <div>
+                        <div class="section-kicker">Reading List</div>
+                        <h2 class="panel-title">Saved Papers</h2>
+                        <p class="muted-copy">所有标记为 Saved 的论文。</p>
+                    </div>
+                </div>
+
+                {% if saved_papers %}
+                    <div class="paper-stream">
+                        {% for paper in saved_papers %}
+                            <article class="paper-card compact-card library-paper-card"
+                                data-paper-id="{{ paper.id }}"
+                                data-paper-title="{{ paper.title }}"
+                                data-paper-authors="{{ paper.author_text }}"
+                                data-paper-summary="{{ paper.summary or '' }}"
+                                data-paper-relevance="{{ paper.relevance or '' }}"
+                                data-paper-link="{{ paper.link or '' }}"
+                                data-paper-score="{{ paper.score or 0 }}"
+                                data-paper-first-author="{{ paper.first_author }}"
+                                data-queue-status="{{ paper.queue_status or '' }}">
+                                <div class="paper-topline">
+                                    <div class="paper-rank">
+                                        <span>#{{ paper.rank }}</span>
+                                        <span class="state-chip status-saved" data-queue-state>Saved</span>
+                                        {% if paper.date %}
+                                            <span class="meta-chip">{{ paper.date }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="chip-row">
+                                        <span class="score-chip">Score {{ '%.1f'|format(paper.score or 0) }}</span>
+                                    </div>
+                                </div>
+                                <h3 class="paper-title">
+                                    <a class="paper-title-link" href="{{ paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="trackPaperOpen('{{ paper.id }}', 'library_saved')">{{ paper.title }}</a>
+                                </h3>
+                                <div class="paper-authors">{{ paper.author_text }}</div>
+                                <p class="paper-summary">{{ paper.summary_short }}</p>
+                                <div class="action-row">
+                                    {% for status in queue_status_values %}
+                                        {% if status != 'Saved' %}
+                                            <button type="button" class="action-button {% if status == 'Skim Later' %}btn-warm{% elif status == 'Deep Read' %}btn-sage{% elif status == 'Inbox' %}btn-ghost{% else %}btn-subtle{% endif %}" onclick="queueCard(this, '{{ status }}')">{{ status }}</button>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <button type="button" class="action-button btn-ghost" onclick="collectCard(this)">Add to Collection</button>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p class="muted-copy">还没有保存的论文。在 Inbox 或 Queue 中标记论文为 Saved。</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% elif tab == 'history' %}
+            <div class="panel-card section-card">
+                <div class="section-head section-head-tight">
+                    <div>
+                        <div class="section-kicker">Past Batches</div>
+                        <h2 class="panel-title">{{ selected_date or 'History' }}</h2>
+                        <p class="muted-copy">历史推荐记录。选择一个日期查看当天论文。</p>
+                    </div>
+                </div>
+
+                {% if history_papers %}
+                    <div class="paper-stream">
+                        {% for paper in history_papers %}
+                            <article class="paper-card compact-card library-paper-card"
+                                data-paper-id="{{ paper.id }}"
+                                data-paper-title="{{ paper.title }}"
+                                data-paper-authors="{{ paper.author_text }}"
+                                data-paper-summary="{{ paper.summary or '' }}"
+                                data-paper-relevance="{{ paper.relevance or '' }}"
+                                data-paper-link="{{ paper.link or '' }}"
+                                data-paper-score="{{ paper.score or 0 }}"
+                                data-paper-first-author="{{ paper.first_author }}"
+                                data-queue-status="{{ paper.queue_status or '' }}">
+                                <div class="paper-topline">
+                                    <div class="paper-rank">
+                                        <span>#{{ paper.rank }}</span>
+                                        <span class="state-chip {{ paper.queue_status_class }}" data-queue-state {% if not paper.queue_status %}hidden{% endif %}>{{ paper.queue_status or '' }}</span>
+                                    </div>
+                                    <div class="chip-row">
+                                        <span class="score-chip">Score {{ '%.1f'|format(paper.score or 0) }}</span>
+                                    </div>
+                                </div>
+                                <h3 class="paper-title">
+                                    <a class="paper-title-link" href="{{ paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="trackPaperOpen('{{ paper.id }}', 'library_history')">{{ paper.title }}</a>
+                                </h3>
+                                <div class="paper-authors">{{ paper.author_text }}</div>
+                                <p class="paper-summary">{{ paper.summary_short }}</p>
+                                <div class="action-row">
+                                    <button type="button" class="action-button btn-warm" onclick="queueCard(this, 'Skim Later')">稍后读</button>
+                                    <button type="button" class="action-button btn-sage" onclick="queueCard(this, 'Deep Read')">精读</button>
+                                    <button type="button" class="action-button btn-subtle" onclick="queueCard(this, 'Saved')">Saved</button>
+                                    <button type="button" class="action-button btn-ghost" onclick="collectCard(this)">Add to Collection</button>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% elif selected_date %}
+                    <div class="empty-state">
+                        <p class="muted-copy">{{ selected_date }} 没有论文记录。</p>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p class="muted-copy">从右侧选择一个日期查看当天论文。</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <aside class="library-aside">
+        {% if tab == 'collections' %}
+            <div class="panel-card section-card">
+                <div class="section-kicker">Collections</div>
+                <h2 class="panel-title">研究容器</h2>
+                <div class="list-stack">
+                    {% if all_collections %}
+                        {% for collection in all_collections %}
+                            <a href="/library?tab=collections&collection_id={{ collection.id }}" class="list-item list-item-link {% if selected_collection and collection.id == selected_collection.id %}is-selected{% endif %}">
+                                <div>
+                                    <span class="list-item-title">{{ collection.name }}</span>
+                                    <span class="list-item-subtitle">{{ collection.description or collection.seed_query or '' }}</span>
+                                </div>
+                                <span class="list-item-trailing">{{ collection.paper_count }}</span>
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state compact-empty">
+                            <p class="muted-copy">还没有 Collection。</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% elif tab == 'history' %}
+            <div class="panel-card section-card">
+                <div class="section-kicker">Dates</div>
+                <h2 class="panel-title">推荐日期</h2>
+                <div class="list-stack">
+                    {% if history_dates %}
+                        {% for date in history_dates[:30] %}
+                            <a href="/library?tab=history&date={{ date }}" class="list-item list-item-link {% if date == selected_date %}is-selected{% endif %}">
+                                <div>
+                                    <span class="list-item-title">{{ date }}</span>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state compact-empty">
+                            <p class="muted-copy">还没有历史记录。</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="panel-card section-card">
+                <div class="section-kicker">Info</div>
+                <h2 class="panel-title">Saved Papers</h2>
+                <p class="detail-copy">在 Inbox 或 Queue 中将论文标记为 Saved，它们会出现在这里。</p>
+            </div>
+        {% endif %}
+    </aside>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function getCardPaper(element) {
+    return element.closest('[data-paper-id]');
+}
+
+async function queueCard(button, status) {
+    const card = getCardPaper(button);
+    if (!card) return;
+    try {
+        await queuePaperStatus(card.dataset.paperId, status, {source: 'library_research'});
+    } catch (error) {
+        showToast('队列更新失败: ' + error.message, 'error');
+    }
+}
+
+async function collectCard(button) {
+    const card = getCardPaper(button);
+    if (!card) return;
+    try {
+        await addPaperToCollection(card.dataset.paperId, {
+            defaultName: card.dataset.paperTitle.slice(0, 48),
+            source: 'library_research'
+        });
+    } catch (error) {
+        showToast('加入 Collection 失败: ' + error.message, 'error');
+    }
+}
+
+async function removePaperFromCollection(collectionId, button) {
+    const card = getCardPaper(button);
+    if (!card) return;
+    try {
+        await requestJson('/api/collections/' + collectionId + '/papers', {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({paper_id: card.dataset.paperId, source: 'library_collection'})
+        });
+        showToast('已移出 Collection');
+        card.remove();
+    } catch (error) {
+        showToast('移除失败: ' + error.message, 'error');
+    }
+}
+
+async function createCollectionPrompt() {
+    try {
+        const collection = await openCollectionEditor({defaultName: 'New collection'});
+        if (collection) {
+            window.location.href = '/library?tab=collections&collection_id=' + collection.id;
+        }
+    } catch (error) {
+        showToast('创建失败: ' + error.message, 'error');
+    }
+}
+
+async function editCollection(collection) {
+    try {
+        const updated = await openCollectionEditor({collection: collection});
+        if (updated) {
+            window.setTimeout(() => window.location.reload(), 300);
+        }
+    } catch (error) {
+        showToast('更新失败: ' + error.message, 'error');
+    }
+}
+
+async function deleteCollection(collectionId, name) {
+    if (!window.confirm('确定删除 Collection: ' + name + ' 吗？')) return;
+    try {
+        await requestJson('/api/collections', {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({collection_id: collectionId})
+        });
+        showToast('Collection 已删除');
+        removeCollectionCache(collectionId);
+        window.setTimeout(() => {
+            window.location.href = '/library?tab=collections';
+        }, 300);
+    } catch (error) {
+        showToast('删除失败: ' + error.message, 'error');
+    }
+}
+
+function applyCollectionFilters() {
+    const keyword = (document.getElementById('collectionPaperFilter')?.value || '').trim().toLowerCase();
+    const status = document.getElementById('collectionStatusFilter')?.value || 'all';
+    document.querySelectorAll('.library-paper-card').forEach((card) => {
+        const matchesKeyword = !keyword || (card.dataset.paperFilter || '').includes(keyword);
+        const queueStatus = card.dataset.queueStatus || '';
+        let matchesStatus = true;
+        if (status === 'none') {
+            matchesStatus = !queueStatus;
+        } else if (status !== 'all') {
+            matchesStatus = queueStatus === status;
+        }
+        card.hidden = !(matchesKeyword && matchesStatus);
+    });
+}
+</script>
+{% endblock %}
