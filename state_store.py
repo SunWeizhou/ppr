@@ -128,6 +128,23 @@ class StateStore:
                     payload_json TEXT NOT NULL DEFAULT '{}',
                     created_at TEXT NOT NULL
                 );
+
+                CREATE TABLE IF NOT EXISTS paper_ai_analyses (
+                    paper_id TEXT PRIMARY KEY,
+                    one_sentence_summary TEXT NOT NULL DEFAULT '',
+                    problem TEXT NOT NULL DEFAULT '',
+                    method TEXT NOT NULL DEFAULT '',
+                    contribution TEXT NOT NULL DEFAULT '',
+                    limitations TEXT NOT NULL DEFAULT '',
+                    why_it_matters TEXT NOT NULL DEFAULT '',
+                    recommended_reading_level TEXT NOT NULL DEFAULT 'skim',
+                    model_name TEXT NOT NULL DEFAULT '',
+                    prompt_version TEXT NOT NULL DEFAULT '',
+                    status TEXT NOT NULL DEFAULT 'ok',
+                    error_text TEXT NOT NULL DEFAULT '',
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
                 """
             )
             conn.execute(
@@ -204,6 +221,36 @@ class StateStore:
                 conn.execute(
                     "UPDATE interaction_events SET paper_id = ? WHERE id = ?",
                     (new_id, row["id"]),
+                )
+
+        analysis_rows = conn.execute(
+            "SELECT paper_id, updated_at FROM paper_ai_analyses WHERE paper_id LIKE '%v%'"
+        ).fetchall()
+        for row in analysis_rows:
+            old_id = row["paper_id"]
+            new_id = _canonical_paper_id(old_id)
+            if not new_id or new_id == old_id:
+                continue
+            existing = conn.execute(
+                "SELECT paper_id, updated_at FROM paper_ai_analyses WHERE paper_id = ?",
+                (new_id,),
+            ).fetchone()
+            if existing:
+                if str(row["updated_at"] or "") >= str(existing["updated_at"] or ""):
+                    conn.execute(
+                        "DELETE FROM paper_ai_analyses WHERE paper_id = ?",
+                        (new_id,),
+                    )
+                    conn.execute(
+                        "UPDATE paper_ai_analyses SET paper_id = ? WHERE paper_id = ?",
+                        (new_id, old_id),
+                    )
+                else:
+                    conn.execute("DELETE FROM paper_ai_analyses WHERE paper_id = ?", (old_id,))
+            else:
+                conn.execute(
+                    "UPDATE paper_ai_analyses SET paper_id = ? WHERE paper_id = ?",
+                    (new_id, old_id),
                 )
 
     @staticmethod
@@ -644,6 +691,89 @@ class StateStore:
             )
             return int(cursor.lastrowid)
 
+    def get_paper_ai_analysis(self, paper_id: str) -> Optional[Dict]:
+        paper_id = _canonical_paper_id(paper_id)
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM paper_ai_analyses WHERE paper_id = ?",
+                (paper_id,),
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    def upsert_paper_ai_analysis(
+        self,
+        paper_id: str,
+        analysis: Dict,
+        *,
+        model_name: str,
+        prompt_version: str,
+        status: str = "ok",
+        error_text: str = "",
+    ) -> Dict:
+        paper_id = _canonical_paper_id(paper_id)
+        if not paper_id:
+            raise ValueError("Missing paper_id")
+        now = _utc_now()
+        values = {
+            "one_sentence_summary": "",
+            "problem": "",
+            "method": "",
+            "contribution": "",
+            "limitations": "",
+            "why_it_matters": "",
+            "recommended_reading_level": "skim",
+        }
+        values.update({key: analysis.get(key, values[key]) or values[key] for key in values})
+        with self._lock, self._connect() as conn:
+            existing = conn.execute(
+                "SELECT created_at FROM paper_ai_analyses WHERE paper_id = ?",
+                (paper_id,),
+            ).fetchone()
+            created_at = existing["created_at"] if existing else now
+            conn.execute(
+                """
+                INSERT INTO paper_ai_analyses(
+                    paper_id, one_sentence_summary, problem, method, contribution,
+                    limitations, why_it_matters, recommended_reading_level,
+                    model_name, prompt_version, status, error_text, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(paper_id) DO UPDATE SET
+                    one_sentence_summary = excluded.one_sentence_summary,
+                    problem = excluded.problem,
+                    method = excluded.method,
+                    contribution = excluded.contribution,
+                    limitations = excluded.limitations,
+                    why_it_matters = excluded.why_it_matters,
+                    recommended_reading_level = excluded.recommended_reading_level,
+                    model_name = excluded.model_name,
+                    prompt_version = excluded.prompt_version,
+                    status = excluded.status,
+                    error_text = excluded.error_text,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    paper_id,
+                    values["one_sentence_summary"],
+                    values["problem"],
+                    values["method"],
+                    values["contribution"],
+                    values["limitations"],
+                    values["why_it_matters"],
+                    values["recommended_reading_level"],
+                    model_name,
+                    prompt_version,
+                    status,
+                    error_text,
+                    created_at,
+                    now,
+                ),
+            )
+            row = conn.execute(
+                "SELECT * FROM paper_ai_analyses WHERE paper_id = ?",
+                (paper_id,),
+            ).fetchone()
+        return self._row_to_dict(row)
+
     def export_state(self) -> Dict[str, List[Dict]]:
         tables = [
             "job_runs",
@@ -652,6 +782,7 @@ class StateStore:
             "saved_searches",
             "reading_queue_items",
             "interaction_events",
+            "paper_ai_analyses",
         ]
         snapshot: Dict[str, List[Dict]] = {}
         with self._connect() as conn:
@@ -683,6 +814,12 @@ class StateStore:
                 "paper_id", "status", "source", "note", "tags_json", "updated_at",
             ],
             "interaction_events": ["id", "event_type", "paper_id", "payload_json", "created_at"],
+            "paper_ai_analyses": [
+                "paper_id", "one_sentence_summary", "problem", "method",
+                "contribution", "limitations", "why_it_matters",
+                "recommended_reading_level", "model_name", "prompt_version",
+                "status", "error_text", "created_at", "updated_at",
+            ],
         }
 
         with self._lock, self._connect() as conn:

@@ -4,21 +4,30 @@ from __future__ import annotations
 
 from flask import Blueprint, jsonify, request
 
+from app.services.ai_analysis_service import AIAnalysisService
 from app.services.queue_service import QueueService
 from state_store import QUEUE_STATUS_VALUES, get_state_store
 
 bp = Blueprint("api", __name__)
 STATE_STORE = get_state_store()
+AI_ANALYSIS_PROVIDER = None
 
 
-def _queue_service():
+def _current_state_store():
     try:
         import web_server
 
-        state_store = web_server.STATE_STORE
+        return web_server.STATE_STORE
     except Exception:
-        state_store = STATE_STORE
-    return QueueService(state_store)
+        return STATE_STORE
+
+
+def _queue_service():
+    return QueueService(_current_state_store())
+
+
+def _ai_analysis_service():
+    return AIAnalysisService(_current_state_store(), provider=AI_ANALYSIS_PROVIDER)
 
 
 @bp.post("/api/feedback")
@@ -195,6 +204,32 @@ def manage_queue_bulk():
         return jsonify({"success": False, "error": message}), 400
 
     return jsonify({"success": True, "items": updated, "count": len(updated)})
+
+
+@bp.get("/api/papers/<paper_id>/analysis")
+def get_paper_analysis(paper_id):
+    analysis = _ai_analysis_service().get_analysis(paper_id)
+    if not analysis:
+        return jsonify({"success": False, "error": "analysis_not_found"}), 404
+    return jsonify({"success": True, "analysis": analysis})
+
+
+@bp.post("/api/papers/<paper_id>/analysis/generate")
+def generate_paper_analysis(paper_id):
+    service = _ai_analysis_service()
+    data = request.get_json() or {}
+    paper = dict(data.get("paper") or {})
+    paper["id"] = paper_id
+    try:
+        analysis = service.get_or_create_analysis(
+            paper,
+            user_profile=data.get("user_profile"),
+            recommendation_context=data.get("recommendation_context"),
+            force=bool(data.get("force", False)),
+        )
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
+    return jsonify({"success": True, "analysis": analysis})
 
 
 @bp.post("/api/search")
