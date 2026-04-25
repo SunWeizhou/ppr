@@ -76,6 +76,21 @@ python -m evaluation.run_evaluation --output-dir reports --k 5,10,20
 The command writes paired JSON and Markdown reports under `reports/`, which is
 ignored by git.
 
+## Optional DeepSeek AI Analysis
+
+AI Analysis is optional. Without an API key, the app still works and shows the
+original abstract plus rule-based recommendation reasons.
+
+To enable DeepSeek-compatible AI analysis, set:
+
+```bash
+export DEEPSEEK_API_KEY="your_api_key_here"
+export DEEPSEEK_BASE_URL="https://api.deepseek.com"
+export DEEPSEEK_MODEL="deepseek-chat"
+```
+
+Never commit your API key.
+
 ## Runtime State
 
 Runtime data is intentionally not tracked:

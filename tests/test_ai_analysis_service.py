@@ -2,6 +2,7 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from state_store import StateStore
 
@@ -132,6 +133,108 @@ class AIAnalysisServiceTests(unittest.TestCase):
         self.assertEqual(analysis["model_name"], "failing-provider")
         self.assertIn("provider unavailable", analysis["error_text"])
         self.assertEqual(cached["status"], "failed")
+
+    def test_build_ai_provider_from_env_defaults_to_no_provider(self):
+        from app.services.ai_providers import NoProvider, build_ai_provider_from_env
+
+        with mock.patch.dict("os.environ", {}, clear=True):
+            provider = build_ai_provider_from_env()
+
+        self.assertIsInstance(provider, NoProvider)
+
+    def test_build_ai_provider_from_env_uses_deepseek_when_key_exists(self):
+        from app.services.ai_providers import DeepSeekProvider, build_ai_provider_from_env
+
+        with mock.patch.dict(
+            "os.environ",
+            {
+                "DEEPSEEK_API_KEY": "test-api-key",
+                "DEEPSEEK_BASE_URL": "https://example.test",
+                "DEEPSEEK_MODEL": "custom-chat",
+            },
+            clear=True,
+        ):
+            provider = build_ai_provider_from_env()
+
+        self.assertIsInstance(provider, DeepSeekProvider)
+        self.assertEqual(provider.base_url, "https://example.test")
+        self.assertEqual(provider.model_name, "custom-chat")
+
+    def test_deepseek_provider_payload_and_json_response_fallback(self):
+        from app.services.ai_providers import DeepSeekProvider, ProviderError
+
+        calls = []
+
+        def fake_post(url, payload, *, headers, timeout):
+            calls.append((url, payload, headers, timeout))
+            if "response_format" in payload:
+                raise ProviderError("response_format unsupported")
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": (
+                                '{"one_sentence_summary":"short","problem":"p","method":"m",'
+                                '"contribution":"c","limitations":"l","why_it_matters":"w",'
+                                '"recommended_reading_level":"deep read"}'
+                            )
+                        }
+                    }
+                ]
+            }
+
+        provider = DeepSeekProvider(
+            api_key="test-api-key",
+            base_url="https://example.test/",
+            model="custom-chat",
+            timeout=12,
+            post_json=fake_post,
+        )
+        analysis = provider.analyze(
+            {"title": "Paper", "authors": "Ada", "abstract": "Abstract"},
+            user_profile={"keywords": ["statistics"]},
+            recommendation_context={"reason": "topic"},
+        )
+
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[0][0], "https://example.test/chat/completions")
+        self.assertEqual(calls[0][1]["model"], "custom-chat")
+        self.assertIn("response_format", calls[0][1])
+        self.assertNotIn("response_format", calls[1][1])
+        self.assertEqual(calls[0][2]["Authorization"], "Bearer test-api-key")
+        self.assertIn("Title:", calls[0][1]["messages"][1]["content"])
+        self.assertEqual(analysis["recommended_reading_level"], "deep_read")
+
+    def test_deepseek_provider_malformed_json_raises_safe_error(self):
+        from app.services.ai_providers import DeepSeekProvider, ProviderError
+
+        def fake_post(url, payload, *, headers, timeout):
+            return {"choices": [{"message": {"content": "not-json"}}]}
+
+        provider = DeepSeekProvider(api_key="test-api-key", post_json=fake_post)
+
+        with self.assertRaises(ProviderError) as context:
+            provider.analyze({"title": "Bad JSON"})
+
+        self.assertIn("malformed analysis JSON", str(context.exception))
+        self.assertNotIn("test-api-key", str(context.exception))
+
+    def test_deepseek_provider_error_is_cached_without_exposing_key(self):
+        from app.services.ai_analysis_service import AIAnalysisService
+        from app.services.ai_providers import DeepSeekProvider
+
+        def fake_post(url, payload, *, headers, timeout):
+            raise RuntimeError("boom test-api-key")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            provider = DeepSeekProvider(api_key="test-api-key", post_json=fake_post)
+            service = AIAnalysisService(store, provider=provider)
+            analysis = service.get_or_create_analysis({"id": "2604.77777", "title": "Failure"})
+
+        self.assertEqual(analysis["status"], "failed")
+        self.assertIn("[redacted]", analysis["error_text"])
+        self.assertNotIn("test-api-key", analysis["error_text"])
 
 
 if __name__ == "__main__":

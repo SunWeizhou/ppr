@@ -5,6 +5,7 @@ from __future__ import annotations
 from flask import Blueprint, jsonify, request
 
 from app.services.ai_analysis_service import AIAnalysisService
+from app.services.ai_providers import build_ai_provider_from_env
 from app.services.queue_service import QueueService
 from state_store import QUEUE_STATUS_VALUES, get_state_store
 
@@ -27,7 +28,10 @@ def _queue_service():
 
 
 def _ai_analysis_service():
-    return AIAnalysisService(_current_state_store(), provider=AI_ANALYSIS_PROVIDER)
+    return AIAnalysisService(
+        _current_state_store(),
+        provider=AI_ANALYSIS_PROVIDER or build_ai_provider_from_env(),
+    )
 
 
 @bp.post("/api/feedback")
