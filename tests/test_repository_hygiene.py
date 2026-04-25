@@ -113,6 +113,28 @@ class RepositoryHygieneTests(unittest.TestCase):
         self.assertIn("python -m unittest discover -s tests -v", readme)
         self.assertIn("PRD.md", readme)
 
+        for line in readme.splitlines():
+            if line.startswith("- `") and "`:" in line:
+                path = line.split("`", 2)[1]
+                self.assertTrue(Path(path).exists(), path)
+
+    def test_prd_v2_documents_product_constraints(self):
+        prd = Path("PRD.md")
+
+        self.assertTrue(prd.exists())
+        text = prd.read_text(encoding="utf-8")
+        text_lower = text.lower()
+
+        self.assertIn("local-first", text_lower)
+        self.assertIn("personalized research triage desk", text_lower)
+        self.assertIn("AI Analysis", text)
+        self.assertIn("author subscriptions", text)
+        self.assertIn("venue subscriptions", text)
+        self.assertIn("research question subscriptions", text)
+        self.assertIn("require real API keys in tests", text)
+        self.assertIn("Monitor is core and must not be deleted", text)
+        self.assertIn("Inbox must not expose", text)
+
 
 if __name__ == "__main__":
     unittest.main()
