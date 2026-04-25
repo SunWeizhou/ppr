@@ -2,9 +2,23 @@
 
 from __future__ import annotations
 
-from flask import Blueprint
+from flask import Blueprint, jsonify, request
+
+from app.services.queue_service import QueueService
+from state_store import QUEUE_STATUS_VALUES, get_state_store
 
 bp = Blueprint("api", __name__)
+STATE_STORE = get_state_store()
+
+
+def _queue_service():
+    try:
+        import web_server
+
+        state_store = web_server.STATE_STORE
+    except Exception:
+        state_store = STATE_STORE
+    return QueueService(state_store)
 
 
 @bp.post("/api/feedback")
@@ -135,16 +149,52 @@ def run_saved_search(search_id):
 
 @bp.route("/api/queue", methods=["GET", "POST"])
 def manage_queue():
-    import web_server
+    service = _queue_service()
+    if request.method == "GET":
+        status = request.args.get("status")
+        if status and status not in QUEUE_STATUS_VALUES:
+            return jsonify({"success": False, "error": "Invalid status"}), 400
+        return jsonify({"success": True, "items": service.list_items(status=status)})
 
-    return web_server.manage_queue()
+    data = request.get_json() or {}
+    paper_id = data.get("paper_id", "")
+    status = data.get("status")
+    if not paper_id:
+        return jsonify({"success": False, "error": "Missing paper_id"}), 400
+    if status is None:
+        existing = service.state_store.get_queue_item(paper_id)
+        status = existing.get("status") if existing else None
+    if status not in QUEUE_STATUS_VALUES:
+        return jsonify({"success": False, "error": "Invalid status"}), 400
+
+    item, event_id = service.update_status(
+        paper_id,
+        status,
+        source=data.get("source", "queue_api"),
+        note=data.get("note"),
+        tags=data.get("tags"),
+    )
+    return jsonify({"success": True, "item": item, "event_id": event_id})
 
 
 @bp.post("/api/queue/bulk")
 def manage_queue_bulk():
-    import web_server
+    service = _queue_service()
+    data = request.get_json() or {}
+    try:
+        updated = service.bulk_update_status(
+            data.get("paper_ids", []),
+            data.get("status"),
+            source=data.get("source", "queue_bulk"),
+            note=data.get("note", ""),
+        )
+    except ValueError as exc:
+        message = str(exc)
+        if "Invalid queue status" in message:
+            message = "Invalid status"
+        return jsonify({"success": False, "error": message}), 400
 
-    return web_server.manage_queue_bulk()
+    return jsonify({"success": True, "items": updated, "count": len(updated)})
 
 
 @bp.post("/api/search")
@@ -208,4 +258,3 @@ def debug_info():
     import web_server
 
     return web_server.debug_info()
-
