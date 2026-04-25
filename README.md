@@ -63,6 +63,19 @@ python -m unittest discover -s tests -v
 `python -m unittest discover -v` is also expected to discover tests from the
 repository root.
 
+## Recommendation Evaluation
+
+Phase 3 adds a local offline evaluator for the current heuristic ranking. It
+uses SQLite workflow state and cached recommendation snapshots, and it does not
+fetch arXiv or change the default recommendation pipeline.
+
+```bash
+python -m evaluation.run_evaluation --output-dir reports --k 5,10,20
+```
+
+The command writes paired JSON and Markdown reports under `reports/`, which is
+ignored by git.
+
 ## Runtime State
 
 Runtime data is intentionally not tracked:
