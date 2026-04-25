@@ -1212,6 +1212,30 @@ select {
   letter-spacing: 0.08em;
 }
 
+.detail-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.analysis-row {
+  display: grid;
+  grid-template-columns: minmax(84px, 0.35fr) minmax(0, 1fr);
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(65, 55, 45, 0.08);
+}
+
+.analysis-row strong {
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.analysis-row span {
+  overflow-wrap: anywhere;
+}
+
 .detail-actions {
   display: flex;
   flex-wrap: wrap;

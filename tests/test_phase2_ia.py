@@ -48,6 +48,11 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
         self.assertIn("View full explanation", template)
         self.assertIn("暂无 AI 分析，当前显示原始摘要和规则推荐原因。", template)
         self.assertIn("data-ai-analysis-section", template)
+        self.assertIn("data-ai-analysis-generate", template)
+        self.assertIn("Generate AI Analysis", template)
+        self.assertIn("/api/papers/", template)
+        self.assertIn("/analysis/generate", template)
+        self.assertNotIn("DEEPSEEK_API_KEY", template)
 
     def test_inbox_page_still_serves(self):
         import web_server
