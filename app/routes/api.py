@@ -219,7 +219,7 @@ def generate_paper_analysis(paper_id):
     service = _ai_analysis_service()
     data = request.get_json() or {}
     paper = dict(data.get("paper") or {})
-    paper["id"] = paper.get("id") or paper_id
+    paper["id"] = paper_id
     try:
         analysis = service.get_or_create_analysis(
             paper,

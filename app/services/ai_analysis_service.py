@@ -98,7 +98,9 @@ class AIAnalysisService:
         if not force:
             cached = self.get_analysis(paper_id)
             if cached:
-                return cached
+                has_real_provider = not isinstance(self.provider, NoProvider)
+                if cached.get("status") != "not_configured" or not has_real_provider:
+                    return cached
 
         model_name = getattr(self.provider, "model_name", self.provider.__class__.__name__)
         status = "ok"

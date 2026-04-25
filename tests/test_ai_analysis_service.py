@@ -102,6 +102,22 @@ class AIAnalysisServiceTests(unittest.TestCase):
         self.assertEqual(second["one_sentence_summary"], first["one_sentence_summary"])
         self.assertNotEqual(forced["one_sentence_summary"], first["one_sentence_summary"])
 
+    def test_not_configured_cache_regenerates_when_provider_becomes_available(self):
+        from app.services.ai_analysis_service import AIAnalysisService, FakeProvider, NoProvider
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            no_provider = AIAnalysisService(store, provider=NoProvider())
+            fallback = no_provider.get_or_create_analysis({"id": "2604.55555", "title": "Later"})
+            real_provider = AIAnalysisService(store, provider=FakeProvider())
+            regenerated = real_provider.get_or_create_analysis({"id": "2604.55555v2", "title": "Later"})
+            cached = real_provider.get_or_create_analysis({"id": "2604.55555", "title": "Later"})
+
+        self.assertEqual(fallback["status"], "not_configured")
+        self.assertEqual(regenerated["status"], "ok")
+        self.assertEqual(regenerated["model_name"], "fake-test-provider")
+        self.assertEqual(cached["one_sentence_summary"], regenerated["one_sentence_summary"])
+
     def test_provider_failure_returns_failed_fallback(self):
         from app.services.ai_analysis_service import AIAnalysisService
 

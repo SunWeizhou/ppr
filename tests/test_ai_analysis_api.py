@@ -75,6 +75,36 @@ class AIAnalysisApiTests(unittest.TestCase):
         self.assertEqual(cached.status_code, 200)
         self.assertEqual(cached.get_json()["analysis"]["paper_id"], "2604.23456")
 
+    def test_post_generate_uses_url_paper_id_over_body_id(self):
+        import web_server
+        from app.routes import api as api_routes
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            provider = ApiCountingProvider()
+            original_store = web_server.STATE_STORE
+            original_api_store = api_routes.STATE_STORE
+            original_provider = api_routes.AI_ANALYSIS_PROVIDER
+            web_server.STATE_STORE = store
+            api_routes.STATE_STORE = store
+            api_routes.AI_ANALYSIS_PROVIDER = provider
+            try:
+                response = web_server.app.test_client().post(
+                    "/api/papers/2604.45678v2/analysis/generate",
+                    json={"paper": {"id": "2604.99999v9", "title": "Path wins"}},
+                )
+                wrong_id = store.get_paper_ai_analysis("2604.99999")
+                path_id = store.get_paper_ai_analysis("2604.45678")
+            finally:
+                web_server.STATE_STORE = original_store
+                api_routes.STATE_STORE = original_api_store
+                api_routes.AI_ANALYSIS_PROVIDER = original_provider
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["analysis"]["paper_id"], "2604.45678")
+        self.assertIsNone(wrong_id)
+        self.assertIsNotNone(path_id)
+
     def test_post_generate_uses_injected_provider_and_force_regenerates(self):
         import web_server
         from app.routes import api as api_routes
