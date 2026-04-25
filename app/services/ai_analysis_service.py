@@ -6,70 +6,14 @@ work without external API keys or network access.
 
 from __future__ import annotations
 
-from state_store import _canonical_paper_id
-
-
-ANALYSIS_FIELDS = (
-    "one_sentence_summary",
-    "problem",
-    "method",
-    "contribution",
-    "limitations",
-    "why_it_matters",
-    "recommended_reading_level",
+from app.services.ai_providers import (
+    FakeProvider,
+    NoProvider,
+    OpenAICompatibleProvider,
+    fallback_analysis,
+    normalize_analysis_result,
 )
-
-
-def _fallback_analysis(*, reading_level: str = "skim") -> dict:
-    return {
-        "one_sentence_summary": "",
-        "problem": "",
-        "method": "",
-        "contribution": "",
-        "limitations": "",
-        "why_it_matters": "",
-        "recommended_reading_level": reading_level,
-    }
-
-
-def _normalize_provider_result(result: dict | None) -> dict:
-    normalized = _fallback_analysis()
-    if isinstance(result, dict):
-        for key in ANALYSIS_FIELDS:
-            if result.get(key):
-                normalized[key] = str(result[key])
-    return normalized
-
-
-class NoProvider:
-    model_name = "none"
-
-    def analyze(self, paper, user_profile=None, recommendation_context=None):
-        return _fallback_analysis()
-
-
-class FakeProvider:
-    model_name = "fake-test-provider"
-
-    def analyze(self, paper, user_profile=None, recommendation_context=None):
-        title = paper.get("title") or "Untitled paper"
-        abstract = paper.get("abstract") or paper.get("summary") or ""
-        return {
-            "one_sentence_summary": f"Fake analysis for {title}.",
-            "problem": "Identifies the research problem from the paper metadata.",
-            "method": "Summarizes the method using deterministic test-only logic.",
-            "contribution": "Provides a stable generated analysis for local tests.",
-            "limitations": "This fake provider does not inspect full paper text.",
-            "why_it_matters": abstract[:160] or "It may matter based on the recommendation context.",
-            "recommended_reading_level": "skim",
-        }
-
-
-class OpenAICompatibleProvider:
-    model_name = "openai-compatible"
-
-    def analyze(self, paper, user_profile=None, recommendation_context=None):
-        raise NotImplementedError("OpenAI-compatible provider is not implemented in this PR")
+from state_store import _canonical_paper_id
 
 
 class AIAnalysisService:
@@ -111,11 +55,11 @@ class AIAnalysisService:
                 user_profile=user_profile,
                 recommendation_context=recommendation_context,
             )
-            analysis = _normalize_provider_result(result)
+            analysis = normalize_analysis_result(result)
             if isinstance(self.provider, NoProvider):
                 status = "not_configured"
         except Exception as exc:
-            analysis = _fallback_analysis()
+            analysis = fallback_analysis()
             status = "failed"
             error_text = str(exc)
 

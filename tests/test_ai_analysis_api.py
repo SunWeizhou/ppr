@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from state_store import StateStore
 
@@ -57,11 +58,12 @@ class AIAnalysisApiTests(unittest.TestCase):
             api_routes.STATE_STORE = store
             api_routes.AI_ANALYSIS_PROVIDER = None
             try:
-                response = web_server.app.test_client().post(
-                    "/api/papers/2604.23456v2/analysis/generate",
-                    json={"paper": {"id": "2604.23456v2", "title": "No provider"}, "force": False},
-                )
-                cached = web_server.app.test_client().get("/api/papers/2604.23456/analysis")
+                with mock.patch.dict("os.environ", {}, clear=True):
+                    response = web_server.app.test_client().post(
+                        "/api/papers/2604.23456v2/analysis/generate",
+                        json={"paper": {"id": "2604.23456v2", "title": "No provider"}, "force": False},
+                    )
+                    cached = web_server.app.test_client().get("/api/papers/2604.23456/analysis")
             finally:
                 web_server.STATE_STORE = original_store
                 api_routes.STATE_STORE = original_api_store

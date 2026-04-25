@@ -39,6 +39,7 @@ class RepositoryHygieneTests(unittest.TestCase):
             "daily_arxiv_digest.md",
             "Paper Recommend.zip",
             "reports/evaluation.json",
+            ".env",
         ]
 
         result = subprocess.run(
@@ -134,6 +135,16 @@ class RepositoryHygieneTests(unittest.TestCase):
         self.assertIn("require real API keys in tests", text)
         self.assertIn("Monitor is core and must not be deleted", text)
         self.assertIn("Inbox must not expose", text)
+
+    def test_env_example_documents_deepseek_without_secrets(self):
+        example = Path(".env.example")
+
+        self.assertTrue(example.exists())
+        text = example.read_text(encoding="utf-8")
+        self.assertIn("DEEPSEEK_API_KEY=", text)
+        self.assertIn("DEEPSEEK_BASE_URL=https://api.deepseek.com", text)
+        self.assertIn("DEEPSEEK_MODEL=deepseek-chat", text)
+        self.assertNotIn("sk-", text)
 
 
 if __name__ == "__main__":
