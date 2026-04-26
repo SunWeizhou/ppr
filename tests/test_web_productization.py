@@ -8,6 +8,7 @@ from unittest import mock
 class WebProductizationTests(unittest.TestCase):
     def test_save_feedback_does_not_attempt_git_commit(self):
         import web_server
+        from app.services.feedback_service import FeedbackService
 
         with tempfile.TemporaryDirectory() as tmp:
             feedback_file = Path(tmp) / "user_feedback.json"
@@ -15,7 +16,14 @@ class WebProductizationTests(unittest.TestCase):
             web_server.FEEDBACK_FILE = str(feedback_file)
             try:
                 with mock.patch("web_server.subprocess.run") as run:
-                    web_server.save_feedback({"liked": ["2604.12345"], "disliked": []})
+                    svc = FeedbackService(
+                        web_server.STATE_STORE,
+                        feedback_file=str(feedback_file),
+                        favorites_file=str(Path(tmp) / "favorites.json"),
+                        cache_file=str(Path(tmp) / "cache.json"),
+                        history_dir=str(Path(tmp) / "history"),
+                    )
+                    svc.save_feedback({"liked": ["2604.12345"], "disliked": []})
                 run.assert_not_called()
             finally:
                 web_server.FEEDBACK_FILE = original_feedback_file
