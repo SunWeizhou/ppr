@@ -8,25 +8,15 @@ from pathlib import Path
 from typing import Optional
 
 from app_paths import CACHE_DIR, HISTORY_DIR
+from app.services.paper_utils import (
+    category_labels,
+    extract_primary_author as _extract_primary_author,
+    format_author_text as _format_author_text,
+    generate_relevance_html as _generate_relevance_html,
+    normalize_queue_status as _normalize_queue_status,
+    status_class as _status_class,
+)
 from state_store import QUEUE_STATUS_VALUES, _canonical_paper_id
-
-
-CATEGORY_NAMES = {
-    "stat.ML": "Stat ML",
-    "stat.TH": "Stat Theory",
-    "stat.ME": "Methodology",
-    "stat.CO": "Computation",
-    "cs.LG": "ML",
-    "cs.AI": "AI",
-    "cs.CL": "NLP",
-    "cs.CV": "Vision",
-    "cs.NE": "Neural",
-    "cs.IT": "Info Theory",
-    "math.ST": "Math Stats",
-    "math.PR": "Probability",
-    "math.OC": "Optimization",
-    "econ.EM": "Econometrics",
-}
 
 
 def _safe_load_json(path: Path, default):
@@ -34,48 +24,6 @@ def _safe_load_json(path: Path, default):
         return json.loads(path.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError, OSError):
         return default
-
-
-def _normalize_queue_status(status):
-    value = str(status or "").strip()
-    if value.lower() in {"", "none", "null"}:
-        return ""
-    return value
-
-
-def _status_class(status):
-    status = _normalize_queue_status(status)
-    if not status:
-        return ""
-    return "status-" + status.lower().replace(" ", "-")
-
-
-def _format_author_text(authors, *, limit: int = 3):
-    if isinstance(authors, list):
-        author_text = ", ".join(authors[:limit])
-        if len(authors) > limit:
-            author_text += f" et al. ({len(authors)} authors)"
-        return author_text
-    return authors or ""
-
-
-def _extract_primary_author(authors):
-    if isinstance(authors, list) and authors:
-        return authors[0]
-    if isinstance(authors, str) and authors.strip():
-        return authors.split(",")[0].strip()
-    return ""
-
-
-def _generate_relevance_html(paper):
-    relevance = paper.get("relevance") or paper.get("relevance_reason") or "点击查看 arXiv 页面"
-    return (
-        '<div class="paper-relevance-items">'
-        '<div class="relevance-item">'
-        '<span class="relevance-icon">📌</span>'
-        f'<span class="relevance-text">{relevance}</span>'
-        "</div></div>"
-    )
 
 
 class QueueService:
@@ -306,13 +254,65 @@ class QueueService:
             item["is_incomplete"] = not item.get("score")
             item["is_liked"] = item.get("id") in feedback.get("liked", [])
             item["is_disliked"] = item.get("id") in feedback.get("disliked", [])
-            item["category_labels"] = [
-                CATEGORY_NAMES.get(category, category)
-                for category in item.get("categories", [])[:4]
-            ]
+            item["category_labels"] = category_labels(item.get("categories", []))
             item["summary_short"] = (item.get("summary") or item.get("abstract") or "")[:220]
             decorated.append(item)
         return decorated
+
+    def get_todays_reading_plan(self) -> dict:
+        """Return today's reading plan: top Deep Read and Skim Later papers.
+
+        Each paper is resolved against the history index, favorites, and
+        paper cache so the template gets title, authors, score, etc.
+        """
+        from datetime import datetime
+
+        from app.services.paper_utils import format_author_text as _fmt_authors
+
+        today = datetime.now().strftime("%Y-%m-%d")
+        all_items = self.list_items()
+        today_items = [
+            item
+            for item in all_items
+            if (item.get("updated_at") or "").startswith(today)
+            and item.get("status") in ("Deep Read", "Skim Later")
+        ]
+
+        history_index = self._load_history_paper_index()
+        favorites = self._load_favorites()
+        paper_cache = self._load_paper_cache()
+
+        deep_read: list = []
+        skim_later: list = []
+
+        for item in today_items:
+            paper = self._resolve_paper_record(
+                item.get("paper_id"),
+                history_index=history_index,
+                favorites=favorites,
+                paper_cache=paper_cache,
+            )
+            paper["queue_status"] = item.get("status")
+            paper["updated_at"] = item.get("updated_at", "")
+            paper["queue_note"] = item.get("note", "")
+            if item.get("status") == "Deep Read":
+                deep_read.append(paper)
+            else:
+                skim_later.append(paper)
+
+        # Sort by time added (most recent first)
+        deep_read.sort(key=lambda p: p.get("updated_at", ""), reverse=True)
+        skim_later.sort(key=lambda p: p.get("updated_at", ""), reverse=True)
+
+        # Decorate with author formatting and short summary, then limit
+        for paper in deep_read[:3] + skim_later[:5]:
+            paper["author_text"] = _fmt_authors(paper.get("authors"))
+            paper["summary_short"] = (paper.get("summary") or paper.get("abstract") or "")[:220]
+
+        return {
+            "deep_read": deep_read[:3],
+            "skim_later": skim_later[:5],
+        }
 
     def resolve_papers(self, status: Optional[str] = None):
         feedback = self.load_feedback()

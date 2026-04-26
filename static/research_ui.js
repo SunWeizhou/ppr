@@ -64,6 +64,16 @@
       .replace(/'/g, '&#39;');
   }
 
+  function getFieldValue(id, defaultValue) {
+    const el = document.getElementById(id);
+    return el != null ? el.value : defaultValue;
+  }
+
+  function getFieldChecked(id, defaultValue) {
+    const el = document.getElementById(id);
+    return el != null ? el.checked : defaultValue;
+  }
+
   function showToast(message, kind = 'success') {
     const toast = document.getElementById('toast');
     if (!toast) return;
@@ -724,13 +734,10 @@
     const lang = I18N[language] ? language : 'zh';
     document.documentElement.dataset.language = lang;
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
-    document.querySelectorAll('[data-i18n]').forEach((node) => {
-      const key = node.dataset.i18n;
-      if (I18N[lang][key]) node.textContent = I18N[lang][key];
-    });
-    document.querySelectorAll('[data-i18n-quote]').forEach((node) => {
-      const key = node.dataset.i18nQuote;
-      if (I18N[lang][key]) node.textContent = I18N[lang][key];
+    const i18nMap = I18N[lang] || {};
+    document.querySelectorAll('[data-i18n], [data-i18n-quote]').forEach((node) => {
+      const key = node.dataset.i18n || node.dataset.i18nQuote;
+      if (i18nMap[key]) node.textContent = i18nMap[key];
     });
     const languageToggle = document.querySelector('[data-action="toggle-language"]');
     if (languageToggle) languageToggle.textContent = lang === 'zh' ? '中 / EN' : 'EN / 中';
@@ -768,6 +775,8 @@
     showToast,
     escapeAttrValue,
     requestJson,
+    getFieldValue,
+    getFieldChecked,
     updateCollectionCache,
     removeCollectionCache,
     updateSavedSearchCache,

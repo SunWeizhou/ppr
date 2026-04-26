@@ -24,12 +24,12 @@
 
 {% block content %}
 <section>
-    <div class="toolbar">
-        <button type="button" class="filter-chip {% if selected_filter == 'all' %}active{% endif %}" data-filter-chip data-filter="all">全部 <span class="count">{{ papers|length }}</span></button>
-        <button type="button" class="filter-chip {% if selected_filter == 'untriaged' %}active{% endif %}" data-filter-chip data-filter="untriaged">未处理</button>
-        <button type="button" class="filter-chip {% if selected_filter == 'queued' %}active{% endif %}" data-filter-chip data-filter="queued">已入队</button>
-        <button type="button" class="filter-chip {% if selected_filter == 'relevant' %}active{% endif %}" data-filter-chip data-filter="relevant">Relevant</button>
-        <button type="button" class="filter-chip {% if selected_filter == 'ignored' %}active{% endif %}" data-filter-chip data-filter="ignored">Ignored</button>
+    <div class="toolbar" role="group" aria-label="Paper filters">
+        <button type="button" class="filter-chip {% if selected_filter == 'all' %}active{% endif %}" data-filter-chip data-filter="all" aria-label="Show all papers" aria-pressed="{% if selected_filter == 'all' %}true{% else %}false{% endif %}">全部 <span class="count">{{ papers|length }}</span></button>
+        <button type="button" class="filter-chip {% if selected_filter == 'untriaged' %}active{% endif %}" data-filter-chip data-filter="untriaged" aria-label="Show untriaged papers" aria-pressed="{% if selected_filter == 'untriaged' %}true{% else %}false{% endif %}">未处理</button>
+        <button type="button" class="filter-chip {% if selected_filter == 'queued' %}active{% endif %}" data-filter-chip data-filter="queued" aria-label="Show queued papers" aria-pressed="{% if selected_filter == 'queued' %}true{% else %}false{% endif %}">已入队</button>
+        <button type="button" class="filter-chip {% if selected_filter == 'relevant' %}active{% endif %}" data-filter-chip data-filter="relevant" aria-label="Show relevant papers" aria-pressed="{% if selected_filter == 'relevant' %}true{% else %}false{% endif %}">Relevant</button>
+        <button type="button" class="filter-chip {% if selected_filter == 'ignored' %}active{% endif %}" data-filter-chip data-filter="ignored" aria-label="Show ignored papers" aria-pressed="{% if selected_filter == 'ignored' %}true{% else %}false{% endif %}">Ignored</button>
         <span class="toolbar-sep"></span>
         <span class="chip brand" id="visiblePaperCount">{{ papers|length }} visible</span>
         <span class="spacer"></span>
@@ -37,14 +37,45 @@
         {% if next_date %}<a href="/date/{{ next_date }}" class="btn btn-tertiary">更新一天</a>{% endif %}
     </div>
 
+    {% if is_today %}
+    <div class="card" id="inboxProgressCard" style="margin-bottom: 8px;">
+        <div id="inboxProgressContent" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <div>
+                    <span class="detail-label">Today's Progress</span>
+                    <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 2px;">
+                        <span style="font-family: var(--ff-mono); font-size: 18px; font-weight: 600; color: var(--brand);" id="progressHandled">0</span>
+                        <span style="font-size: 12px; color: var(--ink-muted);">/ <span id="progressTotal">{{ papers|length }}</span> papers handled</span>
+                    </div>
+                </div>
+                <div style="width: 200px; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden;" id="progressBarTrack">
+                    <div id="progressBarFill" style="height: 100%; width: 0%; background: var(--brand); border-radius: 999px; transition: width 0.35s ease;"></div>
+                </div>
+                <div style="display: flex; gap: 14px; font-size: 12px; color: var(--ink-3);" id="progressBreakdown">
+                    <span><span style="color: var(--sage); font-weight: 600;" id="progressLiked">0</span> liked</span>
+                    <span><span style="color: var(--danger); font-weight: 600;" id="progressDisliked">0</span> ignored</span>
+                    <span><span style="color: var(--brand-2); font-weight: 600;" id="progressQueued">0</span> queued</span>
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" id="finishTodayBtn" onclick="finishToday()">Finish Today</button>
+        </div>
+        <div id="inboxProgressComplete" hidden style="text-align: center; padding: 12px 0;">
+            <div style="font-family: var(--ff-serif); font-size: 32px; line-height: 1; color: var(--sage); margin-bottom: 6px;">&#10003;</div>
+            <div style="font-size: 18px; font-weight: 600; font-family: var(--ff-serif); color: var(--ink);">Today's Triage Complete</div>
+            <div style="font-size: 13px; color: var(--ink-3); margin-top: 4px;" id="completeSummaryText"></div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="split inbox-workspace">
         <div>
             {% if papers %}
                 <div class="card card--flush paper-list-scroll">
-                    <div class="paper-list" id="inboxPaperList">
+                    <div class="paper-list" id="inboxPaperList" role="list" aria-label="Paper list">
                         {% for paper in papers %}
                             <article
                                 class="paper-list-item {% if loop.first %}active{% endif %} {% if paper.is_liked %}state-liked{% elif paper.is_disliked %}state-disliked{% endif %}"
+                                role="listitem"
                                 data-paper-id="{{ paper.id }}"
                                 data-paper-title="{{ paper.title }}"
                                 data-paper-authors="{{ paper.author_text }}"
@@ -97,7 +128,7 @@
             {% endif %}
         </div>
 
-        <aside class="detail-panel" id="paperDetailPanel">
+        <aside class="detail-panel" id="paperDetailPanel" aria-label="Paper details">
             {% if papers %}
                 {% set first_paper = papers[0] %}
                 <div class="detail-kicker">Selected Paper</div>
@@ -121,7 +152,7 @@
                 <div class="detail-section" data-ai-analysis-section>
                     <div class="detail-label-row">
                         <div class="detail-label">AI Analysis</div>
-                        <button type="button" class="btn btn-tertiary" data-ai-analysis-generate onclick="generateSelectedAiAnalysis()">Generate AI Analysis</button>
+                        <button type="button" class="btn btn-tertiary" data-ai-analysis-generate onclick="generateSelectedAiAnalysis()" aria-label="Generate AI analysis for selected paper">Generate AI Analysis</button>
                     </div>
                     <div class="detail-copy" id="detailAiAnalysis" data-ai-analysis-output>暂无 AI 分析，当前显示原始摘要和规则推荐原因。</div>
                 </div>
@@ -133,21 +164,21 @@
 
                 <div class="detail-section">
                     <div class="detail-label">Actions</div>
-                    <div class="detail-actions detail-actions-grid detail-primary-actions">
-                        <button type="button" class="btn btn-primary" onclick="submitSelectedFeedback('like')">Relevant</button>
-                        <button type="button" class="btn btn-danger" onclick="submitSelectedFeedback('dislike')">Ignore</button>
-                        <a id="detailLink" class="btn btn-primary" href="{{ first_paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="openSelectedPaper(event)">Open arXiv</a>
-                        <button type="button" class="btn btn-warm" onclick="queueSelectedPaper('Skim Later')">Skim Later</button>
-                        <button type="button" class="btn btn-sage" onclick="queueSelectedPaper('Deep Read')">Deep Read</button>
+                    <div class="detail-actions detail-actions-grid detail-primary-actions" role="group" aria-label="Primary paper actions">
+                        <button type="button" class="btn btn-primary" onclick="submitSelectedFeedback('like')" aria-label="Mark paper as relevant">Relevant</button>
+                        <button type="button" class="btn btn-danger" onclick="submitSelectedFeedback('dislike')" aria-label="Ignore this paper">Ignore</button>
+                        <a id="detailLink" class="btn btn-primary" href="{{ first_paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="openSelectedPaper(event)" aria-label="Open selected paper on arXiv">Open arXiv</a>
+                        <button type="button" class="btn btn-warm" onclick="queueSelectedPaper('Skim Later')" aria-label="Queue paper for skim later">Skim Later</button>
+                        <button type="button" class="btn btn-sage" onclick="queueSelectedPaper('Deep Read')" aria-label="Queue paper for deep read">Deep Read</button>
                     </div>
 
                     <div class="detail-actions">
-                        <button type="button" class="btn btn-tertiary" data-more-actions-toggle onclick="toggleMoreActions()">More actions</button>
+                        <button type="button" class="btn btn-tertiary" data-more-actions-toggle onclick="toggleMoreActions()" aria-label="Show more actions">More actions</button>
                         <div class="more-actions-dropdown">
                             <div class="card more-actions-menu" id="moreActionsMenu" hidden>
                                 <div class="list-stack">
-                                    <button type="button" class="btn btn-tertiary" onclick="collectSelectedPaper(); closeMoreActions();">Add to Collection</button>
-                                    <button type="button" class="btn btn-tertiary" onclick="toggleFullExplanation(); closeMoreActions();">View full explanation</button>
+                                    <button type="button" class="btn btn-tertiary" onclick="collectSelectedPaper(); closeMoreActions();" aria-label="Add selected paper to collection">Add to Collection</button>
+                                    <button type="button" class="btn btn-tertiary" onclick="toggleFullExplanation(); closeMoreActions();" aria-label="View full explanation for selected paper">View full explanation</button>
                                 </div>
                             </div>
                         </div>
@@ -161,6 +192,52 @@
         </aside>
     </div>
 </section>
+
+<div id="triageCompleteModal" class="modal-shell" hidden>
+    <div class="modal-backdrop" onclick="closeModal('triageCompleteModal')"></div>
+    <div class="modal-card modal-card--compact">
+        <div class="modal-head">
+            <div>
+                <div class="section-kicker">Triage Summary</div>
+                <h2 class="panel-title">Today's Triage Complete</h2>
+                <p class="muted-copy" id="triageSummaryDate"></p>
+            </div>
+            <button type="button" class="btn btn-tertiary" onclick="closeModal('triageCompleteModal')">关闭</button>
+        </div>
+        <div class="modal-body">
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+                <div class="detail-box" style="text-align: center;">
+                    <div style="font-family: var(--ff-mono); font-size: 24px; font-weight: 700; color: var(--brand);" id="summaryTotal">0</div>
+                    <div style="font-size: 12px; color: var(--ink-muted);">Papers Today</div>
+                </div>
+                <div class="detail-box" style="text-align: center;">
+                    <div style="font-family: var(--ff-mono); font-size: 24px; font-weight: 700; color: var(--sage);" id="summaryHandled">0</div>
+                    <div style="font-size: 12px; color: var(--ink-muted);">Papers Handled</div>
+                </div>
+                <div class="detail-box" style="text-align: center;">
+                    <div style="font-family: var(--ff-mono); font-size: 24px; font-weight: 700; color: var(--sage);" id="summaryLiked">0</div>
+                    <div style="font-size: 12px; color: var(--ink-muted);">Liked</div>
+                </div>
+                <div class="detail-box" style="text-align: center;">
+                    <div style="font-family: var(--ff-mono); font-size: 24px; font-weight: 700; color: var(--accent);" id="summarySkimmed">0</div>
+                    <div style="font-size: 12px; color: var(--ink-muted);">Skim Later</div>
+                </div>
+                <div class="detail-box" style="text-align: center;">
+                    <div style="font-family: var(--ff-mono); font-size: 24px; font-weight: 700; color: var(--sage);" id="summaryDeepRead">0</div>
+                    <div style="font-size: 12px; color: var(--ink-muted);">Deep Read</div>
+                </div>
+                <div class="detail-box" style="text-align: center;">
+                    <div style="font-family: var(--ff-mono); font-size: 24px; font-weight: 700; color: var(--danger);" id="summaryDisliked">0</div>
+                    <div style="font-size: 12px; color: var(--ink-muted);">Ignored</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-tertiary" onclick="closeModal('triageCompleteModal')">回去继续筛选</button>
+            <button type="button" class="btn btn-primary" id="confirmCompleteBtn" onclick="confirmTriageComplete()">确认完成</button>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 
@@ -323,12 +400,29 @@ function applyInboxFilter(filterName) {
     }
 }
 
-filterButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-        filterButtons.forEach((item) => item.classList.remove('active'));
-        button.classList.add('active');
-        applyInboxFilter(button.dataset.filter || 'all');
+function handleFilterChipClick(chip) {
+    filterButtons.forEach((item) => {
+        item.classList.remove('active');
+        item.setAttribute('aria-pressed', 'false');
     });
+    chip.classList.add('active');
+    chip.setAttribute('aria-pressed', 'true');
+    applyInboxFilter(chip.dataset.filter || 'all');
+}
+
+document.querySelector('.toolbar')?.addEventListener('click', (event) => {
+    const chip = event.target.closest('[data-filter-chip]');
+    if (chip) handleFilterChipClick(chip);
+});
+
+document.querySelector('.toolbar')?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+        const chip = event.target.closest('[data-filter-chip]');
+        if (chip) {
+            event.preventDefault();
+            handleFilterChipClick(chip);
+        }
+    }
 });
 
 inboxList?.addEventListener('click', (event) => {
@@ -368,6 +462,7 @@ async function submitSelectedFeedback(action) {
         currentInboxItem.classList.toggle('state-liked', action === 'like');
         currentInboxItem.classList.toggle('state-disliked', action === 'dislike');
         showToast(action === 'like' ? '已标为 Relevant' : '已忽略该论文');
+        refreshInboxProgress();
     } catch (error) {
         showToast('操作失败: ' + error.message, 'error');
     }
@@ -377,6 +472,7 @@ async function queueSelectedPaper(status) {
     if (!currentInboxItem) return;
     try {
         await queuePaperStatus(currentInboxItem.dataset.paperId, status, {source: 'home_research'});
+        refreshInboxProgress();
     } catch (error) {
         showToast('加入队列失败: ' + error.message, 'error');
     }
@@ -464,5 +560,92 @@ document.addEventListener('keydown', (event) => {
 });
 
 applyInboxFilter('{{ selected_filter }}');
+
+// ---- Inbox Progress Tracking ----
+
+function updateProgressUI(data) {
+    const pct = data.total > 0 ? Math.round((data.handled / data.total) * 100) : 0;
+    const bar = document.getElementById('progressBarFill');
+    if (bar) bar.style.width = pct + '%';
+    const handledEl = document.getElementById('progressHandled');
+    if (handledEl) handledEl.textContent = data.handled;
+    const likedEl = document.getElementById('progressLiked');
+    if (likedEl) likedEl.textContent = data.liked || 0;
+    const dislikedEl = document.getElementById('progressDisliked');
+    if (dislikedEl) dislikedEl.textContent = data.disliked || 0;
+    const queuedEl = document.getElementById('progressQueued');
+    if (queuedEl) queuedEl.textContent = data.queued || 0;
+}
+
+async function refreshInboxProgress() {
+    const progressCard = document.getElementById('inboxProgressCard');
+    if (!progressCard) return;
+    try {
+        const total = {{ papers|length }};
+        const result = await requestJson('/api/inbox/progress?total=' + total);
+        if (result.success) updateProgressUI(result.data);
+    } catch (error) {
+        console.debug('Failed to refresh inbox progress', error);
+    }
+}
+
+async function finishToday() {
+    const total = {{ papers|length }};
+    let progress = { handled: 0, liked: 0, disliked: 0, skimmed: 0, deep_read: 0, queued: 0 };
+
+    try {
+        const result = await requestJson('/api/inbox/progress?total=' + total);
+        if (result.success) progress = result.data;
+    } catch (error) {
+        console.debug('Failed to fetch progress for summary', error);
+    }
+
+    const dateStr = '{{ date }}';
+    document.getElementById('triageSummaryDate').textContent = dateStr;
+    document.getElementById('summaryTotal').textContent = progress.total;
+    document.getElementById('summaryHandled').textContent = progress.handled;
+    document.getElementById('summaryLiked').textContent = progress.liked || 0;
+    document.getElementById('summaryDisliked').textContent = progress.disliked || 0;
+    document.getElementById('summarySkimmed').textContent = progress.skimmed || 0;
+    document.getElementById('summaryDeepRead').textContent = progress.deep_read || 0;
+
+    openModal('triageCompleteModal');
+}
+
+async function confirmTriageComplete() {
+    const total = {{ papers|length }};
+    try {
+        const dateStr = '{{ date }}';
+        const result = await requestJson('/api/inbox/triage-complete', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ date: dateStr, total: total })
+        });
+        closeModal('triageCompleteModal');
+        showToast('今日筛选完成！');
+        // Switch to complete state
+        const progressContent = document.getElementById('inboxProgressContent');
+        const progressComplete = document.getElementById('inboxProgressComplete');
+        const finishBtn = document.getElementById('finishTodayBtn');
+        if (progressContent) progressContent.hidden = true;
+        if (progressComplete) progressComplete.hidden = false;
+        if (finishBtn) finishBtn.hidden = true;
+        // Update complete state summary
+        const summary = result.summary || {};
+        const summaryEl = document.getElementById('completeSummaryText');
+        if (summaryEl) {
+            summaryEl.textContent = 'You handled ' + (summary.papers_processed || 0) + ' papers: '
+                + (summary.papers_liked || 0) + ' liked, '
+                + (summary.papers_skimmed || 0) + ' skimmed later, '
+                + (summary.papers_deep_read || 0) + ' deep read, '
+                + (summary.papers_disliked || 0) + ' ignored.';
+        }
+    } catch (error) {
+        showToast('记录失败: ' + error.message, 'error');
+    }
+}
+
+// Initialize progress on page load
+refreshInboxProgress();
 </script>
 {% endblock %}

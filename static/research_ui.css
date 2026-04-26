@@ -124,6 +124,23 @@ select {
   display: none !important;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .app {
   display: grid;
   grid-template-columns: 216px minmax(0, 1fr);
@@ -1900,5 +1917,190 @@ select {
 
   .row-trail {
     justify-content: space-between;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidenav {
+    padding: 12px 10px;
+    gap: 12px;
+  }
+
+  .nav-item {
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+
+  .brand-mark {
+    font-size: 22px;
+  }
+
+  .main-inner {
+    padding: 16px 14px 36px;
+  }
+
+  .paper-list-item {
+    min-height: 44px;
+    padding: 14px 14px;
+  }
+
+  .filter-chip {
+    min-height: 44px;
+    padding: 0 14px;
+  }
+
+  .btn {
+    min-height: 44px;
+  }
+
+  .detail-panel {
+    padding: 14px;
+  }
+
+  .detail-title,
+  .paper-list-title {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .paper-authors,
+  .paper-list-summary {
+    overflow-wrap: anywhere;
+  }
+
+  .modal-card {
+    width: calc(100vw - 16px);
+    margin: 12px auto;
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .sidenav {
+    position: sticky;
+    top: 0;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 8px 10px;
+    gap: 6px;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    z-index: 10;
+  }
+
+  .sidenav .brand {
+    border-bottom: 0;
+    padding: 0;
+    gap: 0;
+    flex: 0 0 auto;
+  }
+
+  .sidenav .brand-sub {
+    display: none;
+  }
+
+  .sidenav-group-label {
+    display: none;
+  }
+
+  .nav-list {
+    flex-direction: row;
+    gap: 2px;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+
+  .nav-item {
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .sidenav-foot {
+    display: none;
+  }
+
+  .main-inner {
+    padding: 12px 10px 32px;
+  }
+
+  .split,
+  .split--rail-left,
+  .settings-frame {
+    grid-template-columns: 1fr;
+  }
+
+  .page-inbox .main-inner {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .page-inbox .main-inner > section {
+    display: block;
+  }
+
+  .page-inbox .inbox-workspace {
+    height: auto;
+    overflow: visible;
+  }
+
+  .page-inbox .detail-panel {
+    height: auto;
+    margin-top: 12px;
+  }
+
+  .paper-list-item {
+    padding: 12px 10px;
+    min-height: 44px;
+  }
+
+  .btn {
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+
+  .filter-chip {
+    min-height: 40px;
+    padding: 0 10px;
+  }
+
+  .toolbar {
+    gap: 6px;
+  }
+
+  .paper-list-title {
+    font-size: 15px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .paper-authors,
+  .paper-list-summary {
+    overflow-wrap: anywhere;
+    font-size: 13px;
+  }
+
+  .detail-title {
+    font-size: 18px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .modal-card {
+    width: calc(100vw - 12px);
+    margin: 8px auto;
+    padding: 12px;
+  }
+
+  .preference-switcher {
+    display: none;
   }
 }

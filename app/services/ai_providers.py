@@ -247,15 +247,38 @@ class DeepSeekProvider:
                     return json.loads(text[start : end + 1])
                 except json.JSONDecodeError as exc:
                     raise ProviderError("DeepSeek returned malformed analysis JSON") from exc
-            raise ProviderError("DeepSeek returned malformed analysis JSON")
+            raise ProviderError("DeepSeek returned malformed analysis JSON") from None
 
 
 def build_ai_provider_from_env():
+    # 1) Check environment variables first (backward compatible)
     api_key = os.getenv("DEEPSEEK_API_KEY")
-    if not api_key:
-        return NoProvider()
-    return DeepSeekProvider(
-        api_key=api_key,
-        base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
-        model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
-    )
+    if api_key:
+        return DeepSeekProvider(
+            api_key=api_key,
+            base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
+            model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
+        )
+
+    # 2) Fall back to user_profile.json via config_manager
+    try:
+        from config_manager import get_config
+
+        ai_config = get_config().get_ai_config()
+        if ai_config.get("enabled") and ai_config.get("api_key"):
+            provider_name = ai_config.get("provider", "none")
+            if provider_name == "deepseek":
+                return DeepSeekProvider(
+                    api_key=ai_config["api_key"],
+                    base_url=ai_config.get("base_url", "https://api.deepseek.com"),
+                    model=ai_config.get("model", "deepseek-chat"),
+                )
+            elif provider_name == "openai":
+                return OpenAICompatibleProvider()
+    except Exception:
+        import logging
+        logging.getLogger(__name__).debug(
+            "Could not load AI config from user_profile.json", exc_info=True
+        )
+
+    return NoProvider()

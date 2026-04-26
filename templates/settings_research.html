@@ -59,12 +59,18 @@
                     </div>
 
                     <div class="keyword-add-form mt-4">
-                        <input type="text" id="newKeyword" placeholder="输入新关键词..." onkeypress="if(event.key==='Enter'){event.preventDefault();addKeyword();}">
-                        <select id="keywordType" class="input-sm">
-                            <option value="core">Core</option>
-                            <option value="secondary">Secondary</option>
-                            <option value="theory">Theory</option>
-                        </select>
+                        <div>
+                            <label for="newKeyword" class="field-label">新关键词</label>
+                            <input type="text" id="newKeyword" placeholder="输入新关键词..." onkeypress="if(event.key==='Enter'){event.preventDefault();addKeyword();}">
+                        </div>
+                        <div>
+                            <label for="keywordType" class="field-label">关键词类型</label>
+                            <select id="keywordType" class="input-sm">
+                                <option value="core">Core</option>
+                                <option value="secondary">Secondary</option>
+                                <option value="theory">Theory</option>
+                            </select>
+                        </div>
                         <button type="button" class="btn btn-primary" onclick="addKeyword()">添加</button>
                     </div>
                 </section>
@@ -215,6 +221,39 @@
 	                </section>
 
                 <section class="form-card">
+                    <div class="section-kicker">AI Analysis</div>
+                    <h2 class="panel-title">AI 分析配置</h2>
+                    <p class="field-help">配置 AI 提供商用于自动分析论文，生成一句话总结和阅读建议。</p>
+
+                    <label class="field-label" for="aiProvider">Provider</label>
+                    <select class="form-input" id="aiProvider" onchange="onAIProviderChanged()">
+                        <option value="none" {% if ai_config.provider == 'none' %}selected{% endif %}>None</option>
+                        <option value="deepseek" {% if ai_config.provider == 'deepseek' %}selected{% endif %}>DeepSeek</option>
+                        <option value="openai" {% if ai_config.provider == 'openai' %}selected{% endif %}>OpenAI-Compatible</option>
+                    </select>
+
+                    <div id="aiProviderFields" {% if ai_config.provider == 'none' %}style="display: none;"{% endif %}>
+                        <label class="field-label" for="aiApiKey">API Key</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="password" class="form-input" id="aiApiKey" value="{{ ai_config.api_key or '' }}" placeholder="sk-..." style="flex:1;">
+                            <button type="button" class="btn btn-tertiary btn-sm" id="aiApiKeyToggle" onclick="toggleAIApiKeyVisibility()">Show</button>
+                        </div>
+
+                        <label class="field-label" for="aiBaseUrl">Base URL</label>
+                        <input type="text" class="form-input" id="aiBaseUrl" value="{{ ai_config.base_url or 'https://api.deepseek.com' }}" placeholder="https://api.deepseek.com">
+
+                        <label class="field-label" for="aiModel">Model</label>
+                        <input type="text" class="form-input" id="aiModel" value="{{ ai_config.model or 'deepseek-chat' }}" placeholder="deepseek-chat">
+                    </div>
+
+                    <div class="button-row mt-4">
+                        <button type="button" class="btn btn-secondary" id="aiTestBtn" onclick="testAIConnection()">Test Connection</button>
+                        <button type="button" class="btn btn-primary" id="aiSaveBtn" onclick="saveAISettings()">Save</button>
+                    </div>
+                    <p class="field-help" id="aiStatusMsg"></p>
+                </section>
+
+                <section class="form-card">
                     <div class="section-kicker">Data Management</div>
                     <h2 class="panel-title">数据导入导出</h2>
                     <p class="field-help">所有数据保存在本地。可以导入导出进行备份。</p>
@@ -222,6 +261,7 @@
                         <button type="button" class="btn btn-tertiary" onclick="triggerStateImport()">Import State</button>
                         <button type="button" class="btn btn-tertiary" onclick="exportState()">Export State</button>
                     </div>
+                    <label for="stateImportFile" class="sr-only" hidden>选择导入的 JSON 状态文件</label>
                     <input type="file" id="stateImportFile" accept="application/json,.json" hidden>
                 </section>
             </div>
@@ -403,6 +443,124 @@ if (stateImportFile) {
             this.value = '';
         }
     });
+}
+
+// ---- AI Analysis Settings ----
+
+function onAIProviderChanged() {
+    const provider = document.getElementById('aiProvider').value;
+    const fields = document.getElementById('aiProviderFields');
+    if (fields) {
+        fields.style.display = provider === 'none' ? 'none' : '';
+    }
+    document.getElementById('aiStatusMsg').textContent = '';
+}
+
+function toggleAIApiKeyVisibility() {
+    const input = document.getElementById('aiApiKey');
+    const btn = document.getElementById('aiApiKeyToggle');
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = 'Hide';
+    } else {
+        input.type = 'password';
+        btn.textContent = 'Show';
+    }
+}
+
+function _getAIConfigPayload() {
+    const provider = document.getElementById('aiProvider') ? document.getElementById('aiProvider').value : 'none';
+    const enabled = provider !== 'none' && (document.getElementById('aiApiKey') ? document.getElementById('aiApiKey').value.trim() !== '' : false);
+    return {
+        provider: provider,
+        api_key: document.getElementById('aiApiKey') ? document.getElementById('aiApiKey').value.trim() : '',
+        base_url: document.getElementById('aiBaseUrl') ? document.getElementById('aiBaseUrl').value.trim() : 'https://api.deepseek.com',
+        model: document.getElementById('aiModel') ? document.getElementById('aiModel').value.trim() : 'deepseek-chat',
+        enabled: enabled,
+    };
+}
+
+async function testAIConnection() {
+    const statusEl = document.getElementById('aiStatusMsg');
+    const btn = document.getElementById('aiTestBtn');
+    const payload = _getAIConfigPayload();
+
+    if (payload.provider === 'none') {
+        statusEl.textContent = 'Please select a provider first.';
+        statusEl.style.color = 'var(--color-warn)';
+        return;
+    }
+    if (!payload.api_key) {
+        statusEl.textContent = 'Please enter an API key.';
+        statusEl.style.color = 'var(--color-warn)';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Testing...';
+    statusEl.textContent = '';
+    statusEl.style.color = '';
+
+    try {
+        const response = await fetch('/api/settings/ai/test', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (result.success) {
+            statusEl.textContent = result.message || 'Connection successful';
+            statusEl.style.color = 'var(--color-success, #16a34a)';
+            showToast('AI connection successful');
+        } else {
+            statusEl.textContent = 'Failed: ' + (result.error || 'unknown error');
+            statusEl.style.color = 'var(--color-warn)';
+            showToast('AI connection test failed', 'error');
+        }
+    } catch (error) {
+        statusEl.textContent = 'Connection error: ' + error.message;
+        statusEl.style.color = 'var(--color-warn)';
+        showToast('Connection error', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Test Connection';
+    }
+}
+
+async function saveAISettings() {
+    const statusEl = document.getElementById('aiStatusMsg');
+    const btn = document.getElementById('aiSaveBtn');
+    const payload = _getAIConfigPayload();
+
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    statusEl.textContent = '';
+    statusEl.style.color = '';
+
+    try {
+        const response = await fetch('/api/settings/ai', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (result.success) {
+            statusEl.textContent = 'AI settings saved.';
+            statusEl.style.color = 'var(--color-success, #16a34a)';
+            showToast('AI settings saved');
+        } else {
+            statusEl.textContent = 'Failed: ' + (result.error || 'unknown error');
+            statusEl.style.color = 'var(--color-warn)';
+            showToast('Failed to save AI settings', 'error');
+        }
+    } catch (error) {
+        statusEl.textContent = 'Save error: ' + error.message;
+        statusEl.style.color = 'var(--color-warn)';
+        showToast('Save error', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+    }
 }
 </script>
 {% endblock %}

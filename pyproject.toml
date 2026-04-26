@@ -1,0 +1,16 @@
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = ["E501", "F401", "F841", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"web_server.py" = ["F811"]
+"config_manager.py" = ["F811"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+check_untyped_defs = false

@@ -12,7 +12,7 @@ import sqlite3
 import threading
 import uuid
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Iterable, List, Optional
 
 from app_paths import STATE_DB_PATH, ensure_runtime_dirs
@@ -22,7 +22,7 @@ QUEUE_STATUS_VALUES = ("Inbox", "Skim Later", "Deep Read", "Saved", "Archived")
 
 
 def _utc_now() -> str:
-    return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+    return datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat() + "Z"
 
 
 def _to_json(value: Optional[object], default: object) -> str:
@@ -45,6 +45,7 @@ class StateStore:
         self.db_path = db_path
         self._lock = threading.Lock()
         self._initialize()
+        self._auto_migrate_once()
 
     @contextmanager
     def _connect(self) -> Iterable[sqlite3.Connection]:
@@ -145,12 +146,42 @@ class StateStore:
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
+
+                CREATE TABLE IF NOT EXISTS subscriptions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    type TEXT NOT NULL CHECK(type IN ('query', 'author', 'venue')),
+                    name TEXT NOT NULL,
+                    query_text TEXT DEFAULT '',
+                    payload_json TEXT DEFAULT '{}',
+                    enabled INTEGER DEFAULT 1,
+                    latest_hit_count INTEGER DEFAULT 0,
+                    last_checked_at TEXT,
+                    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+                );
+
+                CREATE TABLE IF NOT EXISTS subscription_hits (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    subscription_id INTEGER NOT NULL,
+                    paper_id TEXT NOT NULL,
+                    matched_reason TEXT DEFAULT '',
+                    hit_date TEXT NOT NULL,
+                    status TEXT DEFAULT 'new' CHECK(status IN ('new', 'sent_to_inbox', 'queued', 'ignored')),
+                    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                    FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_subscriptions_type ON subscriptions(type);
+                CREATE INDEX IF NOT EXISTS idx_subscriptions_enabled ON subscriptions(enabled);
+                CREATE INDEX IF NOT EXISTS idx_subscription_hits_sub_id ON subscription_hits(subscription_id);
+                CREATE INDEX IF NOT EXISTS idx_subscription_hits_paper_id ON subscription_hits(paper_id);
+                CREATE INDEX IF NOT EXISTS idx_subscription_hits_status ON subscription_hits(status);
                 """
             )
             conn.execute(
                 """
                 INSERT OR IGNORE INTO schema_meta(key, value)
-                VALUES('schema_version', '1')
+                VALUES('schema_version', '2')
                 """
             )
             self._migrate_arxiv_paper_ids(conn)
@@ -252,6 +283,36 @@ class StateStore:
                     "UPDATE paper_ai_analyses SET paper_id = ? WHERE paper_id = ?",
                     (new_id, old_id),
                 )
+
+    def _auto_migrate_once(self) -> None:
+        """Run data migrations on first start after schema upgrade (idempotent)."""
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                "SELECT value FROM schema_meta WHERE key = 'schema_version'"
+            ).fetchone()
+            if not row or row["value"] != "2":
+                # Only auto-migrate when schema version is v2
+                return
+            migrated_marker = conn.execute(
+                "SELECT value FROM schema_meta WHERE key = 'subscriptions_migrated'"
+            ).fetchone()
+            if migrated_marker and migrated_marker["value"] == "1":
+                return
+
+        # Run migrations outside the read lock to avoid deadlocks
+        migrated_searches = self.migrate_from_saved_searches()
+        migrated_scholars = self.migrate_from_scholars_json()
+
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('subscriptions_migrated', '1')"
+            )
+
+        if migrated_searches or migrated_scholars:
+            import logging
+            logging.getLogger(__name__).info(
+                f"Auto-migrated subscriptions: {migrated_searches} searches, {migrated_scholars} scholars"
+            )
 
     @staticmethod
     def _row_to_dict(row: sqlite3.Row) -> Dict:
@@ -615,6 +676,272 @@ class StateStore:
             )
         return self.get_saved_search(search_id)
 
+    # ------------------------------------------------------------------
+    # Unified Subscriptions
+    # ------------------------------------------------------------------
+
+    def create_subscription(
+        self,
+        type: str,
+        name: str,
+        query_text: str = "",
+        payload_json: str = "{}",
+        enabled: bool = True,
+    ) -> Dict:
+        if type not in ("query", "author", "venue"):
+            raise ValueError(f"Invalid subscription type: {type}")
+        if isinstance(payload_json, dict):
+            payload_json = json.dumps(payload_json, ensure_ascii=False)
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO subscriptions(
+                    type, name, query_text, payload_json, enabled,
+                    latest_hit_count, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, 0, ?, ?)
+                """,
+                (type, name.strip(), query_text.strip(), payload_json, 1 if enabled else 0, now, now),
+            )
+            row = conn.execute(
+                "SELECT * FROM subscriptions WHERE id = last_insert_rowid()"
+            ).fetchone()
+        return self._row_to_dict(row)
+
+    def update_subscription(self, subscription_id: int, **kwargs) -> Optional[Dict]:
+        updates = []
+        params: List[object] = []
+
+        direct_fields = {"type", "name", "query_text", "enabled", "latest_hit_count", "last_checked_at"}
+        for field in direct_fields:
+            value = kwargs.get(field)
+            if value is not None:
+                if field == "enabled":
+                    updates.append("enabled = ?")
+                    params.append(1 if value else 0)
+                else:
+                    updates.append(f"{field} = ?")
+                    params.append(str(value).strip() if field in ("name", "query_text") else value)
+
+        if "payload_json" in kwargs:
+            updates.append("payload_json = ?")
+            payload = kwargs["payload_json"]
+            params.append(payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False))
+
+        if not updates:
+            return self.get_subscription(subscription_id)
+
+        updates.append("updated_at = ?")
+        params.append(_utc_now())
+        params.append(subscription_id)
+
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                f"""
+                UPDATE subscriptions
+                SET {", ".join(updates)}
+                WHERE id = ?
+                """,
+                params,
+            )
+        return self.get_subscription(subscription_id)
+
+    def delete_subscription(self, subscription_id: int) -> bool:
+        with self._lock, self._connect() as conn:
+            result = conn.execute(
+                "DELETE FROM subscriptions WHERE id = ?",
+                (subscription_id,),
+            )
+        return result.rowcount > 0
+
+    def get_subscription(self, subscription_id: int) -> Optional[Dict]:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM subscriptions WHERE id = ?",
+                (subscription_id,),
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    def list_subscriptions(self, type: Optional[str] = None) -> List[Dict]:
+        query = "SELECT * FROM subscriptions"
+        params: List[object] = []
+        if type:
+            query += " WHERE type = ?"
+            params.append(type)
+        query += " ORDER BY updated_at DESC"
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+    # ------------------------------------------------------------------
+    # Subscription Hits
+    # ------------------------------------------------------------------
+
+    def upsert_subscription_hit(
+        self,
+        subscription_id: int,
+        paper_id: str,
+        matched_reason: str = "",
+        hit_date: Optional[str] = None,
+        status: str = "new",
+    ) -> Dict:
+        paper_id = _canonical_paper_id(paper_id)
+        if status not in ("new", "sent_to_inbox", "queued", "ignored"):
+            raise ValueError(f"Invalid hit status: {status}")
+        hit_date = hit_date or _utc_now()
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            existing = conn.execute(
+                """
+                SELECT id FROM subscription_hits
+                WHERE subscription_id = ? AND paper_id = ?
+                """,
+                (subscription_id, paper_id),
+            ).fetchone()
+            if existing:
+                conn.execute(
+                    """
+                    UPDATE subscription_hits
+                    SET matched_reason = ?, status = ?, created_at = ?
+                    WHERE id = ?
+                    """,
+                    (matched_reason, status, now, existing["id"]),
+                )
+                row = conn.execute(
+                    "SELECT * FROM subscription_hits WHERE id = ?",
+                    (existing["id"],),
+                ).fetchone()
+            else:
+                conn.execute(
+                    """
+                    INSERT INTO subscription_hits(
+                        subscription_id, paper_id, matched_reason, hit_date, status, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (subscription_id, paper_id, matched_reason, hit_date, status, now),
+                )
+                row = conn.execute(
+                    "SELECT * FROM subscription_hits WHERE id = last_insert_rowid()"
+                ).fetchone()
+            conn.execute(
+                """
+                UPDATE subscriptions
+                SET latest_hit_count = (
+                    SELECT COUNT(*) FROM subscription_hits WHERE subscription_id = ?
+                ),
+                updated_at = ?
+                WHERE id = ?
+                """,
+                (subscription_id, now, subscription_id),
+            )
+        return self._row_to_dict(row)
+
+    def list_subscription_hits(
+        self,
+        subscription_id: Optional[int] = None,
+        status: Optional[str] = None,
+        limit: int = 50,
+    ) -> List[Dict]:
+        query = "SELECT * FROM subscription_hits WHERE 1 = 1"
+        params: List[object] = []
+        if subscription_id is not None:
+            query += " AND subscription_id = ?"
+            params.append(subscription_id)
+        if status:
+            query += " AND status = ?"
+            params.append(status)
+        query += " ORDER BY hit_date DESC LIMIT ?"
+        params.append(limit)
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+    # ------------------------------------------------------------------
+    # Migration
+    # ------------------------------------------------------------------
+
+    def migrate_from_saved_searches(self) -> int:
+        """Migrate existing saved_searches rows to the subscriptions table (type='query')."""
+        migrated = 0
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            rows = conn.execute(
+                "SELECT id, name, query_text, filters_json, is_active, created_at, updated_at FROM saved_searches"
+            ).fetchall()
+            for row in rows:
+                existing = conn.execute(
+                    "SELECT id FROM subscriptions WHERE type = 'query' AND name = ?",
+                    (row["name"],),
+                ).fetchone()
+                if existing:
+                    continue
+                payload = json.dumps({
+                    "filters": (json.loads(row["filters_json"]) if row["filters_json"] else {}),
+                    "legacy_id": row["id"],
+                }, ensure_ascii=False)
+                conn.execute(
+                    """
+                    INSERT INTO subscriptions(
+                        type, name, query_text, payload_json, enabled,
+                        created_at, updated_at
+                    ) VALUES ('query', ?, ?, ?, ?, ?, ?)
+                    """,
+                    (row["name"], row["query_text"], payload, row["is_active"],
+                     row["created_at"] or now, row["updated_at"] or now),
+                )
+                migrated += 1
+        return migrated
+
+    def migrate_from_scholars_json(self) -> int:
+        """Migrate my_scholars.json entries to the subscriptions table (type='author')."""
+        import os
+        try:
+            scholars_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "my_scholars.json",
+            )
+            if not os.path.exists(scholars_path):
+                return 0
+            with open(scholars_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            return 0
+
+        scholars = data.get("scholars", []) if isinstance(data, dict) else []
+
+        migrated = 0
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            for scholar in scholars:
+                name = scholar.get("name", "").strip()
+                if not name:
+                    continue
+                existing = conn.execute(
+                    "SELECT id FROM subscriptions WHERE type = 'author' AND name = ?",
+                    (name,),
+                ).fetchone()
+                if existing:
+                    continue
+                payload = {
+                    "affiliation": scholar.get("affiliation", ""),
+                    "focus": scholar.get("focus", ""),
+                    "email": scholar.get("email", ""),
+                    "google_scholar": scholar.get("google_scholar", ""),
+                    "website": scholar.get("website", ""),
+                }
+                query_text = scholar.get("arxiv", "")
+                conn.execute(
+                    """
+                    INSERT INTO subscriptions(
+                        type, name, query_text, payload_json, enabled,
+                        created_at, updated_at
+                    ) VALUES ('author', ?, ?, ?, 1, ?, ?)
+                    """,
+                    (name, query_text, json.dumps(payload, ensure_ascii=False), now, now),
+                )
+                migrated += 1
+        return migrated
+
     def upsert_queue_item(
         self,
         paper_id: str,
@@ -675,6 +1002,67 @@ class StateStore:
                 (paper_id,),
             ).fetchone()
         return self._row_to_dict(row) if row else None
+
+    def get_inbox_progress(self, date_str: str) -> Dict:
+        """Return triage progress stats for a given date.
+
+        Returns counts for: handled, untriaged, liked, disliked, skimmed,
+        deep_read, queued.  ``total`` is set to handled so the caller can
+        override it when the page knows how many papers were shown.
+        """
+        with self._lock, self._connect() as conn:
+            # _utc_now() produces timestamps like "2026-04-26T10:15:37+00:00Z".
+            # SQLite DATE() cannot parse the +00:00Z suffix, so we use
+            # substr(..., 1, 10) to extract the YYYY-MM-DD prefix.
+            handled_row = conn.execute(
+                """
+                SELECT COUNT(DISTINCT paper_id) AS cnt
+                FROM interaction_events
+                WHERE substr(created_at, 1, 10) = ? AND paper_id != ''
+                """,
+                (date_str,),
+            ).fetchone()
+            handled = handled_row["cnt"] if handled_row else 0
+
+            event_rows = conn.execute(
+                """
+                SELECT event_type, COUNT(*) AS cnt
+                FROM interaction_events
+                WHERE substr(created_at, 1, 10) = ? AND paper_id != ''
+                GROUP BY event_type
+                """,
+                (date_str,),
+            ).fetchall()
+
+            queue_rows = conn.execute(
+                """
+                SELECT status, COUNT(*) AS cnt
+                FROM reading_queue_items
+                WHERE substr(updated_at, 1, 10) = ?
+                GROUP BY status
+                """,
+                (date_str,),
+            ).fetchall()
+
+        event_counts: Dict[str, int] = {row["event_type"]: row["cnt"] for row in event_rows}
+        queue_counts: Dict[str, int] = {row["status"]: row["cnt"] for row in queue_rows}
+
+        liked = event_counts.get("like", 0)
+        disliked = event_counts.get("dislike", 0)
+        skimmed = queue_counts.get("Skim Later", 0)
+        deep_read = queue_counts.get("Deep Read", 0)
+        queued = sum(queue_counts.values())
+
+        return {
+            "total": handled,
+            "handled": handled,
+            "untriaged": 0,
+            "liked": liked,
+            "disliked": disliked,
+            "skimmed": skimmed,
+            "deep_read": deep_read,
+            "queued": queued,
+        }
 
     def record_event(
         self, event_type: str, paper_id: str = "", payload: Optional[Dict] = None
@@ -783,6 +1171,8 @@ class StateStore:
             "reading_queue_items",
             "interaction_events",
             "paper_ai_analyses",
+            "subscriptions",
+            "subscription_hits",
         ]
         snapshot: Dict[str, List[Dict]] = {}
         with self._connect() as conn:
@@ -819,6 +1209,14 @@ class StateStore:
                 "contribution", "limitations", "why_it_matters",
                 "recommended_reading_level", "model_name", "prompt_version",
                 "status", "error_text", "created_at", "updated_at",
+            ],
+            "subscriptions": [
+                "id", "type", "name", "query_text", "payload_json", "enabled",
+                "latest_hit_count", "last_checked_at", "created_at", "updated_at",
+            ],
+            "subscription_hits": [
+                "id", "subscription_id", "paper_id", "matched_reason",
+                "hit_date", "status", "created_at",
             ],
         }
 

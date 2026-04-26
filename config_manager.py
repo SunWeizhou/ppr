@@ -70,6 +70,16 @@ class VenuePriority:
     theory_conference_bonus: float = 1.0
 
 
+@dataclass
+class AIConfig:
+    """AI analysis provider configuration"""
+    provider: str = "none"
+    api_key: str = ""
+    base_url: str = "https://api.deepseek.com"
+    model: str = "deepseek-chat"
+    enabled: bool = False
+
+
 class ConfigManager:
     """统一配置管理器 - 单例模式"""
 
@@ -89,6 +99,7 @@ class ConfigManager:
         instance._sources = SourceConfig()
         instance._zotero = ZoteroConfig()
         instance._venue_priority = VenuePriority()
+        instance._ai = AIConfig()
         instance._config_mtime = 0.0
         instance._last_loaded = 0.0
 
@@ -249,6 +260,13 @@ class ConfigManager:
                 'ml_journal_bonus': 0.8,
                 'conference_bonus': 0.5,
                 'theory_conference_bonus': 1.0
+            },
+            'ai': {
+                'provider': 'none',
+                'api_key': '',
+                'base_url': 'https://api.deepseek.com',
+                'model': 'deepseek-chat',
+                'enabled': False
             }
         }
 
@@ -311,6 +329,14 @@ class ConfigManager:
         self._venue_priority.conference_bonus = venue_data.get('conference_bonus', 0.5)
         self._venue_priority.theory_conference_bonus = venue_data.get('theory_conference_bonus', 1.0)
 
+        # 解析 AI
+        ai_data = raw.get('ai', {})
+        self._ai.provider = ai_data.get('provider', 'none')
+        self._ai.api_key = ai_data.get('api_key', '')
+        self._ai.base_url = ai_data.get('base_url', 'https://api.deepseek.com')
+        self._ai.model = ai_data.get('model', 'deepseek-chat')
+        self._ai.enabled = ai_data.get('enabled', False)
+
     def _to_dict(self) -> Dict:
         """将配置转换为字典格式（用于保存）"""
         return {
@@ -351,6 +377,13 @@ class ConfigManager:
                 'ml_journal_bonus': self._venue_priority.ml_journal_bonus,
                 'conference_bonus': self._venue_priority.conference_bonus,
                 'theory_conference_bonus': self._venue_priority.theory_conference_bonus,
+            },
+            'ai': {
+                'provider': self._ai.provider,
+                'api_key': self._ai.api_key,
+                'base_url': self._ai.base_url,
+                'model': self._ai.model,
+                'enabled': self._ai.enabled,
             }
         }
 
@@ -461,6 +494,16 @@ class ConfigManager:
             name: kw.weight
             for name, kw in self._keywords.items()
             if kw.category == category
+        }
+
+    def get_ai_config(self) -> dict:
+        """获取 AI analysis 配置"""
+        return {
+            'provider': self._ai.provider,
+            'api_key': self._ai.api_key,
+            'base_url': self._ai.base_url,
+            'model': self._ai.model,
+            'enabled': self._ai.enabled,
         }
 
     def add_theory_bonus(self, paper: Dict) -> float:

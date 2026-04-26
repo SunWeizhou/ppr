@@ -11,11 +11,18 @@
             <span>{{ journal_cards|length }} venues</span>
             <span class="dot"></span>
             <span>{{ all_saved_searches|length }} query subscriptions</span>
+            {% if total_subscription_hits is defined %}
+            <span class="dot"></span>
+            <span>{{ total_subscription_hits }} subscription hits</span>
+            {% endif %}
         </div>
     </div>
     <div class="actions">
         <button type="button" class="btn btn-secondary" onclick="createAuthorSubscription()">New author</button>
         <button type="button" class="btn btn-primary" onclick="createQuerySubscription()">New query</button>
+        {% if unified_subs %}
+        <button type="button" class="btn btn-warm btn-sm" onclick="runAllSubscriptions()">Run All</button>
+        {% endif %}
     </div>
 </section>
 {% endblock %}
@@ -25,6 +32,7 @@
     <a href="/monitor?tab=authors" class="tab-button {% if tab == 'authors' %}active{% endif %}">Authors <span class="count">{{ my_scholars|length }}</span></a>
     <a href="/monitor?tab=venues" class="tab-button {% if tab == 'venues' %}active{% endif %}">Venues <span class="count">{{ journal_cards|length }}</span></a>
     <a href="/monitor?tab=queries" class="tab-button {% if tab == 'queries' %}active{% endif %}">Query Subscriptions <span class="count">{{ all_saved_searches|length }}</span></a>
+    <a href="/monitor?tab=unified" class="tab-button {% if tab == 'unified' %}active{% endif %}">All Subscriptions <span class="count">{{ unified_subs|length if unified_subs else 0 }}</span></a>
     <a href="/monitor?tab=recent-hits" class="tab-button {% if tab == 'recent-hits' %}active{% endif %}">Recent Hits <span class="count">{{ recent_hits|length if recent_hits else 0 }}</span></a>
 </div>
 
@@ -46,6 +54,16 @@
                         <div><span class="list-item-title">Query Subscriptions</span></div>
                         <span class="list-item-trailing">{{ all_saved_searches|length }}</span>
                     </div>
+                    {% if unified_subs is defined and unified_subs %}
+                    <div class="list-item">
+                        <div><span class="list-item-title">Unified Subscriptions</span></div>
+                        <span class="list-item-trailing">{{ unified_subs|length }}</span>
+                    </div>
+                    <div class="list-item">
+                        <div><span class="list-item-title">Total Hits</span></div>
+                        <span class="list-item-trailing">{{ total_subscription_hits }}</span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -155,7 +173,45 @@
                     </div>
                 {% endif %}
             </div>
-        {% else %}
+        {% elif tab == 'unified' %}
+            <div class="toolbar">
+                <span class="chip brand">All Subscriptions (Unified)</span>
+                <span class="spacer"></span>
+                <button type="button" class="btn btn-warm btn-sm" onclick="runAllSubscriptions()">Run All</button>
+            </div>
+            <div class="card card--flush">
+                {% if unified_subs %}
+                    {% for sub in unified_subs %}
+                        <article class="row">
+                            <div class="row-lead"><span class="row-rank">{{ sub.type[:1]|upper }}</span></div>
+                            <div class="row-body">
+                                <div class="row-title row-title--mono">{{ sub.name }}</div>
+                                <div class="row-meta">{{ sub.query_text if sub.query_text else '' }}</div>
+                                <div class="row-tags">
+                                    <span class="state-chip {% if sub.type == 'query' %}status-new{% elif sub.type == 'author' %}status-archived{% else %}status-note{% endif %}">{{ sub.type }}</span>
+                                    {% if sub.enabled %}
+                                    <span class="tag tag--mono">enabled</span>
+                                    {% else %}
+                                    <span class="tag tag--mono tag--stale">disabled</span>
+                                    {% endif %}
+                                    <span class="tag">{{ sub.latest_hit_count or 0 }} hits</span>
+                                    <span class="tag tag--mono">{{ sub.updated_at[:10] if sub.updated_at else '' }}</span>
+                                </div>
+                            </div>
+                            <div class="row-trail">
+                                <div class="row-actions row-actions-compact">
+                                    <button type="button" class="btn btn-warm btn-sm" onclick="runSubscription({{ sub.id }})">Run</button>
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <p class="muted-copy">还没有任何统一订阅。运行迁移或创建新的订阅以在此查看。</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% elif tab == 'recent-hits' %}
             <div class="toolbar">
                 <span class="chip brand">Recent hits</span>
                 <span class="spacer"></span>
@@ -270,6 +326,26 @@ async function runQuerySubscription(searchId) {
     try {
         const result = await requestJson('/api/saved-searches/' + searchId + '/run');
         showToast('本次命中 ' + (result.results || []).length + ' 篇论文');
+        window.setTimeout(() => window.location.reload(), 250);
+    } catch (error) {
+        showToast('运行失败: ' + error.message, 'error');
+    }
+}
+
+async function runSubscription(subId) {
+    try {
+        const result = await requestJson('/api/subscriptions/run/' + subId, {method: 'POST'});
+        showToast('命中 ' + (result.hit_count || 0) + ' 篇论文');
+        window.setTimeout(() => window.location.reload(), 250);
+    } catch (error) {
+        showToast('运行失败: ' + error.message, 'error');
+    }
+}
+
+async function runAllSubscriptions() {
+    try {
+        const result = await requestJson('/api/subscriptions/run-all', {method: 'POST'});
+        showToast('检查了 ' + (result.subscriptions_checked || 0) + ' 个订阅, 共命中 ' + (result.total_hits || 0) + ' 篇论文');
         window.setTimeout(() => window.location.reload(), 250);
     } catch (error) {
         showToast('运行失败: ' + error.message, 'error');

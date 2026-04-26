@@ -1,0 +1,673 @@
+{% extends "base_research.html" %}
+{% set body_class = (body_class or '') %}
+
+{% block head %}
+<style>
+  /* Onboarding wizard specific styles */
+  .onboarding-container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 16px 0 28px;
+    flex-wrap: wrap;
+  }
+
+  .step-dot {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .step-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--ff-mono);
+    font-size: 14px;
+    font-weight: 600;
+    border: 2px solid var(--line);
+    background: var(--surface-raised);
+    color: var(--ink-muted);
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  .step-circle.completed {
+    background: var(--sage);
+    border-color: var(--sage);
+    color: #fff;
+  }
+
+  .step-circle.active {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+    box-shadow: 0 0 0 6px rgba(18, 76, 121, 0.12);
+  }
+
+  .step-line {
+    width: 40px;
+    height: 2px;
+    background: var(--line);
+    margin: 0 4px;
+    transition: background 0.25s ease;
+  }
+
+  .step-line.done {
+    background: var(--sage);
+  }
+
+  .step-label-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 48px;
+    margin-top: -14px;
+    margin-bottom: 20px;
+  }
+
+  .step-label-item {
+    font-size: 11px;
+    color: var(--ink-muted);
+    text-align: center;
+    max-width: 80px;
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: color 0.25s ease;
+  }
+
+  .step-label-item.active {
+    color: var(--brand);
+    font-weight: 600;
+  }
+
+  .step-label-item.done {
+    color: var(--sage);
+  }
+
+  .wizard-panel {
+    display: none;
+  }
+
+  .wizard-panel.is-active {
+    display: block;
+  }
+
+  .wizard-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .wizard-field-help {
+    margin: 0;
+    color: var(--ink-3);
+    font-size: 13px;
+  }
+
+  .research-area-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  @media (min-width: 600px) {
+    .research-area-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .area-check-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: rgba(255, 255, 255, 0.62);
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease;
+    font-size: 14px;
+    color: var(--ink-2);
+    user-select: none;
+  }
+
+  .area-check-label:hover {
+    border-color: var(--line-strong);
+  }
+
+  .area-check-label:has(input:checked) {
+    background: var(--brand-tint);
+    border-color: rgba(18, 76, 121, 0.18);
+    color: var(--brand-2);
+    font-weight: 500;
+  }
+
+  .area-check-label input {
+    accent-color: var(--brand);
+  }
+
+  .wizard-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    margin-top: 20px;
+  }
+
+  .wizard-nav-right {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+  }
+
+  .skip-hint {
+    color: var(--ink-muted);
+    font-size: 13px;
+    font-style: italic;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .wizard-review-block {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--surface-2);
+  }
+
+  .wizard-review-block dt {
+    color: var(--ink-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 2px;
+  }
+
+  .wizard-review-block dd {
+    margin: 0 0 12px;
+    color: var(--ink);
+    font-size: 14px;
+  }
+
+  .wizard-review-block dd:last-child {
+    margin-bottom: 0;
+  }
+
+  .wizard-success {
+    text-align: center;
+    padding: 32px 16px;
+  }
+
+  .wizard-success-icon {
+    font-family: var(--ff-serif);
+    font-size: 48px;
+    line-height: 1;
+    color: var(--sage);
+    margin-bottom: 12px;
+  }
+</style>
+{% endblock %}
+
+{% block hero %}
+<section class="page-header">
+  <div class="lead">
+    <span class="section-kicker">Welcome</span>
+    <h1 class="page-title">Set Up Your Research Desk</h1>
+    <p class="muted-copy">Tell StatDesk what you care about so it can find the right papers for you. This takes about 2 minutes.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="onboarding-container">
+
+  <!-- Step indicator -->
+  <div class="step-indicator" id="stepIndicator">
+    <div class="step-dot"><span class="step-circle active" data-step="1">1</span></div>
+    <span class="step-line" data-line="1"></span>
+    <div class="step-dot"><span class="step-circle" data-step="2">2</span></div>
+    <span class="step-line" data-line="2"></span>
+    <div class="step-dot"><span class="step-circle" data-step="3">3</span></div>
+    <span class="step-line" data-line="3"></span>
+    <div class="step-dot"><span class="step-circle" data-step="4">4</span></div>
+    <span class="step-line" data-line="4"></span>
+    <div class="step-dot"><span class="step-circle" data-step="5">5</span></div>
+  </div>
+
+  <div class="step-label-row">
+    <span class="step-label-item active" data-steplabel="1">Research Topics</span>
+    <span class="step-label-item" data-steplabel="2">Paper Count</span>
+    <span class="step-label-item" data-steplabel="3">Zotero</span>
+    <span class="step-label-item" data-steplabel="4">AI Analysis</span>
+    <span class="step-label-item" data-steplabel="5">First Query</span>
+  </div>
+
+  <!-- Form -->
+  <div class="card" style="min-height: 380px;">
+
+    <!-- Step 1: Research Topics -->
+    <div class="wizard-panel is-active" data-panel="1">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Step 1 of 5</div>
+          <h2 class="panel-title">Research Topics</h2>
+          <p class="muted-copy">Define the topics and research areas you want to follow on arXiv.</p>
+        </div>
+      </div>
+
+      <div class="wizard-field-group">
+        <label class="field-label" for="topicsInput">Your Research Topics</label>
+        <textarea class="form-textarea" id="topicsInput" rows="4"
+          placeholder="Enter comma-separated topics, e.g.: conformal prediction, in-context learning, minimax estimation, generalization bounds, nonparametric statistics"
+        ></textarea>
+        <p class="wizard-field-help">These become your core keywords. Separate each topic with a comma. Use precise academic terms for best results.</p>
+      </div>
+
+      <div class="wizard-field-group">
+        <label class="field-label">Research Areas (optional)</label>
+        <p class="wizard-field-help" style="margin-bottom:8px;">Select broad areas to help calibrate your recommendations.</p>
+        <div class="research-area-grid" id="researchAreasGrid">
+          {% set areas = [
+            'Statistics', 'Machine Learning', 'Deep Learning',
+            'Natural Language Processing', 'Computer Vision',
+            'Reinforcement Learning', 'Optimization',
+            'Causal Inference', 'Information Theory',
+            'Graph Neural Networks', 'Theoretical ML',
+            'High-dimensional Statistics', 'Bayesian Methods',
+            'Time Series', 'Fairness & Ethics'
+          ] %}
+          {% for area in areas %}
+          <label class="area-check-label">
+            <input type="checkbox" name="researchArea" value="{{ area }}">
+            {{ area }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="wizard-nav">
+        <span></span>
+        <div class="wizard-nav-right">
+          <button type="button" class="btn btn-primary" onclick="wizardNext()">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Daily Paper Count -->
+    <div class="wizard-panel" data-panel="2">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Step 2 of 5</div>
+          <h2 class="panel-title">Daily Paper Count</h2>
+          <p class="muted-copy">How many new papers would you like StatDesk to surface each day?</p>
+        </div>
+      </div>
+
+      <div class="wizard-field-group">
+        <label class="field-label" for="papersPerDay">Papers per day</label>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <input type="range" id="papersPerDaySlider" min="5" max="50" value="20" step="5"
+            style="flex:1;accent-color:var(--brand);"
+            oninput="document.getElementById('papersPerDayVal').textContent = this.value; document.getElementById('papersPerDayInput').value = this.value;">
+          <span id="papersPerDayVal" style="font-family:var(--ff-mono);font-size:18px;font-weight:600;min-width:32px;text-align:center;">20</span>
+        </div>
+        <input type="hidden" id="papersPerDayInput" value="20">
+        <p class="wizard-field-help">Fewer papers means higher precision; more papers means broader coverage. You can adjust this later in Settings.</p>
+      </div>
+
+      <div class="wizard-nav">
+        <button type="button" class="btn btn-secondary" onclick="wizardPrev()">&larr; Previous</button>
+        <div class="wizard-nav-right">
+          <button type="button" class="btn btn-primary" onclick="wizardNext()">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Zotero -->
+    <div class="wizard-panel" data-panel="3">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Step 3 of 5</div>
+          <h2 class="panel-title">Zotero Integration</h2>
+          <p class="muted-copy">Connect your Zotero library to boost recommendations with your existing reading history.</p>
+        </div>
+      </div>
+
+      <div class="wizard-field-group">
+        <label class="field-label" for="zoteroPath">Zotero Database Path</label>
+        <input class="form-input" id="zoteroPath" type="text"
+          placeholder="e.g., /Users/you/Zotero/zotero.sqlite or leave blank for auto-detection">
+        <p class="wizard-field-help">Find this in Zotero: Preferences &rarr; Advanced &rarr; Files and Folders &rarr; Data Directory Location. StatDesk reads your library to learn what papers you already care about.</p>
+      </div>
+
+      <div class="wizard-nav">
+        <button type="button" class="btn btn-secondary" onclick="wizardPrev()">&larr; Previous</button>
+        <div class="wizard-nav-right">
+          <button type="button" class="btn btn-tertiary" onclick="wizardSkipStep(3)">Skip</button>
+          <button type="button" class="btn btn-primary" onclick="wizardNext()">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: AI Analysis -->
+    <div class="wizard-panel" data-panel="4">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Step 4 of 5</div>
+          <h2 class="panel-title">AI Analysis</h2>
+          <p class="muted-copy">Enable AI-powered paper analysis to get deeper insights on each recommendation.</p>
+        </div>
+      </div>
+
+      <div class="wizard-field-group">
+        <label class="field-label" for="aiProvider">AI Provider</label>
+        <select class="form-input" id="aiProvider" onchange="toggleAiFields()">
+          <option value="">None (skip AI analysis)</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="openai_compat">OpenAI-Compatible API</option>
+        </select>
+        <p class="wizard-field-help">AI analysis explains why a paper matters for your research and can summarize key findings. This is optional and can be configured later.</p>
+      </div>
+
+      <div id="aiAdvancedFields" hidden>
+        <div class="wizard-field-group">
+          <label class="field-label" for="aiApiKey">API Key</label>
+          <input class="form-input" id="aiApiKey" type="password" placeholder="sk-...">
+        </div>
+
+        <div class="wizard-field-group">
+          <label class="field-label" for="aiBaseUrl">Base URL (optional)</label>
+          <input class="form-input" id="aiBaseUrl" type="text" placeholder="https://api.deepseek.com/v1">
+        </div>
+
+        <div class="wizard-field-group">
+          <label class="field-label" for="aiModel">Model Name</label>
+          <input class="form-input" id="aiModel" type="text" placeholder="deepseek-chat">
+        </div>
+      </div>
+
+      <div class="wizard-nav">
+        <button type="button" class="btn btn-secondary" onclick="wizardPrev()">&larr; Previous</button>
+        <div class="wizard-nav-right">
+          <button type="button" class="btn btn-tertiary" onclick="wizardSkipStep(4)">Skip</button>
+          <button type="button" class="btn btn-primary" onclick="wizardNext()">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: First Query -->
+    <div class="wizard-panel" data-panel="5">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Step 5 of 5</div>
+          <h2 class="panel-title">First Research Question</h2>
+          <p class="muted-copy">Set up your first saved search to monitor a specific question over time.</p>
+        </div>
+      </div>
+
+      <div class="wizard-field-group">
+        <label class="field-label" for="firstQuery">Research Question Query</label>
+        <input class="form-input" id="firstQuery" type="text"
+          placeholder="e.g., GraphRAG compression, conformal prediction under distribution shift, transformer in-context learning theory">
+        <p class="wizard-field-help">This creates a Monitor subscription. StatDesk will track new arXiv papers matching this query and surface them in your daily digest. You can add more queries later.</p>
+      </div>
+
+      <!-- Review summary -->
+      <div class="wizard-field-group" style="margin-top:24px;">
+        <label class="field-label">Summary</label>
+        <dl class="wizard-review-block" id="reviewBlock">
+          <dt>Topics</dt>
+          <dd id="reviewTopics">--</dd>
+          <dt>Papers per day</dt>
+          <dd id="reviewPapersPerDay">--</dd>
+          <dt>Zotero</dt>
+          <dd id="reviewZotero">--</dd>
+          <dt>AI Analysis</dt>
+          <dd id="reviewAI">--</dd>
+          <dt>First query</dt>
+          <dd id="reviewQuery">--</dd>
+        </dl>
+      </div>
+
+      <div class="wizard-nav">
+        <button type="button" class="btn btn-secondary" onclick="wizardPrev()">&larr; Previous</button>
+        <div class="wizard-nav-right">
+          <button type="button" class="btn btn-primary" id="finishButton" onclick="submitOnboarding()">Finish Setup</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let currentStep = 1;
+  const totalSteps = 5;
+  const skippedSteps = new Set();
+
+  function updateStepIndicator() {
+    document.querySelectorAll('.step-circle').forEach(function(circle) {
+      var s = parseInt(circle.dataset.step);
+      circle.classList.remove('completed', 'active');
+      if (skippedSteps.has(s) || s < currentStep) {
+        circle.classList.add('completed');
+      } else if (s === currentStep) {
+        circle.classList.add('active');
+      }
+    });
+
+    document.querySelectorAll('.step-line').forEach(function(line) {
+      var s = parseInt(line.dataset.line);
+      line.classList.toggle('done', s < currentStep);
+    });
+
+    document.querySelectorAll('.step-label-item').forEach(function(label) {
+      var s = parseInt(label.dataset.steplabel);
+      label.classList.remove('active', 'done');
+      if (skippedSteps.has(s) || s < currentStep) {
+        label.classList.add('done');
+      } else if (s === currentStep) {
+        label.classList.add('active');
+      }
+    });
+  }
+
+  function wizardNext() {
+    if (currentStep < totalSteps) {
+      currentStep++;
+      showPanel(currentStep);
+    }
+  }
+
+  function wizardPrev() {
+    if (currentStep > 1) {
+      currentStep--;
+      showPanel(currentStep);
+    }
+  }
+
+  function wizardSkipStep(step) {
+    skippedSteps.add(step);
+    updateStepIndicator();
+    if (currentStep === step && currentStep < totalSteps) {
+      currentStep++;
+      showPanel(currentStep);
+    }
+  }
+
+  function showPanel(step) {
+    document.querySelectorAll('.wizard-panel').forEach(function(p) {
+      p.classList.remove('is-active');
+    });
+    var panel = document.querySelector('[data-panel="' + step + '"]');
+    if (panel) {
+      panel.classList.add('is-active');
+    }
+    updateStepIndicator();
+
+    // Update review block when entering step 5
+    if (step === 5) {
+      updateReview();
+    }
+
+    // Scroll to top of card
+    var card = document.querySelector('.card');
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function toggleAiFields() {
+    var provider = document.getElementById('aiProvider').value;
+    var fields = document.getElementById('aiAdvancedFields');
+    if (provider && provider !== '') {
+      fields.removeAttribute('hidden');
+      // Set defaults based on provider
+      if (provider === 'deepseek') {
+        if (!document.getElementById('aiBaseUrl').value) {
+          document.getElementById('aiBaseUrl').value = 'https://api.deepseek.com/v1';
+        }
+        if (!document.getElementById('aiModel').value) {
+          document.getElementById('aiModel').value = 'deepseek-chat';
+        }
+      }
+    } else {
+      fields.setAttribute('hidden', '');
+    }
+  }
+
+  function updateReview() {
+    var topics = document.getElementById('topicsInput').value.trim();
+    var areas = [];
+    document.querySelectorAll('#researchAreasGrid input:checked').forEach(function(cb) {
+      areas.push(cb.value);
+    });
+
+    var allTopics = topics ? topics.split(',').map(function(t) { return t.trim(); }) : [];
+    if (areas.length > 0) {
+      allTopics = allTopics.concat(areas);
+    }
+
+    document.getElementById('reviewTopics').textContent = allTopics.length > 0
+      ? allTopics.slice(0, 8).join(', ') + (allTopics.length > 8 ? ' ...' : '')
+      : 'Not specified';
+
+    document.getElementById('reviewPapersPerDay').textContent =
+      document.getElementById('papersPerDayInput').value + ' papers/day';
+
+    var zoteroPath = document.getElementById('zoteroPath').value.trim();
+    document.getElementById('reviewZotero').textContent = zoteroPath
+      ? zoteroPath
+      : (skippedSteps.has(3) ? 'Skipped' : 'Auto-detect (no path provided)');
+
+    var aiProvider = document.getElementById('aiProvider').value;
+    if (!aiProvider || skippedSteps.has(4)) {
+      document.getElementById('reviewAI').textContent = 'Disabled / Skipped';
+    } else {
+      var model = document.getElementById('aiModel').value || '(default)';
+      document.getElementById('reviewAI').textContent = aiProvider + ' / ' + model;
+    }
+
+    var query = document.getElementById('firstQuery').value.trim();
+    document.getElementById('reviewQuery').textContent = query || 'Not specified';
+  }
+
+  function submitOnboarding() {
+    var finishBtn = document.getElementById('finishButton');
+    finishBtn.disabled = true;
+    finishBtn.textContent = 'Saving...';
+
+    var topicsInput = document.getElementById('topicsInput').value.trim();
+    var topics = topicsInput ? topicsInput.split(',').map(function(t) { return t.trim(); }).filter(Boolean) : [];
+    var areas = [];
+    document.querySelectorAll('#researchAreasGrid input:checked').forEach(function(cb) {
+      areas.push(cb.value);
+    });
+
+    var aiProvider = document.getElementById('aiProvider').value;
+    // If step 4 was skipped, clear AI fields
+    if (skippedSteps.has(4)) {
+      aiProvider = '';
+    }
+
+    var zoteroPath = document.getElementById('zoteroPath').value.trim();
+    // If step 3 was skipped, clear zotero path
+    if (skippedSteps.has(3)) {
+      zoteroPath = '';
+    }
+
+    var payload = {
+      topics: topics,
+      areas: areas,
+      papers_per_day: parseInt(document.getElementById('papersPerDayInput').value) || 20,
+      zotero_path: zoteroPath,
+      ai_provider: aiProvider,
+      ai_api_key: document.getElementById('aiApiKey').value.trim(),
+      ai_base_url: document.getElementById('aiBaseUrl').value.trim(),
+      ai_model: document.getElementById('aiModel').value.trim(),
+      first_query: document.getElementById('firstQuery').value.trim()
+    };
+
+    fetch('/api/onboarding/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        // Show success and redirect
+        var card = document.querySelector('.card');
+        card.innerHTML = '<div class="wizard-success">' +
+          '<div class="wizard-success-icon">&#10003;</div>' +
+          '<h2 class="panel-title">Setup Complete</h2>' +
+          '<p class="muted-copy" style="margin-top:8px;">Your research desk is ready. Redirecting to your inbox...</p>' +
+          '</div>';
+        setTimeout(function() {
+          window.location.href = '/';
+        }, 1500);
+      } else {
+        finishBtn.disabled = false;
+        finishBtn.textContent = 'Finish Setup';
+        showToast(data.error || 'Failed to save. Please try again.', true);
+      }
+    })
+    .catch(function(err) {
+      finishBtn.disabled = false;
+      finishBtn.textContent = 'Finish Setup';
+      showToast('Network error. Please check your connection and try again.', true);
+    });
+  }
+
+  function showToast(message, isError) {
+    var toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = 'toast visible' + (isError ? ' error' : '');
+    setTimeout(function() {
+      toast.classList.remove('visible');
+    }, 3000);
+  }
+
+  // Initialize
+  updateStepIndicator();
+</script>
+{% endblock %}

@@ -63,7 +63,7 @@ class AIAnalysisService:
             status = "failed"
             error_text = str(exc)
 
-        return self.state_store.upsert_paper_ai_analysis(
+        result = self.state_store.upsert_paper_ai_analysis(
             paper_id,
             analysis,
             model_name=model_name,
@@ -71,3 +71,10 @@ class AIAnalysisService:
             status=status,
             error_text=error_text,
         )
+        # Record interaction event
+        self.state_store.record_event(
+            "ai_analysis_generated",
+            paper_id,
+            {"model_name": model_name, "prompt_version": self.prompt_version, "status": status},
+        )
+        return result

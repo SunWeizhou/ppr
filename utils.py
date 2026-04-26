@@ -12,6 +12,8 @@ import urllib.error
 from typing import Dict, List, Optional, Any
 import logging
 
+from app_paths import PROJECT_ROOT
+
 logger = logging.getLogger(__name__)
 
 # ==================== SSL Context ====================
@@ -64,9 +66,9 @@ def safe_load_json(filepath: str, default: Any = None) -> Any:
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except FileNotFoundError:
+    except (FileNotFoundError, OSError):
         return default
-    except json.JSONDecodeError as e:
+    except (json.JSONDecodeError, ValueError) as e:
         logger.warning(f"Invalid JSON in {filepath}: {e}")
         return default
 
@@ -160,6 +162,39 @@ def fetch_with_retry(
     return None
 
 
+# ==================== Shared Constants ====================
+CATEGORY_NAMES = {
+    "stat.ML": "Stat ML",
+    "stat.TH": "Stat Theory",
+    "stat.ME": "Methodology",
+    "stat.CO": "Computation",
+    "cs.LG": "ML",
+    "cs.AI": "AI",
+    "cs.CL": "NLP",
+    "cs.CV": "Vision",
+    "cs.NE": "Neural",
+    "cs.IT": "Info Theory",
+    "math.ST": "Math Stats",
+    "math.PR": "Probability",
+    "math.OC": "Optimization",
+    "econ.EM": "Econometrics",
+}
+
+
+def atomic_write_json(filepath: str, payload) -> None:
+    """Atomically write JSON data to a file using a temp file + rename."""
+    import os
+
+    directory = os.path.dirname(filepath)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    tmp_path = f"{filepath}.tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    os.replace(tmp_path, filepath)
+
+
 # ==================== Validation Utilities ====================
 def validate_arxiv_id(paper_id: str) -> bool:
     """Validate arXiv ID format.
@@ -191,3 +226,163 @@ def validate_paper_data(paper: Dict) -> bool:
     """
     required_fields = ['id', 'title', 'summary']
     return all(field in paper and paper[field] for field in required_fields)
+
+
+# ==================== Digest Parsing Cache ====================
+_digest_cache: dict = {}  # {date_or_key: (papers, keywords, timestamp)}
+_DIGEST_CACHE_TTL = 300  # 5 minutes
+
+
+def parse_markdown_digest(filepath: str):
+    """Parse a markdown digest file to extract papers and keywords.
+
+    Args:
+        filepath: Path to the digest .md file
+
+    Returns:
+        Tuple of (papers: list, keywords: list)
+    """
+    import os
+
+    from app.services.paper_utils import breakdown_from_text
+
+    papers = []
+    keywords = []
+
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # Extract themes/keywords from the header
+    themes_match = re.search(r'\*\*Research Themes:\*\*\s*(.+)', content)
+    if themes_match:
+        keywords = [k.strip() for k in themes_match.group(1).split(',')]
+
+    # Try to load daily metadata for better keywords
+    date_match = re.search(r'digest_(\d{4}-\d{2}-\d{2})', filepath)
+    date_str = date_match.group(1) if date_match else None
+
+    if date_str:
+        metadata_path = os.path.join(str(PROJECT_ROOT), 'cache', 'daily_metadata.json')
+        if os.path.exists(metadata_path):
+            try:
+                with open(metadata_path, 'r', encoding='utf-8') as f:
+                    metadata = json.load(f)
+                    if metadata.get('date') == date_str and metadata.get('keywords'):
+                        keywords = [k['word'] for k in metadata['keywords']]
+            except Exception:
+                pass
+
+    # Try to load structured breakdown from daily_recommendation.json
+    breakdown_map = {}
+    if date_str:
+        run_paths = [
+            os.path.join(str(PROJECT_ROOT), 'cache', 'recommendation_runs', f'{date_str}.json'),
+            os.path.join(str(PROJECT_ROOT), 'cache', 'daily_recommendation.json'),
+        ]
+        for rec_path in run_paths:
+            if not os.path.exists(rec_path):
+                continue
+            try:
+                with open(rec_path, 'r', encoding='utf-8') as f:
+                    rec_data = json.load(f)
+                    if rec_data.get('date') != date_str:
+                        continue
+                    for p in rec_data.get('papers', []):
+                        pid = p.get('id')
+                        if pid:
+                            breakdown = p.get('score_details', {}).get('breakdown', []) or p.get('relevance_breakdown', [])
+                            reason_text = p.get('relevance_reason') or p.get('relevance', '')
+                            breakdown_map[pid] = {
+                                'breakdown': breakdown or breakdown_from_text(reason_text),
+                                'relevance_reason': reason_text,
+                            }
+                    if breakdown_map:
+                        break
+            except Exception as e:
+                logger.error(f"Error loading breakdown: {e}")
+
+    # Split into paper sections
+    sections = re.split(r'## \d+\.', content)[1:]  # Skip header
+
+    for section in sections:
+        lines = section.strip().split('\n')
+        if not lines:
+            continue
+
+        paper = {}
+        paper['title'] = lines[0].strip()
+
+        for line in lines[1:]:
+            if line.startswith('**Authors:**'):
+                paper['authors'] = line.replace('**Authors:**', '').strip()
+            elif line.startswith('**arXiv:**') or line.startswith('**arXiv Link:**'):
+                match = re.search(r'\[([^\]]+)\]\(([^)]+)\)', line)
+                if match:
+                    paper['id'] = match.group(1)
+                    paper['link'] = match.group(2)
+            elif line.startswith('**Summary:**'):
+                paper['summary'] = line.replace('**Summary:**', '').strip()[:200] + '...'
+            elif line.startswith('**Relevance:**'):
+                paper['relevance'] = line.replace('**Relevance:**', '').strip()
+            elif line.startswith('**Citations:**'):
+                try:
+                    paper['citations'] = int(line.replace('**Citations:**', '').strip())
+                except Exception:
+                    paper['citations'] = 0
+            elif line.startswith('**Score:**'):
+                try:
+                    paper['score'] = float(line.replace('**Score:**', '').strip())
+                except Exception:
+                    paper['score'] = 0
+
+        if paper.get('id'):
+            # Merge structured breakdown if available
+            pid = paper['id']
+            if pid in breakdown_map:
+                paper['relevance_breakdown'] = breakdown_map[pid]['breakdown']
+                if breakdown_map[pid]['relevance_reason']:
+                    paper['relevance'] = breakdown_map[pid]['relevance_reason']
+            else:
+                paper['relevance_breakdown'] = breakdown_from_text(paper.get('relevance', ''))
+            papers.append(paper)
+
+    return papers, keywords
+
+
+def parse_markdown_digest_cached(filepath: str, use_cache: bool = True):
+    """Parse a markdown digest file with caching to avoid redundant I/O.
+
+    Args:
+        filepath: Path to the digest .md file
+        use_cache: Whether to use the module-level cache
+
+    Returns:
+        Tuple of (papers: list, keywords: list)
+    """
+    import os as _os
+
+    # Extract date from file path for cache key
+    date_match = re.search(r'digest_(\d{4}-\d{2}-\d{2})', filepath)
+    cache_key = date_match.group(1) if date_match else filepath
+
+    current_time = time.time()
+
+    # Check cache
+    if use_cache and cache_key in _digest_cache:
+        cached_papers, cached_keywords, cached_time = _digest_cache[cache_key]
+        try:
+            file_mtime = _os.path.getmtime(filepath)
+            if cached_time >= file_mtime and (current_time - cached_time) < _DIGEST_CACHE_TTL:
+                logger.debug(f"Using cached digest for {cache_key}")
+                return cached_papers, cached_keywords
+        except OSError:
+            pass
+
+    # Parse file
+    papers, keywords = parse_markdown_digest(filepath)
+
+    # Update cache
+    if use_cache and papers:
+        _digest_cache[cache_key] = (papers, keywords, current_time)
+
+    return papers, keywords

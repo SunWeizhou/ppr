@@ -65,6 +65,8 @@ class EngineeringProductizationTests(unittest.TestCase):
         ]
         offenders = []
         for path in paths:
+            if not path.exists():
+                continue
             text = path.read_text(encoding="utf-8", errors="ignore")
             if "CERT_NONE" in text or "check_hostname = False" in text:
                 offenders.append(str(path))

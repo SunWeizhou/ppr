@@ -51,6 +51,15 @@ logs/
 *.temp
 *.bak
 
+# Legacy generated HTML (not the canonical UI)
+index.html
+journal.html
+journal_test.html
+liked.html
+scholars.html
+scholars_test.html
+search.html
+
 # OS files
 .DS_Store
 Thumbs.db

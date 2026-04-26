@@ -6,6 +6,32 @@ from pathlib import Path
 
 
 class LocalProductizationTests(unittest.TestCase):
+    def setUp(self):
+        import sys
+
+        import config_manager
+
+        self._original_config_file = config_manager.CONFIG_FILE
+        self._original_config_instance = config_manager.ConfigManager._instance
+        self._original_arxiv_v5 = sys.modules.get("arxiv_recommender_v5")
+
+    def tearDown(self):
+        import sys
+
+        import config_manager
+
+        config_manager.CONFIG_FILE = self._original_config_file
+        config_manager.ConfigManager._instance = None
+        config_manager.get_config()
+        if self._original_arxiv_v5 is not None:
+            sys.modules["arxiv_recommender_v5"] = self._original_arxiv_v5
+            import arxiv_recommender_v5
+
+            importlib.reload(arxiv_recommender_v5)
+            import app.services.scoring_service
+
+            importlib.reload(app.services.scoring_service)
+
     def _reset_config_manager(self, config_path: Path):
         import config_manager
 

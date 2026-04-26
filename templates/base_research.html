@@ -14,14 +14,14 @@
 <body class="{{ body_class or '' }}">
     {% set total_queue = queue_counts.values() | list | sum %}
     <div class="app">
-        <aside class="sidenav">
-            <a href="/" class="brand">
+        <aside class="sidenav" aria-label="App sidebar">
+            <a href="/" class="brand" aria-label="StatDesk home">
                 <span class="brand-mark">StatDesk</span>
                 <span class="brand-sub" data-i18n="brand.sub">local-first arXiv workflow for statistics researchers</span>
             </a>
 
             <div class="sidenav-group-label" data-i18n="nav.workflow">Workflow</div>
-            <nav class="nav-list">
+            <nav class="nav-list" aria-label="Main navigation">
                 {% for item in nav_items %}
                     {% set nav_count = none %}
                     {% if item.key == 'queue' %}
@@ -44,9 +44,9 @@
             </nav>
 
             <div class="sidenav-foot">
-                <div class="preference-switcher" aria-label="Display preferences">
-                    <button type="button" class="pref-toggle" data-action="toggle-language" aria-label="Toggle language">中 / EN</button>
-                    <button type="button" class="pref-toggle" data-action="toggle-theme" aria-label="Toggle dark mode">Dark</button>
+                <div class="preference-switcher" role="group" aria-label="Display preferences">
+                    <button type="button" class="pref-toggle" data-action="toggle-language" aria-label="Toggle language between Chinese and English">中 / EN</button>
+                    <button type="button" class="pref-toggle" data-action="toggle-theme" aria-label="Toggle between light and dark mode">Dark</button>
                 </div>
                 <div class="foot-row">
                     <span class="status-dot {% if latest_job and latest_job.status not in ['idle', 'success'] %}is-warn{% endif %}"></span>
@@ -83,7 +83,7 @@
                     <h2 class="panel-title">加入 Collection</h2>
                     <p class="muted-copy">先选择已有容器，或创建一个新的研究问题容器。</p>
                 </div>
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('collectionPickerModal')">关闭</button>
+                <button type="button" class="btn btn-tertiary" onclick="closeModal('collectionPickerModal')" aria-label="Close collection picker">关闭</button>
             </div>
             <div class="modal-body">
                 <div class="modal-section">
@@ -120,7 +120,7 @@
                     <div class="section-kicker">Collection Editor</div>
                     <h2 class="panel-title" id="collectionEditorTitle">Collection</h2>
                 </div>
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('collectionEditorModal')">关闭</button>
+                <button type="button" class="btn btn-tertiary" onclick="closeModal('collectionEditorModal')" aria-label="Close collection editor">关闭</button>
             </div>
             <div class="modal-body">
                 <label class="field-label" for="collectionEditorName">名称</label>
@@ -153,7 +153,7 @@
                     <h2 class="panel-title" id="querySubscriptionTitle">保存问题订阅</h2>
                     <p class="muted-copy">把当前问题变成长期监控对象，后续在 Monitor 中看命中。</p>
                 </div>
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('querySubscriptionModal')">关闭</button>
+                <button type="button" class="btn btn-tertiary" onclick="closeModal('querySubscriptionModal')" aria-label="Close query subscription modal">关闭</button>
             </div>
             <div class="modal-body">
                 <label class="field-label" for="querySubscriptionName">显示名称</label>
@@ -186,7 +186,7 @@
                     <h2 class="panel-title" id="authorSubscriptionTitle">关注学者</h2>
                     <p class="muted-copy">把长期关注的作者作为 Monitor 对象管理，而不是散落在论文卡片里。</p>
                 </div>
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('authorSubscriptionModal')">关闭</button>
+                <button type="button" class="btn btn-tertiary" onclick="closeModal('authorSubscriptionModal')" aria-label="Close author subscription modal">关闭</button>
             </div>
             <div class="modal-body">
                 <label class="field-label" for="authorSubscriptionName">姓名</label>
@@ -225,11 +225,11 @@
                     <h2 class="panel-title" id="paperActionsTitle">Paper actions</h2>
                     <p class="muted-copy" id="paperActionsMeta">Choose the next operation for this paper.</p>
                 </div>
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('paperActionsModal')">关闭</button>
+                <button type="button" class="btn btn-tertiary" onclick="closeModal('paperActionsModal')" aria-label="Close paper actions modal">关闭</button>
             </div>
             <div class="modal-body">
-                <div class="action-stack">
-                    <a id="paperActionOpenLink" class="btn btn-primary" href="#" target="_blank" rel="noopener noreferrer" onclick="paperActionOpen(event)">Open arXiv</a>
+                <div class="action-stack" role="group" aria-label="Paper actions">
+                    <a id="paperActionOpenLink" class="btn btn-primary" href="#" target="_blank" rel="noopener noreferrer" onclick="paperActionOpen(event)" aria-label="Open paper on arXiv">Open arXiv</a>
                     <button type="button" class="btn btn-tertiary" onclick="paperActionQueue('Inbox')">Move to Inbox</button>
                     <button type="button" class="btn btn-warm" onclick="paperActionQueue('Skim Later')">Skim Later</button>
                     <button type="button" class="btn btn-sage" onclick="paperActionQueue('Deep Read')">Deep Read</button>
