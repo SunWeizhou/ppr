@@ -153,6 +153,18 @@ def view_date(date):
     return render_template("home_research.html", **context)
 
 
+@bp.get("/papers/<paper_id>")
+def paper_detail(paper_id):
+    """Render the paper detail page."""
+    from app.viewmodels.paper_viewmodel import PaperViewModel
+    store = get_state_store()
+    vm = PaperViewModel(store)
+    context = vm.to_detail_context(paper_id)
+    if "error" in context:
+        return render_template("paper_detail.html", **context), 404
+    return render_template("paper_detail.html", **context)
+
+
 # ---------------------------------------------------------------------------
 # Contextual search
 # ---------------------------------------------------------------------------

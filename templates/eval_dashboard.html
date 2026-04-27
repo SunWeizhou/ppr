@@ -1,0 +1,165 @@
+{% extends "base_research.html" %}
+
+{% block head %}
+{{ super() }}
+<style>
+.eval-page { max-width: 900px; margin: 0 auto; padding: 20px; }
+.eval-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.eval-header h1 { font-size: 1.5em; }
+.run-btn { padding: 10px 24px; background: linear-gradient(135deg, #7c3aed, #00d4ff); border: none; border-radius: 10px; color: #fff; cursor: pointer; font-size: 1em; transition: all 0.2s; }
+.run-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,212,255,0.3); }
+.run-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.eval-section { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.06); }
+.eval-section h2 { font-size: 1.1em; margin-bottom: 12px; color: #00d4ff; }
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.metric-card { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 16px; text-align: center; }
+.metric-card .value { font-size: 1.8em; font-weight: bold; }
+.metric-card .label { font-size: 0.8em; color: #888; margin-top: 4px; }
+.variant-table { width: 100%; border-collapse: collapse; }
+.variant-table th, .variant-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.variant-table th { color: #888; font-size: 0.85em; font-weight: 600; }
+.variant-table tr:hover { background: rgba(255,255,255,0.03); }
+.best-val { color: #22c55e; font-weight: bold; }
+.empty-state { text-align: center; padding: 40px; color: #888; }
+#eval-spinner { display: none; text-align: center; padding: 40px; }
+#eval-spinner.active { display: block; }
+.spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #00d4ff; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 768px) { .eval-page { padding: 10px; } }
+</style>
+{% endblock %}
+
+{% block hero %}
+<div class="eval-page">
+    <div class="eval-header">
+        <h1>Evaluation Dashboard</h1>
+        <button class="run-btn" id="runEvalBtn" onclick="runEvaluation()">Run Evaluation</button>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div id="eval-spinner">
+        <div class="spinner"></div>
+        <p>Running evaluation (this may take a moment)...</p>
+    </div>
+
+    <div id="eval-results">
+        {% if latest_report %}
+        {% set variants = latest_report.get('variants', {}) %}
+        {% if variants %}
+        <div class="eval-section">
+            <h2>Variant Comparison</h2>
+            {% set first = variants.values()|first %}
+            {% set metric_keys = first.get('metrics', {}).keys() if first else [] %}
+            <table class="variant-table">
+                <thead>
+                    <tr>
+                        <th>Variant</th>
+                        {% for key in metric_keys %}
+                        <th>{{ key }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set best = {} %}
+                    {% for vname, vdata in variants.items() %}
+                        {% for key in metric_keys %}
+                            {% set val = vdata.get('metrics', {}).get(key, 0) %}
+                            {% if val > best.get(key, 0) %}
+                                {% set _ = best.update({key: val}) %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                    {% for vname, vdata in variants.items() %}
+                    <tr>
+                        <td><strong>{{ vname }}</strong></td>
+                        {% for key in metric_keys %}
+                            {% set val = vdata.get('metrics', {}).get(key, 0)|float %}
+                            <td class="{% if val > 0 and val >= best.get(key, 0) %}best-val{% endif %}">
+                                {{ "%.3f"|format(val) }}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <div class="eval-section">
+            <h2>Evaluation Summary</h2>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="value" style="font-size:1em;">{{ latest_report.get('generated_at', '')[:19] }}</div>
+                    <div class="label">Generated</div>
+                </div>
+                <div class="metric-card">
+                    <div class="value">{{ latest_report.get('k_values', [])|join(', ') }}</div>
+                    <div class="label">K Values</div>
+                </div>
+                <div class="metric-card">
+                    <div class="value">{{ latest_report.get('input_runs', 0) }}</div>
+                    <div class="label">Runs Analyzed</div>
+                </div>
+            </div>
+        </div>
+
+        {% set label_counts = latest_report.get('label_counts', {}) %}
+        {% if label_counts %}
+        <div class="eval-section">
+            <h2>Label Distribution</h2>
+            <div class="metric-grid">
+                {% for label, count in label_counts.items() %}
+                <div class="metric-card">
+                    <div class="value">{{ count }}</div>
+                    <div class="label">{{ label }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="eval-section">
+            <div class="empty-state">
+                <p>No evaluation reports yet. Click "Run Evaluation" to generate metrics from your recommendation history and user feedback.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if reports|length > 1 %}
+        <div class="eval-section">
+            <h2>Previous Reports ({{ reports|length }})</h2>
+            {% for report in reports[:10] %}
+            <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;gap:16px;">
+                <span style="color:#888;min-width:160px;">{{ report.get('generated_at', '')[:19] }}</span>
+                <span style="color:#666;">
+                    {{ report.get('variants', {})|length }} variants
+                    {% if report.get('label_counts') %}&middot; {{ report.get('label_counts', {})|length }} labels{% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+async function runEvaluation() {
+    const btn = document.getElementById('runEvalBtn');
+    const spinner = document.getElementById('eval-spinner');
+    const results = document.getElementById('eval-results');
+    btn.disabled = true; btn.textContent = 'Running...';
+    spinner.classList.add('active'); results.style.display = 'none';
+    try {
+        const resp = await fetch('/api/evaluation/run', { method: 'POST' });
+        const data = await resp.json();
+        if (data.success) { window.location.reload(); }
+        else { alert('Evaluation failed: ' + (data.error || 'Unknown error')); }
+    } catch (err) { alert('Error: ' + err.message); }
+    finally { btn.disabled = false; btn.textContent = 'Run Evaluation'; spinner.classList.remove('active'); results.style.display = 'block'; }
+}
+</script>
+{% endblock %}

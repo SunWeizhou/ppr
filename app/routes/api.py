@@ -358,16 +358,20 @@ def download_pdf(paper_id):
 
 @bp.get("/api/dates")
 def get_dates():
-    import os, re
-
-    dates = []
-    hist_dir = str(HISTORY_DIR)
-    if os.path.exists(hist_dir):
-        for f in os.listdir(hist_dir):
-            if f.startswith("digest_") and f.endswith(".md"):
-                date = f.replace("digest_", "").replace(".md", "")
-                dates.append(date)
-    return jsonify(sorted(dates, reverse=True))
+    # SQLite first
+    dates = _current_state_store().list_recommendation_dates(limit=90)
+    if not dates:
+        # Fallback to markdown history
+        import os, re
+        dates = []
+        hist_dir = str(HISTORY_DIR)
+        if os.path.exists(hist_dir):
+            for f in os.listdir(hist_dir):
+                if f.startswith("digest_") and f.endswith(".md"):
+                    date = f.replace("digest_", "").replace(".md", "")
+                    dates.append(date)
+        dates = sorted(dates, reverse=True)
+    return jsonify(dates)
 
 
 @bp.post("/api/feedback/learn")
@@ -497,14 +501,22 @@ def refresh_recommendations():
         from arxiv_recommender_v5 import load_daily_recommendation, CONFIG as PIPELINE_CONFIG
 
         today = datetime.now().strftime("%Y-%m-%d")
-        cached_papers, _ = load_daily_recommendation(PIPELINE_CONFIG["cache_dir"])
 
-        if cached_papers and not force:
+        # Check SQLite first
+        sqlite_run = _current_state_store().get_recommendation_run_by_date(today)
+        has_sqlite = sqlite_run is not None
+
+        # Then check JSON cache
+        cached_papers, _ = load_daily_recommendation(PIPELINE_CONFIG["cache_dir"])
+        has_json = cached_papers is not None
+
+        if (has_sqlite or has_json) and not force:
             return jsonify({
                 "success": True,
                 "message": "今日推荐已存在",
+                "has_recommendation": True,
+                "source": "sqlite" if has_sqlite else "json",
                 "date": today,
-                "paper_count": len(cached_papers),
                 "job_id": None,
             })
 
@@ -554,8 +566,33 @@ def get_status():
     """Get recommendation status for today."""
     try:
         from arxiv_recommender_v5 import load_daily_recommendation, CONFIG as PIPELINE_CONFIG
+        import json as _json
 
         today = datetime.now().strftime("%Y-%m-%d")
+
+        # Check SQLite first
+        sqlite_run = _current_state_store().get_recommendation_run_by_date(today)
+        if sqlite_run:
+            items = _current_state_store().get_recommendation_items(sqlite_run["run_id"])
+            try:
+                themes = _json.loads(sqlite_run.get("themes_json", "[]"))
+            except (TypeError, _json.JSONDecodeError):
+                themes = []
+            latest_job = _current_state_store().get_latest_job("daily_recommendation")
+            recommendation_health = _build_recommendation_health(items)
+            return jsonify({
+                "date": today,
+                "has_recommendation": True,
+                "source": "sqlite",
+                "paper_count": len(items),
+                "themes": themes,
+                "run_id": sqlite_run["run_id"],
+                "generated_at": sqlite_run.get("created_at", ""),
+                "job": serialize_job(latest_job),
+                "recommendation_health": recommendation_health,
+            })
+
+        # Fallback to JSON cache
         cached_papers, cached_themes = load_daily_recommendation(PIPELINE_CONFIG["cache_dir"])
         latest_job = _current_state_store().get_latest_job("daily_recommendation")
         recommendation_health = _build_recommendation_health(cached_papers)
@@ -563,6 +600,7 @@ def get_status():
         return jsonify({
             "date": today,
             "has_recommendation": cached_papers is not None,
+            "source": "json" if cached_papers else None,
             "paper_count": len(cached_papers) if cached_papers else 0,
             "themes": cached_themes or [],
             "generated_at": datetime.now().isoformat(),
@@ -804,6 +842,28 @@ def manage_saved_searches():
         except sqlite3.IntegrityError:
             return jsonify({"success": False, "error": "Saved search name already exists"}), 409
         _current_state_store().record_event("update_saved_search", payload={"saved_search_id": int(search_id)})
+        # Dual-write: keep matching subscription in sync
+        try:
+            saved_search_id = int(search_id)
+            subs = _current_state_store().list_subscriptions(type="query")
+            for sub in subs:
+                payload = sub.get("payload_json") or {}
+                if isinstance(payload, str):
+                    try:
+                        payload = json.loads(payload)
+                    except (TypeError, json.JSONDecodeError):
+                        payload = {}
+                if payload.get("legacy_id") == saved_search_id:
+                    name = data.get("name")
+                    query_text = data.get("query_text")
+                    _current_state_store().update_subscription(
+                        sub["id"],
+                        name=name or saved_search.get("name", ""),
+                        query_text=query_text,
+                    )
+                    break
+        except Exception:
+            pass
         return jsonify({"success": True, "saved_search": serialize_saved_search(saved_search)})
 
     # DELETE
@@ -813,6 +873,22 @@ def manage_saved_searches():
     deleted = _current_state_store().delete_saved_search(int(search_id))
     if deleted:
         _current_state_store().record_event("delete_saved_search", payload={"saved_search_id": int(search_id)})
+        # Dual-write: also delete matching subscription
+        try:
+            saved_search_id = int(search_id)
+            subs = _current_state_store().list_subscriptions(type="query")
+            for sub in subs:
+                payload = sub.get("payload_json") or {}
+                if isinstance(payload, str):
+                    try:
+                        payload = json.loads(payload)
+                    except (TypeError, json.JSONDecodeError):
+                        payload = {}
+                if payload.get("legacy_id") == saved_search_id:
+                    _current_state_store().delete_subscription(sub["id"])
+                    break
+        except Exception:
+            pass
     return jsonify({"success": deleted})
 
 
@@ -1699,3 +1775,51 @@ def debug_info():
         })
     except Exception as exc:
         return jsonify({"success": False, "error": str(exc)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Subscription Hit Management
+# ---------------------------------------------------------------------------
+
+
+@bp.post("/api/subscription-hits/<int:hit_id>/send-to-inbox")
+def send_hit_to_inbox(hit_id):
+    """Send a subscription hit to the reading queue."""
+    from app.services.subscription_service import SubscriptionService
+    svc = SubscriptionService(_current_state_store())
+    ok = svc.send_hit_to_inbox(hit_id)
+    return jsonify({"success": ok})
+
+
+@bp.post("/api/subscription-hits/<int:hit_id>/ignore")
+def ignore_hit(hit_id):
+    """Ignore a subscription hit."""
+    from app.services.subscription_service import SubscriptionService
+    svc = SubscriptionService(_current_state_store())
+    ok = svc.ignore_hit(hit_id)
+    return jsonify({"success": ok})
+
+
+# ---------------------------------------------------------------------------
+# Evaluation
+# ---------------------------------------------------------------------------
+
+
+@bp.post("/api/evaluation/run")
+def run_evaluation_api():
+    """Run evaluation and return results."""
+    from app.viewmodels.eval_viewmodel import EvalViewModel
+
+    vm = EvalViewModel(_current_state_store())
+    k = request.args.get("k", "5,10,20")
+    return jsonify(vm.run_evaluation(k))
+
+
+@bp.get("/api/evaluation/reports")
+def list_evaluation_api():
+    """List evaluation reports."""
+    from app.viewmodels.eval_viewmodel import EvalViewModel
+
+    vm = EvalViewModel(_current_state_store())
+    reports = vm.list_reports()
+    return jsonify({"success": True, "reports": reports})

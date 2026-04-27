@@ -20,6 +20,16 @@ def monitor_page():
     )
 
 
+@bp.get("/evaluation")
+def evaluation_page():
+    """Render the evaluation dashboard."""
+    from app.viewmodels.eval_viewmodel import EvalViewModel
+
+    store = get_state_store()
+    vm = EvalViewModel(store)
+    return render_template("eval_dashboard.html", **vm.to_dashboard_context())
+
+
 @bp.get("/track")
 def track_page():
     return redirect("/monitor", code=302)
