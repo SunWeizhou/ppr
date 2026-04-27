@@ -23,6 +23,9 @@ class PaperViewModel:
 
     def to_detail_context(self, paper_id: str) -> dict:
         """Build the full detail context for a paper."""
+        from state_store import _canonical_paper_id
+        paper_id = _canonical_paper_id(paper_id)
+
         # Build page context first — needed by both the error and success paths
         from app.viewmodels.shared import assemble_page_context
         from state_store import QUEUE_STATUS_VALUES
