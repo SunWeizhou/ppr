@@ -123,9 +123,22 @@
                     </div>
                 </div>
             {% else %}
-                <div class="card empty-state">
-                    <p class="muted-copy">当前这一天还没有可展示的论文结果，可以先刷新生成，或者切换到其他日期。</p>
+                {% if is_today %}
+                <div class="card empty-state-card">
+                    <div class="empty-state-icon">&#128218;</div>
+                    <h2 class="empty-state-title">No Recommendations Yet</h2>
+                    <p class="empty-state-desc">Generate your first set of paper recommendations based on your research keywords.</p>
+                    <a href="/settings?tab=profile" class="btn btn-primary">Configure Keywords</a>
+                    <a href="/" class="btn btn-secondary">Refresh</a>
                 </div>
+                {% else %}
+                <div class="card empty-state-card">
+                    <div class="empty-state-icon">&#128218;</div>
+                    <h2 class="empty-state-title">No Papers on This Date</h2>
+                    <p class="empty-state-desc">No recommendations were found for this date. Try a different date or go back to today.</p>
+                    <a href="/" class="btn btn-primary">Go to Today</a>
+                </div>
+                {% endif %}
             {% endif %}
         </div>
 

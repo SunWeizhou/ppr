@@ -105,10 +105,11 @@
         </div>
         {% endif %}
         {% else %}
-        <div class="card card--flush card-spaced">
-            <div class="empty-state">
-                <p>No evaluation reports yet. Click "Run Evaluation" to generate metrics from your recommendation history and user feedback.</p>
-            </div>
+        <div class="card empty-state-card">
+            <div class="empty-state-icon">&#128202;</div>
+            <h2 class="empty-state-title">No Evaluation Reports</h2>
+            <p class="empty-state-desc">Run evaluations to measure recommendation quality across scoring variants.</p>
+            <a href="/evaluation/run" class="btn btn-primary">Run Evaluation</a>
         </div>
         {% endif %}
 

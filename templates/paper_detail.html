@@ -20,7 +20,7 @@
 </div>
 {% else %}
 <div class="page-content">
-    <div class="split split--rail-right" style="align-items:start;">
+    <div class="split split--rail-right paper-detail-layout">
         <!-- ============================================================ -->
         <!-- Left: Primary content -->
         <!-- ============================================================ -->
@@ -145,7 +145,7 @@
                 {% endif %}
 
                 {% if paper.get('recommendation_reason', {}).get('affinity_reason') %}
-                <p class="t-muted" style="font-size:0.9em;margin-top:8px;">
+                <p class="t-muted t-sm mt-2">
                     {{ paper.get('recommendation_reason', {}).get('affinity_reason') }}
                 </p>
                 {% endif %}
@@ -171,7 +171,7 @@
         <!-- ============================================================ -->
         <!-- Right: Sticky sidebar -->
         <!-- ============================================================ -->
-        <aside class="rail" style="position:sticky;top:20px;">
+        <aside class="rail paper-detail-rail">
 
             <!-- Actions -->
             <div class="card card-spaced">

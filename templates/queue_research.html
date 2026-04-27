@@ -68,6 +68,15 @@
 </div>
 {% endif %}
 
+{% if not deep_read_papers and not skim_later_papers %}
+<div class="card empty-state-card">
+    <div class="empty-state-icon">&#128214;</div>
+    <h2 class="empty-state-title">Queue is Empty</h2>
+    <p class="empty-state-desc">Papers queued from Inbox for Skim Later or Deep Read will appear here.</p>
+    <a href="/" class="btn btn-primary">Go to Inbox</a>
+</div>
+{% endif %}
+
 <div class="tabs">
     {% for status in queue_status_values %}
         <a href="/queue?status={{ status|urlencode }}" class="tab-button {% if active_status == status %}active{% endif %}">

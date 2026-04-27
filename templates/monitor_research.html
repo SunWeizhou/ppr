@@ -36,6 +36,16 @@
     <a href="/monitor?tab=recent-hits" class="tab-button {% if tab == 'recent-hits' %}active{% endif %}">Hits <span class="count">{{ recent_hits|length if recent_hits else 0 }}</span></a>
 </div>
 
+{% if not my_scholars and not journal_cards and not all_saved_searches %}
+<div class="card empty-state-card">
+    <div class="empty-state-icon">&#128269;</div>
+    <h2 class="empty-state-title">No Active Subscriptions</h2>
+    <p class="empty-state-desc">Create subscriptions to track authors, venues, and research queries over time.</p>
+    <button type="button" class="btn btn-primary" onclick="createQuerySubscription()">Create Query Subscription</button>
+    <button type="button" class="btn btn-secondary" onclick="createAuthorSubscription()">Follow Author</button>
+</div>
+{% else %}
+
 <section class="split split--rail-left section-gap">
     <aside class="rail">
         <div class="rail-group">
@@ -257,6 +267,7 @@
         {% endif %}
     </div>
 </section>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
