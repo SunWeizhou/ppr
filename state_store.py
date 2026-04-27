@@ -422,6 +422,51 @@ class StateStore:
             ).fetchone()
         return self._row_to_dict(row)
 
+    def create_job_if_no_active_job(
+        self,
+        job_type: str,
+        trigger_source: str = "unknown",
+        payload: Optional[Dict] = None,
+    ) -> Optional[Dict]:
+        """Create a queued job only if no active (queued/running) job of this type exists.
+
+        The check and insert run inside a single lock+transaction so two
+        concurrent callers cannot both create jobs.
+        Returns the new job dict, or None if an active job already exists.
+        """
+        now = _utc_now()
+        run_id = uuid.uuid4().hex
+
+        with self._lock, self._connect() as conn:
+            existing = conn.execute(
+                "SELECT run_id FROM job_runs WHERE job_type=? AND status IN ('queued','running') LIMIT 1",
+                (job_type,),
+            ).fetchone()
+            if existing:
+                return None
+
+            conn.execute(
+                """
+                INSERT INTO job_runs(
+                    run_id, job_type, status, trigger_source,
+                    payload_json, result_json, created_at, updated_at
+                ) VALUES (?, ?, 'queued', ?, ?, ?, ?, ?)
+                """,
+                (
+                    run_id,
+                    job_type,
+                    trigger_source,
+                    _to_json(payload, {}),
+                    _to_json({}, {}),
+                    now,
+                    now,
+                ),
+            )
+            row = conn.execute(
+                "SELECT * FROM job_runs WHERE run_id = ?", (run_id,)
+            ).fetchone()
+        return self._row_to_dict(row)
+
     def update_job(
         self,
         run_id: str,

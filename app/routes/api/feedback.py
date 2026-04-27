@@ -68,13 +68,6 @@ def refresh_recommendations():
 
         today = datetime.now().strftime("%Y-%m-%d")
 
-        # Guard: atomic check for existing queued/running jobs
-        if _current_state_store().has_running_job("daily_recommendation"):
-            return jsonify({
-                "success": False,
-                "error": "已有刷新任务正在排队或运行",
-            }), 409
-
         # Check SQLite first
         sqlite_run = _current_state_store().get_recommendation_run_by_date(today)
         has_sqlite = sqlite_run is not None
@@ -93,12 +86,16 @@ def refresh_recommendations():
                 "job_id": None,
             })
 
-        job = _current_state_store().create_job(
+        job = _current_state_store().create_job_if_no_active_job(
             "daily_recommendation",
             trigger_source="manual_refresh",
             payload={"force_refresh": True, "requested_force": force},
-            status="queued",
         )
+        if job is None:
+            return jsonify({
+                "success": False,
+                "error": "已有刷新任务正在排队或运行",
+            }), 409
 
         def _run_pipeline_bg(run_id, force_refresh):
             try:

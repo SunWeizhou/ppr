@@ -226,19 +226,16 @@ def save_settings():
         regeneration_job = None
         if regenerate:
             try:
-                # Guard: atomic check for existing queued/running jobs
-                if _current_state_store().has_running_job("daily_recommendation"):
+                regeneration_job = _current_state_store().create_job_if_no_active_job(
+                    "daily_recommendation",
+                    trigger_source="settings_save",
+                    payload={"force_refresh": True, "reason": "settings_updated"},
+                )
+                if regeneration_job is None:
                     return jsonify({
                         "success": False,
                         "error": "已有刷新任务正在排队或运行",
                     }), 409
-
-                regeneration_job = _current_state_store().create_job(
-                    "daily_recommendation",
-                    trigger_source="settings_save",
-                    payload={"force_refresh": True, "reason": "settings_updated"},
-                    status="queued",
-                )
 
                 thread = threading.Thread(
                     target=_run_pipeline_bg,
