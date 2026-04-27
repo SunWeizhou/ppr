@@ -44,7 +44,7 @@ def build_evaluation_payload(args) -> dict:
     history_dir = Path(args.history_dir)
     state_store = StateStore(str(args.state_db))
     labels = build_weak_labels(state_store, feedback_path=cache_dir / "user_feedback.json")
-    runs = load_recommendation_runs(cache_dir=cache_dir, history_dir=history_dir)
+    runs = load_recommendation_runs(cache_dir=cache_dir, history_dir=history_dir, state_store=state_store)
     variants = run_ablation(runs, labels, k_values=k_values)
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),

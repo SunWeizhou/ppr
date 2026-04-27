@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from state_store import _canonical_paper_id
 
@@ -45,6 +45,34 @@ def _load_structured_runs(cache_dir: Path) -> list[dict]:
             run = _load_json_run(path)
             if run:
                 runs.append(run)
+    return runs
+
+
+def _load_sqlite_runs(state_store) -> List[dict]:
+    """Load recommendation runs from SQLite."""
+    runs = []
+    for run_row in state_store.list_recommendation_runs(limit=60):
+        if not run_row.get("run_id"):
+            continue
+        items = state_store.get_recommendation_items(run_row["run_id"])
+        papers = []
+        for item in items:
+            paper = {
+                "id": _canonical_paper_id(item.get("paper_id", "")),
+                "title": item.get("title", ""),
+                "score": item.get("score", 0.0),
+                "score_details": item.get("score_details", {}),
+                "authors": item.get("authors", []),
+                "abstract": item.get("abstract", ""),
+                "categories": item.get("categories", []),
+                "source": item.get("source", "arxiv"),
+            }
+            papers.append(paper)
+        runs.append({
+            "date": run_row.get("run_date", ""),
+            "source": f"sqlite://{run_row.get('run_id', '')[:8]}",
+            "papers": papers,
+        })
     return runs
 
 
@@ -91,14 +119,24 @@ def _load_history_run(path: Path) -> dict | None:
     }
 
 
-def load_recommendation_runs(*, cache_dir: Path | str, history_dir: Path | str) -> List[dict]:
-    """Load structured recommendation runs, falling back to markdown history."""
+def load_recommendation_runs(
+    *, cache_dir: Path | str, history_dir: Path | str, state_store=None
+) -> List[dict]:
+    """Load structured recommendation runs, trying SQLite first, then JSON, then markdown."""
+    # Try SQLite first
+    if state_store is not None:
+        sqlite_runs = _load_sqlite_runs(state_store)
+        if sqlite_runs:
+            return sqlite_runs
+
+    # Fallback to JSON cache
     cache_path = Path(cache_dir)
     history_path = Path(history_dir)
     structured = _load_structured_runs(cache_path)
     if structured:
         return structured
 
+    # Final fallback to markdown history
     if not history_path.exists():
         return []
     return [

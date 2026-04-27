@@ -119,7 +119,20 @@ class InboxViewModel:
 
     @staticmethod
     def get_available_dates() -> list[str]:
-        """Return sorted list of history dates (newest first)."""
+        """Return sorted list of available dates (newest first).
+
+        Prefers SQLite recommendation runs, falls back to history digests.
+        """
+        from state_store import get_state_store
+        try:
+            store = get_state_store()
+            sqlite_dates = store.list_recommendation_dates(limit=60)
+            if sqlite_dates:
+                return sqlite_dates
+        except Exception:
+            pass
+
+        # Fallback: scan history digest files
         if not os.path.exists(HISTORY_DIR):
             return []
         dates = []
@@ -127,6 +140,29 @@ class InboxViewModel:
             if f.startswith("digest_") and f.endswith(".md"):
                 dates.append(f.replace("digest_", "").replace(".md", ""))
         return sorted(dates, reverse=True)
+
+    @staticmethod
+    def load_papers_from_sqlite(date: str) -> Optional[list]:
+        """Load recommendation papers from SQLite for a given date.
+
+        Returns the papers list (with deserialized JSON fields) or None if not found.
+        Normalises the ``paper_id`` field into ``id`` for backward compat.
+        """
+        from state_store import get_state_store
+        try:
+            store = get_state_store()
+            run = store.get_recommendation_run_by_date(date)
+            if run:
+                items = store.get_recommendation_items(run["run_id"])
+                if items:
+                    # Normalise: make ``id`` the arxiv paper ID (mirrors markdown path)
+                    for item in items:
+                        item["id"] = item["paper_id"]
+                        del item["paper_id"]
+                    return items
+        except Exception:
+            pass
+        return None
 
     @staticmethod
     def parse_digest(filepath: str, use_cache: bool = True):

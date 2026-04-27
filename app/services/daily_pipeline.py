@@ -111,66 +111,21 @@ def save_recommendation_run(cache_dir: str, date_str: str, papers: List[Dict], t
 
 
 # ---------------------------------------------------------------------------
-# Main pipeline
+# Pipeline helper functions
 # ---------------------------------------------------------------------------
 
 
-def run_pipeline(force_refresh: bool = False) -> List[Dict]:
-    """Run the complete enhanced pipeline.
+def _load_zotero_papers() -> Tuple[List[Dict], List[str], bool]:
+    """Load Zotero papers from the Zotero database and extract research themes.
 
-    Args:
-        force_refresh: If True, regenerate recommendations even if today's exist.
+    Returns:
+        A tuple of (zotero_papers, themes, use_semantic_flag) where
+        use_semantic_flag is True if Zotero papers were successfully loaded.
     """
-    cache_dir = str(CACHE_DIR)
-    output_dir = str(PROJECT_ROOT)
-    history_dir = str(HISTORY_DIR)
-
-    logger.info("=" * 60)
-    logger.info("arXiv Daily Paper Recommender v2.2")
-    logger.info("=" * 60)
-
-    # Initialize cache
-    cache = PaperCache(cache_dir)
-
-    # Check if today's recommendation already exists
-    today = datetime.now().strftime('%Y-%m-%d')
-    if not force_refresh:
-        cached_papers, cached_themes = load_daily_recommendation(cache_dir)
-        if cached_papers:
-            logger.info(f"Today's recommendation already exists ({today})")
-            logger.info(f"Papers: {len(cached_papers)}, Themes: {len(cached_themes) if cached_themes else 0}")
-            logger.info("Use force_refresh=True to regenerate.")
-
-            # Still update the HTML output for web server
-            os.makedirs(output_dir, exist_ok=True)
-            os.makedirs(history_dir, exist_ok=True)
-
-            html_gen = HTMLGenerator()
-            html = html_gen.generate(cached_papers, cached_themes or [], today, cache.get_stats())
-            with open(os.path.join(output_dir, 'index.html'), 'w', encoding='utf-8') as f:
-                f.write(html)
-
-            logger.info(f"HTML updated: {output_dir}/index.html")
-            logger.info("Done! Open http://localhost:5555 for interactive view")
-
-            return cached_papers
-
-    cache.cleanup_old_entries(_CONFIG['cache_expiry_days'])
-    logger.info(f"Cache: {cache.get_stats()}")
-
-    pipeline_start = time.time()
-
-    # Load user feedback and learn from it
-    feedback = load_user_feedback(cache_dir)
-    if feedback.get('liked') or feedback.get('disliked'):
-        logger.info(f"User feedback: {len(feedback.get('liked', []))} liked, {len(feedback.get('disliked', []))} disliked")
-
-    # Load Zotero papers with auto-detection
     t0 = time.time()
     zotero_path = get_zotero_path()
     zotero_papers: List[Dict] = []
 
-    # Check if Zotero is enabled in config
     user_cfg = load_user_config()
     use_zotero = user_cfg.get('zotero', {}).get('enabled', True)
 
@@ -214,36 +169,27 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
         themes = [t[0] for t in sorted(theme_scores.items(), key=lambda x: -x[1])[:10]]
         logger.debug(f"Research themes: {themes} ({time.time()-t0:.1f}s)")
 
-    # Initialize semantic similarity (with caching)
-    t0 = time.time()
-    semantic = SemanticSimilarity(_CONFIG['embedding_model'], cache_dir)
-    if _CONFIG['use_semantic_similarity'] and zotero_papers:
-        logger.info("Computing semantic embeddings...")
-        semantic.compute_zotero_embedding(zotero_papers, zotero_path)
-        logger.info(f"Semantic init done ({time.time()-t0:.1f}s)")
-    elif not zotero_papers:
-        logger.info("Running in keyword-only mode (no Zotero library found)")
-        logger.info("  Recommendations will be based on keyword matching only")
-        semantic = None
+    return zotero_papers, themes, bool(zotero_papers)
 
-    # Fetch papers from multiple sources
-    t0 = time.time()
-    fetcher = MultiSourceFetcher(_CONFIG['arxiv_categories'], cache)
-    papers = fetcher.fetch_all_sources(_CONFIG['lookback_days'])
-    logger.info(f"Fetched {len(papers)} papers from arXiv ({time.time()-t0:.1f}s)")
 
-    if not papers:
-        logger.warning("No new papers found!")
-        return []
+def _run_scoring(
+    papers: List[Dict],
+    semantic: Optional[SemanticSimilarity],
+    topic_weights: Dict,
+    use_semantic: bool,
+) -> List[Dict]:
+    """Score all papers using the EnhancedScorer and return top papers.
 
-    # Learn topic weights from feedback
-    t0 = time.time()
-    topic_weights = learn_from_feedback(feedback, papers)
-    logger.debug(f"Learned weights from feedback ({time.time()-t0:.1f}s)")
+    Args:
+        papers: List of paper dicts to score.
+        semantic: Semantic similarity instance (may be None).
+        topic_weights: Learned topic weights from feedback.
+        use_semantic: Whether to use semantic similarity scoring.
 
-    # Score papers with learned weights
+    Returns:
+        Sorted list of top scored papers.
+    """
     t0 = time.time()
-    use_semantic = _CONFIG['use_semantic_similarity'] and semantic is not None
     scorer = EnhancedScorer(semantic, use_semantic, topic_weights)
     for paper in papers:
         score, details = scorer.compute_score(paper)
@@ -266,12 +212,34 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
 
     logger.debug(f"Top scores: {[round(p['score'], 1) for p in top_papers[:5]]}")
 
+    return top_papers
+
+
+def _generate_outputs(
+    top_papers: List[Dict],
+    themes: List[str],
+    date_str: str,
+    cache: PaperCache,
+    output_dir: str,
+    history_dir: str,
+    cache_dir: str,
+) -> None:
+    """Generate and persist all recommendation outputs including PDFs, HTML, Markdown, and SQLite.
+
+    Args:
+        top_papers: List of top scored papers.
+        themes: Extracted research themes.
+        date_str: Current date string (YYYY-MM-DD).
+        cache: PaperCache instance.
+        output_dir: Output directory for generated files.
+        history_dir: History directory for past digests.
+        cache_dir: Cache directory for recommendation data.
+    """
     # Download PDFs for high-scoring papers
     logger.info("Downloading PDFs for top papers...")
     download_pdfs(top_papers, output_dir, min_score=2.5)
 
     # Record recommendations
-    date_str = datetime.now().strftime('%Y-%m-%d')
     cache.record_recommendation(date_str, [p['id'] for p in top_papers])
 
     # Generate output
@@ -311,11 +279,9 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
     except Exception as e:
         logger.warning(f"Failed to save recommendation to SQLite: {e}")
 
-    logger.info("=" * 60)
-    logger.info(f"Pipeline complete! Total time: {time.time()-pipeline_start:.1f}s")
-    logger.info("=" * 60)
 
-    # Print summary
+def _print_summary(top_papers: List[Dict], duration: float) -> None:
+    """Print pipeline completion summary."""
     logger.info("=" * 60)
     logger.info("Today's Top Recommendations:")
     logger.info("=" * 60)
@@ -324,8 +290,90 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
         logger.info(f"   Score: {p['score']:.1f} | {p['link']}")
 
     logger.info("=" * 60)
-    logger.info("Done! Open http://localhost:5555 for interactive view")
+    logger.info(f"Pipeline complete! Total time: {duration:.1f}s")
     logger.info("=" * 60)
+
+
+# ---------------------------------------------------------------------------
+# Main pipeline
+# ---------------------------------------------------------------------------
+
+
+def run_pipeline(force_refresh: bool = False) -> List[Dict]:
+    """Run the complete enhanced pipeline."""
+    cache_dir = str(CACHE_DIR)
+    output_dir = str(PROJECT_ROOT)
+    history_dir = str(HISTORY_DIR)
+
+    logger.info("=" * 60)
+    logger.info("arXiv Daily Paper Recommender v2.2")
+    logger.info("=" * 60)
+
+    # Initialize cache
+    cache = PaperCache(cache_dir)
+
+    # Check if today's recommendation already exists
+    today = datetime.now().strftime('%Y-%m-%d')
+    if not force_refresh:
+        cached_papers, cached_themes = load_daily_recommendation(cache_dir)
+        if cached_papers:
+            logger.info(f"Today's recommendation already exists ({today})")
+            os.makedirs(output_dir, exist_ok=True)
+            os.makedirs(history_dir, exist_ok=True)
+            html_gen = HTMLGenerator()
+            html = html_gen.generate(cached_papers, cached_themes or [], today, cache.get_stats())
+            with open(os.path.join(output_dir, 'index.html'), 'w', encoding='utf-8') as f:
+                f.write(html)
+            logger.info(f"HTML updated: {output_dir}/index.html")
+            logger.info("Done! Open http://localhost:5555 for interactive view")
+            return cached_papers
+
+    cache.cleanup_old_entries(_CONFIG['cache_expiry_days'])
+    logger.info(f"Cache: {cache.get_stats()}")
+
+    pipeline_start = time.time()
+
+    # Load user feedback and learn from it
+    feedback = load_user_feedback(cache_dir)
+
+    # Load Zotero papers
+    zotero_papers, themes, use_semantic = _load_zotero_papers()
+
+    # Initialize semantic similarity
+    t0 = time.time()
+    semantic = SemanticSimilarity(_CONFIG['embedding_model'], cache_dir)
+    if _CONFIG['use_semantic_similarity'] and zotero_papers:
+        logger.info("Computing semantic embeddings...")
+        semantic.compute_zotero_embedding(zotero_papers, get_zotero_path())
+        logger.info(f"Semantic init done ({time.time()-t0:.1f}s)")
+    elif not zotero_papers:
+        logger.info("Running in keyword-only mode (no Zotero library found)")
+        semantic = None
+
+    # Fetch papers from multiple sources
+    t0 = time.time()
+    fetcher = MultiSourceFetcher(_CONFIG['arxiv_categories'], cache)
+    papers = fetcher.fetch_all_sources(_CONFIG['lookback_days'])
+    logger.info(f"Fetched {len(papers)} papers from arXiv ({time.time()-t0:.1f}s)")
+
+    if not papers:
+        logger.warning("No new papers found!")
+        return []
+
+    # Learn topic weights from feedback
+    t0 = time.time()
+    topic_weights = learn_from_feedback(feedback, papers)
+    logger.debug(f"Learned weights from feedback ({time.time()-t0:.1f}s)")
+
+    # Score papers
+    use_semantic_flag = _CONFIG['use_semantic_similarity'] and semantic is not None
+    top_papers = _run_scoring(papers, semantic, topic_weights, use_semantic_flag)
+
+    # Generate and persist outputs
+    date_str = datetime.now().strftime('%Y-%m-%d')
+    _generate_outputs(top_papers, themes, date_str, cache, output_dir, history_dir, cache_dir)
+
+    _print_summary(top_papers, time.time() - pipeline_start)
 
     return top_papers
 

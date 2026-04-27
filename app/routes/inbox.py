@@ -40,6 +40,35 @@ def index():
     today = datetime.now().strftime("%Y-%m-%d")
     date = dates[0] if dates else today
 
+    # Try SQLite first
+    papers = InboxViewModel.load_papers_from_sqlite(date)
+
+    if papers is not None:
+        # Load keywords from markdown (if available) or use empty list
+        filepath = os.path.join(HISTORY_DIR, f"digest_{date}.md")
+        keywords = []
+        if os.path.exists(filepath):
+            _, keywords = InboxViewModel.parse_digest(filepath, use_cache=False)
+        feedback = vm.load_feedback()
+        prev_date, next_date = InboxViewModel.build_date_nav(date, dates)
+
+        selected_filter = request.args.get("filter", "all").strip().lower()
+        if selected_filter not in {"all", "untriaged", "queued", "relevant", "ignored"}:
+            selected_filter = "all"
+
+        context = vm.to_template_context(
+            date=date,
+            papers=papers,
+            keywords=keywords,
+            dates=dates,
+            prev_date=prev_date,
+            next_date=next_date,
+            feedback=feedback,
+            selected_filter=selected_filter,
+        )
+        return render_template("home_research.html", **context)
+
+    # Fallback: markdown digest
     filepath = os.path.join(HISTORY_DIR, f"digest_{date}.md")
 
     # Auto-generate when today's digest is missing
@@ -77,6 +106,35 @@ def view_date(date):
     store = get_state_store()
     vm = InboxViewModel(store)
 
+    # Try SQLite first
+    papers = InboxViewModel.load_papers_from_sqlite(date)
+
+    if papers is not None:
+        dates = InboxViewModel.get_available_dates()
+        filepath = os.path.join(HISTORY_DIR, f"digest_{date}.md")
+        keywords = []
+        if os.path.exists(filepath):
+            _, keywords = InboxViewModel.parse_digest(filepath, use_cache=False)
+        feedback = vm.load_feedback()
+        prev_date, next_date = InboxViewModel.build_date_nav(date, dates)
+
+        selected_filter = request.args.get("filter", "all").strip().lower()
+        if selected_filter not in {"all", "untriaged", "queued", "relevant", "ignored"}:
+            selected_filter = "all"
+
+        context = vm.to_template_context(
+            date=date,
+            papers=papers,
+            keywords=keywords,
+            dates=dates,
+            prev_date=prev_date,
+            next_date=next_date,
+            feedback=feedback,
+            selected_filter=selected_filter,
+        )
+        return render_template("home_research.html", **context)
+
+    # Fallback: markdown digest
     filepath = os.path.join(HISTORY_DIR, f"digest_{date}.md")
 
     if not os.path.exists(filepath):

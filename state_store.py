@@ -208,12 +208,18 @@ class StateStore:
                 CREATE INDEX IF NOT EXISTS idx_rec_items_paper ON recommendation_items(paper_id);
                 """
             )
-            conn.execute(
-                """
-                INSERT OR IGNORE INTO schema_meta(key, value)
-                VALUES('schema_version', '3')
-                """
-            )
+            # Check current schema version and migrate if needed
+            current_version_row = conn.execute(
+                "SELECT value FROM schema_meta WHERE key = 'schema_version'"
+            ).fetchone()
+            current_version = current_version_row["value"] if current_version_row else "0"
+
+            if current_version < "3":
+                # Set/update schema version to 3 (was using INSERT OR IGNORE before,
+                # which silently kept old versions like "2" — now we always advance)
+                conn.execute(
+                    "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '3')"
+                )
             self._migrate_arxiv_paper_ids(conn)
 
     def _migrate_arxiv_paper_ids(self, conn: sqlite3.Connection) -> None:
@@ -320,8 +326,8 @@ class StateStore:
             row = conn.execute(
                 "SELECT value FROM schema_meta WHERE key = 'schema_version'"
             ).fetchone()
-            if not row or row["value"] != "3":
-                # Only auto-migrate when schema version is v3
+            if not row or row["value"] < "3":
+                # Schema will be migrated by _initialize on next restart
                 return
             migrated_marker = conn.execute(
                 "SELECT value FROM schema_meta WHERE key = 'subscriptions_migrated'"
@@ -1188,6 +1194,25 @@ class StateStore:
                 (limit,),
             ).fetchall()
         return [dict(r) for r in rows]
+
+    def get_recommendation_run_by_date(self, date: str) -> Optional[Dict]:
+        """Get the latest recommendation run for a specific date."""
+        with self._connect() as conn:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute(
+                "SELECT * FROM recommendation_runs WHERE run_date = ? ORDER BY created_at DESC LIMIT 1",
+                (date,),
+            ).fetchone()
+        return dict(row) if row else None
+
+    def list_recommendation_dates(self, limit: int = 30) -> List[str]:
+        """List dates that have recommendation runs, newest first."""
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT DISTINCT run_date FROM recommendation_runs ORDER BY run_date DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [row[0] for row in rows]
 
     def get_paper_ai_analysis(self, paper_id: str) -> Optional[Dict]:
         paper_id = _canonical_paper_id(paper_id)
