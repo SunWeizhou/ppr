@@ -1,12 +1,334 @@
-"""Compatibility facade for recommendation scoring components."""
+"""Recommendation scoring components including the EnhancedScorer."""
 
 from __future__ import annotations
 
+import json
+import os
 import re
+from datetime import datetime
 from enum import Enum
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
-from arxiv_recommender_v5 import EnhancedScorer
+from config_manager import get_config
+from logger_config import get_logger
+
+from app_paths import PROJECT_ROOT
+from app.services.arxiv_source import KNOWN_AUTHORS, TOP_INSTITUTIONS
+from app.services.settings_service import get_dislike_topics
+
+logger = get_logger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# EnhancedScorer (moved from arxiv_recommender_v5)
+# ---------------------------------------------------------------------------
+
+
+class EnhancedScorer:
+    """Enhanced paper scorer with smart keyword matching."""
+
+    def __init__(self, semantic: 'SemanticSimilarity' = None, use_semantic: bool = True, topic_weights: Dict[str, float] = None):
+        self.semantic = semantic
+        self.use_semantic = use_semantic
+        self.topic_weights = topic_weights or {}
+        # Load dynamic keywords from config
+        self._load_keywords()
+
+    def _load_keywords(self):
+        """Load keywords from unified config manager."""
+        cm = get_config()
+        self.CORE_TOPICS = cm.core_keywords
+        self.SECONDARY_TOPICS = cm.get_keywords_by_category('secondary')
+        self.THEORY_KEYWORDS = cm.theory_keywords
+        self.DEMOTE_TOPICS = cm.demote_keywords
+        self.DISLIKE_TOPICS = list(cm.dislike_keywords.keys())
+        self.THEORY_ENABLED = cm._settings.theory_enabled
+        # Keep SYNONYMS as class attribute (not configurable for now)
+        if not hasattr(self, 'SYNONYMS'):
+            self.SYNONYMS = {
+                'bound': ['guarantee', 'limit', 'upper bound', 'lower bound'],
+                'convergence': ['converge', 'convergent'],
+                'inference': ['estimation', 'inference'],
+                'regression': ['regressor', 'regress'],
+            }
+
+    def compute_score(self, paper: Dict) -> Tuple[float, Dict]:
+        """Compute overall score."""
+        relevance = self._compute_relevance(paper)
+        author = self._compute_author_influence(paper)
+        depth = self._compute_technical_depth(paper)
+        semantic_sim = self._compute_semantic_score(paper)
+
+        if self.use_semantic and semantic_sim > 0:
+            total = relevance * 0.50 + author * 0.10 + depth * 0.10 + semantic_sim * 0.30
+        else:
+            total = relevance * 0.70 + author * 0.15 + depth * 0.15
+
+        details = {
+            'relevance': relevance,
+            'author': author,
+            'depth': depth,
+            'semantic': semantic_sim,
+            'breakdown': self._get_breakdown(paper, semantic_sim)
+        }
+
+        return total, details
+
+    @staticmethod
+    def _count_keyword(text: str, keyword: str) -> int:
+        """Count keyword occurrences with flexible matching."""
+        keyword_lower = keyword.lower()
+        text_lower = text.lower()
+
+        if ' ' in keyword_lower or '-' in keyword_lower:
+            return text_lower.count(keyword_lower)
+        else:
+            pattern = r'\b' + re.escape(keyword_lower) + r'\b'
+            return len(re.findall(pattern, text_lower))
+
+    def _compute_relevance(self, paper: Dict) -> float:
+        """Compute topic relevance with smart keyword matching."""
+        title = paper.get('title', '').lower()
+        abstract = paper.get('abstract', '').lower()
+        score = 0.0
+        matched_topics: List[str] = []
+
+        for topic, weight in self.CORE_TOPICS.items():
+            title_count = self._count_keyword(title, topic)
+            abstract_count = self._count_keyword(abstract, topic)
+
+            if title_count > 0 or abstract_count > 0:
+                topic_score = weight * (min(title_count, 3) * 3.0 + min(abstract_count, 3) * 1.0) / 4.0
+                score += topic_score
+                matched_topics.append(topic)
+
+        for topic, weight in self.SECONDARY_TOPICS.items():
+            title_count = self._count_keyword(title, topic)
+            abstract_count = self._count_keyword(abstract, topic)
+
+            if title_count > 0 or abstract_count > 0:
+                topic_score = weight * (min(title_count, 2) * 2.0 + min(abstract_count, 2) * 1.0) / 3.0
+                score += topic_score
+
+        for base_word, synonyms in self.SYNONYMS.items():
+            for syn in synonyms:
+                if self._count_keyword(title, syn) > 0:
+                    score += 0.5
+
+        for topic, penalty in self.DEMOTE_TOPICS.items():
+            if self._count_keyword(title + ' ' + abstract, topic) > 0:
+                if matched_topics:
+                    score += penalty * 0.3
+                else:
+                    score += penalty
+
+        for topic, weight in self.topic_weights.items():
+            if topic.lower() not in self.CORE_TOPICS and topic.lower() not in self.SECONDARY_TOPICS:
+                if self._count_keyword(title, topic) > 0:
+                    score += weight * 0.5
+
+        if self.THEORY_ENABLED:
+            for kw in self.THEORY_KEYWORDS:
+                if self._count_keyword(title + ' ' + abstract, kw) > 0:
+                    score += 0.4
+
+        for topic in get_dislike_topics():
+            if self._count_keyword(title + ' ' + abstract, topic) > 0:
+                if not matched_topics:
+                    score -= 1.0
+
+        if paper.get('_topic_match'):
+            score += 2.0
+
+        return min(max(score, 0), 10)
+
+    def _compute_author_influence(self, paper: Dict) -> float:
+        """Compute author influence."""
+        score = 0.0
+        authors_text = ' '.join(paper.get('authors', [])).lower()
+        all_text = (paper.get('abstract', '') + ' ' + (paper.get('comment') or '')).lower()
+
+        for inst in TOP_INSTITUTIONS:
+            pattern = r'\b' + re.escape(inst.lower()) + r'\b'
+            if re.search(pattern, all_text):
+                score += 1.5
+                break
+
+        for author in KNOWN_AUTHORS:
+            if author.lower() in authors_text:
+                score += 2.0
+                break
+
+        venues = ['neurips', 'icml', 'iclr', 'colt', 'jmlr', 'aistats']
+        for venue in venues:
+            if venue in all_text:
+                score += 1.5
+                break
+
+        try:
+            project_root_str = str(PROJECT_ROOT)
+            my_scholars_path = os.path.join(project_root_str, 'my_scholars.json')
+            if os.path.exists(my_scholars_path):
+                with open(my_scholars_path, 'r', encoding='utf-8') as f:
+                    my_scholars = json.load(f)
+                for scholar in my_scholars.get('scholars', []):
+                    scholar_name = scholar.get('name', '').lower()
+                    if scholar_name in authors_text or any(
+                        part in authors_text for part in scholar_name.split() if len(part) > 2
+                    ):
+                        score += 3.0
+                        break
+        except Exception as e:
+            logger.debug(f"Error loading my_scholars: {e}")
+
+        return min(score, 5)
+
+    @staticmethod
+    def _compute_technical_depth(paper: Dict) -> float:
+        """Compute technical depth."""
+        text = (paper['title'] + ' ' + paper.get('abstract', '')).lower()
+        score = 0.0
+
+        indicators = [
+            ('theorem', 1.0), ('proof', 1.0), ('bound', 0.8),
+            ('convergence', 0.8), ('minimax', 1.0), ('asymptotic', 0.7),
+            ('rademacher', 1.0), ('pac-bayes', 1.0), ('excess risk', 1.2),
+            ('sample complexity', 1.0), ('statistical guarantee', 1.0)
+        ]
+
+        for indicator, weight in indicators:
+            if indicator in text:
+                score += weight
+
+        if 'math.ST' in paper.get('categories', []):
+            score += 1.5
+
+        return min(score, 5)
+
+    def _compute_semantic_score(self, paper: Dict) -> float:
+        """Compute semantic similarity score (0-10 scale)."""
+        if self.use_semantic and self.semantic is not None:
+            sim = self.semantic.compute_similarity(paper)
+            return sim * 10
+        return 0.0
+
+    def _get_breakdown(self, paper: Dict, semantic_sim: float) -> List[Dict]:
+        """Get structured breakdown with icons and score impacts."""
+        reasons: List[Dict] = []
+        title = paper.get('title', '')
+        abstract = paper.get('abstract', '')
+        title_lower = title.lower()
+        abstract_lower = abstract.lower()
+
+        for topic, weight in self.CORE_TOPICS.items():
+            title_count = self._count_keyword(title_lower, topic)
+            abstract_count = self._count_keyword(abstract_lower, topic)
+            if title_count > 0:
+                reasons.append({
+                    'type': 'core_topic',
+                    'icon': '\U0001f3af',
+                    'text': f"命中核心主题: {topic}",
+                    'location': '标题',
+                    'score_impact': weight * 0.8
+                })
+                break
+            elif abstract_count > 0:
+                reasons.append({
+                    'type': 'core_topic',
+                    'icon': '\U0001f3af',
+                    'text': f"命中核心主题: {topic}",
+                    'location': '摘要',
+                    'score_impact': weight * 0.3
+                })
+                break
+
+        if not any(r['type'] == 'core_topic' for r in reasons):
+            for topic, weight in self.SECONDARY_TOPICS.items():
+                if self._count_keyword(title_lower + ' ' + abstract_lower, topic) > 0:
+                    reasons.append({
+                        'type': 'secondary_topic',
+                        'icon': '\U0001f4cc',
+                        'text': f"相关主题: {topic}",
+                        'location': '',
+                        'score_impact': weight * 0.2
+                    })
+                    break
+
+        if semantic_sim > 0.5:
+            reasons.append({
+                'type': 'semantic',
+                'icon': '\U0001f517',
+                'text': f"与您的 Zotero 库语义相近 ({semantic_sim:.1%})",
+                'location': '',
+                'score_impact': semantic_sim * 0.3
+            })
+
+        authors_text = ' '.join(paper.get('authors', [])).lower()
+        for author in KNOWN_AUTHORS:
+            if author.lower() in authors_text:
+                reasons.append({
+                    'type': 'author',
+                    'icon': '\U0001f464',
+                    'text': f"知名作者: {author}",
+                    'location': '',
+                    'score_impact': 2.0
+                })
+                break
+
+        all_text = title_lower + ' ' + abstract_lower + ' ' + (paper.get('comment') or '').lower()
+        for inst in TOP_INSTITUTIONS:
+            pattern = r'\b' + re.escape(inst.lower()) + r'\b'
+            if re.search(pattern, all_text):
+                reasons.append({
+                    'type': 'institution',
+                    'icon': '\U0001f3db️',
+                    'text': f"来自 {inst}",
+                    'location': '',
+                    'score_impact': 1.5
+                })
+                break
+
+        published = paper.get('published', '')
+        if published:
+            try:
+                pub_date = datetime.strptime(published[:10], '%Y-%m-%d')
+                days_old = (datetime.now() - pub_date).days
+                if days_old <= 7:
+                    reasons.append({
+                        'type': 'recency',
+                        'icon': '\U0001f195',
+                        'text': f"近{days_old}天新论文",
+                        'location': '',
+                        'score_impact': 0.3
+                    })
+            except Exception:
+                pass
+
+        if self.THEORY_ENABLED:
+            theory_matches = [
+                kw for kw in self.THEORY_KEYWORDS
+                if self._count_keyword(title_lower + ' ' + abstract_lower, kw) > 0
+            ]
+            if theory_matches:
+                reasons.append({
+                    'type': 'theory',
+                    'icon': '\U0001f4d0',
+                    'text': f"包含理论信号: {', '.join(theory_matches[:2])}",
+                    'location': '',
+                    'score_impact': 0.5
+                })
+
+        return reasons[:4]
+
+    def _get_breakdown_text(self, paper: Dict, semantic_sim: float) -> str:
+        """Get text-only breakdown for backwards compatibility."""
+        reasons = self._get_breakdown(paper, semantic_sim)
+        return '; '.join([r['text'] for r in reasons]) if reasons else '匹配您的研究兴趣'
+
+
+# ---------------------------------------------------------------------------
+# Existing scoring components below
+# ---------------------------------------------------------------------------
 
 
 class ScoringVariant(str, Enum):

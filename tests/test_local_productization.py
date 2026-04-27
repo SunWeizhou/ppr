@@ -25,12 +25,14 @@ class LocalProductizationTests(unittest.TestCase):
         config_manager.get_config()
         if self._original_arxiv_v5 is not None:
             sys.modules["arxiv_recommender_v5"] = self._original_arxiv_v5
-            import arxiv_recommender_v5
-
-            importlib.reload(arxiv_recommender_v5)
+            # Reload dependent modules first, then arxiv_recommender_v5
+            # to ensure re-exports reference the latest class objects
             import app.services.scoring_service
 
             importlib.reload(app.services.scoring_service)
+            import arxiv_recommender_v5
+
+            importlib.reload(arxiv_recommender_v5)
 
     def _reset_config_manager(self, config_path: Path):
         import config_manager

@@ -7,63 +7,6 @@ from datetime import datetime
 
 
 class RecommendationService:
-    def daily_page(self, date=None, *, auto_generate: bool = True):
-        import os as _os
-        from datetime import datetime as _datetime
-        from flask import redirect, render_template, request
-
-        from app.viewmodels.inbox_viewmodel import InboxViewModel
-        from app_paths import HISTORY_DIR
-        from state_store import get_state_store
-
-        # Onboarding check: redirect new users without a profile
-        if not request.args.get("skip_onboarding"):
-            from config_manager import CONFIG_FILE
-
-            if not CONFIG_FILE.exists():
-                return redirect("/onboarding")
-
-        store = get_state_store()
-        vm = InboxViewModel(store)
-
-        dates = InboxViewModel.get_available_dates()
-        today = _datetime.now().strftime("%Y-%m-%d")
-
-        if not date:
-            date = dates[0] if dates else today
-
-        filepath = _os.path.join(HISTORY_DIR, f"digest_{date}.md")
-
-        # If today's file doesn't exist and auto_generate is enabled, start background generation
-        if not _os.path.exists(filepath) and auto_generate and date == today:
-            vm.start_background_generation()
-            return render_template("generating.html", **vm.to_generating_context())
-
-        if not _os.path.exists(filepath):
-            return vm.to_no_data_html(date)
-
-        papers, keywords = vm.parse_digest(filepath)
-        feedback = vm.load_feedback()
-        prev_date, next_date = InboxViewModel.build_date_nav(date, dates)
-
-        selected_filter = request.args.get("filter", "all").strip().lower()
-        if selected_filter not in {"all", "untriaged", "queued", "relevant", "ignored"}:
-            selected_filter = "all"
-
-        return render_template(
-            "home_research.html",
-            **vm.to_template_context(
-                date=date,
-                papers=papers,
-                keywords=keywords,
-                dates=dates,
-                prev_date=prev_date,
-                next_date=next_date,
-                feedback=feedback,
-                selected_filter=selected_filter,
-            ),
-        )
-
     def status(self):
         from flask import jsonify
 

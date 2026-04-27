@@ -36,12 +36,6 @@ class InboxViewModel:
     def __init__(self, state_store):
         self._store = state_store
         self._feedback_service: Optional[FeedbackService] = None
-        self._generation_status = {
-            "running": False,
-            "started_at": None,
-            "error": None,
-            "run_id": None,
-        }
 
     # ==================================================================
     # Public API — template contexts
@@ -175,10 +169,11 @@ class InboxViewModel:
     def start_background_generation(self) -> Optional[str]:
         """Start a background pipeline run; returns the job *run_id*.
 
-        No-op if a generation is already running.
+        No-op if a generation is already running (checked via StateStore).
         """
-        if self._generation_status["running"]:
-            return self._generation_status.get("run_id")
+        if self._store.has_running_job("daily_recommendation"):
+            job = self._store.get_latest_job("daily_recommendation")
+            return job["run_id"] if job else None
 
         job = self._store.create_job(
             "daily_recommendation",
@@ -186,13 +181,6 @@ class InboxViewModel:
             payload={"force_refresh": False, "mode": "background_generation"},
             status="queued",
         )
-
-        self._generation_status = {
-            "running": True,
-            "started_at": datetime.now().isoformat(),
-            "error": None,
-            "run_id": job["run_id"],
-        }
 
         thread = threading.Thread(
             target=self._run_pipeline_background,
@@ -532,7 +520,6 @@ class InboxViewModel:
             if run_id:
                 self._store.update_job(run_id, "running")
             papers = run_pipeline(force_refresh=force_refresh)
-            self._generation_status["running"] = False
             if run_id:
                 self._store.update_job(
                     run_id,
@@ -543,10 +530,7 @@ class InboxViewModel:
                         "force_refresh": force_refresh,
                     },
                 )
-            self._generation_status["error"] = None
         except Exception as e:
-            self._generation_status["running"] = False
-            self._generation_status["error"] = str(e)
             if run_id:
                 self._store.update_job(run_id, "failed", error_text=str(e))
 

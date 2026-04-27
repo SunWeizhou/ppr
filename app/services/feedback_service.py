@@ -7,7 +7,7 @@ import os
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional
 
 from state_store import _canonical_paper_id
 from utils import CATEGORY_NAMES, atomic_write_json, safe_load_json
@@ -20,6 +20,27 @@ QUEUE_ACTIONS = {
     "archive": "Archived",
 }
 
+
+# ---------------------------------------------------------------------------
+# Standalone helpers (moved from arxiv_recommender_v5)
+# ---------------------------------------------------------------------------
+
+
+def load_user_feedback(cache_dir: str) -> Dict:
+    """Load user feedback from file."""
+    feedback_file = os.path.join(cache_dir, 'user_feedback.json')
+    if os.path.exists(feedback_file):
+        try:
+            with open(feedback_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {'liked': [], 'disliked': [], 'topic_adjustments': {}}
+
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
 
 def _canonicalize_feedback(feedback: dict) -> dict:
     if not isinstance(feedback, dict):
@@ -327,3 +348,6 @@ class FeedbackService:
 
         self.save_feedback(feedback)
         return {"success": True, "feedback": feedback, "event_id": event_id}, 200
+
+
+__all__ = ["load_user_feedback", "FeedbackService", "_canonicalize_feedback", "_canonicalize_favorites"]

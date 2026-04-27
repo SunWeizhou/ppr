@@ -176,12 +176,42 @@ class StateStore:
                 CREATE INDEX IF NOT EXISTS idx_subscription_hits_sub_id ON subscription_hits(subscription_id);
                 CREATE INDEX IF NOT EXISTS idx_subscription_hits_paper_id ON subscription_hits(paper_id);
                 CREATE INDEX IF NOT EXISTS idx_subscription_hits_status ON subscription_hits(status);
+
+                CREATE TABLE IF NOT EXISTS recommendation_runs (
+                    run_id TEXT PRIMARY KEY,
+                    run_date TEXT NOT NULL,
+                    trigger_source TEXT NOT NULL DEFAULT 'auto_homepage',
+                    config_snapshot_json TEXT NOT NULL DEFAULT '{}',
+                    status TEXT NOT NULL DEFAULT 'completed',
+                    paper_count INTEGER DEFAULT 0,
+                    created_at TEXT NOT NULL,
+                    finished_at TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS recommendation_items (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    run_id TEXT NOT NULL REFERENCES recommendation_runs(run_id),
+                    paper_id TEXT NOT NULL,
+                    rank INTEGER NOT NULL,
+                    score REAL NOT NULL DEFAULT 0.0,
+                    score_details_json TEXT NOT NULL DEFAULT '{}',
+                    title TEXT DEFAULT '',
+                    authors_json TEXT DEFAULT '[]',
+                    abstract TEXT DEFAULT '',
+                    categories_json TEXT DEFAULT '[]',
+                    source TEXT DEFAULT 'arxiv',
+                    UNIQUE(run_id, paper_id)
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_rec_runs_date ON recommendation_runs(run_date);
+                CREATE INDEX IF NOT EXISTS idx_rec_items_run ON recommendation_items(run_id);
+                CREATE INDEX IF NOT EXISTS idx_rec_items_paper ON recommendation_items(paper_id);
                 """
             )
             conn.execute(
                 """
                 INSERT OR IGNORE INTO schema_meta(key, value)
-                VALUES('schema_version', '2')
+                VALUES('schema_version', '3')
                 """
             )
             self._migrate_arxiv_paper_ids(conn)
@@ -290,8 +320,8 @@ class StateStore:
             row = conn.execute(
                 "SELECT value FROM schema_meta WHERE key = 'schema_version'"
             ).fetchone()
-            if not row or row["value"] != "2":
-                # Only auto-migrate when schema version is v2
+            if not row or row["value"] != "3":
+                # Only auto-migrate when schema version is v3
                 return
             migrated_marker = conn.execute(
                 "SELECT value FROM schema_meta WHERE key = 'subscriptions_migrated'"
@@ -426,6 +456,15 @@ class StateStore:
         with self._connect() as conn:
             row = conn.execute(query, params).fetchone()
         return self._row_to_dict(row) if row else None
+
+    def has_running_job(self, job_type: str) -> bool:
+        """Return True if there is at least one queued or running job of the given type."""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM job_runs WHERE job_type=? AND status IN ('queued', 'running') LIMIT 1",
+                (job_type,),
+            ).fetchone()
+        return row is not None
 
     def list_collections(self) -> List[Dict]:
         with self._connect() as conn:
@@ -1078,6 +1117,77 @@ class StateStore:
                 (event_type, paper_id, _to_json(payload, {}), now),
             )
             return int(cursor.lastrowid)
+
+    # ------------------------------------------------------------------
+    # Recommendation Runs
+    # ------------------------------------------------------------------
+
+    def save_recommendation_run(
+        self,
+        run_date: str,
+        trigger_source: str = "auto_homepage",
+        papers: Optional[List[Dict]] = None,
+    ) -> str:
+        """Save a recommendation run and its items to SQLite. Returns run_id."""
+        import uuid
+        now = _utc_now()
+        run_id = uuid.uuid4().hex
+        papers = papers or []
+
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """INSERT INTO recommendation_runs(run_id, run_date, trigger_source, status, paper_count, created_at, finished_at)
+                   VALUES (?, ?, ?, 'completed', ?, ?, ?)""",
+                (run_id, run_date, trigger_source, len(papers), now, now),
+            )
+            for rank, paper in enumerate(papers, start=1):
+                paper_id = paper.get("id") or paper.get("paper_id", "")
+                conn.execute(
+                    """INSERT OR IGNORE INTO recommendation_items(run_id, paper_id, rank, score, score_details_json, title, authors_json, abstract, categories_json, source)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        run_id,
+                        paper_id,
+                        rank,
+                        float(paper.get("score", 0) or 0),
+                        json.dumps(paper.get("score_details", {}), ensure_ascii=False),
+                        paper.get("title", ""),
+                        json.dumps(paper.get("authors", []), ensure_ascii=False),
+                        paper.get("abstract", ""),
+                        json.dumps(paper.get("categories", []), ensure_ascii=False),
+                        paper.get("source", "arxiv"),
+                    ),
+                )
+        return run_id
+
+    def get_recommendation_items(self, run_id: str) -> List[Dict]:
+        """Get all recommendation items for a run."""
+        with self._connect() as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                "SELECT * FROM recommendation_items WHERE run_id = ? ORDER BY rank",
+                (run_id,),
+            ).fetchall()
+        result = []
+        for row in rows:
+            item = dict(row)
+            for key in ("score_details_json", "authors_json", "categories_json"):
+                try:
+                    item[key.replace("_json", "")] = json.loads(item[key])
+                except (TypeError, json.JSONDecodeError):
+                    item[key.replace("_json", "")] = {}
+            result.append(item)
+        return result
+
+    def list_recommendation_runs(self, limit: int = 10) -> List[Dict]:
+        """List recent recommendation runs."""
+        with self._connect() as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                "SELECT * FROM recommendation_runs ORDER BY created_at DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [dict(r) for r in rows]
 
     def get_paper_ai_analysis(self, paper_id: str) -> Optional[Dict]:
         paper_id = _canonical_paper_id(paper_id)

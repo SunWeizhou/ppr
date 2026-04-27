@@ -1,14 +1,82 @@
-"""Shared paper formatting and status utilities.
-
-These are pure functions with no side effects, extracted from web_server.py
-and queue_service.py to eliminate duplication.
-"""
+"""Shared paper formatting, identity parsing, and status utilities."""
 
 from __future__ import annotations
 
+import os
 import re
+import ssl
+import urllib.request
+from typing import Dict, List
+
+from logger_config import get_logger
 
 from utils import CATEGORY_NAMES
+
+logger = get_logger(__name__)
+
+# SSL context for HTTPS requests
+_SSL_CONTEXT = ssl.create_default_context()
+
+
+def parse_arxiv_identity(raw_id_or_url: str) -> Dict[str, str]:
+    """Return stable arXiv identity fields from an id or abs/pdf URL."""
+    raw = str(raw_id_or_url or '').strip()
+    source_url = raw
+    candidate = raw
+    if '/abs/' in candidate:
+        candidate = candidate.rsplit('/abs/', 1)[-1]
+    elif '/pdf/' in candidate:
+        candidate = candidate.rsplit('/pdf/', 1)[-1]
+    candidate = candidate.split('?', 1)[0].split('#', 1)[0].removesuffix('.pdf')
+    candidate = candidate.strip('/')
+
+    match = re.match(r'^(?P<base>(?:\d{4}\.\d{4,5}|[a-z.-]+/\d{7}))(?P<version>v\d+)?$', candidate)
+    if match:
+        base_id = match.group('base')
+        version = match.group('version') or ''
+    else:
+        base_id = candidate
+        version = ''
+
+    return {
+        'base_id': base_id,
+        'version': version,
+        'canonical_id': base_id,
+        'source_url': source_url or f'https://arxiv.org/abs/{base_id}',
+    }
+
+
+def download_pdfs(papers: List[Dict], output_dir: str, min_score: float = 2.5):
+    """Download PDFs for high-scoring papers."""
+    pdf_dir = os.path.join(output_dir, 'cache', 'pdfs')
+    os.makedirs(pdf_dir, exist_ok=True)
+
+    downloaded = []
+    for paper in papers:
+        if paper.get('score', 0) >= min_score:
+            paper_id = paper['id']
+            pdf_path = os.path.join(pdf_dir, f'{paper_id}.pdf')
+
+            if not os.path.exists(pdf_path):
+                pdf_url = f'https://arxiv.org/pdf/{paper_id}.pdf'
+                try:
+                    logger.debug(f"Downloading PDF: {paper_id}...")
+                    req = urllib.request.Request(pdf_url, headers={'User-Agent': 'Mozilla/5.0'})
+                    with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:
+                        with open(pdf_path, 'wb') as f:
+                            f.write(response.read())
+                    downloaded.append(paper_id)
+                except Exception as e:
+                    logger.warning(f"Failed to download {paper_id}: {e}")
+
+    if downloaded:
+        logger.info(f"Downloaded {len(downloaded)} PDFs to {pdf_dir}")
+    return downloaded
+
+
+# ---------------------------------------------------------------------------
+# Original functions below
+# ---------------------------------------------------------------------------
 
 
 def normalize_queue_status(status) -> str:
@@ -220,3 +288,18 @@ def breakdown_from_text(text: str) -> list[dict]:
             }
         )
     return reasons[:4]
+
+
+__all__ = [
+    "parse_arxiv_identity",
+    "download_pdfs",
+    "normalize_queue_status",
+    "status_class",
+    "format_author_text",
+    "extract_primary_author",
+    "generate_relevance_html",
+    "category_labels",
+    "split_query_terms",
+    "normalize_reason_type",
+    "breakdown_from_text",
+]
