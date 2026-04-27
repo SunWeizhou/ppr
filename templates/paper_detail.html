@@ -11,181 +11,248 @@
 {% endblock %}
 
 {% block content %}
-<div class="paper-detail">
-    {% if error %}
+{% if error %}
+<div class="page-content">
     <div class="card card-spaced">
         <p>{{ error }}</p>
         <a href="/" class="btn btn-secondary">Return to Inbox</a>
     </div>
-    {% else %}
-
-    <h1>{{ paper.get('title', 'Untitled') }}</h1>
-    <div class="paper-meta">
-        <div>{{ paper.get('author_text', 'Unknown authors') }}</div>
-        <div>
-            {% for cat in paper.get('category_labels', []) %}
-            <span class="meta-tag">{{ cat }}</span>
-            {% endfor %}
-        </div>
-        <div class="paper-meta-links">
-            {% if paper.get('link') %}
-            <a href="{{ paper.get('link') }}" target="_blank">arXiv</a>
-            {% endif %}
-            {% if paper.get('id') %}
-            &middot; <a href="/api/pdf/{{ paper.get('id') }}" target="_blank">PDF</a>
-            &middot; <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank">BibTeX</a>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Score Breakdown -->
-    <div class="card card-spaced">
-        <h2 class="panel-title">Score Breakdown</h2>
-        <div class="score-bar">
-            <div class="score-item">
-                <div class="value">{{ "%.1f"|format(paper.get('score', 0) or 0) }}</div>
-                <div class="label">Total Score</div>
-            </div>
-            {% if paper.get('score_details') %}
-            {% set sd = paper.get('score_details') %}
-            <div class="score-item">
-                <div class="value">{{ "%.1f"|format(sd.get('relevance', 0) or 0) }}</div>
-                <div class="label">Theme</div>
-            </div>
-            <div class="score-item">
-                <div class="value">{{ "%.1f"|format(sd.get('semantic', 0) or 0) }}</div>
-                <div class="label">Semantic</div>
-            </div>
-            <div class="score-item">
-                <div class="value">{{ "%.1f"|format(sd.get('author', 0) or 0) }}</div>
-                <div class="label">Author</div>
-            </div>
-            <div class="score-item">
-                <div class="value">{{ "%.1f"|format(sd.get('depth', 0) or 0) }}</div>
-                <div class="label">Depth</div>
-            </div>
-            {% endif %}
-        </div>
-
-        {% if paper.get('score_details', {}).get('breakdown') %}
-        <ul class="breakdown-list">
-            {% for reason in paper.get('score_details', {}).get('breakdown', []) %}
-            <li>
-                <span class="breakdown-icon">{{ reason.get('icon', '&#8226;') }}</span>
-                <span class="breakdown-text">{{ reason.get('text', '') }}</span>
-                {% if reason.get('score_impact') %}
-                <span class="breakdown-score">+{{ "%.1f"|format(reason.get('score_impact', 0)) }}</span>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-
-        {% if paper.get('recommendation_reason', {}).get('reason_summary') %}
-        <p class="t-muted breakdown-summary">
-            {{ paper.get('recommendation_reason', {}).get('reason_summary') }}
-        </p>
-        {% endif %}
-    </div>
-
-    <!-- Abstract -->
-    <div class="card card-spaced">
-        <h2 class="panel-title">Abstract</h2>
-        <p class="abstract-text">{{ paper.get('abstract', paper.get('summary', 'No abstract available.')) }}</p>
-    </div>
-
-    <!-- AI Analysis -->
-    <div class="card card-spaced ai-section">
-        <h2 class="panel-title">AI Analysis
-            {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
-            <span class="status-badge ok">Ready</span>
-            {% else %}
-            <span class="status-badge pending">Not Generated</span>
-            {% endif %}
-        </h2>
-        {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
-        {% set analysis = paper.get('ai_analysis') %}
-        <p><strong>Summary:</strong> {{ analysis.get('one_sentence_summary', '') }}</p>
-        <p><strong>Problem:</strong> {{ analysis.get('problem', '') }}</p>
-        <p><strong>Method:</strong> {{ analysis.get('method', '') }}</p>
-        <p><strong>Contribution:</strong> {{ analysis.get('contribution', '') }}</p>
-        {% if analysis.get('limitations') %}<p><strong>Limitations:</strong> {{ analysis.get('limitations', '') }}</p>{% endif %}
-        {% if analysis.get('why_it_matters') %}<p><strong>Why It Matters:</strong> {{ analysis.get('why_it_matters', '') }}</p>{% endif %}
-        {% else %}
-        <p class="empty-state">No AI analysis available. Generate one to see insights.</p>
-        {% endif %}
-    </div>
-
-    <!-- Related Papers -->
-    {% if paper.get('related_papers') %}
-    <div class="card card-spaced">
-        <h2 class="panel-title">Related Papers</h2>
-        <div class="list-stack">
-            {% for rp in paper.get('related_papers', [])[:8] %}
-            <a href="/papers/{{ rp.get('id') }}" class="list-item list-item-link">
-                <span class="list-item-title">{{ rp.get('title', 'Untitled')[:120] }}</span>
-                <span class="list-item-trailing t-muted">{{ rp.get('date', '')[:10] }}</span>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Subscription Matches -->
-    {% if paper.get('subscription_matches') %}
-    <div class="card card-spaced">
-        <h2 class="panel-title">Subscription Matches</h2>
-        <div class="list-stack">
-            {% for match in paper.get('subscription_matches', []) %}
-            <div class="list-item">
-                <span class="list-item-title">{{ match.get('name', 'Subscription') }}</span>
-                <span class="tag">{{ match.get('type', '') }}</span>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Interaction History -->
-    {% if paper.get('interaction_history') %}
-    <div class="card card-spaced">
-        <h2 class="panel-title">Interaction History</h2>
-        <div class="list-stack">
-            {% for event in paper.get('interaction_history', []) %}
-            <div class="list-item">
-                <span class="list-item-title">{{ event.get('event_type', '') }}</span>
-                <span class="list-item-trailing t-muted">{{ event.get('created_at', '')[:19] }}</span>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Actions -->
-    <div class="card card-spaced">
-        <h2 class="panel-title">Actions</h2>
-        <div class="action-buttons">
-            {% if paper.get('id') %}
-            <a href="{{ paper.get('link', 'https://arxiv.org/abs/' + paper.get('id', '')) }}" target="_blank" class="btn btn-secondary">Open arXiv</a>
-            <a href="/api/pdf/{{ paper.get('id') }}" target="_blank" class="btn btn-primary">Download PDF</a>
-            <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank" class="btn btn-secondary">Export BibTeX</a>
-            {% endif %}
-        </div>
-
-        {% if paper.get('queue_status') %}
-        <p class="t-muted action-status">Queue status: <strong>{{ paper.get('queue_status') }}</strong></p>
-        {% endif %}
-
-        {% if paper.get('collections') %}
-        <h3 class="t-muted collection-heading">Collections</h3>
-        <ul class="collection-list">
-            {% for col in paper.get('collections', []) %}
-            <li class="t-muted collection-item">{{ col.get('name', 'Unnamed') }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-    </div>
-
-    {% endif %}
 </div>
+{% else %}
+<div class="page-content">
+    <div class="split split--rail-right" style="align-items:start;">
+        <!-- ============================================================ -->
+        <!-- Left: Primary content -->
+        <!-- ============================================================ -->
+        <div class="split-main">
+
+            <h1>{{ paper.get('title', 'Untitled') }}</h1>
+            <div class="paper-meta">
+                <div>{{ paper.get('author_text', 'Unknown authors') }}</div>
+                <div>
+                    {% for cat in paper.get('category_labels', []) %}
+                    <span class="meta-tag">{{ cat }}</span>
+                    {% endfor %}
+                </div>
+                <div class="paper-meta-links">
+                    {% if paper.get('link') %}
+                    <a href="{{ paper.get('link') }}" target="_blank">arXiv</a>
+                    {% endif %}
+                    {% if paper.get('id') %}
+                    &middot; <a href="/api/pdf/{{ paper.get('id') }}" target="_blank">PDF</a>
+                    &middot; <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank">BibTeX</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Abstract -->
+            <div class="card card-spaced">
+                <h2 class="panel-title">Abstract</h2>
+                <p class="abstract-text">{{ paper.get('abstract', paper.get('summary', 'No abstract available.')) }}</p>
+            </div>
+
+            <!-- AI Analysis -->
+            <div class="card card-spaced ai-section">
+                <h2 class="panel-title">AI Analysis
+                    {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
+                    <span class="status-badge ok">Ready</span>
+                    {% else %}
+                    <span class="status-badge pending">Not Generated</span>
+                    {% endif %}
+                </h2>
+                {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
+                {% set analysis = paper.get('ai_analysis') %}
+                <p><strong>Summary:</strong> {{ analysis.get('one_sentence_summary', '') }}</p>
+                <p><strong>Problem:</strong> {{ analysis.get('problem', '') }}</p>
+                <p><strong>Method:</strong> {{ analysis.get('method', '') }}</p>
+                <p><strong>Contribution:</strong> {{ analysis.get('contribution', '') }}</p>
+                {% if analysis.get('limitations') %}<p><strong>Limitations:</strong> {{ analysis.get('limitations', '') }}</p>{% endif %}
+                {% if analysis.get('why_it_matters') %}<p><strong>Why It Matters:</strong> {{ analysis.get('why_it_matters', '') }}</p>{% endif %}
+                {% else %}
+                <p class="empty-state">No AI analysis available. Generate one to see insights.</p>
+                {% endif %}
+            </div>
+
+            <!-- Score Breakdown -->
+            <div class="card card-spaced">
+                <h2 class="panel-title">Score Breakdown</h2>
+                <div class="score-bar">
+                    <div class="score-item">
+                        <div class="value">{{ "%.1f"|format(paper.get('score', 0) or 0) }}</div>
+                        <div class="label">Total Score</div>
+                    </div>
+                    {% if paper.get('score_details') %}
+                    {% set sd = paper.get('score_details') %}
+                    <div class="score-item">
+                        <div class="value">{{ "%.1f"|format(sd.get('relevance', 0) or 0) }}</div>
+                        <div class="label">Theme</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="value">{{ "%.1f"|format(sd.get('semantic', 0) or 0) }}</div>
+                        <div class="label">Semantic</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="value">{{ "%.1f"|format(sd.get('author', 0) or 0) }}</div>
+                        <div class="label">Author</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="value">{{ "%.1f"|format(sd.get('depth', 0) or 0) }}</div>
+                        <div class="label">Depth</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="value">{{ "%.1f"|format(sd.get('affinity', 0) or 0) }}</div>
+                        <div class="label">Preference</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if paper.get('score_details', {}).get('breakdown') %}
+                <ul class="breakdown-list">
+                    {% for reason in paper.get('score_details', {}).get('breakdown', []) %}
+                    <li>
+                        <span class="breakdown-icon">{{ reason.get('icon', '&#8226;') }}</span>
+                        <span class="breakdown-text">{{ reason.get('text', '') }}</span>
+                        {% if reason.get('score_impact') %}
+                        <span class="breakdown-score">+{{ "%.1f"|format(reason.get('score_impact', 0)) }}</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
+                {% if paper.get('recommendation_reason', {}).get('reason_summary') %}
+                <p class="t-muted breakdown-summary">
+                    {{ paper.get('recommendation_reason', {}).get('reason_summary') }}
+                </p>
+                {% endif %}
+
+                {% if paper.get('recommendation_reason', {}).get('affinity_reason') %}
+                <p class="t-muted" style="font-size:0.9em;margin-top:8px;">
+                    {{ paper.get('recommendation_reason', {}).get('affinity_reason') }}
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Related Papers -->
+            {% if paper.get('related_papers') %}
+            <div class="card card-spaced">
+                <h2 class="panel-title">Related Papers</h2>
+                <div class="list-stack">
+                    {% for rp in paper.get('related_papers', [])[:8] %}
+                    <a href="/papers/{{ rp.get('id') }}" class="list-item list-item-link">
+                        <span class="list-item-title">{{ rp.get('title', 'Untitled')[:120] }}</span>
+                        <span class="list-item-trailing t-muted">{{ rp.get('date', '')[:10] }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div><!-- /.split-main -->
+
+        <!-- ============================================================ -->
+        <!-- Right: Sticky sidebar -->
+        <!-- ============================================================ -->
+        <aside class="rail" style="position:sticky;top:20px;">
+
+            <!-- Actions -->
+            <div class="card card-spaced">
+                <h2 class="panel-title">Actions</h2>
+                <div class="action-buttons">
+                    {% if paper.get('id') %}
+                    <a href="{{ paper.get('link', 'https://arxiv.org/abs/' + paper.get('id', '')) }}" target="_blank" class="btn btn-secondary btn-sm">Open arXiv</a>
+                    <a href="/api/pdf/{{ paper.get('id') }}" target="_blank" class="btn btn-primary btn-sm">Download PDF</a>
+                    <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank" class="btn btn-secondary btn-sm">Export BibTeX</a>
+                    {% endif %}
+                </div>
+                {% if paper.get('id') %}
+                <div class="action-buttons" style="margin-top:8px;">
+                    <button class="btn btn-primary btn-sm" id="generateAIBtn" onclick="generateAnalysis('{{ paper.get('id') }}')">
+                        {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
+                        Regenerate AI Analysis
+                        {% else %}
+                        Generate AI Analysis
+                        {% endif %}
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Status -->
+            {% if paper.get('queue_status') or paper.get('collections') %}
+            <div class="card card-spaced">
+                <h2 class="panel-title">Status</h2>
+                {% if paper.get('queue_status') %}
+                <p class="t-muted action-status">Queue status: <strong>{{ paper.get('queue_status') }}</strong></p>
+                {% endif %}
+                {% if paper.get('collections') %}
+                <h3 class="t-muted collection-heading">Collections</h3>
+                <ul class="collection-list">
+                    {% for col in paper.get('collections', []) %}
+                    <li class="t-muted collection-item">{{ col.get('name', 'Unnamed') }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Subscription Matches -->
+            {% if paper.get('subscription_matches') %}
+            <div class="card card-spaced">
+                <h2 class="panel-title">Matches</h2>
+                <div class="list-stack">
+                    {% for match in paper.get('subscription_matches', []) %}
+                    <div class="list-item">
+                        <span class="list-item-title">{{ match.get('name', 'Subscription') }}</span>
+                        <span class="tag">{{ match.get('type', '') }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Interaction History -->
+            {% if paper.get('interaction_history') %}
+            <div class="card card-spaced">
+                <h2 class="panel-title">History</h2>
+                <div class="list-stack">
+                    {% for event in paper.get('interaction_history', []) %}
+                    <div class="list-item">
+                        <span class="list-item-title">{{ event.get('event_type', '') }}</span>
+                        <span class="list-item-trailing t-muted">{{ event.get('created_at', '')[:19] }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </aside>
+    </div><!-- /.split.split--rail-right -->
+</div><!-- /.page-content -->
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+async function generateAnalysis(paperId) {
+    const btn = document.getElementById('generateAIBtn');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+    try {
+        const resp = await fetch(`/api/papers/${paperId}/analysis/generate`, { method: 'POST' });
+        const data = await resp.json();
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert('Generation failed: ' + (data.error || 'Unknown error'));
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate AI Analysis';
+    }
+}
+</script>
 {% endblock %}

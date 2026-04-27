@@ -112,6 +112,7 @@
     document.getElementById('detailRelevance').innerHTML = item.querySelector('[data-detail-relevance]')?.innerHTML || '';
     document.getElementById('detailCategories').innerHTML = item.querySelector('[data-detail-categories]')?.innerHTML || '';
     document.getElementById('detailLink').href = item.dataset.paperLink || '#';
+    document.getElementById('detailPageLink').href = '/papers/' + (item.dataset.paperId || '');
     var detailQueueState = document.getElementById('detailQueueState');
     var queueStatus = item.dataset.queueStatus || '';
     detailQueueState.textContent = queueStatus;

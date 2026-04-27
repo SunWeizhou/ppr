@@ -62,18 +62,20 @@ class EnhancedScorer:
             total = relevance * 0.70 + author * 0.15 + depth * 0.15
 
         # Add topic affinity bonus (best-effort)
+        affinity_bonus = 0.0
         try:
             affinities = self._load_topic_affinities()
             affinity_bonus = self._apply_topic_affinity_score(paper, affinities)
             total += affinity_bonus
         except Exception:
-            pass
+            affinity_bonus = 0.0
 
         details = {
             'relevance': relevance,
             'author': author,
             'depth': depth,
             'semantic': semantic_sim,
+            'affinity': round(affinity_bonus, 2),
             'breakdown': self._get_breakdown(paper, semantic_sim)
         }
 
@@ -460,6 +462,9 @@ def build_recommendation_reason(
         source_tags=source_tags,
     )
 
+    # ---- topic affinity reason ----
+    affinity_reason = _build_affinity_reason(paper)
+
     return {
         "reason_summary": reason_summary,
         "matched_topics": matched_topics,
@@ -467,6 +472,7 @@ def build_recommendation_reason(
         "zotero_similarity": zotero_similarity,
         "feedback_signals": feedback_signals,
         "source_tags": source_tags,
+        "affinity_reason": affinity_reason,
     }
 
 
@@ -680,6 +686,45 @@ def _build_reason_summary(
     prefix = f"via {meaningful_sources[0]}" if meaningful_sources else "from arXiv search"
 
     return f"This paper was recommended {prefix} because of {'; '.join(parts)}."
+
+
+def _build_affinity_reason(paper: dict) -> str:
+    """Build a human-readable reason for topic affinity boosts, or empty string."""
+    categories = paper.get("categories", [])
+    if not categories:
+        return ""
+
+    try:
+        from state_store import get_state_store
+        affinities = get_state_store().get_user_topic_affinities()
+    except Exception:
+        return ""
+
+    if not affinities:
+        return ""
+
+    try:
+        from utils import CATEGORY_NAMES
+    except Exception:
+        CATEGORY_NAMES = {}
+
+    affinity_map = {a["topic"].lower(): a for a in affinities}
+    boosted: list[str] = []
+
+    for cat in categories:
+        topic_name = CATEGORY_NAMES.get(cat, cat).lower()
+        affinity = affinity_map.get(topic_name)
+        if affinity:
+            pos = affinity.get("positive_score", 0) or 0
+            neg = affinity.get("negative_score", 0) or 0
+            net = pos - neg
+            if net > 0:
+                bonus = min(net / 5.0, 1.0)
+                boosted.append(f"{CATEGORY_NAMES.get(cat, cat)} (+{bonus:.1f})")
+
+    if boosted:
+        return "Your topic preferences boosted the score for: " + ", ".join(boosted)
+    return ""
 
 
 def _score_details(paper: dict) -> dict:

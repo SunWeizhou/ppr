@@ -17,11 +17,31 @@ class PaperViewModel:
     def __init__(self, state_store):
         self._store = state_store
 
+    # TODO: Extract data-enrichment blocks (related papers, subscription matches,
+    # interaction history, queue status, collections) into a PaperDetailService
+    # once the viewmodel grows more complex or needs reuse beyond this view.
+
     def to_detail_context(self, paper_id: str) -> dict:
         """Build the full detail context for a paper."""
+        # Build page context first — needed by both the error and success paths
+        from app.viewmodels.shared import assemble_page_context
+        from state_store import QUEUE_STATUS_VALUES
+
+        page_ctx = assemble_page_context(self._store, active_tab="inbox")
+        try:
+            queue_counts = {status: 0 for status in QUEUE_STATUS_VALUES}
+            for item in self._store.list_queue_items():
+                status = item.get("status")
+                if status in queue_counts:
+                    queue_counts[status] += 1
+        except Exception:
+            queue_counts = {}
+        page_ctx.setdefault("queue_counts", queue_counts)
+        page_ctx.setdefault("queue_status_values", QUEUE_STATUS_VALUES)
+
         paper_data = self._find_paper_data(paper_id)
         if not paper_data:
-            return {"error": "Paper not found", "paper_id": paper_id}
+            return {"title": "Paper Not Found - arXiv Recommender", "error": "Paper not found", "paper_id": paper_id, **page_ctx}
 
         paper = dict(paper_data)
         paper["id"] = paper_id
@@ -90,9 +110,23 @@ class PaperViewModel:
                 break
         paper["queue_status"] = queue_status
 
-        # Collections
-        collections = self._store.list_collections()
-        paper["collections"] = collections if isinstance(collections, list) else []
+        # Collections — only show collections that actually contain this paper
+        all_collections = self._store.list_collections()
+        if isinstance(all_collections, list) and hasattr(self._store, 'list_collection_papers'):
+            from state_store import _canonical_paper_id
+            canonical_id = _canonical_paper_id(paper_id)
+            filtered = []
+            for col in all_collections:
+                try:
+                    col_id = col.get("id") or col.get("collection_id")
+                    cpapers = self._store.list_collection_papers(col_id)
+                    if any(_canonical_paper_id(cp.get("paper_id", "")) == canonical_id for cp in cpapers):
+                        filtered.append(col)
+                except Exception:
+                    continue
+            paper["collections"] = filtered
+        else:
+            paper["collections"] = all_collections if isinstance(all_collections, list) else []
 
         # Score details
         details = paper.get("score_details") or paper.get("score_details_json") or {}
@@ -102,24 +136,6 @@ class PaperViewModel:
             except (TypeError, json.JSONDecodeError):
                 details = {}
         paper["score_details"] = details
-
-        # Build page context with all required template variables
-        from app.viewmodels.shared import assemble_page_context
-        from state_store import QUEUE_STATUS_VALUES
-
-        page_ctx = assemble_page_context(self._store, active_tab="inbox")
-
-        # Add queue_counts required by base_research.html
-        try:
-            queue_counts = {status: 0 for status in QUEUE_STATUS_VALUES}
-            for item in self._store.list_queue_items():
-                status = item.get("status")
-                if status in queue_counts:
-                    queue_counts[status] += 1
-        except Exception:
-            queue_counts = {}
-        page_ctx.setdefault("queue_counts", queue_counts)
-        page_ctx.setdefault("queue_status_values", QUEUE_STATUS_VALUES)
 
         # Get recommendation reason
         try:
@@ -138,13 +154,16 @@ class PaperViewModel:
 
     def _find_paper_data(self, paper_id: str) -> Optional[dict]:
         """Find paper data from any available source."""
+        from state_store import _canonical_paper_id
+
         # Try recommendation runs in SQLite first
         try:
             recent_runs = self._store.list_recommendation_runs(limit=5)
             for run in recent_runs:
                 items = self._store.get_recommendation_items(run["run_id"])
                 for item in items:
-                    if item.get("paper_id") == paper_id or item.get("id") == paper_id:
+                    stored_id = _canonical_paper_id(item.get("paper_id") or item.get("id") or "")
+                    if stored_id == paper_id:
                         return item
         except Exception:
             pass
@@ -160,7 +179,7 @@ class PaperViewModel:
                     from app.viewmodels.inbox_viewmodel import InboxViewModel
                     papers, _ = InboxViewModel.parse_digest(filepath, use_cache=False)
                     for p in papers:
-                        if p.get("id") == paper_id:
+                        if _canonical_paper_id(p.get("id") or "") == paper_id:
                             return p
                 except Exception:
                     continue

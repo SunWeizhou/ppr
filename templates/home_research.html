@@ -99,6 +99,7 @@
                                         {% for label in paper.category_labels[:2] %}
                                             <span class="meta-chip">{{ label }}</span>
                                         {% endfor %}
+                                        <a href="/papers/{{ paper.id }}" class="btn btn-tertiary btn-xs" title="View Detail" onclick="event.stopPropagation()">Detail</a>
                                     </div>
                                 </div>
 
@@ -168,6 +169,7 @@
                         <button type="button" class="btn btn-primary" onclick="submitSelectedFeedback('like')" aria-label="Mark paper as relevant">Relevant</button>
                         <button type="button" class="btn btn-danger" onclick="submitSelectedFeedback('dislike')" aria-label="Ignore this paper">Ignore</button>
                         <a id="detailLink" class="btn btn-primary" href="{{ first_paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="openSelectedPaper(event)" aria-label="Open selected paper on arXiv">Open arXiv</a>
+                        <a id="detailPageLink" class="btn btn-tertiary" href="/papers/{{ first_paper.id }}" aria-label="View paper detail page">View Detail</a>
                         <button type="button" class="btn btn-warm" onclick="queueSelectedPaper('Skim Later')" aria-label="Queue paper for skim later">Skim Later</button>
                         <button type="button" class="btn btn-sage" onclick="queueSelectedPaper('Deep Read')" aria-label="Queue paper for deep read">Deep Read</button>
                     </div>
