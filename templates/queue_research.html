@@ -36,6 +36,7 @@
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <span class="score-chip">Score {{ '%.1f'|format(paper.score or 0) }}</span>
                             <a href="{{ paper.link or 'https://arxiv.org/abs/' + paper.id }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary" onclick="trackPaperOpen('{{ paper.id }}', 'reading_plan')">Start Reading</a>
+                            <a href="/papers/{{ paper.id }}" class="btn btn-sm btn-tertiary">View Detail</a>
                         </div>
                     </div>
                 {% endfor %}
@@ -55,6 +56,7 @@
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <span class="score-chip">Score {{ '%.1f'|format(paper.score or 0) }}</span>
                             <a href="{{ paper.link or 'https://arxiv.org/abs/' + paper.id }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary" onclick="trackPaperOpen('{{ paper.id }}', 'reading_plan')">Start Reading</a>
+                            <a href="/papers/{{ paper.id }}" class="btn btn-sm btn-tertiary">View Detail</a>
                         </div>
                     </div>
                 {% endfor %}

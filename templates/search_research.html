@@ -67,6 +67,7 @@
                                 <span class="score-chip">{{ '%.1f'|format(paper.score or 0) }}</span>
                                 <div class="row-actions row-actions-compact">
                                     <a class="btn btn-primary btn-sm" href="{{ paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="trackPaperOpen({{ paper.id|tojson }}, 'search_research')">打开 arXiv</a>
+                                    <a href="/papers/{{ paper.id }}" class="btn btn-tertiary btn-xs">View Detail</a>
                                     <button type="button" class="btn btn-tertiary btn-sm" onclick="openPaperActions(this, 'search_research')">More</button>
                                 </div>
                             </div>
