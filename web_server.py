@@ -44,6 +44,7 @@ def _log_response(response):
 # ---------------------------------------------------------------------------
 
 STATE_STORE = get_state_store()
+app.config["STATE_STORE"] = STATE_STORE  # P2-C: inject into Flask app config
 STATE_DB_FILE = str(STATE_DB_PATH)
 FEEDBACK_FILE = str(CACHE_DIR / "user_feedback.json")
 FAVORITES_FILE = str(CACHE_DIR / "favorite_papers.json")

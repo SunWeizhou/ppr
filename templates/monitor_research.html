@@ -93,7 +93,7 @@
                                 <div class="row-actions row-actions-compact">
                                     {% if scholar.links %}
                                         {% for link in scholar.links[:1] %}
-                                            <a href="{{ link.url }}" class="btn btn-tertiary btn-sm" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
+                                            <a href="{{ link.href }}" class="btn btn-tertiary btn-sm" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
                                         {% endfor %}
                                     {% endif %}
                                     <button type="button" class="btn btn-tertiary btn-sm" onclick='editAuthorSubscription({{ scholar|tojson|forceescape }})'>Edit</button>

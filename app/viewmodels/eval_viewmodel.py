@@ -43,6 +43,8 @@ class EvalViewModel:
                     report_path = data.get("json_report")
                     if report_path:
                         report = json.loads(Path(report_path).read_text(encoding="utf-8"))
+                        # Persist report to project reports/ directory
+                        self._persist_report(report)
                         return {"success": True, "report": report}
                 except (json.JSONDecodeError, OSError):
                     continue
@@ -53,6 +55,15 @@ class EvalViewModel:
         except Exception as e:
             logger.warning(f"Evaluation failed: {e}")
             return {"success": False, "error": str(e)}
+
+    def _persist_report(self, report: dict) -> None:
+        """Copy report to PROJECT_ROOT/reports/ for dashboard access."""
+        from datetime import datetime
+        reports_dir = Path(PROJECT_ROOT) / "reports"
+        reports_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        path = reports_dir / f"eval_report_{timestamp}.json"
+        path.write_text(json.dumps(report, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
 
     def list_reports(self) -> list:
         """List evaluation reports from the reports directory."""

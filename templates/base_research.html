@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <meta name="theme-color" content="#124c79">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='research_ui.css') }}">
+    <style>
+        :root {
+            --ff-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            --ff-serif: Georgia, "Times New Roman", "Songti SC", serif;
+            --ff-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+    </style>
     {% block head %}{% endblock %}
 </head>
 <body class="{{ body_class or '' }}">
@@ -270,7 +274,13 @@
         'queueStatuses': queue_status_values or [],
         'latestJob': latest_job or {}
     } | tojson }}</script>
-    <script src="{{ url_for('static', filename='research_ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modals.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/collections.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/subscriptions.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/paper_actions.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/preferences.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

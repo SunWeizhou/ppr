@@ -64,6 +64,14 @@ class EnhancedScorer:
         else:
             total = relevance * 0.70 + author * 0.15 + depth * 0.15
 
+        # Add topic affinity bonus (best-effort)
+        try:
+            affinities = self._load_topic_affinities()
+            affinity_bonus = self._apply_topic_affinity_score(paper, affinities)
+            total += affinity_bonus
+        except Exception:
+            pass
+
         details = {
             'relevance': relevance,
             'author': author,
@@ -211,6 +219,47 @@ class EnhancedScorer:
             sim = self.semantic.compute_similarity(paper)
             return sim * 10
         return 0.0
+
+    def _load_topic_affinities(self) -> list:
+        """Load user topic affinities from the state store (best-effort)."""
+        try:
+            from state_store import get_state_store
+            return get_state_store().get_user_topic_affinities()
+        except Exception:
+            return []
+
+    def _apply_topic_affinity_score(self, paper: dict, affinities: list) -> float:
+        """Return a bonus score based on how well paper categories match user topic affinities.
+
+        For each paper category, look up in affinities. Boost score proportionally
+        to positive_score / negative_score ratio. Returns float bonus (0.0 to 2.0).
+        """
+        if not affinities:
+            return 0.0
+
+        categories = paper.get("categories", [])
+        if not categories:
+            return 0.0
+
+        try:
+            from utils import CATEGORY_NAMES
+        except Exception:
+            CATEGORY_NAMES = {}
+
+        affinity_map = {a["topic"].lower(): a for a in affinities}
+        bonus = 0.0
+
+        for cat in categories:
+            topic_name = CATEGORY_NAMES.get(cat, cat).lower()
+            affinity = affinity_map.get(topic_name)
+            if affinity:
+                pos = affinity["positive_score"]
+                neg = affinity["negative_score"]
+                net = pos - neg
+                if net > 0:
+                    bonus += min(net / 5.0, 1.0)
+
+        return min(bonus, 2.0)
 
     def _get_breakdown(self, paper: Dict, semantic_sim: float) -> List[Dict]:
         """Get structured breakdown with icons and score impacts."""

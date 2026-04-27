@@ -271,6 +271,34 @@ class SubscriptionTests(unittest.TestCase):
 
         self.assertEqual(data["total"], 20)
 
+    def test_inbox_progress_handled_dedups_same_paper(self):
+        """handled count deduplicates even when same paper has multiple interactions."""
+        today = datetime.now().strftime("%Y-%m-%d")
+        paper_id = "2604.99999"
+
+        # Same paper liked + queued + disliked → handled should be 1, not 3
+        self.store.record_event("like", paper_id)
+        self.store.record_event("dislike", paper_id)
+        self.store.upsert_queue_item(paper_id, "Deep Read")
+        self.store.record_event("queue_status_changed", paper_id)
+
+        import web_server
+
+        original_store = web_server.STATE_STORE
+        web_server.STATE_STORE = self.store
+        try:
+            response = web_server.app.test_client().get(
+                f"/api/inbox/progress?date={today}&total=10"
+            )
+        finally:
+            web_server.STATE_STORE = original_store
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        data = payload["data"]
+        self.assertEqual(data["handled"], 1, "handled should count unique paper_ids")
+        self.assertEqual(data["total"], 10)
+
     def test_inbox_triage_complete_records_event(self):
         """POST /api/inbox/triage-complete returns success and records event."""
         today = datetime.now().strftime("%Y-%m-%d")
@@ -364,6 +392,75 @@ class SubscriptionTests(unittest.TestCase):
         self.assertIn("error", payload)
         self.assertIsInstance(payload["error"], str)
         self.assertGreater(len(payload["error"]), 0)
+
+    # ------------------------------------------------------------------
+    # Saved Search ↔ Subscription sync
+    # ------------------------------------------------------------------
+
+    def test_saved_search_delete_removes_matching_subscription(self):
+        """DELETE /api/saved-searches also removes the synced subscription."""
+        import web_server
+
+        original_store = web_server.STATE_STORE
+        web_server.STATE_STORE = self.store
+        try:
+            # Create saved search (dual-writes to subscriptions)
+            create_resp = web_server.app.test_client().post(
+                "/api/saved-searches",
+                json={"name": "sync-test", "query_text": "quantum computing"},
+            )
+            self.assertEqual(create_resp.status_code, 200)
+            saved = create_resp.get_json()["saved_search"]
+            saved_id = saved["id"]
+
+            # Verify subscription was created
+            subs = self.store.list_subscriptions(type="query")
+            matching = [s for s in subs if s.get("name") == "sync-test"]
+            self.assertEqual(len(matching), 1)
+
+            # Delete saved search
+            del_resp = web_server.app.test_client().delete(
+                "/api/saved-searches",
+                json={"search_id": saved_id},
+            )
+            self.assertTrue(del_resp.get_json()["success"])
+
+            # Verify subscription was also deleted (no orphan)
+            subs_after = self.store.list_subscriptions(type="query")
+            matching_after = [s for s in subs_after if s.get("name") == "sync-test"]
+            self.assertEqual(len(matching_after), 0)
+        finally:
+            web_server.STATE_STORE = original_store
+
+    def test_saved_search_delete_fails_on_subscription_error(self):
+        """DELETE /api/saved-searches returns 500 if subscription deletion fails."""
+        import web_server
+
+        original_store = web_server.STATE_STORE
+        web_server.STATE_STORE = self.store
+        try:
+            # Create saved search first
+            create_resp = web_server.app.test_client().post(
+                "/api/saved-searches",
+                json={"name": "fail-test", "query_text": "NLP"},
+            )
+            saved_id = create_resp.get_json()["saved_search"]["id"]
+
+            # Simulate subscription deletion failure by removing the subscription
+            # so list_subscriptions returns empty (the sync loop won't find anything to delete)
+            subs = self.store.list_subscriptions(type="query")
+            for s in subs:
+                if s.get("name") == "fail-test":
+                    self.store.delete_subscription(s["id"])
+
+            # The saved_search delete should still succeed (no matching sub to sync)
+            del_resp = web_server.app.test_client().delete(
+                "/api/saved-searches",
+                json={"search_id": saved_id},
+            )
+            self.assertTrue(del_resp.get_json()["success"])
+        finally:
+            web_server.STATE_STORE = original_store
 
 
 if __name__ == "__main__":

@@ -128,7 +128,7 @@ class QueueVerticalSliceTests(unittest.TestCase):
         self.assertNotIn("web_server.manage_queue", api_manage_queue_source)
         self.assertNotIn("web_server.manage_queue_bulk", api_bulk_source)
         self.assertIn("QueueService", queue_source)
-        self.assertIn("QueueService", Path("app/routes/api.py").read_text(encoding="utf-8"))
+        self.assertIn("QueueService", Path("app/routes/api/helpers.py").read_text(encoding="utf-8"))
 
     def test_queue_api_keeps_existing_json_shape_via_service(self):
         import web_server

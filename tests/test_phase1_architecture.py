@@ -12,7 +12,19 @@ class Phase1ArchitectureTests(unittest.TestCase):
             "app/routes/library.py",
             "app/routes/monitor.py",
             "app/routes/settings.py",
-            "app/routes/api.py",
+            "app/routes/api/__init__.py",
+            "app/routes/api/helpers.py",
+            "app/routes/api/ai.py",
+            "app/routes/api/feedback.py",
+            "app/routes/api/queue.py",
+            "app/routes/api/state.py",
+            "app/routes/api/collections.py",
+            "app/routes/api/saved_searches.py",
+            "app/routes/api/subscriptions.py",
+            "app/routes/api/keywords.py",
+            "app/routes/api/inbox.py",
+            "app/routes/api/evaluation.py",
+            "app/routes/api/paper.py",
             "app/services/queue_service.py",
             "app/services/library_service.py",
             "app/services/monitor_service.py",
@@ -54,17 +66,20 @@ class Phase1ArchitectureTests(unittest.TestCase):
 
         client = web_server.app.test_client()
         expectations = {
-            "/track": {301, 302},
-            "/scholars": {301, 302},
-            "/journal": {301, 302},
-            "/liked": {301, 302},
-            "/disliked": {301, 302},
-            "/stats": {301, 302},
             "/search": {200},
         }
         for path, allowed in expectations.items():
             response = client.get(path)
             self.assertIn(response.status_code, allowed, path)
+
+    def test_legacy_redirect_routes_removed(self):
+        """Legacy redirect routes were removed in Phase 5 cleanup."""
+        import web_server
+
+        client = web_server.app.test_client()
+        for path in ["/track", "/scholars", "/journal", "/liked", "/disliked", "/stats"]:
+            response = client.get(path)
+            self.assertEqual(response.status_code, 404, path)
 
     def test_api_shapes_survive_blueprint_split(self):
         import web_server

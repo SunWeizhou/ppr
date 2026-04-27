@@ -41,11 +41,10 @@ class MonitorViewModel:
 
     @staticmethod
     def _resolve_path(key: str) -> str:
-        from app_paths import CACHE_DIR, PROJECT_ROOT
+        from app_paths import CACHE_DIR
 
         mapping = {
             "CACHE_FILE": str(CACHE_DIR / "paper_cache.json"),
-            "MY_SCHOLARS_FILE": str(PROJECT_ROOT / "my_scholars.json"),
         }
         return mapping[key]
 
@@ -123,41 +122,49 @@ class MonitorViewModel:
         base["recommendation_health"] = self._build_recommendation_health()
         return base
 
-    # ── scholar helpers ───────────────────────────────────────────────────
-
-    @staticmethod
-    def _scholar_links(scholar: dict) -> list[dict]:
-        links = []
-        if scholar.get("google_scholar"):
-            links.append({
-                "label": "Google Scholar",
-                "href": scholar["google_scholar"],
-                "tone": "btn-brand",
-            })
-        if scholar.get("website"):
-            links.append({
-                "label": "个人主页",
-                "href": scholar["website"],
-                "tone": "btn-subtle",
-            })
-        if scholar.get("arxiv"):
-            links.append({
-                "label": "arXiv",
-                "href": scholar["arxiv"],
-                "tone": "btn-ghost",
-            })
-        return links
+    # ── subscription-to-scholar conversion ──────────────────────────────────
 
     @classmethod
-    def _serialize_scholar(cls, scholar: dict) -> dict:
-        item = dict(scholar)
-        item["links"] = cls._scholar_links(scholar)
-        return item
+    def _subscription_to_scholar(cls, sub: dict) -> dict:
+        payload = sub.get("payload_json") or {}
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except (TypeError, json.JSONDecodeError):
+                payload = {}
+        links = []
+        if payload.get("google_scholar"):
+            links.append({"label": "Google Scholar", "href": payload["google_scholar"], "tone": "btn-subtle"})
+        if payload.get("website"):
+            links.append({"label": "Website", "href": payload["website"], "tone": "btn-subtle"})
+        if payload.get("arxiv"):
+            links.append({"label": "arXiv", "href": payload["arxiv"], "tone": "btn-ghost"})
+        return {
+            "name": sub.get("name", ""),
+            "id": sub.get("id"),
+            "description": payload.get("description", ""),
+            "affiliation": payload.get("affiliation", ""),
+            "focus": payload.get("focus", ""),
+            "links": links,
+            "query_text": sub.get("query_text", ""),
+        }
 
-    def _load_my_scholars(self) -> dict:
-        return self._safe_load_json(
-            self._resolve_path("MY_SCHOLARS_FILE"), {"scholars": []}
-        )
+    @classmethod
+    def _subscription_to_venue(cls, sub: dict) -> dict:
+        payload = sub.get("payload_json") or {}
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except (TypeError, json.JSONDecodeError):
+                payload = {}
+        return {
+            "key": sub.get("query_text", ""),
+            "name": sub.get("name", ""),
+            "should_check": True,
+            "update_reason": "subscribed",
+            "last_update": payload.get("last_check", "never"),
+            "latest_hit_count": sub.get("latest_hit_count", 0) or 0,
+        }
 
     # ── recent hits ───────────────────────────────────────────────────────
 
@@ -252,44 +259,22 @@ class MonitorViewModel:
     def to_template_context(self, tab: str = "authors") -> dict:
         """Assemble the full Monitor page context.
         Replaces web_server.monitor_page and merges _render_track_research."""
-        from journal_tracker import (
-            JournalTracker,
-            LEGACY_USER_CONFIG_PATH,
-            USER_PROFILE_PATH,
-            load_update_log,
-            should_check_for_updates,
-        )
 
         page_context = self._build_page_context("monitor")
 
-        # ── scholars ──
-        my_scholars_data = self._load_my_scholars()
+        # ── scholars from unified subscriptions ──
+        author_subs = self._store.list_subscriptions(type="author")
         my_scholars = [
-            self._serialize_scholar(s)
-            for s in my_scholars_data.get("scholars", [])
+            self._subscription_to_scholar(s)
+            for s in author_subs
         ]
 
-        # ── journal tracker ──
-        preferred_config = (
-            USER_PROFILE_PATH
-            if USER_PROFILE_PATH.exists()
-            else LEGACY_USER_CONFIG_PATH
-        )
-        tracker = JournalTracker(
-            str(preferred_config) if preferred_config.exists() else None
-        )
-        update_log = load_update_log()
-        journal_cards = []
-        for journal in tracker.get_all_journals():
-            should_check, update_reason = should_check_for_updates(journal["key"])
-            journal_cards.append({
-                **journal,
-                "should_check": should_check,
-                "update_reason": update_reason,
-                "last_update": update_log.get(journal["key"], {}).get(
-                    "last_check", "从未"
-                ),
-            })
+        # ── venues from unified subscriptions ──
+        venue_subs = self._store.list_subscriptions(type="venue")
+        journal_cards = [
+            self._subscription_to_venue(s)
+            for s in venue_subs
+        ]
 
         # ── recent hits ──
         recent_hits = []
@@ -301,7 +286,7 @@ class MonitorViewModel:
         # ── headline metrics ──
         headline_metrics = [
             {"label": "Followed Scholars", "value": len(my_scholars)},
-            {"label": "Tracked Journals", "value": len(journal_cards)},
+            {"label": "Tracked Venues", "value": sum(1 for s in self._store.list_subscriptions() if s.get("type") == "venue")},
             {
                 "label": "Collections",
                 "value": len(page_context["all_collections"]),

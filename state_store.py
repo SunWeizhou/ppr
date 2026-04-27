@@ -7,6 +7,7 @@ grow in small, auditable slices instead of scattering more JSON files.
 from __future__ import annotations
 
 import json
+import logging
 import re
 import sqlite3
 import threading
@@ -14,6 +15,8 @@ import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Dict, Iterable, List, Optional
+
+logger = logging.getLogger(__name__)
 
 from app_paths import STATE_DB_PATH, ensure_runtime_dirs
 
@@ -130,6 +133,14 @@ class StateStore:
                     created_at TEXT NOT NULL
                 );
 
+                CREATE TABLE IF NOT EXISTS user_topic_affinity (
+                    topic TEXT PRIMARY KEY,
+                    positive_score REAL NOT NULL DEFAULT 0.0,
+                    negative_score REAL NOT NULL DEFAULT 0.0,
+                    source_event_count INTEGER NOT NULL DEFAULT 0,
+                    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+                );
+
                 CREATE TABLE IF NOT EXISTS paper_ai_analyses (
                     paper_id TEXT PRIMARY KEY,
                     one_sentence_summary TEXT NOT NULL DEFAULT '',
@@ -220,6 +231,11 @@ class StateStore:
                 # which silently kept old versions like "2" — now we always advance)
                 conn.execute(
                     "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '3')"
+                )
+
+            if current_version < 4:
+                conn.execute(
+                    "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '4')"
                 )
             # Migrate existing tables: add themes_json to recommendation_runs if missing
             try:
@@ -1128,7 +1144,157 @@ class StateStore:
                 """,
                 (event_type, paper_id, _to_json(payload, {}), now),
             )
-            return int(cursor.lastrowid)
+            event_id = int(cursor.lastrowid)
+
+        # Best-effort topic affinity update after event recording
+        try:
+            if paper_id:
+                categories = self._get_paper_categories(paper_id)
+                if categories:
+                    # Determine effective event type for queue_status_changed
+                    eff_type = event_type
+                    if event_type == "queue_status_changed" and payload:
+                        status = payload.get("status", "")
+                        if status == "Deep Read":
+                            eff_type = "deep_read"
+                        elif status == "Skim Later":
+                            eff_type = "skim_later"
+
+                    # Ignore events: skip negative affinity if paper was also liked
+                    skip_affinity = False
+                    if eff_type in ("ignore", "ignore_topic"):
+                        with self._connect() as conn_inner:
+                            also_liked = conn_inner.execute(
+                                "SELECT 1 FROM interaction_events WHERE paper_id = ? AND event_type = 'like' LIMIT 1",
+                                (paper_id,),
+                            ).fetchone()
+                            if also_liked:
+                                skip_affinity = True
+
+                    if not skip_affinity:
+                        self.update_affinity_from_event(eff_type, categories, [])
+        except Exception:
+            logger.exception("Failed to update topic affinity from event")
+
+        return event_id
+
+    # ------------------------------------------------------------------
+    # Paper categories lookup helper
+    # ------------------------------------------------------------------
+
+    def _get_paper_categories(self, paper_id: str) -> List[str]:
+        """Look up paper categories from recommendation_items."""
+        try:
+            from utils import CATEGORY_NAMES  # noqa: F811
+        except Exception:
+            CATEGORY_NAMES = {}
+        paper_id = _canonical_paper_id(paper_id)
+        with self._connect() as conn:
+            row = conn.execute(
+                """SELECT categories_json FROM recommendation_items
+                   WHERE paper_id = ? LIMIT 1""",
+                (paper_id,),
+            ).fetchone()
+            if row and row["categories_json"]:
+                try:
+                    return json.loads(row["categories_json"])
+                except (TypeError, json.JSONDecodeError):
+                    pass
+        return []
+
+    # ------------------------------------------------------------------
+    # User Topic Affinity
+    # ------------------------------------------------------------------
+
+    def get_user_topic_affinities(self) -> List[Dict]:
+        """Return all topic affinities ordered by positive_score DESC."""
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM user_topic_affinity ORDER BY positive_score DESC"
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def upsert_user_topic_affinity(
+        self, topic: str, positive_score: float, negative_score: float
+    ) -> bool:
+        """Upsert a topic affinity score with exact values."""
+        try:
+            with self._lock, self._connect() as conn:
+                conn.execute(
+                    """INSERT OR REPLACE INTO user_topic_affinity(
+                           topic, positive_score, negative_score,
+                           source_event_count, updated_at)
+                       VALUES (?, ?, ?,
+                           COALESCE(
+                               (SELECT source_event_count FROM user_topic_affinity WHERE topic = ?) + 1,
+                               1
+                           ),
+                           datetime('now'))""",
+                    (topic, positive_score, negative_score, topic),
+                )
+            return True
+        except Exception:
+            logger.exception("Failed to upsert topic affinity")
+            return False
+
+    def update_affinity_from_event(
+        self,
+        event_type: str,
+        paper_categories: List[str],
+        paper_keywords: List[str],
+    ) -> bool:
+        """Update topic affinity based on user interaction event."""
+        positive_delta = 0.0
+        negative_delta = 0.0
+
+        if event_type in ("like", "Relevant"):
+            positive_delta = 1.0
+        elif event_type == "deep_read":
+            positive_delta = 2.0
+        elif event_type == "skim_later":
+            positive_delta = 1.5
+        elif event_type in ("dislike",):
+            negative_delta = 1.0
+        elif event_type in ("save", "save_for_later"):
+            positive_delta = 2.5
+        elif event_type in ("ignore", "ignore_topic"):
+            negative_delta = 1.0
+        else:
+            return False
+
+        if positive_delta == 0.0 and negative_delta == 0.0:
+            return False
+
+        # Map categories to topic names
+        try:
+            from utils import CATEGORY_NAMES  # noqa: F811
+        except Exception:
+            CATEGORY_NAMES = {}
+        topics: List[str] = []
+        for cat in paper_categories:
+            topics.append(CATEGORY_NAMES.get(cat, cat))
+        for kw in paper_keywords:
+            topics.append(kw)
+
+        if not topics:
+            return False
+
+        with self._lock, self._connect() as conn:
+            for topic in topics:
+                conn.execute(
+                    """INSERT INTO user_topic_affinity(
+                           topic, positive_score, negative_score,
+                           source_event_count, updated_at)
+                       VALUES (?, ?, ?, 1, datetime('now'))
+                       ON CONFLICT(topic) DO UPDATE SET
+                           positive_score = positive_score + ?,
+                           negative_score = negative_score + ?,
+                           source_event_count = source_event_count + 1,
+                           updated_at = datetime('now')""",
+                    (topic, positive_delta, negative_delta,
+                     positive_delta, negative_delta),
+                )
+        return True
 
     # ------------------------------------------------------------------
     # Recommendation Runs
@@ -1313,6 +1479,7 @@ class StateStore:
             "saved_searches",
             "reading_queue_items",
             "interaction_events",
+            "user_topic_affinity",
             "paper_ai_analyses",
             "subscriptions",
             "subscription_hits",
@@ -1347,6 +1514,7 @@ class StateStore:
                 "paper_id", "status", "source", "note", "tags_json", "updated_at",
             ],
             "interaction_events": ["id", "event_type", "paper_id", "payload_json", "created_at"],
+            "user_topic_affinity": ["topic", "positive_score", "negative_score", "source_event_count", "updated_at"],
             "paper_ai_analyses": [
                 "paper_id", "one_sentence_summary", "problem", "method",
                 "contribution", "limitations", "why_it_matters",

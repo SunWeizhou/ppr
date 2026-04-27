@@ -12,6 +12,7 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
 
     def test_inbox_template_is_strict_triage_surface(self):
         template = Path("templates/home_research.html").read_text(encoding="utf-8")
+        inbox_js = Path("static/js/inbox.js").read_text(encoding="utf-8")
 
         required = [
             "Relevant",
@@ -50,8 +51,9 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
         self.assertIn("data-ai-analysis-section", template)
         self.assertIn("data-ai-analysis-generate", template)
         self.assertIn("Generate AI Analysis", template)
-        self.assertIn("/api/papers/", template)
-        self.assertIn("/analysis/generate", template)
+        # API path references moved from template to inbox.js during refactor
+        self.assertIn("/api/papers/", inbox_js)
+        self.assertIn("/analysis/generate", inbox_js)
         self.assertNotIn("DEEPSEEK_API_KEY", template)
 
     def test_inbox_page_still_serves(self):
