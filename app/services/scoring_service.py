@@ -70,14 +70,57 @@ class EnhancedScorer:
         except Exception:
             affinity_bonus = 0.0
 
+        # Subscription bonus — check if paper matches any active subscription
+        subscription_bonus = 0.0
+        try:
+            from state_store import get_state_store
+            store = get_state_store()
+            subs = store.list_subscriptions()
+            title_lower = (paper.get('title', '') or '').lower()
+            abstract_lower = (paper.get('abstract', '') or '').lower()
+            for sub in subs:
+                if not sub.get('enabled', True):
+                    continue
+                sub_text = (sub.get('query_text') or '').lower()
+                if sub_text and (sub_text in title_lower or sub_text in abstract_lower):
+                    subscription_bonus += 1.0
+        except Exception:
+            subscription_bonus = 0.0
+
+        # Recency bonus — newer papers get a small boost
+        recency_bonus = 0.0
+        published = paper.get('published', '')
+        if published:
+            try:
+                pub_date = datetime.strptime(published[:10], '%Y-%m-%d')
+                days_old = (datetime.now() - pub_date).days
+                if days_old <= 7:
+                    recency_bonus = 0.3
+                elif days_old <= 30:
+                    recency_bonus = 0.1
+            except Exception:
+                pass
+
+        # Penalty — check for dislike topics
+        penalty = 0.0
+        for topic in get_dislike_topics():
+            text = (paper.get('title', '') + ' ' + paper.get('abstract', '')).lower()
+            if self._count_keyword(text, topic) > 0:
+                penalty -= 1.0
+
         details = {
             'relevance': relevance,
             'author': author,
             'depth': depth,
             'semantic': semantic_sim,
             'affinity': round(affinity_bonus, 2),
+            'subscription': round(subscription_bonus, 2),
+            'recency': round(recency_bonus, 2),
+            'penalty': round(penalty, 2),
             'breakdown': self._get_breakdown(paper, semantic_sim)
         }
+
+        total += subscription_bonus + recency_bonus + penalty
 
         return total, details
 
