@@ -156,7 +156,7 @@ class Phase3EvaluationTests(unittest.TestCase):
 
         self.assertEqual(
             set(report),
-            {"keywords_only", "keywords_semantic", "keywords_semantic_feedback", "full_scorer"},
+            {"keywords_only", "keywords_semantic", "keywords_semantic_feedback", "full_scorer", "without_affinity"},
         )
         for variant in report.values():
             self.assertEqual(variant["run_count"], 1)

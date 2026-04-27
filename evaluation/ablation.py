@@ -14,6 +14,7 @@ VARIANTS = [
     ScoringVariant.KEYWORDS_SEMANTIC,
     ScoringVariant.KEYWORDS_SEMANTIC_FEEDBACK,
     ScoringVariant.FULL_SCORER,
+    ScoringVariant.WITHOUT_AFFINITY,
 ]
 
 

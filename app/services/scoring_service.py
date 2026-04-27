@@ -384,6 +384,7 @@ class ScoringVariant(str, Enum):
     KEYWORDS_SEMANTIC = "keywords_semantic"
     KEYWORDS_SEMANTIC_FEEDBACK = "keywords_semantic_feedback"
     FULL_SCORER = "full_scorer"
+    WITHOUT_AFFINITY = "without_affinity"
 
 
 # ---------------------------------------------------------------------------
@@ -770,6 +771,9 @@ def score_papers_for_evaluation(
             score = relevance + semantic
         elif variant == ScoringVariant.KEYWORDS_SEMANTIC_FEEDBACK:
             score = relevance + semantic + feedback
+        elif variant == ScoringVariant.WITHOUT_AFFINITY:
+            # Use full score minus affinity component
+            score = _base_score(item) - _component(item, "affinity")
         else:
             score = _base_score(item)
 
