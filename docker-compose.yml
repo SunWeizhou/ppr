@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:5555:5555"
+    volumes:
+      - ./runtime:/app/runtime
+      - ./user_profile.json:/app/user_profile.json
+      - ./user_config.json:/app/user_config.json
+      - ./keywords_config.json:/app/keywords_config.json
+    environment:
+      - USE_DEV_SERVER=0
+    restart: unless-stopped
