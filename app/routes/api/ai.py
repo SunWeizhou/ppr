@@ -72,12 +72,15 @@ def _resolve_paper_context(paper_id: str) -> dict | None:
     store = get_state_store()
 
     # 1) Search SQLite recommendation_items (primary)
+    from state_store import _canonical_paper_id
+
     try:
         runs = store.list_recommendation_runs(limit=10)
         for run in runs:
             items = store.get_recommendation_items(run["run_id"])
             for item in items:
-                if item.get("paper_id") == paper_id:
+                stored_id = _canonical_paper_id(item.get("paper_id") or item.get("id") or "")
+                if stored_id == paper_id:
                     return _build_paper_dict(item)
     except Exception:
         pass
@@ -96,7 +99,7 @@ def _resolve_paper_context(paper_id: str) -> dict | None:
 
                 papers, _ = InboxViewModel.parse_digest(filepath, use_cache=False)
                 for p in papers:
-                    if (p.get("id") or "") == paper_id:
+                    if _canonical_paper_id(p.get("id") or "") == paper_id:
                         return _build_paper_dict(p)
             except Exception:
                 continue

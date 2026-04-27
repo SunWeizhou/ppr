@@ -80,7 +80,7 @@ def get_job_status():
     return jsonify({"success": True, "job": serialize_job(job)})
 
 
-@bp.post("/api/state/backup")
+@bp.get("/api/state/backup")
 def backup_state():
     """Create a full backup zip containing all state files."""
     buf = io.BytesIO()
@@ -131,17 +131,36 @@ def restore_state_from_backup():
         return jsonify({"success": False, "error": "No backup file provided"}), 400
 
     file = request.files['backup']
+
+    ALLOWED_PREFIXES = (
+        'user_profile.json', 'user_config.json', 'keywords_config.json',
+        'my_scholars.json', 'cache/', 'reports/', 'history/',
+    )
+
+    def _safe_target(member_name: str) -> str:
+        for prefix in ALLOWED_PREFIXES:
+            if member_name == prefix or member_name.startswith(prefix):
+                break
+        else:
+            raise ValueError(f"Rejected path in backup: {member_name}")
+
+        target = os.path.realpath(os.path.join(str(PROJECT_ROOT), member_name))
+        base = os.path.realpath(str(PROJECT_ROOT))
+        if not target.startswith(base + os.sep) and target != base:
+            raise ValueError(f"Path traversal detected: {member_name}")
+        return target
+
     try:
         with zipfile.ZipFile(io.BytesIO(file.read())) as zf:
             for member in zf.namelist():
-                target = os.path.join(str(PROJECT_ROOT), member)
-                if member.startswith('cache/'):
-                    target = os.path.join(str(PROJECT_ROOT), member)
+                target = _safe_target(member)
                 os.makedirs(os.path.dirname(target), exist_ok=True)
                 with zf.open(member) as src, open(target, 'wb') as dst:
                     dst.write(src.read())
     except zipfile.BadZipFile:
-        return jsonify({"success": False, "error": "Invalid backup file"}), 400
+        return jsonify({"success": False, "error": "Invalid or corrupted backup file"}), 400
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
 
     return jsonify({"success": True, "message": "State restored. Please restart the application."})
 

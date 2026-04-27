@@ -6,10 +6,13 @@ services:
     ports:
       - "127.0.0.1:5555:5555"
     volumes:
-      - ./runtime:/app/runtime
+      - ./runtime/cache:/app/cache
+      - ./runtime/history:/app/history
+      - ./runtime/reports:/app/reports
       - ./user_profile.json:/app/user_profile.json
       - ./user_config.json:/app/user_config.json
       - ./keywords_config.json:/app/keywords_config.json
+      - ./my_scholars.json:/app/my_scholars.json
     environment:
       - USE_DEV_SERVER=0
     restart: unless-stopped

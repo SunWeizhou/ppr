@@ -293,21 +293,7 @@ async function paperDetailAction(action, paperId, extra) {
                 await queuePaperStatus(paperId, 'Saved', {source: 'paper_detail'});
                 break;
             case 'collect':
-                try {
-                    await addPaperToCollection(paperId, {source: 'paper_detail'});
-                } catch (e) {
-                    // Fallback: open collection modal via prompt
-                    const name = prompt('Collection name:');
-                    if (name) {
-                        const resp = await fetch('/api/collections', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({name: name, paper_id: paperId, source: 'paper_detail'})
-                        });
-                        const data = await resp.json();
-                        if (data.success) showToast('Added to ' + name);
-                    }
-                }
+                await addPaperToCollection(paperId, {source: 'paper_detail'});
                 break;
             case 'follow':
                 await followAuthor(extra, {paperId: paperId, source: 'paper_detail'});
