@@ -30,45 +30,66 @@ class SubscriptionRunner:
     # ------------------------------------------------------------------
 
     def run_subscription(self, subscription_id: int) -> dict:
-        """Run a single subscription by ID.
+        """Run a single subscription by ID, dispatching to type-specific methods."""
+        sub = self._store.get_subscription(subscription_id)
+        if not sub:
+            return {"success": False, "hit_count": 0, "error": "Subscription not found"}
 
-        Delegates to ``SubscriptionService.run_subscription``.  Returns a
-        dict with *hit_count*, *success*, and *error* keys.
-        """
+        sub_type = sub.get("type", "query")
         try:
-            result = self._svc.run_subscription(subscription_id)
-            return {
-                "success": result.get("success", False),
-                "hit_count": result.get("hit_count", 0),
-                "subscription": result.get("subscription"),
-                "error": result.get("error"),
-            }
+            if sub_type == "query":
+                hit_count = self.run_query_subscription(sub)
+            elif sub_type == "author":
+                hit_count = self.run_author_subscription(sub)
+            elif sub_type == "venue":
+                hit_count = self.run_venue_subscription(sub)
+            else:
+                return {"success": False, "hit_count": 0, "error": f"Unknown type: {sub_type}"}
+
+            # Update subscription metadata
+            from datetime import datetime
+            now = datetime.now().isoformat()
+            self._store.update_subscription(subscription_id, last_checked_at=now, latest_hit_count=hit_count)
+            self._store.record_event(
+                "run_subscription",
+                payload={"subscription_id": subscription_id, "type": sub_type, "hit_count": hit_count},
+            )
+
+            return {"success": True, "hit_count": hit_count, "subscription": self._store.get_subscription(subscription_id)}
+        except ImportError:
+            return {"success": False, "hit_count": 0, "error": "Search module not available"}
         except Exception as e:
             logger.error(f"Error running subscription {subscription_id}: {e}")
             return {"success": False, "hit_count": 0, "error": str(e)}
 
     def run_all_subscriptions(self) -> dict:
-        """Run all enabled subscriptions and return a summary.
+        """Run all enabled subscriptions, dispatching each by type."""
+        subs = self._store.list_subscriptions()
+        enabled_subs = [s for s in subs if s.get("enabled")]
+        total_hits = 0
+        errors = []
 
-        Returns a dict with *total_run*, *total_hits*, and *errors* list.
-        """
-        try:
-            result = self._svc.run_all_subscriptions()
-            return {
-                "success": result.get("success", False),
-                "total_run": result.get("subscriptions_run", 0),
-                "total_hits": result.get("total_hits", 0),
-                "errors": [],
-                "results": result.get("results", []),
-            }
-        except Exception as e:
-            logger.error(f"Error running all subscriptions: {e}")
-            return {
-                "success": False,
-                "total_run": 0,
-                "total_hits": 0,
-                "errors": [str(e)],
-            }
+        for sub in enabled_subs:
+            try:
+                result = self.run_subscription(sub["id"])
+                if result["success"]:
+                    total_hits += result.get("hit_count", 0)
+                elif result.get("error"):
+                    errors.append({"subscription_id": sub["id"], "name": sub["name"], "error": result["error"]})
+            except Exception as e:
+                errors.append({"subscription_id": sub["id"], "name": sub["name"], "error": str(e)})
+
+        self._store.record_event(
+            "run_all_subscriptions",
+            payload={"total_hits": total_hits, "subscriptions_checked": len(enabled_subs), "errors": len(errors)},
+        )
+
+        return {
+            "success": True,
+            "subscriptions_checked": len(enabled_subs),
+            "total_hits": total_hits,
+            "errors": errors,
+        }
 
     # ------------------------------------------------------------------
     # Type-specific runners

@@ -6,7 +6,7 @@ from datetime import datetime
 from flask import jsonify, request
 
 from . import bp
-from .helpers import _current_state_store, _scholar_service, _settings_service, serialize_job, MY_SCHOLARS_FILE, CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
+from .helpers import _current_state_store, _scholar_service, _settings_service, serialize_job, CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
 
 logger = logging.getLogger(__name__)
 

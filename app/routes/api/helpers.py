@@ -39,7 +39,8 @@ _own_state_store = get_state_store()
 FEEDBACK_FILE = str(CACHE_DIR / "user_feedback.json")
 FAVORITES_FILE = str(CACHE_DIR / "favorite_papers.json")
 CACHE_FILE = str(CACHE_DIR / "paper_cache.json")
-MY_SCHOLARS_FILE = str(PROJECT_ROOT / "my_scholars.json")
+# TODO: migrate ScholarService to use subscriptions(type='author')
+SCHOLARS_DATA_FILE = str(CACHE_DIR / "scholars.json")
 
 
 def _package_attr(name: str):
@@ -51,7 +52,7 @@ def _package_attr(name: str):
 
 
 # ---------------------------------------------------------------------------
-# State store resolution — P2-C: Flask app config preferred over module globals
+# State store resolution — test patches first, app config for production fallback
 # ---------------------------------------------------------------------------
 
 
@@ -141,7 +142,7 @@ def _feedback_service():
         favorites_file=_resolve_path("FAVORITES_FILE", FAVORITES_FILE),
         cache_file=_resolve_path("CACHE_FILE", CACHE_FILE),
         history_dir=_resolve_path("HISTORY_DIR", str(HISTORY_DIR)),
-        scholar_service=ScholarService(_resolve_path("MY_SCHOLARS_FILE", MY_SCHOLARS_FILE)),
+        scholar_service=ScholarService(_resolve_path("SCHOLARS_DATA_FILE", SCHOLARS_DATA_FILE)),
         keywords_loader=svc.load_keywords_config,
         keywords_saver=svc.save_keywords_config,
     )
@@ -150,7 +151,7 @@ def _feedback_service():
 def _scholar_service():
     from app.services.scholar_service import ScholarService
 
-    return ScholarService(MY_SCHOLARS_FILE)
+    return ScholarService(SCHOLARS_DATA_FILE)
 
 
 # ---------------------------------------------------------------------------

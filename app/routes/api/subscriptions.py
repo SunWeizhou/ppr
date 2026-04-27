@@ -1,13 +1,10 @@
 """Unified Subscriptions API routes (including hit management)."""
 import json
-from datetime import datetime
 
 from flask import jsonify, request
 
 from . import bp
-from .helpers import _current_state_store, MY_SCHOLARS_FILE
-from app.services.paper_utils import split_query_terms
-from state_store import _canonical_paper_id
+from .helpers import _current_state_store
 
 
 def _serialize_subscription(sub):
@@ -93,139 +90,35 @@ def list_subscription_hits(sub_id):
 
 @bp.post("/api/subscriptions/run/<int:sub_id>")
 def run_subscription(sub_id):
+    from app.services.subscription_runner import SubscriptionRunner
+
+    runner = SubscriptionRunner(_current_state_store())
+    result = runner.run_subscription(sub_id)
+
+    if not result.get("success"):
+        error = result.get("error", "Unknown error")
+        return jsonify({"success": False, "error": error}), 500
+
     sub = _current_state_store().get_subscription(sub_id)
-    if not sub:
-        return jsonify({"success": False, "error": "Subscription not found"}), 404
-
-    results = []
-    sub_type = sub.get("type", "query")
-    query_text = sub.get("query_text", "")
-    name = sub.get("name", "")
-
-    try:
-        from arxiv_recommender_v5 import search_by_keywords
-        from app.services.scholar_service import ScholarService
-
-        if sub_type == "query":
-            terms = split_query_terms(query_text or name)
-            results = search_by_keywords(terms, max_results=10, days_back=90)
-
-        elif sub_type == "author":
-            svc = ScholarService(MY_SCHOLARS_FILE)
-            papers = svc.fetch_papers(name, max_results=10)
-            results = papers
-
-        elif sub_type == "venue":
-            # Venue subscriptions search by journal name in arXiv
-            terms = split_query_terms(query_text or name)
-            results = search_by_keywords(terms, max_results=10, days_back=90)
-
-        now = datetime.now().isoformat()
-        queued_count = 0
-        for paper in results:
-            paper_id = _canonical_paper_id(paper.get("id") or paper.get("arxiv_id") or "")
-            if not paper_id:
-                continue
-            _current_state_store().upsert_subscription_hit(
-                subscription_id=sub_id,
-                paper_id=paper_id,
-                matched_reason=sub_type,
-                hit_date=now,
-                status="new",
-            )
-            _current_state_store().record_event(
-                "subscription_hit_queued",
-                paper_id,
-                {"subscription_id": sub_id, "type": sub_type, "hit_date": now},
-            )
-            queued_count += 1
-
-        _current_state_store().update_subscription(
-            sub_id,
-            last_checked_at=now,
-            latest_hit_count=len(results),
-        )
-        _current_state_store().record_event(
-            "run_subscription",
-            payload={"subscription_id": sub_id, "type": sub_type, "hit_count": len(results), "queued_count": queued_count},
-        )
-        sub = _current_state_store().get_subscription(sub_id)
-        return jsonify({
-            "success": True,
-            "subscription": _serialize_subscription(sub),
-            "results": results,
-            "hit_count": len(results),
-        })
-    except ImportError:
-        return jsonify({"success": False, "error": "Search module not available"}), 500
-    except Exception as exc:
-        return jsonify({"success": False, "error": str(exc)}), 500
+    return jsonify({
+        "success": True,
+        "subscription": _serialize_subscription(sub) if sub else None,
+        "hit_count": result.get("hit_count", 0),
+    })
 
 
 @bp.post("/api/subscriptions/run-all")
 def run_all_subscriptions():
-    subs = _current_state_store().list_subscriptions()
-    enabled_subs = [s for s in subs if s.get("enabled")]
-    total_hits = 0
-    errors = []
+    from app.services.subscription_runner import SubscriptionRunner
 
-    for sub in enabled_subs:
-        sub_id = sub["id"]
-        sub_type = sub.get("type", "query")
-        query_text = sub.get("query_text", "")
-        name = sub.get("name", "")
+    runner = SubscriptionRunner(_current_state_store())
+    result = runner.run_all_subscriptions()
 
-        try:
-            from arxiv_recommender_v5 import search_by_keywords
-            from app.services.scholar_service import ScholarService
-
-            results = []
-            if sub_type == "query":
-                terms = split_query_terms(query_text or name)
-                results = search_by_keywords(terms, max_results=10, days_back=90)
-            elif sub_type == "author":
-                svc = ScholarService(MY_SCHOLARS_FILE)
-                results = svc.fetch_papers(name, max_results=10)
-            elif sub_type == "venue":
-                terms = split_query_terms(query_text or name)
-                results = search_by_keywords(terms, max_results=10, days_back=90)
-
-            now = datetime.now().isoformat()
-            for paper in results:
-                paper_id = _canonical_paper_id(paper.get("id") or paper.get("arxiv_id") or "")
-                if not paper_id:
-                    continue
-                _current_state_store().upsert_subscription_hit(
-                    subscription_id=sub_id,
-                    paper_id=paper_id,
-                    matched_reason=sub_type,
-                    hit_date=now,
-                    status="new",
-                )
-                _current_state_store().record_event(
-                    "subscription_hit_queued",
-                    paper_id,
-                    {"subscription_id": sub_id, "type": sub_type, "hit_date": now},
-                )
-
-            _current_state_store().update_subscription(
-                sub_id,
-                last_checked_at=now,
-                latest_hit_count=len(results),
-            )
-            total_hits += len(results)
-        except Exception as exc:
-            errors.append({"subscription_id": sub_id, "name": name, "error": str(exc)})
-
-    _current_state_store().record_event(
-        "run_all_subscriptions",
-        payload={"total_hits": total_hits, "subscriptions_checked": len(enabled_subs), "errors": len(errors)},
-    )
     return jsonify({
-        "success": True,
-        "subscriptions_checked": len(enabled_subs),
-        "total_hits": total_hits,
-        "errors": errors,
+        "success": result.get("success", True),
+        "subscriptions_checked": result.get("subscriptions_checked", 0),
+        "total_hits": result.get("total_hits", 0),
+        "errors": result.get("errors", []),
     })
 
 
@@ -237,18 +130,18 @@ def run_all_subscriptions():
 @bp.post("/api/subscription-hits/<int:hit_id>/send-to-inbox")
 def send_hit_to_inbox(hit_id):
     """Send a subscription hit to the reading queue."""
-    from app.services.subscription_service import SubscriptionService
+    from app.services.subscription_runner import SubscriptionRunner
 
-    svc = SubscriptionService(_current_state_store())
-    ok = svc.send_hit_to_inbox(hit_id)
+    runner = SubscriptionRunner(_current_state_store())
+    ok = runner.send_hit_to_inbox(hit_id)
     return jsonify({"success": ok})
 
 
 @bp.post("/api/subscription-hits/<int:hit_id>/ignore")
 def ignore_hit(hit_id):
     """Ignore a subscription hit."""
-    from app.services.subscription_service import SubscriptionService
+    from app.services.subscription_runner import SubscriptionRunner
 
-    svc = SubscriptionService(_current_state_store())
-    ok = svc.ignore_hit(hit_id)
+    runner = SubscriptionRunner(_current_state_store())
+    ok = runner.ignore_hit(hit_id)
     return jsonify({"success": ok})

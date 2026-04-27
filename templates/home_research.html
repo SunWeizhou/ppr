@@ -38,31 +38,31 @@
     </div>
 
     {% if is_today %}
-    <div class="card" id="inboxProgressCard" style="margin-bottom: 8px;">
-        <div id="inboxProgressContent" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+    <div class="card inbox-progress-card" id="inboxProgressCard">
+        <div id="inboxProgressContent" class="progress-content">
+            <div class="progress-stats">
                 <div>
                     <span class="detail-label">Today's Progress</span>
-                    <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 2px;">
-                        <span style="font-family: var(--ff-mono); font-size: 18px; font-weight: 600; color: var(--brand);" id="progressHandled">0</span>
-                        <span style="font-size: 12px; color: var(--ink-muted);">/ <span id="progressTotal">{{ papers|length }}</span> papers handled</span>
+                    <div class="progress-metric">
+                        <span class="progress-number" id="progressHandled">0</span>
+                        <span class="progress-total">/ <span id="progressTotal">{{ papers|length }}</span> papers handled</span>
                     </div>
                 </div>
-                <div style="width: 200px; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden;" id="progressBarTrack">
-                    <div id="progressBarFill" style="height: 100%; width: 0%; background: var(--brand); border-radius: 999px; transition: width 0.35s ease;"></div>
+                <div class="progress-track" id="progressBarTrack">
+                    <div id="progressBarFill" class="progress-fill" style="width: 0%;"></div>
                 </div>
-                <div style="display: flex; gap: 14px; font-size: 12px; color: var(--ink-3);" id="progressBreakdown">
-                    <span><span style="color: var(--sage); font-weight: 600;" id="progressLiked">0</span> liked</span>
-                    <span><span style="color: var(--danger); font-weight: 600;" id="progressDisliked">0</span> ignored</span>
-                    <span><span style="color: var(--brand-2); font-weight: 600;" id="progressQueued">0</span> queued</span>
+                <div class="progress-breakdown" id="progressBreakdown">
+                    <span><span class="progress-stat progress-stat--liked" id="progressLiked">0</span> liked</span>
+                    <span><span class="progress-stat progress-stat--disliked" id="progressDisliked">0</span> ignored</span>
+                    <span><span class="progress-stat progress-stat--queued" id="progressQueued">0</span> queued</span>
                 </div>
             </div>
             <button type="button" class="btn btn-primary" id="finishTodayBtn" onclick="finishToday()">Finish Today</button>
         </div>
-        <div id="inboxProgressComplete" hidden style="text-align: center; padding: 12px 0;">
-            <div style="font-family: var(--ff-serif); font-size: 32px; line-height: 1; color: var(--sage); margin-bottom: 6px;">&#10003;</div>
-            <div style="font-size: 18px; font-weight: 600; font-family: var(--ff-serif); color: var(--ink);">Today's Triage Complete</div>
-            <div style="font-size: 13px; color: var(--ink-3); margin-top: 4px;" id="completeSummaryText"></div>
+        <div id="inboxProgressComplete" hidden class="progress-complete">
+            <div class="progress-checkmark">&#10003;</div>
+            <div class="progress-complete-title">Today's Triage Complete</div>
+            <div class="progress-complete-summary" id="completeSummaryText"></div>
         </div>
     </div>
     {% endif %}
@@ -205,30 +205,30 @@
             <button type="button" class="btn btn-tertiary" onclick="closeModal('triageCompleteModal')">关闭</button>
         </div>
         <div class="modal-body">
-            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
-                <div class="detail-box" style="text-align: center;">
-                    <div style="font-family: var(--ff-mono); font-size: 24px; font-weight: 700; color: var(--brand);" id="summaryTotal">0</div>
-                    <div style="font-size: 12px; color: var(--ink-muted);">Papers Today</div>
+            <div class="summary-grid">
+                <div class="detail-box summary-box">
+                    <div class="summary-number summary-number--brand" id="summaryTotal">0</div>
+                    <div class="summary-label">Papers Today</div>
                 </div>
-                <div class="detail-box" style="text-align: center;">
-                    <div style="font-family: var(--ff-mono); font-size: 24px; font-weight: 700; color: var(--sage);" id="summaryHandled">0</div>
-                    <div style="font-size: 12px; color: var(--ink-muted);">Papers Handled</div>
+                <div class="detail-box summary-box">
+                    <div class="summary-number summary-number--sage" id="summaryHandled">0</div>
+                    <div class="summary-label">Papers Handled</div>
                 </div>
-                <div class="detail-box" style="text-align: center;">
-                    <div style="font-family: var(--ff-mono); font-size: 24px; font-weight: 700; color: var(--sage);" id="summaryLiked">0</div>
-                    <div style="font-size: 12px; color: var(--ink-muted);">Liked</div>
+                <div class="detail-box summary-box">
+                    <div class="summary-number summary-number--sage" id="summaryLiked">0</div>
+                    <div class="summary-label">Liked</div>
                 </div>
-                <div class="detail-box" style="text-align: center;">
-                    <div style="font-family: var(--ff-mono); font-size: 24px; font-weight: 700; color: var(--accent);" id="summarySkimmed">0</div>
-                    <div style="font-size: 12px; color: var(--ink-muted);">Skim Later</div>
+                <div class="detail-box summary-box">
+                    <div class="summary-number summary-number--accent" id="summarySkimmed">0</div>
+                    <div class="summary-label">Skim Later</div>
                 </div>
-                <div class="detail-box" style="text-align: center;">
-                    <div style="font-family: var(--ff-mono); font-size: 24px; font-weight: 700; color: var(--sage);" id="summaryDeepRead">0</div>
-                    <div style="font-size: 12px; color: var(--ink-muted);">Deep Read</div>
+                <div class="detail-box summary-box">
+                    <div class="summary-number summary-number--sage" id="summaryDeepRead">0</div>
+                    <div class="summary-label">Deep Read</div>
                 </div>
-                <div class="detail-box" style="text-align: center;">
-                    <div style="font-family: var(--ff-mono); font-size: 24px; font-weight: 700; color: var(--danger);" id="summaryDisliked">0</div>
-                    <div style="font-size: 12px; color: var(--ink-muted);">Ignored</div>
+                <div class="detail-box summary-box">
+                    <div class="summary-number summary-number--danger" id="summaryDisliked">0</div>
+                    <div class="summary-label">Ignored</div>
                 </div>
             </div>
         </div>

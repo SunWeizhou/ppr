@@ -31,9 +31,9 @@
 <div class="tabs">
     <a href="/monitor?tab=authors" class="tab-button {% if tab == 'authors' %}active{% endif %}">Authors <span class="count">{{ my_scholars|length }}</span></a>
     <a href="/monitor?tab=venues" class="tab-button {% if tab == 'venues' %}active{% endif %}">Venues <span class="count">{{ journal_cards|length }}</span></a>
-    <a href="/monitor?tab=queries" class="tab-button {% if tab == 'queries' %}active{% endif %}">Query Subscriptions <span class="count">{{ all_saved_searches|length }}</span></a>
-    <a href="/monitor?tab=unified" class="tab-button {% if tab == 'unified' %}active{% endif %}">All Subscriptions <span class="count">{{ unified_subs|length if unified_subs else 0 }}</span></a>
-    <a href="/monitor?tab=recent-hits" class="tab-button {% if tab == 'recent-hits' %}active{% endif %}">Recent Hits <span class="count">{{ recent_hits|length if recent_hits else 0 }}</span></a>
+    <a href="/monitor?tab=queries" class="tab-button {% if tab == 'queries' %}active{% endif %}">Queries <span class="count">{{ all_saved_searches|length }}</span></a>
+    <a href="/monitor?tab=all" class="tab-button {% if tab == 'all' %}active{% endif %}">All <span class="count">{{ unified_subs|length if unified_subs else 0 }}</span></a>
+    <a href="/monitor?tab=recent-hits" class="tab-button {% if tab == 'recent-hits' %}active{% endif %}">Hits <span class="count">{{ recent_hits|length if recent_hits else 0 }}</span></a>
 </div>
 
 <section class="split split--rail-left section-gap">
@@ -51,7 +51,7 @@
                         <span class="list-item-trailing">{{ journal_cards|length }}</span>
                     </div>
                     <div class="list-item">
-                        <div><span class="list-item-title">Query Subscriptions</span></div>
+                        <div><span class="list-item-title">Queries</span></div>
                         <span class="list-item-trailing">{{ all_saved_searches|length }}</span>
                     </div>
                     {% if unified_subs is defined and unified_subs %}

@@ -88,7 +88,6 @@ class LibraryViewModel:
             "FEEDBACK_FILE": str(CACHE_DIR / "user_feedback.json"),
             "FAVORITES_FILE": str(CACHE_DIR / "favorite_papers.json"),
             "KEYWORDS_CONFIG_FILE": str(PROJECT_ROOT / "keywords_config.json"),
-            "MY_SCHOLARS_FILE": str(PROJECT_ROOT / "my_scholars.json"),
         }
         return mapping[key]
 

@@ -1131,6 +1131,25 @@ class StateStore:
             "queued": queued,
         }
 
+    def list_interaction_events(
+        self, paper_id: Optional[str] = None, limit: int = 100
+    ) -> List[Dict]:
+        """List interaction events, optionally filtered by paper_id."""
+        with self._connect() as conn:
+            if paper_id:
+                pid = _canonical_paper_id(paper_id)
+                rows = conn.execute(
+                    "SELECT * FROM interaction_events WHERE paper_id = ? "
+                    "ORDER BY created_at DESC LIMIT ?",
+                    (pid, limit),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM interaction_events ORDER BY created_at DESC LIMIT ?",
+                    (limit,),
+                ).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
     def record_event(
         self, event_type: str, paper_id: str = "", payload: Optional[Dict] = None
     ) -> int:

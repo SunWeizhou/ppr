@@ -37,6 +37,50 @@ class PaperViewModel:
         analysis = self._store.get_paper_ai_analysis(paper_id) if hasattr(self._store, 'get_paper_ai_analysis') else None
         paper["ai_analysis"] = analysis
 
+        # Related papers — find papers with similar categories from recent runs
+        try:
+            related = []
+            runs = self._store.list_recommendation_runs(limit=5)
+            paper_cats = set(paper.get("categories", []))
+            for run in runs:
+                items = self._store.get_recommendation_items(run["run_id"])
+                for item in items:
+                    if item.get("paper_id") == paper_id:
+                        continue
+                    item_cats = set(item.get("categories", []))
+                    if paper_cats & item_cats:
+                        related.append(item)
+                    if len(related) >= 8:
+                        break
+                if len(related) >= 8:
+                    break
+            paper["related_papers"] = related[:8]
+        except Exception:
+            paper["related_papers"] = []
+
+        # Subscription matches — which subscriptions match this paper
+        try:
+            matches = []
+            for sub in self._store.list_subscriptions():
+                sub_text = sub.get("query_text", "").lower()
+                title_text = (paper.get("title", "") or "").lower()
+                abstract_text = (paper.get("abstract", "") or "").lower()
+                if sub_text and (sub_text in title_text or sub_text in abstract_text):
+                    matches.append({"name": sub.get("name", ""), "type": sub.get("type", "")})
+            paper["subscription_matches"] = matches[:10]
+        except Exception:
+            paper["subscription_matches"] = []
+
+        # Interaction history from interaction_events table
+        try:
+            if hasattr(self._store, 'list_interaction_events'):
+                events = self._store.list_interaction_events(paper_id=paper_id, limit=20)
+                paper["interaction_history"] = events[:20]
+            else:
+                paper["interaction_history"] = []
+        except Exception:
+            paper["interaction_history"] = []
+
         # Queue status
         queue_items = self._store.list_queue_items()
         queue_status = None

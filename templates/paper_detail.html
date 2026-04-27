@@ -2,37 +2,6 @@
 
 {% block head %}
 {{ super() }}
-<style>
-.paper-detail { max-width: 900px; margin: 0 auto; padding: 20px; }
-.paper-detail h1 { font-size: 1.5em; margin-bottom: 8px; line-height: 1.4; }
-.paper-meta { color: #888; font-size: 0.9em; margin-bottom: 20px; }
-.paper-meta a { color: #00d4ff; text-decoration: none; }
-.paper-meta a:hover { text-decoration: underline; }
-.detail-section { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.06); }
-.detail-section h2 { font-size: 1.1em; margin-bottom: 12px; color: #00d4ff; }
-.score-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-.score-item { background: rgba(124,58,237,0.15); padding: 8px 14px; border-radius: 8px; text-align: center; min-width: 80px; }
-.score-item .label { font-size: 0.75em; color: #888; }
-.score-item .value { font-size: 1.2em; font-weight: bold; color: #fff; }
-.action-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
-.action-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #e0e0e0; cursor: pointer; transition: all 0.2s; text-decoration: none; font-size: 0.9em; }
-.action-btn:hover { background: rgba(124,58,237,0.3); transform: translateY(-1px); }
-.action-btn.primary { background: linear-gradient(135deg, #7c3aed, #00d4ff); border: none; }
-.action-btn.success { background: rgba(34,197,94,0.2); border-color: #22c55e; }
-.action-btn.warning { background: rgba(234,179,8,0.2); border-color: #eab308; }
-.breakdown-list { list-style: none; padding: 0; }
-.breakdown-list li { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 8px; }
-.breakdown-list li:last-child { border: none; }
-.breakdown-icon { font-size: 1.2em; min-width: 24px; }
-.breakdown-text { flex: 1; }
-.breakdown-score { font-family: monospace; color: #22c55e; font-size: 0.85em; }
-.ai-section { position: relative; }
-.ai-section .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75em; }
-.status-badge.ok { background: rgba(34,197,94,0.2); color: #22c55e; }
-.status-badge.pending { background: rgba(234,179,8,0.2); color: #eab308; }
-.empty-state { text-align: center; padding: 30px; color: #666; }
-@media (max-width: 768px) { .paper-detail { padding: 10px; } }
-</style>
 {% endblock %}
 
 {% block hero %}
@@ -44,9 +13,9 @@
 {% block content %}
 <div class="paper-detail">
     {% if error %}
-    <div class="detail-section">
+    <div class="card card-spaced">
         <p>{{ error }}</p>
-        <a href="/" class="action-btn">Return to Inbox</a>
+        <a href="/" class="btn btn-secondary">Return to Inbox</a>
     </div>
     {% else %}
 
@@ -58,7 +27,7 @@
             <span class="meta-tag">{{ cat }}</span>
             {% endfor %}
         </div>
-        <div style="margin-top:4px;">
+        <div class="paper-meta-links">
             {% if paper.get('link') %}
             <a href="{{ paper.get('link') }}" target="_blank">arXiv</a>
             {% endif %}
@@ -70,8 +39,8 @@
     </div>
 
     <!-- Score Breakdown -->
-    <div class="detail-section">
-        <h2>Score Breakdown</h2>
+    <div class="card card-spaced">
+        <h2 class="panel-title">Score Breakdown</h2>
         <div class="score-bar">
             <div class="score-item">
                 <div class="value">{{ "%.1f"|format(paper.get('score', 0) or 0) }}</div>
@@ -113,21 +82,21 @@
         {% endif %}
 
         {% if paper.get('recommendation_reason', {}).get('reason_summary') %}
-        <p style="color:#aaa;font-size:0.9em;margin-top:8px;">
+        <p class="t-muted breakdown-summary">
             {{ paper.get('recommendation_reason', {}).get('reason_summary') }}
         </p>
         {% endif %}
     </div>
 
     <!-- Abstract -->
-    <div class="detail-section">
-        <h2>Abstract</h2>
-        <p style="line-height:1.7;color:#ccc;">{{ paper.get('abstract', paper.get('summary', 'No abstract available.')) }}</p>
+    <div class="card card-spaced">
+        <h2 class="panel-title">Abstract</h2>
+        <p class="abstract-text">{{ paper.get('abstract', paper.get('summary', 'No abstract available.')) }}</p>
     </div>
 
     <!-- AI Analysis -->
-    <div class="detail-section ai-section">
-        <h2>AI Analysis
+    <div class="card card-spaced ai-section">
+        <h2 class="panel-title">AI Analysis
             {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
             <span class="status-badge ok">Ready</span>
             {% else %}
@@ -147,26 +116,71 @@
         {% endif %}
     </div>
 
+    <!-- Related Papers -->
+    {% if paper.get('related_papers') %}
+    <div class="card card-spaced">
+        <h2 class="panel-title">Related Papers</h2>
+        <div class="list-stack">
+            {% for rp in paper.get('related_papers', [])[:8] %}
+            <a href="/papers/{{ rp.get('id') }}" class="list-item list-item-link">
+                <span class="list-item-title">{{ rp.get('title', 'Untitled')[:120] }}</span>
+                <span class="list-item-trailing t-muted">{{ rp.get('date', '')[:10] }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Subscription Matches -->
+    {% if paper.get('subscription_matches') %}
+    <div class="card card-spaced">
+        <h2 class="panel-title">Subscription Matches</h2>
+        <div class="list-stack">
+            {% for match in paper.get('subscription_matches', []) %}
+            <div class="list-item">
+                <span class="list-item-title">{{ match.get('name', 'Subscription') }}</span>
+                <span class="tag">{{ match.get('type', '') }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Interaction History -->
+    {% if paper.get('interaction_history') %}
+    <div class="card card-spaced">
+        <h2 class="panel-title">Interaction History</h2>
+        <div class="list-stack">
+            {% for event in paper.get('interaction_history', []) %}
+            <div class="list-item">
+                <span class="list-item-title">{{ event.get('event_type', '') }}</span>
+                <span class="list-item-trailing t-muted">{{ event.get('created_at', '')[:19] }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Actions -->
-    <div class="detail-section">
-        <h2>Actions</h2>
+    <div class="card card-spaced">
+        <h2 class="panel-title">Actions</h2>
         <div class="action-buttons">
             {% if paper.get('id') %}
-            <a href="{{ paper.get('link', 'https://arxiv.org/abs/' + paper.get('id', '')) }}" target="_blank" class="action-btn">Open arXiv</a>
-            <a href="/api/pdf/{{ paper.get('id') }}" target="_blank" class="action-btn">Download PDF</a>
-            <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank" class="action-btn">Export BibTeX</a>
+            <a href="{{ paper.get('link', 'https://arxiv.org/abs/' + paper.get('id', '')) }}" target="_blank" class="btn btn-secondary">Open arXiv</a>
+            <a href="/api/pdf/{{ paper.get('id') }}" target="_blank" class="btn btn-primary">Download PDF</a>
+            <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank" class="btn btn-secondary">Export BibTeX</a>
             {% endif %}
         </div>
 
         {% if paper.get('queue_status') %}
-        <p style="margin-top:12px;color:#888;">Queue status: <strong>{{ paper.get('queue_status') }}</strong></p>
+        <p class="t-muted action-status">Queue status: <strong>{{ paper.get('queue_status') }}</strong></p>
         {% endif %}
 
         {% if paper.get('collections') %}
-        <h3 style="margin-top:16px;font-size:1em;color:#aaa;">Collections</h3>
-        <ul style="list-style:none;padding:0;">
+        <h3 class="t-muted collection-heading">Collections</h3>
+        <ul class="collection-list">
             {% for col in paper.get('collections', []) %}
-            <li style="padding:4px 0;color:#888;">{{ col.get('name', 'Unnamed') }}</li>
+            <li class="t-muted collection-item">{{ col.get('name', 'Unnamed') }}</li>
             {% endfor %}
         </ul>
         {% endif %}

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-import os
 import re
 from datetime import datetime
 from enum import Enum
@@ -12,7 +10,6 @@ from typing import Dict, Iterable, List, Optional, Tuple
 from config_manager import get_config
 from logger_config import get_logger
 
-from app_paths import PROJECT_ROOT
 from app.services.arxiv_source import KNOWN_AUTHORS, TOP_INSTITUTIONS
 from app.services.settings_service import get_dislike_topics
 
@@ -174,20 +171,20 @@ class EnhancedScorer:
                 break
 
         try:
-            project_root_str = str(PROJECT_ROOT)
-            my_scholars_path = os.path.join(project_root_str, 'my_scholars.json')
-            if os.path.exists(my_scholars_path):
-                with open(my_scholars_path, 'r', encoding='utf-8') as f:
-                    my_scholars = json.load(f)
-                for scholar in my_scholars.get('scholars', []):
-                    scholar_name = scholar.get('name', '').lower()
-                    if scholar_name in authors_text or any(
-                        part in authors_text for part in scholar_name.split() if len(part) > 2
-                    ):
-                        score += 3.0
-                        break
+            from state_store import get_state_store
+            store = get_state_store()
+            author_subs = store.list_subscriptions(type="author")
+            for sub in author_subs:
+                author_name = (sub.get("query_text") or sub.get("name", "")).lower()
+                if not author_name:
+                    continue
+                if author_name in authors_text or any(
+                    part in authors_text for part in author_name.split() if len(part) > 2
+                ):
+                    score += 3.0
+                    break
         except Exception as e:
-            logger.debug(f"Error loading my_scholars: {e}")
+            logger.debug(f"Error checking author subscriptions: {e}")
 
         return min(score, 5)
 

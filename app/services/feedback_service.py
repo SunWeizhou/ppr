@@ -319,6 +319,7 @@ class FeedbackService:
             if self._scholar_service:
                 success, result = self._scholar_service.add(name=author_name, focus=data.get("focus", ""))
             else:
+                # TODO: migrate ScholarService to use subscriptions(type='author')
                 import urllib.parse
 
                 from app.services.scholar_service import ScholarService

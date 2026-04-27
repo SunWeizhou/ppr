@@ -43,12 +43,12 @@ class SubscriptionRunnerTests(unittest.TestCase):
         result = self.runner.run_all_subscriptions()
 
         self.assertTrue(result["success"])
-        self.assertIn("total_run", result)
+        self.assertIn("subscriptions_checked", result)
         self.assertIn("total_hits", result)
         self.assertIn("errors", result)
         self.assertIsInstance(result["errors"], list)
         # Two subscriptions were run
-        self.assertEqual(result["total_run"], 2)
+        self.assertEqual(result["subscriptions_checked"], 2)
         # Each got one hit (different subscriptions, so two unique hits)
         self.assertEqual(result["total_hits"], 2)
 
@@ -68,7 +68,7 @@ class SubscriptionRunnerTests(unittest.TestCase):
         result = self.runner.run_all_subscriptions()
 
         self.assertTrue(result["success"])
-        self.assertEqual(result["total_run"], 1)
+        self.assertEqual(result["subscriptions_checked"], 1)
         self.assertEqual(result["total_hits"], 1)
 
     @patch("app.services.arxiv_source.search_by_keywords")
@@ -76,7 +76,7 @@ class SubscriptionRunnerTests(unittest.TestCase):
         """No subscriptions yields zero counts."""
         result = self.runner.run_all_subscriptions()
         self.assertTrue(result["success"])
-        self.assertEqual(result["total_run"], 0)
+        self.assertEqual(result["subscriptions_checked"], 0)
         self.assertEqual(result["total_hits"], 0)
         self.assertEqual(result["errors"], [])
         mock_search.assert_not_called()
