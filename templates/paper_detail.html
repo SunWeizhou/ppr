@@ -103,6 +103,24 @@
                         <div class="value">{{ "%.1f"|format(sd.get('affinity', 0) or 0) }}</div>
                         <div class="label">Preference</div>
                     </div>
+                    {% if sd.get('subscription', 0) != 0 %}
+                    <div class="score-item">
+                        <div class="value">{{ "%+.1f"|format(sd.get('subscription', 0)) }}</div>
+                        <div class="label">Subscription</div>
+                    </div>
+                    {% endif %}
+                    {% if sd.get('recency', 0) != 0 %}
+                    <div class="score-item">
+                        <div class="value">{{ "%+.1f"|format(sd.get('recency', 0)) }}</div>
+                        <div class="label">Recency</div>
+                    </div>
+                    {% endif %}
+                    {% if sd.get('penalty', 0) != 0 %}
+                    <div class="score-item">
+                        <div class="value">{{ "%+.1f"|format(sd.get('penalty', 0)) }}</div>
+                        <div class="label">Penalty</div>
+                    </div>
+                    {% endif %}
                     {% endif %}
                 </div>
 
@@ -159,13 +177,24 @@
             <div class="card card-spaced">
                 <h2 class="panel-title">Actions</h2>
                 <div class="action-buttons">
-                    {% if paper.get('id') %}
+                    <button class="btn btn-primary btn-sm" onclick="paperDetailAction('relevant', '{{ paper.get('id') }}')">Relevant</button>
+                    <button class="btn btn-danger btn-sm" onclick="paperDetailAction('ignore', '{{ paper.get('id') }}')">Ignore</button>
+                    <button class="btn btn-warm btn-sm" onclick="paperDetailAction('skim', '{{ paper.get('id') }}')">Skim Later</button>
+                    <button class="btn btn-sage btn-sm" onclick="paperDetailAction('deepread', '{{ paper.get('id') }}')">Deep Read</button>
+                    <button class="btn btn-secondary btn-sm" onclick="paperDetailAction('save', '{{ paper.get('id') }}')">Saved</button>
+                    <button class="btn btn-tertiary btn-sm" onclick="paperDetailAction('collect', '{{ paper.get('id') }}')">Add to Collection</button>
+                    {% if paper.get('first_author') %}
+                    <button class="btn btn-tertiary btn-sm" onclick="paperDetailAction('follow', '{{ paper.get('id') }}', '{{ paper.get('first_author') }}')">Follow {{ paper.get('first_author') }}</button>
+                    {% endif %}
+                </div>
+                {% if paper.get('id') %}
+                <div class="action-buttons" style="margin-top:8px;">
+                    {% if paper.get('link') %}
                     <a href="{{ paper.get('link', 'https://arxiv.org/abs/' + paper.get('id', '')) }}" target="_blank" class="btn btn-secondary btn-sm">Open arXiv</a>
                     <a href="/api/pdf/{{ paper.get('id') }}" target="_blank" class="btn btn-primary btn-sm">Download PDF</a>
                     <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank" class="btn btn-secondary btn-sm">Export BibTeX</a>
                     {% endif %}
                 </div>
-                {% if paper.get('id') %}
                 <div class="action-buttons" style="margin-top:8px;">
                     <button class="btn btn-primary btn-sm" id="generateAIBtn" onclick="generateAnalysis('{{ paper.get('id') }}')">
                         {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
@@ -235,6 +264,60 @@
 {% block scripts %}
 {{ super() }}
 <script>
+async function paperDetailAction(action, paperId, extra) {
+    try {
+        switch (action) {
+            case 'relevant':
+                await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({paper_id: paperId, action: 'like', source: 'paper_detail'})
+                });
+                showToast('Marked as Relevant');
+                break;
+            case 'ignore':
+                await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({paper_id: paperId, action: 'dislike', source: 'paper_detail'})
+                });
+                showToast('Ignored');
+                break;
+            case 'skim':
+                await queuePaperStatus(paperId, 'Skim Later', {source: 'paper_detail'});
+                break;
+            case 'deepread':
+                await queuePaperStatus(paperId, 'Deep Read', {source: 'paper_detail'});
+                break;
+            case 'save':
+                await queuePaperStatus(paperId, 'Saved', {source: 'paper_detail'});
+                break;
+            case 'collect':
+                try {
+                    await addPaperToCollection(paperId, {source: 'paper_detail'});
+                } catch (e) {
+                    // Fallback: open collection modal via prompt
+                    const name = prompt('Collection name:');
+                    if (name) {
+                        const resp = await fetch('/api/collections', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({name: name, paper_id: paperId, source: 'paper_detail'})
+                        });
+                        const data = await resp.json();
+                        if (data.success) showToast('Added to ' + name);
+                    }
+                }
+                break;
+            case 'follow':
+                await followAuthor(extra, {paperId: paperId, source: 'paper_detail'});
+                break;
+        }
+    } catch (err) {
+        alert('Action failed: ' + err.message);
+    }
+}
+
 async function generateAnalysis(paperId) {
     const btn = document.getElementById('generateAIBtn');
     btn.disabled = true;
