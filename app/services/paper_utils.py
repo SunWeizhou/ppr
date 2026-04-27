@@ -143,7 +143,10 @@ def generate_relevance_html(paper: dict) -> str:
             location_badge = ""
             score_badge = ""
         else:
-            icon = reason_item.get("icon", "📌")
+            raw_icon = reason_item.get("icon", "📌")
+            # Whitelist: only allow a known set of emoji icons; escape anything else
+            _SAFE_ICONS = frozenset({"🎯", "📌", "🔔", "🧠", "📋", "🏷️", "💡", "📐", "🏛️", "🆕", "🔗", "👤", "🏗️", "📊"})
+            icon = raw_icon if raw_icon in _SAFE_ICONS else html.escape(str(raw_icon))
             text = html.escape(reason_item.get("text", ""))
             location = html.escape(reason_item.get("location", ""))
             score_impact = reason_item.get("score_impact", 0)

@@ -370,7 +370,7 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
     # Fetch papers from multiple sources
     t0 = time.time()
     fetcher = MultiSourceFetcher(_CONFIG['arxiv_categories'], cache)
-    papers = fetcher.fetch_all_sources(_CONFIG['lookback_days'])
+    papers = fetcher.fetch_all_sources(_CONFIG['lookback_days'], force_refresh=force_refresh)
     logger.info(f"Fetched {len(papers)} papers from arXiv ({time.time()-t0:.1f}s)")
 
     if not papers:

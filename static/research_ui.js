@@ -612,7 +612,13 @@
       message: '这会重新运行今日推荐生成，可能覆盖当前今日排序快照。Queue、Collection 和反馈状态会保留。',
       confirmLabel: 'Refresh today'
     });
-    if (ok) window.location.href = '/api/refresh?force=1';
+    if (ok) {
+      try {
+        const resp = await fetch('/api/refresh?force=1', { method: 'POST' });
+        const data = await resp.json();
+        if (!data.success) showToast(data.error || '刷新失败', 'error');
+      } catch (err) { showToast('刷新失败: ' + err.message, 'error'); }
+    }
   }
 
   function getPaperNode(element) {

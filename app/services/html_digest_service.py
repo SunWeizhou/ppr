@@ -258,7 +258,7 @@ class HTMLGenerator:
             <a href="/journal.html" class="nav-tab">\U0001f4da 顶刊追踪</a>
             <a href="/scholars.html" class="nav-tab">\U0001f393 学者追踪</a>
             <a href="/liked.html" class="nav-tab">❤️ 我喜欢的</a>
-            <a href="/api/refresh?force=1" class="nav-tab" onclick="return confirm('确定要刷新今日推荐吗？')">\U0001f504 刷新</a>
+            <a href="/" class="nav-tab">\U0001f504 Return to Web App</a>
         </div>
 
         <!-- Today's Matched Keywords -->

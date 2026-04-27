@@ -12,6 +12,7 @@ import time
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from urllib.parse import urlparse
 
 from app_paths import CACHE_DIR, PROJECT_ROOT, STATE_DB_PATH, ensure_runtime_dirs
 from logger_config import get_logger
@@ -39,12 +40,20 @@ def _log_and_guard_request():
     if request.method in ("POST", "PUT", "DELETE", "PATCH"):
         origin = request.headers.get("Origin") or ""
         referer = request.headers.get("Referer") or ""
-        allowed = ("http://localhost:5555", "http://127.0.0.1:5555")
-        if origin and not any(origin.startswith(a) for a in allowed):
-            logger.warning("Blocked cross-origin %s to %s (Origin: %s)", request.method, request.path, origin)
-            return jsonify({"success": False, "error": "Cross-origin requests not allowed"}), 403
-        if referer and not any(referer.startswith(a) for a in allowed):
-            logger.warning("Blocked cross-origin %s to %s (Referer: %s)", request.method, request.path, referer)
+        allowed = frozenset({("localhost", 5555), ("127.0.0.1", 5555)})
+
+        def _host_port_ok(url: str) -> bool:
+            if not url:
+                return True  # no header = not cross-origin, allow
+            try:
+                p = urlparse(url)
+                return (p.hostname, p.port or 80) in allowed
+            except Exception:
+                return False
+
+        if not _host_port_ok(origin) or not _host_port_ok(referer):
+            logger.warning("Blocked cross-origin %s %s (Origin: %s, Referer: %s)",
+                           request.method, request.path, origin, referer)
             return jsonify({"success": False, "error": "Cross-origin requests not allowed"}), 403
 
 
