@@ -41,14 +41,9 @@ def index():
     date = dates[0] if dates else today
 
     # Try SQLite first
-    papers = InboxViewModel.load_papers_from_sqlite(date)
+    papers, themes = vm.load_papers_from_sqlite(date)
 
     if papers is not None:
-        # Load keywords from markdown (if available) or use empty list
-        filepath = os.path.join(HISTORY_DIR, f"digest_{date}.md")
-        keywords = []
-        if os.path.exists(filepath):
-            _, keywords = InboxViewModel.parse_digest(filepath, use_cache=False)
         feedback = vm.load_feedback()
         prev_date, next_date = InboxViewModel.build_date_nav(date, dates)
 
@@ -59,7 +54,7 @@ def index():
         context = vm.to_template_context(
             date=date,
             papers=papers,
-            keywords=keywords,
+            keywords=themes,
             dates=dates,
             prev_date=prev_date,
             next_date=next_date,
@@ -107,14 +102,10 @@ def view_date(date):
     vm = InboxViewModel(store)
 
     # Try SQLite first
-    papers = InboxViewModel.load_papers_from_sqlite(date)
+    papers, themes = vm.load_papers_from_sqlite(date)
 
     if papers is not None:
         dates = InboxViewModel.get_available_dates()
-        filepath = os.path.join(HISTORY_DIR, f"digest_{date}.md")
-        keywords = []
-        if os.path.exists(filepath):
-            _, keywords = InboxViewModel.parse_digest(filepath, use_cache=False)
         feedback = vm.load_feedback()
         prev_date, next_date = InboxViewModel.build_date_nav(date, dates)
 
@@ -125,7 +116,7 @@ def view_date(date):
         context = vm.to_template_context(
             date=date,
             papers=papers,
-            keywords=keywords,
+            keywords=themes,
             dates=dates,
             prev_date=prev_date,
             next_date=next_date,

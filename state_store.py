@@ -182,6 +182,7 @@ class StateStore:
                     run_date TEXT NOT NULL,
                     trigger_source TEXT NOT NULL DEFAULT 'auto_homepage',
                     config_snapshot_json TEXT NOT NULL DEFAULT '{}',
+                    themes_json TEXT NOT NULL DEFAULT '[]',
                     status TEXT NOT NULL DEFAULT 'completed',
                     paper_count INTEGER DEFAULT 0,
                     created_at TEXT NOT NULL,
@@ -212,14 +213,19 @@ class StateStore:
             current_version_row = conn.execute(
                 "SELECT value FROM schema_meta WHERE key = 'schema_version'"
             ).fetchone()
-            current_version = current_version_row["value"] if current_version_row else "0"
+            current_version = int(current_version_row["value"]) if current_version_row else 0
 
-            if current_version < "3":
+            if current_version < 3:
                 # Set/update schema version to 3 (was using INSERT OR IGNORE before,
                 # which silently kept old versions like "2" — now we always advance)
                 conn.execute(
                     "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '3')"
                 )
+            # Migrate existing tables: add themes_json to recommendation_runs if missing
+            try:
+                conn.execute("ALTER TABLE recommendation_runs ADD COLUMN themes_json TEXT NOT NULL DEFAULT '[]'")
+            except sqlite3.OperationalError:
+                pass  # Column already exists
             self._migrate_arxiv_paper_ids(conn)
 
     def _migrate_arxiv_paper_ids(self, conn: sqlite3.Connection) -> None:
@@ -326,7 +332,7 @@ class StateStore:
             row = conn.execute(
                 "SELECT value FROM schema_meta WHERE key = 'schema_version'"
             ).fetchone()
-            if not row or row["value"] < "3":
+            if not row or int(row["value"]) < 3:
                 # Schema will be migrated by _initialize on next restart
                 return
             migrated_marker = conn.execute(
@@ -1133,18 +1139,20 @@ class StateStore:
         run_date: str,
         trigger_source: str = "auto_homepage",
         papers: Optional[List[Dict]] = None,
+        themes: Optional[List[str]] = None,
     ) -> str:
         """Save a recommendation run and its items to SQLite. Returns run_id."""
         import uuid
         now = _utc_now()
         run_id = uuid.uuid4().hex
         papers = papers or []
+        themes_json = json.dumps(themes or [], ensure_ascii=False)
 
         with self._lock, self._connect() as conn:
             conn.execute(
-                """INSERT INTO recommendation_runs(run_id, run_date, trigger_source, status, paper_count, created_at, finished_at)
-                   VALUES (?, ?, ?, 'completed', ?, ?, ?)""",
-                (run_id, run_date, trigger_source, len(papers), now, now),
+                """INSERT INTO recommendation_runs(run_id, run_date, trigger_source, themes_json, status, paper_count, created_at, finished_at)
+                   VALUES (?, ?, ?, ?, 'completed', ?, ?, ?)""",
+                (run_id, run_date, trigger_source, themes_json, len(papers), now, now),
             )
             for rank, paper in enumerate(papers, start=1):
                 paper_id = paper.get("id") or paper.get("paper_id", "")

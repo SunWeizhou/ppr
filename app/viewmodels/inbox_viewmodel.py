@@ -141,28 +141,31 @@ class InboxViewModel:
                 dates.append(f.replace("digest_", "").replace(".md", ""))
         return sorted(dates, reverse=True)
 
-    @staticmethod
-    def load_papers_from_sqlite(date: str) -> Optional[list]:
-        """Load recommendation papers from SQLite for a given date.
+    def load_papers_from_sqlite(self, date: str) -> tuple:
+        """Load recommendation papers and themes from SQLite for a given date.
 
-        Returns the papers list (with deserialized JSON fields) or None if not found.
-        Normalises the ``paper_id`` field into ``id`` for backward compat.
+        Returns ``(papers, themes)`` where *papers* is a list of paper dicts
+        (with ``paper_id`` normalised to ``id``) and *themes* is a list of
+        keyword strings, or ``(None, None)`` if the date has no SQLite run.
         """
-        from state_store import get_state_store
         try:
-            store = get_state_store()
-            run = store.get_recommendation_run_by_date(date)
+            run = self._store.get_recommendation_run_by_date(date)
             if run:
-                items = store.get_recommendation_items(run["run_id"])
+                items = self._store.get_recommendation_items(run["run_id"])
                 if items:
                     # Normalise: make ``id`` the arxiv paper ID (mirrors markdown path)
                     for item in items:
                         item["id"] = item["paper_id"]
                         del item["paper_id"]
-                    return items
+                    # Load themes from the run record
+                    try:
+                        themes = json.loads(run.get("themes_json", "[]"))
+                    except (TypeError, json.JSONDecodeError):
+                        themes = []
+                    return items, themes
         except Exception:
             pass
-        return None
+        return None, None
 
     @staticmethod
     def parse_digest(filepath: str, use_cache: bool = True):

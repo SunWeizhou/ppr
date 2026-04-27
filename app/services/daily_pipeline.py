@@ -274,7 +274,7 @@ def _generate_outputs(
     # Save to SQLite as primary state source
     try:
         store = get_state_store()
-        store.save_recommendation_run(date_str, "auto_homepage", top_papers)
+        store.save_recommendation_run(date_str, "auto_homepage", top_papers, themes)
         logger.info(f"Recommendation saved to SQLite for {date_str}")
     except Exception as e:
         logger.warning(f"Failed to save recommendation to SQLite: {e}")
@@ -312,12 +312,29 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
     # Initialize cache
     cache = PaperCache(cache_dir)
 
-    # Check if today's recommendation already exists
+    # Check if today's recommendation already exists (SQLite first, then JSON)
     today = datetime.now().strftime('%Y-%m-%d')
     if not force_refresh:
+        store = get_state_store()
+        today_run = store.get_recommendation_run_by_date(today)
+        if today_run:
+            items = store.get_recommendation_items(today_run["run_id"])
+            if items:
+                logger.info(f"Found today's recommendation in SQLite ({today})")
+                os.makedirs(output_dir, exist_ok=True)
+                os.makedirs(history_dir, exist_ok=True)
+                html_gen = HTMLGenerator()
+                html = html_gen.generate(items, [], today, cache.get_stats())
+                with open(os.path.join(output_dir, 'index.html'), 'w', encoding='utf-8') as f:
+                    f.write(html)
+                logger.info(f"HTML updated: {output_dir}/index.html")
+                logger.info("Done! Open http://localhost:5555 for interactive view")
+                return items
+
         cached_papers, cached_themes = load_daily_recommendation(cache_dir)
         if cached_papers:
-            logger.info(f"Today's recommendation already exists ({today})")
+            logger.info(f"Today's recommendation exists in JSON cache, backfilling SQLite ({today})")
+            store.save_recommendation_run(today, "auto_homepage", cached_papers, cached_themes)
             os.makedirs(output_dir, exist_ok=True)
             os.makedirs(history_dir, exist_ok=True)
             html_gen = HTMLGenerator()

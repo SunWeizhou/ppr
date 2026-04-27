@@ -92,7 +92,7 @@ Recommendation scoring remains heuristic: core keyword matches dominate, seconda
 
 ### Optional AI Analysis
 
-AI-powered paper analysis (OpenAI or DeepSeek) is optional and cached aggressively to SQLite. It runs as a post-scoring enrichment step, not as part of core ranking. This keeps the ranking deterministic and fast while allowing enhanced summaries when the user provides API keys.
+AI-powered paper analysis (DeepSeek provider implemented; OpenAI-compatible provider is currently a placeholder) is optional and cached aggressively to SQLite. It runs as a post-scoring enrichment step, not as part of core ranking. This keeps the ranking deterministic and fast while allowing enhanced summaries when the user provides API keys.
 
 ### Evaluation Module
 
