@@ -226,13 +226,11 @@ def save_settings():
         regeneration_job = None
         if regenerate:
             try:
-                # Guard: check if a job is already queued or running
-                latest = _current_state_store().get_latest_job("daily_recommendation")
-                if latest and latest.get("status") in ("queued", "running"):
+                # Guard: atomic check for existing queued/running jobs
+                if _current_state_store().has_running_job("daily_recommendation"):
                     return jsonify({
                         "success": False,
                         "error": "已有刷新任务正在排队或运行",
-                        "job_id": latest.get("run_id"),
                     }), 409
 
                 regeneration_job = _current_state_store().create_job(

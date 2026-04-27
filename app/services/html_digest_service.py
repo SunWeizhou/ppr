@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import json
 import re
 from datetime import datetime
@@ -488,18 +489,22 @@ class HTMLGenerator:
 
     def _generate_relevance_html(self, paper: Dict) -> str:
         """Generate HTML for structured relevance reasons with icons."""
+        _SAFE_ICONS = frozenset({"🎯", "📌", "🔔", "🧠", "📋", "🏷️", "💡", "📐", "🏛️", "🆕", "🔗", "👤", "🏗️", "📊"})
+
         breakdown = paper.get('relevance_breakdown', [])
         if not breakdown:
-            return f'<div class="relevance-item"><span class="relevance-icon">\U0001f4a1</span><span class="relevance-text">{paper.get("relevance_reason", "Matches your research interests")}</span></div>'
+            reason_text = html.escape(str(paper.get("relevance_reason", "Matches your research interests")))
+            return f'<div class="relevance-item"><span class="relevance-icon">\U0001f4a1</span><span class="relevance-text">{reason_text}</span></div>'
 
         html_items = []
         for reason in breakdown[:4]:
-            icon = reason.get('icon', '\U0001f4cc')
-            text = reason.get('text', '')
+            raw_icon = reason.get('icon', '\U0001f4cc')
+            icon = raw_icon if raw_icon in _SAFE_ICONS else html.escape(str(raw_icon))
+            text = html.escape(str(reason.get('text', '')))
             score_impact = reason.get('score_impact', 0)
-            location = reason.get('location', '')
+            raw_location = reason.get('location', '')
 
-            location_badge = f'<span class="relevance-location">{location}</span>' if location else ''
+            location_badge = f'<span class="relevance-location">{html.escape(str(raw_location))}</span>' if raw_location else ''
             score_badge = f'<span class="relevance-score-impact">+{score_impact:.1f}</span>' if score_impact > 0 else ''
 
             html_items.append(f'''

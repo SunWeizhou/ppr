@@ -202,7 +202,19 @@ function selectQueuePaper(card) {
 
     const relevance = card.dataset.paperRelevance;
     const detailRelevance = document.getElementById('detailRelevance');
-    detailRelevance.innerHTML = relevance ? '<div class="relevance-item"><span class="relevance-icon">💡</span><span class="relevance-text">' + relevance + '</span></div>' : '';
+    detailRelevance.replaceChildren();
+    if (relevance) {
+        const item = document.createElement('div');
+        item.className = 'relevance-item';
+        const icon = document.createElement('span');
+        icon.className = 'relevance-icon';
+        icon.textContent = '💡';
+        const text = document.createElement('span');
+        text.className = 'relevance-text';
+        text.textContent = relevance;
+        item.append(icon, text);
+        detailRelevance.append(item);
+    }
 
     document.querySelectorAll('.queue-row').forEach(c => c.classList.remove('is-selected'));
     card.classList.add('is-selected');
