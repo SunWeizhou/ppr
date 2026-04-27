@@ -264,6 +264,30 @@
                     <label for="stateImportFile" class="sr-only" hidden>选择导入的 JSON 状态文件</label>
                     <input type="file" id="stateImportFile" accept="application/json,.json" hidden>
                 </section>
+
+                <section class="form-card">
+                    <div class="section-kicker">Backup & Restore</div>
+                    <h2 class="panel-title">Data Backup & Restore</h2>
+                    <p class="field-help">Back up all your data: keywords, subscriptions, recommendation history, queue, collections.</p>
+                    <div class="button-row">
+                        <button type="button" class="btn btn-primary" onclick="backupNow()">Backup Now</button>
+                        <button type="button" class="btn btn-secondary" onclick="triggerRestore()">Restore from Backup</button>
+                        <button type="button" class="btn btn-tertiary" onclick="openDataFolder()">Open Data Folder</button>
+                    </div>
+                    <input type="file" id="restoreFile" accept=".zip" hidden onchange="handleRestore(event)">
+                </section>
+
+                <section class="form-card">
+                    <div class="section-kicker">Database Health</div>
+                    <h2 class="panel-title">Database Status</h2>
+                    <div id="dbHealthInfo" class="list-stack">
+                        <div class="list-item"><span>Click Refresh to load...</span></div>
+                    </div>
+                    <div class="button-row mt-4">
+                        <button type="button" class="btn btn-secondary" onclick="loadSystemHealth()">Refresh</button>
+                        <button type="button" class="btn btn-tertiary" onclick="vacuumDb()">Vacuum Database</button>
+                    </div>
+                </section>
             </div>
         {% endif %}
     </div>
@@ -560,6 +584,77 @@ async function saveAISettings() {
     } finally {
         btn.disabled = false;
         btn.textContent = 'Save';
+    }
+}
+
+function backupNow() {
+    window.location.href = '/api/state/backup';
+}
+
+function triggerRestore() {
+    document.getElementById('restoreFile').click();
+}
+
+async function handleRestore(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const ok = confirm('This will overwrite current data. Recommend backing up first. Continue?');
+    if (!ok) { event.target.value = ''; return; }
+    const formData = new FormData();
+    formData.append('backup', file);
+    try {
+        const resp = await fetch('/api/state/restore', {method: 'POST', body: formData});
+        const data = await resp.json();
+        if (data.success) {
+            showToast('State restored. Reloading...');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            showToast('Restore failed: ' + (data.error || 'unknown'), 'error');
+        }
+    } catch (err) {
+        showToast('Restore failed: ' + err.message, 'error');
+    }
+    event.target.value = '';
+}
+
+function openDataFolder() {
+    fetch('/api/state/data-folder').then(r => r.json()).then(d => {
+        if (d.path) showToast('Data folder: ' + d.path);
+    });
+}
+
+async function loadSystemHealth() {
+    try {
+        const resp = await fetch('/api/state/health');
+        const data = await resp.json();
+        if (!data.success) return;
+        const h = data.health;
+        const el = document.getElementById('dbHealthInfo');
+        el.innerHTML = [
+            '<div class="list-item"><div><span class="list-item-title">SQLite Path</span><span class="list-item-subtitle">' + (h.db_path || 'N/A') + '</span></div><span class="list-item-trailing">' + (h.db_size_mb || 0) + ' MB</span></div>',
+            '<div class="list-item"><div><span class="list-item-title">Schema Version</span></div><span class="list-item-trailing">' + (h.schema_version || 'N/A') + '</span></div>',
+            '<div class="list-item"><div><span class="list-item-title">Recommendation Runs</span></div><span class="list-item-trailing">' + ((h.table_counts || {}).recommendation_runs || 0) + '</span></div>',
+            '<div class="list-item"><div><span class="list-item-title">Recommendation Items</span></div><span class="list-item-trailing">' + ((h.table_counts || {}).recommendation_items || 0) + '</span></div>',
+            '<div class="list-item"><div><span class="list-item-title">Queue Items</span></div><span class="list-item-trailing">' + ((h.table_counts || {}).reading_queue_items || 0) + '</span></div>',
+            '<div class="list-item"><div><span class="list-item-title">Collections</span></div><span class="list-item-trailing">' + ((h.table_counts || {}).research_collections || 0) + '</span></div>',
+            '<div class="list-item"><div><span class="list-item-title">Subscriptions</span></div><span class="list-item-trailing">' + ((h.table_counts || {}).subscriptions || 0) + '</span></div>',
+            '<div class="list-item"><div><span class="list-item-title">Interaction Events</span></div><span class="list-item-trailing">' + ((h.table_counts || {}).interaction_events || 0) + '</span></div>',
+            '<div class="list-item"><div><span class="list-item-title">AI Analyses</span></div><span class="list-item-trailing">' + ((h.table_counts || {}).paper_ai_analyses || 0) + '</span></div>',
+            '<div class="list-item"><div><span class="list-item-title">Last Run</span></div><span class="list-item-trailing">' + (h.last_recommendation_run || 'N/A') + '</span></div>',
+        ].join('');
+    } catch (err) {
+        console.error('Health check failed:', err);
+    }
+}
+
+async function vacuumDb() {
+    try {
+        const resp = await fetch('/api/state/vacuum', {method: 'POST'});
+        const data = await resp.json();
+        showToast(data.message || 'Done');
+        loadSystemHealth();
+    } catch (err) {
+        showToast('Vacuum failed: ' + err.message, 'error');
     }
 }
 </script>
