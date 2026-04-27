@@ -10,7 +10,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-import xml.etree.ElementTree as ET
+from defusedxml import ElementTree as ET
 from collections import Counter
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
@@ -139,8 +139,12 @@ class MultiSourceFetcher:
         self.categories = categories
         self.cache = cache
 
-    def fetch_all_sources(self, days: int = 1) -> List[Dict]:
-        """Fetch papers from all sources."""
+    def fetch_all_sources(self, days: int = 1, *, force_refresh: bool = False) -> List[Dict]:
+        """Fetch papers from all sources.
+
+        When *force_refresh* is True the seen-paper filter is skipped so that
+        re-scored candidates can be re-ranked after preference changes.
+        """
         all_papers: List[Dict] = []
 
         # Source 1: arXiv (try combined query first, then fallback to individual)
@@ -171,11 +175,13 @@ class MultiSourceFetcher:
                     all_papers.append(p)
             logger.info(f"Total: {len(all_papers)} papers")
 
-        # Remove already seen papers
-        new_papers = [p for p in all_papers if not self.cache.is_seen(p['id'])]
-        logger.info(f"After removing seen papers: {len(new_papers)}")
+        if not force_refresh:
+            # Remove already seen papers (skip on force refresh so re-scored
+            # candidates can be re-ranked after preference changes)
+            all_papers = [p for p in all_papers if not self.cache.is_seen(p['id'])]
+            logger.info(f"After removing seen papers: {len(all_papers)}")
 
-        return new_papers
+        return all_papers
 
     def _fetch_by_topics(self, days: int) -> List[Dict]:
         """Fetch papers by searching for specific topics."""

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import os
 import re
 import ssl
@@ -124,7 +125,7 @@ def generate_relevance_html(paper: dict) -> str:
     # Legacy path: relevance_breakdown list
     breakdown = paper.get("relevance_breakdown", [])
     if not breakdown:
-        text = paper.get("relevance") or paper.get("relevance_reason") or "匹配您的研究兴趣"
+        text = html.escape(str(paper.get("relevance") or paper.get("relevance_reason") or "匹配您的研究兴趣"))
         return f'<div class="paper-relevance-text">{text}</div>'
 
     html_items = []
@@ -132,19 +133,19 @@ def generate_relevance_html(paper: dict) -> str:
         if isinstance(reason_item, str):
             if reason_item.startswith("[Core]"):
                 icon = "🎯"
-                text = f"命中核心主题: {reason_item.replace('[Core]', '').strip()}"
+                text = f"命中核心主题: {html.escape(reason_item.replace('[Core]', '').strip())}"
             elif reason_item.startswith("[Secondary]"):
                 icon = "📌"
-                text = f"相关主题: {reason_item.replace('[Secondary]', '').strip()}"
+                text = f"相关主题: {html.escape(reason_item.replace('[Secondary]', '').strip())}"
             else:
                 icon = "📌"
-                text = reason_item
+                text = html.escape(reason_item)
             location_badge = ""
             score_badge = ""
         else:
             icon = reason_item.get("icon", "📌")
-            text = reason_item.get("text", "")
-            location = reason_item.get("location", "")
+            text = html.escape(reason_item.get("text", ""))
+            location = html.escape(reason_item.get("location", ""))
             score_impact = reason_item.get("score_impact", 0)
             location_badge = f'<span class="relevance-location">{location}</span>' if location else ""
             score_badge = f'<span class="relevance-score-impact">+{score_impact:.1f}</span>' if score_impact > 0 else ""
@@ -172,7 +173,7 @@ def _render_structured_reason_html(reason: dict) -> str:
         rows.append(
             '<div class="relevance-item">'
             '<span class="relevance-icon">🎯</span>'
-            f'<span class="relevance-text">命中核心研究主题: {topic_text}</span>'
+            f'<span class="relevance-text">命中核心研究主题: {html.escape(topic_text)}</span>'
             "</div>"
         )
 
@@ -183,7 +184,7 @@ def _render_structured_reason_html(reason: dict) -> str:
         rows.append(
             '<div class="relevance-item">'
             '<span class="relevance-icon">🔔</span>'
-            f'<span class="relevance-text">来自研究问题订阅: {sub_text}</span>'
+            f'<span class="relevance-text">来自研究问题订阅: {html.escape(sub_text)}</span>'
             "</div>"
         )
 
@@ -205,7 +206,7 @@ def _render_structured_reason_html(reason: dict) -> str:
             rows.append(
                 '<div class="relevance-item">'
                 '<span class="relevance-icon">📋</span>'
-                f'<span class="relevance-text">{signal}</span>'
+                f'<span class="relevance-text">{html.escape(signal)}</span>'
                 "</div>"
             )
 
@@ -217,7 +218,7 @@ def _render_structured_reason_html(reason: dict) -> str:
         rows.append(
             '<div class="relevance-item">'
             '<span class="relevance-icon">🏷️</span>'
-            f'<span class="relevance-text">来源: {source_text}</span>'
+            f'<span class="relevance-text">来源: {html.escape(source_text)}</span>'
             "</div>"
         )
 
@@ -228,7 +229,7 @@ def _render_structured_reason_html(reason: dict) -> str:
             0,
             '<div class="relevance-item relevance-summary">'
             '<span class="relevance-icon">💡</span>'
-            f'<span class="relevance-text">{summary}</span>'
+            f'<span class="relevance-text">{html.escape(summary)}</span>'
             "</div>",
         )
 

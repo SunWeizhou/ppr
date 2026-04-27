@@ -58,7 +58,7 @@ def trigger_learning():
         return jsonify({"success": False, "error": str(exc)}), 500
 
 
-@bp.get("/api/refresh")
+@bp.post("/api/refresh")
 def refresh_recommendations():
     """Force refresh today's recommendations via a background job."""
     force = request.args.get("force", "0") == "1"
@@ -67,6 +67,15 @@ def refresh_recommendations():
         from arxiv_recommender_v5 import load_daily_recommendation, CONFIG as PIPELINE_CONFIG
 
         today = datetime.now().strftime("%Y-%m-%d")
+
+        # Guard: check if a job is already running
+        latest = _current_state_store().get_latest_job("daily_recommendation")
+        if latest and latest.get("status") == "running":
+            return jsonify({
+                "success": False,
+                "error": "已有刷新任务正在运行",
+                "job_id": latest.get("run_id"),
+            }), 409
 
         # Check SQLite first
         sqlite_run = _current_state_store().get_recommendation_run_by_date(today)

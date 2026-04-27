@@ -10,7 +10,7 @@ import os
 import subprocess  # noqa: F401 — test compat (mocked via web_server.subprocess)
 import time
 
-from flask import Flask, request
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 from app_paths import CACHE_DIR, PROJECT_ROOT, STATE_DB_PATH, ensure_runtime_dirs
@@ -31,8 +31,21 @@ else:
 
 
 @app.before_request
-def _log_request():
+def _log_and_guard_request():
     request._start_time = time.time()
+
+    # Local CSRF guard: for state-changing methods, verify the request
+    # originates from the local app (malicious pages cannot set a localhost Origin)
+    if request.method in ("POST", "PUT", "DELETE", "PATCH"):
+        origin = request.headers.get("Origin") or ""
+        referer = request.headers.get("Referer") or ""
+        allowed = ("http://localhost:5555", "http://127.0.0.1:5555")
+        if origin and not any(origin.startswith(a) for a in allowed):
+            logger.warning("Blocked cross-origin %s to %s (Origin: %s)", request.method, request.path, origin)
+            return jsonify({"success": False, "error": "Cross-origin requests not allowed"}), 403
+        if referer and not any(referer.startswith(a) for a in allowed):
+            logger.warning("Blocked cross-origin %s to %s (Referer: %s)", request.method, request.path, referer)
+            return jsonify({"success": False, "error": "Cross-origin requests not allowed"}), 403
 
 
 @app.after_request
