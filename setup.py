@@ -2,7 +2,6 @@ from glob import glob
 
 from setuptools import find_packages, setup
 
-
 setup(
     name="arxiv-recommender-local",
     version="0.1.0",
@@ -25,6 +24,7 @@ setup(
         ("", ["user_profile.example.json"]),
         ("templates", glob("templates/*.html")),
         ("static", glob("static/*")),
+        ("static/js", glob("static/js/*.js")),
     ],
     install_requires=[
         "Flask>=3.0.0",
@@ -37,6 +37,7 @@ setup(
         "transformers>=4.30.0",
         "torch>=2.0.0",
         "python-dateutil>=2.8.0",
+        "waitress>=3.0.0",
     ],
     entry_points={
         "console_scripts": [

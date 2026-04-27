@@ -24,7 +24,10 @@ logger = get_logger(__name__)
 # ---------------------------------------------------------------------------
 
 app = Flask(__name__)
-CORS(app)
+if os.getenv("USE_DEV_SERVER"):
+    CORS(app)
+else:
+    CORS(app, origins=["http://localhost:5555", "http://127.0.0.1:5555"])
 
 
 @app.before_request
