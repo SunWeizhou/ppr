@@ -8,11 +8,10 @@ from __future__ import annotations
 import json
 import os
 
-from state_store import QUEUE_STATUS_VALUES
-
 from app.services.feedback_service import FeedbackService
 from app.services.paper_utils import format_author_text, split_query_terms
 from app.viewmodels.shared import assemble_page_context
+from state_store import QUEUE_STATUS_VALUES
 
 
 class MonitorViewModel:
@@ -55,13 +54,13 @@ class MonitorViewModel:
         if default is None:
             default = {}
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError, Exception):
             return default
 
     def _queue_counts(self) -> dict[str, int]:
-        counts: dict[str, int] = {status: 0 for status in QUEUE_STATUS_VALUES}
+        counts: dict[str, int] = dict.fromkeys(QUEUE_STATUS_VALUES, 0)
         for item in self._store.list_queue_items():
             status = item.get("status")
             if status in counts:
@@ -174,6 +173,18 @@ class MonitorViewModel:
         hits = []
         paper_cache = self._safe_load_json(self._resolve_path("CACHE_FILE"))
 
+        # Backfill paper metadata from recommendation_items into papers table
+        # so that historical subscription hits can look up paper metadata there.
+        try:
+            backfill = getattr(self._store, 'backfill_papers_from_recommendation_items', None)
+            if callable(backfill):
+                backfill()
+        except Exception:
+            pass
+
+        # Safe accessor for get_paper (papers table)
+        _get_paper = getattr(self._store, 'get_paper', None)
+
         # Read recent hits from the subscription_hits table (unified model)
         try:
             all_hits = self._store.list_subscription_hits(limit=50)
@@ -190,12 +201,32 @@ class MonitorViewModel:
                 source_type = sub.get("type", "hit") if sub else "hit"
                 source_name = sub.get("name", "") if sub else ""
 
-                # Look up paper details from paper cache
+                # Look up paper details: papers table first, then paper_cache
                 paper_data = (
                     paper_cache.get(paper_id, {})
                     if isinstance(paper_cache, dict)
                     else {}
                 )
+                # Enrich with papers table metadata (canonical source)
+                if callable(_get_paper):
+                    try:
+                        paper_row = _get_paper(paper_id)
+                        if paper_row:
+                            # papers table has canonical title/authors/abstract
+                            if paper_row.get('title'):
+                                paper_data['title'] = paper_row['title']
+                            authors_val = paper_row.get('authors_json') or paper_row.get('authors')
+                            if authors_val:
+                                paper_data['authors'] = authors_val
+                            if paper_row.get('abstract'):
+                                paper_data['abstract'] = paper_row['abstract']
+                                paper_data['summary'] = paper_row['abstract']
+                            if paper_row.get('source_url') and not paper_data.get('link'):
+                                paper_data['link'] = paper_row['source_url']
+                            if paper_row.get('published_at') and 'date' not in paper_data:
+                                paper_data['date'] = paper_row['published_at']
+                    except Exception:
+                        pass
                 paper_entry = {
                     "id": paper_id,
                     "title": paper_data.get("title", paper_id),
@@ -256,7 +287,7 @@ class MonitorViewModel:
 
     # ── public entry-point ────────────────────────────────────────────────
 
-    def to_template_context(self, tab: str = "authors") -> dict:
+    def to_template_context(self, tab: str = "recent-hits") -> dict:
         """Assemble the full Monitor page context.
         Replaces web_server.monitor_page and merges _render_track_research."""
 

@@ -23,17 +23,21 @@
         {% if unified_subs %}
         <button type="button" class="btn btn-warm btn-sm" onclick="runAllSubscriptions()">Run All</button>
         {% endif %}
+        <button type="button" class="btn btn-warm btn-sm" onclick="checkDueSubscriptions()">Check for new hits</button>
     </div>
 </section>
 {% endblock %}
 
 {% block content %}
-<div class="tabs">
-    <a href="/monitor?tab=authors" class="tab-button {% if tab == 'authors' %}active{% endif %}">Authors <span class="count">{{ my_scholars|length }}</span></a>
-    <a href="/monitor?tab=venues" class="tab-button {% if tab == 'venues' %}active{% endif %}">Venues <span class="count">{{ journal_cards|length }}</span></a>
-    <a href="/monitor?tab=queries" class="tab-button {% if tab == 'queries' %}active{% endif %}">Queries <span class="count">{{ all_saved_searches|length }}</span></a>
-    <a href="/monitor?tab=all" class="tab-button {% if tab == 'all' %}active{% endif %}">All <span class="count">{{ unified_subs|length if unified_subs else 0 }}</span></a>
-    <a href="/monitor?tab=recent-hits" class="tab-button {% if tab == 'recent-hits' %}active{% endif %}">Hits <span class="count">{{ recent_hits|length if recent_hits else 0 }}</span></a>
+<div class="tabs" style="align-items: center; flex-wrap: wrap; gap: 8px;">
+    <span class="section-kicker" style="margin: 0 8px 0 0;">Recent Hits</span>
+    <span class="chip brand">{{ recent_hits|length if recent_hits else 0 }} new</span>
+    <span class="spacer"></span>
+    <span style="font-size: 12px; color: var(--ink-3); margin-right: 4px;">Filter:</span>
+    <a href="/monitor?tab=recent-hits" class="tab-button tab-button--pill {% if tab == 'recent-hits' %}active{% endif %}">All Hits</a>
+    <a href="/monitor?tab=authors" class="tab-button tab-button--pill {% if tab == 'authors' %}active{% endif %}">Authors</a>
+    <a href="/monitor?tab=venues" class="tab-button tab-button--pill {% if tab == 'venues' %}active{% endif %}">Venues</a>
+    <a href="/monitor?tab=queries" class="tab-button tab-button--pill {% if tab == 'queries' %}active{% endif %}">Queries</a>
 </div>
 
 {% if not my_scholars and not journal_cards and not all_saved_searches %}
@@ -248,6 +252,11 @@
                                         <span class="state-chip status-new">{{ paper.source_type }}</span>
                                     {% endif %}
                                 </div>
+                                <div class="row-actions" style="display: flex; gap: 6px; margin-top: 6px;">
+                                    <button type="button" class="btn btn-tertiary btn-sm">Send to Inbox</button>
+                                    <button type="button" class="btn btn-tertiary btn-sm">Send to Queue</button>
+                                    <button type="button" class="btn btn-tertiary btn-sm">Dismiss</button>
+                                </div>
                             </div>
                             <div class="row-trail">
                                 <div class="row-actions row-actions-compact">
@@ -383,6 +392,21 @@ async function deleteQuerySubscription(searchId, name) {
         window.setTimeout(() => window.location.reload(), 250);
     } catch (error) {
         showToast('删除失败: ' + error.message, 'error');
+    }
+}
+
+async function checkDueSubscriptions() {
+    try {
+        const resp = await fetch('/api/subscriptions/run-due', {method: 'POST'});
+        const data = await resp.json();
+        if (data.success && data.total_hits > 0) {
+            showToast('Found ' + data.total_hits + ' new subscription hits');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            showToast('No new subscription hits found');
+        }
+    } catch (e) {
+        showToast('Check failed: ' + e.message, 'error');
     }
 }
 </script>

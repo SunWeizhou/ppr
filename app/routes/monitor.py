@@ -16,7 +16,7 @@ def monitor_page():
     vm = MonitorViewModel(store)
     return render_template(
         "monitor_research.html",
-        **vm.to_template_context(tab=request.args.get("tab", "authors")),
+        **vm.to_template_context(tab=request.args.get("tab", "recent-hits")),
     )
 
 

@@ -2282,6 +2282,19 @@ select {
   color: var(--gold);
 }
 
+.reading-level-chip {
+  vertical-align: middle;
+}
+
+.ai-error-msg {
+  color: var(--danger);
+  background: var(--danger-tint);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-xs);
+  margin-top: var(--s-3);
+  font-size: 0.875em;
+}
+
 .abstract-text {
   line-height: 1.7;
 }
@@ -2302,6 +2315,40 @@ select {
 
 .collection-item {
   padding: 4px 0;
+}
+
+/* ---- Interaction History ---- */
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.history-item:last-child {
+  border-bottom: 0;
+}
+
+.history-title {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.history-meta {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+
+.history-time {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-top: 2px;
 }
 
 @media (max-width: 768px) {
@@ -2675,4 +2722,18 @@ select {
     }
 
     .action-buttons { flex-direction: column; }
+}
+
+/* ---- Monitor: pill-style filter buttons ---- */
+.tab-button--pill {
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 13px;
+    border: 1px solid var(--line);
+    background: transparent;
+}
+.tab-button--pill.active {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
 }
