@@ -19,56 +19,19 @@
 {% endblock %}
 
 {% block content %}
-{% set deep_read_papers = reading_plan.deep_read %}
-{% set skim_later_papers = reading_plan.skim_later %}
-{% if deep_read_papers or skim_later_papers %}
-<div class="card" style="margin-bottom: 16px;">
-    <span class="section-kicker">Today's Reading Plan</span>
-    <div class="detail-grid" style="margin-top: 12px;">
-        <!-- Deep Read Section -->
-        <div class="detail-box">
-            <div class="detail-label">Deep Read ({{ deep_read_papers|length }})</div>
-            {% if deep_read_papers %}
-                {% for paper in deep_read_papers %}
-                    <div style="padding: 10px 0; border-bottom: 1px solid var(--line); {% if loop.last %}border-bottom: 0;{% endif %}">
-                        <div style="font-family: var(--ff-serif); font-size: 14px; font-weight: 600; line-height: 1.25; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ paper.title }}</div>
-                        <div style="font-size: 12px; color: var(--ink-3); margin-bottom: 6px;">{{ paper.author_text[:80] }}{% if paper.author_text|length > 80 %}...{% endif %}</div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="score-chip">Score {{ '%.1f'|format(paper.score or 0) }}</span>
-                            <a href="{{ paper.link or 'https://arxiv.org/abs/' + paper.id }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary" onclick="trackPaperOpen('{{ paper.id }}', 'reading_plan')">Start Reading</a>
-                            <a href="/papers/{{ paper.id }}" class="btn btn-sm btn-tertiary">View Detail</a>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <p class="muted-copy" style="font-size: 13px; padding: 8px 0;">No papers yet. Mark papers in Inbox for deep reading.</p>
-            {% endif %}
-        </div>
-
-        <!-- Skim Later Section -->
-        <div class="detail-box">
-            <div class="detail-label">Skim Later ({{ skim_later_papers|length }})</div>
-            {% if skim_later_papers %}
-                {% for paper in skim_later_papers %}
-                    <div style="padding: 10px 0; border-bottom: 1px solid var(--line); {% if loop.last %}border-bottom: 0;{% endif %}">
-                        <div style="font-family: var(--ff-serif); font-size: 14px; font-weight: 600; line-height: 1.25; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ paper.title }}</div>
-                        <div style="font-size: 12px; color: var(--ink-3); margin-bottom: 6px;">{{ paper.author_text[:80] }}{% if paper.author_text|length > 80 %}...{% endif %}</div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="score-chip">Score {{ '%.1f'|format(paper.score or 0) }}</span>
-                            <a href="{{ paper.link or 'https://arxiv.org/abs/' + paper.id }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary" onclick="trackPaperOpen('{{ paper.id }}', 'reading_plan')">Start Reading</a>
-                            <a href="/papers/{{ paper.id }}" class="btn btn-sm btn-tertiary">View Detail</a>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <p class="muted-copy" style="font-size: 13px; padding: 8px 0;">No papers yet. Mark papers in Inbox for skim reading.</p>
-            {% endif %}
-        </div>
-    </div>
+<div class="reading-workbench-header" style="display: flex; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); margin-bottom: 16px; flex-wrap: wrap;">
+    <span class="section-kicker" style="margin: 0;">Reading Workbench</span>
+    <span class="chip">Deep Read: {{ all_status_counts.get('Deep Read', 0) }}</span>
+    <span class="chip">Skim Later: {{ all_status_counts.get('Skim Later', 0) }}</span>
+    <span class="chip">In Progress: {{ all_status_counts.get('In Progress', 0) }}</span>
+    <span class="chip" style="opacity:0.6;">Saved: {{ all_status_counts.get('Saved', 0) }}</span>
+    <span class="chip" style="opacity:0.6;">Archived: {{ all_status_counts.get('Archived', 0) }}</span>
+    <span class="spacer"></span>
+    <a href="/library?tab=saved" class="btn btn-tertiary btn-sm">View Saved in Library</a>
 </div>
-{% endif %}
 
-{% if not deep_read_papers and not skim_later_papers %}
+
+{% if queue_counts.values() | list | sum == 0 %}
 <div class="card empty-state-card">
     <div class="empty-state-icon">&#128214;</div>
     <h2 class="empty-state-title">Queue is Empty</h2>
@@ -78,7 +41,7 @@
 {% endif %}
 
 <div class="tabs">
-    {% for status in queue_status_values %}
+    {% for status in active_statuses %}
         <a href="/queue?status={{ status|urlencode }}" class="tab-button {% if active_status == status %}active{% endif %}">
             {{ status }}
             <span class="count">{{ queue_counts.get(status, 0) }}</span>
@@ -91,8 +54,6 @@
         <div class="toolbar">
             <span class="chip brand">{{ active_status }}</span>
             <span class="chip">{{ queue_items|length }} visible</span>
-            <span class="spacer"></span>
-            <span class="chip">Canonical states: Inbox / Skim Later / Deep Read / Saved / Archived</span>
         </div>
 
         <div class="card card--flush">
@@ -163,13 +124,16 @@
             <details class="detail-disclosure" open>
                 <summary class="detail-disclosure-summary">
                     <span class="detail-label">Move To</span>
-                    <span class="detail-disclosure-copy">保持五个状态都可见且可回退</span>
+                    <span class="detail-disclosure-copy">Choose next reading status for this paper</span>
                 </summary>
                 <div class="detail-disclosure-body">
                     <div class="detail-actions detail-actions-grid">
-                        {% for status in queue_status_values %}
-                            <button type="button" class="btn {% if status == 'Skim Later' %}btn-warm{% elif status == 'Deep Read' %}btn-sage{% elif status == 'Saved' %}btn-secondary{% else %}btn-tertiary{% endif %}" onclick="moveQueuePaper('{{ status }}')">{{ status }}</button>
+                        {% for status in active_statuses %}
+                            <button type="button" class="btn {% if status == 'Skim Later' %}btn-warm{% elif status == 'Deep Read' %}btn-sage{% elif status == 'In Progress' %}btn-primary{% endif %}" onclick="moveQueuePaper('{{ status }}')">{{ status }}</button>
                         {% endfor %}
+                        <div style="flex-basis: 100%; height: 1px; background: var(--line); margin: 4px 0;"></div>
+                        <button type="button" class="btn btn-secondary" onclick="moveQueuePaper('Saved')">Save to Library</button>
+                        <button type="button" class="btn btn-tertiary" onclick="moveQueuePaper('Archived')">Archive</button>
                     </div>
                 </div>
             </details>

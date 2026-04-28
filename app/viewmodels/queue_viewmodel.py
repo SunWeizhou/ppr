@@ -11,20 +11,26 @@ from app.viewmodels.shared import (
 )
 from state_store import QUEUE_STATUS_VALUES
 
+ACTIVE_READING_STATUSES = ("Skim Later", "Deep Read", "In Progress")
+
 
 class QueueViewModel:
     def __init__(self, queue_service, state_store):
         self.queue_service = queue_service
         self.state_store = state_store
 
-    def to_template_context(self, *, active_status: str = "Inbox"):
+    def to_template_context(self, *, active_status: str = "Skim Later"):
         feedback = self.queue_service.load_feedback()
         context = assemble_page_context(self.state_store, active_tab="queue", feedback=feedback)
+        all_status_counts = self.queue_service.count_by_status()
+        queue_counts = {k: v for k, v in all_status_counts.items() if k in ACTIVE_READING_STATUSES}
         context.update({
             "title": "Queue - arXiv Recommender",
             "active_tab": "queue",
-            "queue_counts": self.queue_service.count_by_status(),
+            "queue_counts": queue_counts,
+            "all_status_counts": all_status_counts,
             "queue_status_values": QUEUE_STATUS_VALUES,
+            "active_statuses": ACTIVE_READING_STATUSES,
             "queue_items": self.queue_service.resolve_papers(status=active_status),
             "active_status": active_status,
             "reading_plan": self.queue_service.get_todays_reading_plan(),
