@@ -26,7 +26,7 @@
         <a href="/settings?tab=profile" class="settings-nav-link {% if tab == 'profile' %}is-active{% endif %}"><span>Profile</span></a>
         <a href="/settings?tab=sources" class="settings-nav-link {% if tab == 'sources' %}is-active{% endif %}"><span>Sources</span></a>
         <a href="/settings?tab=ranking" class="settings-nav-link {% if tab == 'ranking' %}is-active{% endif %}"><span>Ranking</span></a>
-        <a href="/settings?tab=system" class="settings-nav-link {% if tab == 'system' %}is-active{% endif %}"><span>System</span></a>
+        <a href="/settings?tab=diagnostics" class="settings-nav-link {% if tab == 'diagnostics' %}is-active{% endif %}"><span>Diagnostics</span></a>
     </nav>
 
     <div class="settings-panel">
@@ -95,6 +95,40 @@
                 </section>
             </form>
 
+            <div class="form-grid">
+                <section class="form-card">
+                    <div class="section-kicker">AI Analysis</div>
+                    <h2 class="panel-title">AI 分析配置</h2>
+                    <p class="field-help">配置 AI 提供商用于自动分析论文，生成一句话总结和阅读建议。</p>
+
+                    <label class="field-label" for="aiProvider">Provider</label>
+                    <select class="form-input" id="aiProvider" onchange="onAIProviderChanged()">
+                        <option value="none" {% if ai_config.provider == 'none' %}selected{% endif %}>None</option>
+                        <option value="deepseek" {% if ai_config.provider == 'deepseek' %}selected{% endif %}>DeepSeek</option>
+                    </select>
+
+                    <div id="aiProviderFields" {% if ai_config.provider == 'none' %}style="display: none;"{% endif %}>
+                        <label class="field-label" for="aiApiKey">API Key</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="password" class="form-input" id="aiApiKey" value="{{ ai_config.api_key or '' }}" placeholder="sk-..." style="flex:1;">
+                            <button type="button" class="btn btn-tertiary btn-sm" id="aiApiKeyToggle" onclick="toggleAIApiKeyVisibility()">Show</button>
+                        </div>
+
+                        <label class="field-label" for="aiBaseUrl">Base URL</label>
+                        <input type="text" class="form-input" id="aiBaseUrl" value="{{ ai_config.base_url or 'https://api.deepseek.com' }}" placeholder="https://api.deepseek.com">
+
+                        <label class="field-label" for="aiModel">Model</label>
+                        <input type="text" class="form-input" id="aiModel" value="{{ ai_config.model or 'deepseek-chat' }}" placeholder="deepseek-chat">
+                    </div>
+
+                    <div class="button-row mt-4">
+                        <button type="button" class="btn btn-secondary" id="aiTestBtn" onclick="testAIConnection()">Test Connection</button>
+                        <button type="button" class="btn btn-primary" id="aiSaveBtn" onclick="saveAISettings()">Save</button>
+                    </div>
+                    <p class="field-help" id="aiStatusMsg"></p>
+                </section>
+            </div>
+
         {% elif tab == 'sources' %}
             <div class="form-grid">
                 <section class="form-card">
@@ -158,11 +192,11 @@
                 <section class="form-card full-span">
                     <div class="section-kicker">Guideline</div>
                     <h2 class="panel-title">调参原则</h2>
-                    <p class="detail-copy">Ranking 页只应该控制排序偏好，不应该承载主题定义。主题定义留在 Profile，系统健康留在 System。</p>
+                    <p class="detail-copy">Ranking 页只应该控制排序偏好，不应该承载主题定义。主题定义留在 Profile，系统健康留在 Diagnostics。</p>
                 </section>
             </form>
 
-        {% elif tab == 'system' %}
+        {% elif tab == 'diagnostics' %}
             <div class="form-grid">
                 <section class="form-card full-span">
                     <div class="section-kicker">Job Status</div>
@@ -221,51 +255,6 @@
 	                </section>
 
                 <section class="form-card">
-                    <div class="section-kicker">AI Analysis</div>
-                    <h2 class="panel-title">AI 分析配置</h2>
-                    <p class="field-help">配置 AI 提供商用于自动分析论文，生成一句话总结和阅读建议。</p>
-
-                    <label class="field-label" for="aiProvider">Provider</label>
-                    <select class="form-input" id="aiProvider" onchange="onAIProviderChanged()">
-                        <option value="none" {% if ai_config.provider == 'none' %}selected{% endif %}>None</option>
-                        <option value="deepseek" {% if ai_config.provider == 'deepseek' %}selected{% endif %}>DeepSeek</option>
-                        <option value="openai" {% if ai_config.provider == 'openai' %}selected{% endif %}>OpenAI-Compatible</option>
-                    </select>
-
-                    <div id="aiProviderFields" {% if ai_config.provider == 'none' %}style="display: none;"{% endif %}>
-                        <label class="field-label" for="aiApiKey">API Key</label>
-                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <input type="password" class="form-input" id="aiApiKey" value="{{ ai_config.api_key or '' }}" placeholder="sk-..." style="flex:1;">
-                            <button type="button" class="btn btn-tertiary btn-sm" id="aiApiKeyToggle" onclick="toggleAIApiKeyVisibility()">Show</button>
-                        </div>
-
-                        <label class="field-label" for="aiBaseUrl">Base URL</label>
-                        <input type="text" class="form-input" id="aiBaseUrl" value="{{ ai_config.base_url or 'https://api.deepseek.com' }}" placeholder="https://api.deepseek.com">
-
-                        <label class="field-label" for="aiModel">Model</label>
-                        <input type="text" class="form-input" id="aiModel" value="{{ ai_config.model or 'deepseek-chat' }}" placeholder="deepseek-chat">
-                    </div>
-
-                    <div class="button-row mt-4">
-                        <button type="button" class="btn btn-secondary" id="aiTestBtn" onclick="testAIConnection()">Test Connection</button>
-                        <button type="button" class="btn btn-primary" id="aiSaveBtn" onclick="saveAISettings()">Save</button>
-                    </div>
-                    <p class="field-help" id="aiStatusMsg"></p>
-                </section>
-
-                <section class="form-card">
-                    <div class="section-kicker">Data Management</div>
-                    <h2 class="panel-title">数据导入导出</h2>
-                    <p class="field-help">所有数据保存在本地。可以导入导出进行备份。</p>
-                    <div class="button-row">
-                        <button type="button" class="btn btn-tertiary" onclick="triggerStateImport()">Import State</button>
-                        <button type="button" class="btn btn-tertiary" onclick="exportState()">Export State</button>
-                    </div>
-                    <label for="stateImportFile" class="sr-only" hidden>选择导入的 JSON 状态文件</label>
-                    <input type="file" id="stateImportFile" accept="application/json,.json" hidden>
-                </section>
-
-                <section class="form-card">
                     <div class="section-kicker">Backup & Restore</div>
                     <h2 class="panel-title">Data Backup & Restore</h2>
                     <p class="field-help">Back up all your data: keywords, subscriptions, recommendation history, queue, collections.</p>
@@ -286,7 +275,20 @@
                     <div class="button-row mt-4">
                         <button type="button" class="btn btn-secondary" onclick="loadSystemHealth()">Refresh</button>
                         <button type="button" class="btn btn-tertiary" onclick="vacuumDb()">Vacuum Database</button>
+                        <button type="button" class="btn btn-warm" onclick="recoverStaleJobs()">Repair Stale Jobs</button>
                     </div>
+                </section>
+
+                <section class="form-card">
+                    <div class="section-kicker">Data Management</div>
+                    <h2 class="panel-title">数据导入导出</h2>
+                    <p class="field-help">所有数据保存在本地。可以导入导出进行备份。</p>
+                    <div class="button-row">
+                        <button type="button" class="btn btn-tertiary" onclick="triggerStateImport()">Import State</button>
+                        <button type="button" class="btn btn-tertiary" onclick="exportState()">Export State</button>
+                    </div>
+                    <label for="stateImportFile" class="sr-only" hidden>选择导入的 JSON 状态文件</label>
+                    <input type="file" id="stateImportFile" accept="application/json,.json" hidden>
                 </section>
             </div>
         {% endif %}
@@ -340,7 +342,19 @@ async function addKeyword() {
         tag.className = 'keyword-tag-item' + (type === 'secondary' ? ' secondary' : type === 'theory' ? ' theory' : '');
         tag.dataset.keyword = keyword.toLowerCase();
         tag.dataset.type = type;
-        tag.innerHTML = keyword.toLowerCase() + '<span class="keyword-tag-delete" onclick="deleteKeyword(this)">&times;</span>';
+
+        // Use textContent for keyword text (XSS-safe)
+        tag.textContent = keyword.toLowerCase();
+
+        // Build delete button via DOM API
+        const deleteBtn = document.createElement('span');
+        deleteBtn.className = 'keyword-tag-delete';
+        deleteBtn.textContent = '×';
+        deleteBtn.addEventListener('click', function(e) {
+            deleteKeyword(e.currentTarget);
+        });
+        tag.appendChild(deleteBtn);
+
         container.appendChild(tag);
         input.value = '';
         showToast('关键词已添加');
@@ -655,6 +669,17 @@ async function vacuumDb() {
         loadSystemHealth();
     } catch (err) {
         showToast('Vacuum failed: ' + err.message, 'error');
+    }
+}
+
+async function recoverStaleJobs() {
+    try {
+        const resp = await fetch('/api/state/recover-stale-jobs', {method: 'POST'});
+        const data = await resp.json();
+        showToast(data.message || 'Done');
+        loadSystemHealth();
+    } catch (err) {
+        showToast('Recovery failed: ' + err.message, 'error');
     }
 }
 </script>

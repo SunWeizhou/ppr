@@ -48,29 +48,58 @@
             <!-- Abstract -->
             <div class="card card-spaced">
                 <h2 class="panel-title">Abstract</h2>
-                <p class="abstract-text">{{ paper.get('abstract', paper.get('summary', 'No abstract available.')) }}</p>
+                <p class="abstract-text">{{ paper.get('abstract') or paper.get('summary') or 'No abstract available.' }}</p>
             </div>
 
             <!-- AI Analysis -->
-            <div class="card card-spaced ai-section">
+            <div class="card card-spaced ai-section" id="aiAnalysisSection">
                 <h2 class="panel-title">AI Analysis
-                    {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
+                    {% set analysis = paper.get('ai_analysis') %}
+                    {% if analysis and analysis.get('status') == 'ok' %}
                     <span class="status-badge ok">Ready</span>
-                    {% else %}
-                    <span class="status-badge pending">Not Generated</span>
+                    {% elif analysis %}
+                    <span class="status-badge pending">Failed</span>
                     {% endif %}
                 </h2>
-                {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
-                {% set analysis = paper.get('ai_analysis') %}
-                <p><strong>Summary:</strong> {{ analysis.get('one_sentence_summary', '') }}</p>
-                <p><strong>Problem:</strong> {{ analysis.get('problem', '') }}</p>
-                <p><strong>Method:</strong> {{ analysis.get('method', '') }}</p>
-                <p><strong>Contribution:</strong> {{ analysis.get('contribution', '') }}</p>
-                {% if analysis.get('limitations') %}<p><strong>Limitations:</strong> {{ analysis.get('limitations', '') }}</p>{% endif %}
-                {% if analysis.get('why_it_matters') %}<p><strong>Why It Matters:</strong> {{ analysis.get('why_it_matters', '') }}</p>{% endif %}
+                <div id="aiAnalysisContent">
+                {% if analysis and analysis.get('status') == 'ok' %}
+                    <div class="ai-result" id="aiResultDisplay">
+                        <p><strong>Summary:</strong> <span>{{ analysis.get('one_sentence_summary', '') }}</span></p>
+                        <p><strong>Problem:</strong> <span>{{ analysis.get('problem', '') }}</span></p>
+                        <p><strong>Method:</strong> <span>{{ analysis.get('method', '') }}</span></p>
+                        <p><strong>Contribution:</strong> <span>{{ analysis.get('contribution', '') }}</span></p>
+                        {% if analysis.get('limitations') %}<p><strong>Limitations:</strong> <span>{{ analysis.get('limitations', '') }}</span></p>{% endif %}
+                        {% if analysis.get('why_it_matters') %}<p><strong>Why It Matters:</strong> <span>{{ analysis.get('why_it_matters', '') }}</span></p>{% endif %}
+                        {% if analysis.get('recommended_reading_level') %}
+                        <p class="reading-level-row">
+                            <strong>Reading Level:</strong>
+                            {% set rl = analysis.get('recommended_reading_level', 'skim')|string|lower|replace('-', '_')|replace(' ', '_') %}
+                            {% if rl == 'deep_read' %}
+                            <span class="reading-level-chip chip sage">Deep Read</span>
+                            {% elif rl == 'skim' %}
+                            <span class="reading-level-chip chip gold">Skim</span>
+                            {% elif rl == 'ignore' %}
+                            <span class="reading-level-chip chip" style="background: var(--line); color: var(--ink-3);">Skip</span>
+                            {% else %}
+                            <span class="reading-level-chip chip">{{ analysis.get('recommended_reading_level', '') }}</span>
+                            {% endif %}
+                        </p>
+                        {% endif %}
+                    </div>
+                {% elif not has_ai %}
+                    <p class="empty-state">AI analysis not configured. Add an API key in <a href="/settings?tab=diagnostics">Settings</a>.</p>
+                {% elif analysis and analysis.get('status') == 'failed' %}
+                    <p class="empty-state">AI analysis generation failed: {{ analysis.get('error_text', 'Unknown error') }}</p>
+                    <button class="btn btn-primary btn-sm" id="aiGenerateBtn" onclick="generateAIAnalysis('{{ paper.get('id') }}')">Retry AI Analysis</button>
                 {% else %}
-                <p class="empty-state">No AI analysis available. Generate one to see insights.</p>
+                    <p class="empty-state" id="aiPlaceholder">Click the button below to generate an AI analysis of this paper.</p>
                 {% endif %}
+                </div>
+                <div id="aiSpinner" hidden>
+                    <div class="spinner"></div>
+                    <p class="t-muted" style="text-align:center;">Generating AI analysis...</p>
+                </div>
+                <div id="aiError" hidden class="ai-error-msg"></div>
             </div>
 
             <!-- Score Breakdown -->
@@ -195,8 +224,9 @@
                     <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank" class="btn btn-secondary btn-sm">Export BibTeX</a>
                     {% endif %}
                 </div>
+                {% if has_ai %}
                 <div class="action-buttons" style="margin-top:8px;">
-                    <button class="btn btn-primary btn-sm" id="generateAIBtn" onclick="generateAnalysis('{{ paper.get('id') }}')">
+                    <button class="btn btn-primary btn-sm" id="aiGenerateBtn" onclick="generateAIAnalysis('{{ paper.get('id') }}')">
                         {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
                         Regenerate AI Analysis
                         {% else %}
@@ -204,6 +234,7 @@
                         {% endif %}
                     </button>
                 </div>
+                {% endif %}
                 {% endif %}
             </div>
 
@@ -244,11 +275,14 @@
             {% if paper.get('interaction_history') %}
             <div class="card card-spaced">
                 <h2 class="panel-title">History</h2>
-                <div class="list-stack">
+                <div class="history-list">
                     {% for event in paper.get('interaction_history', []) %}
-                    <div class="list-item">
-                        <span class="list-item-title">{{ event.get('event_type', '') }}</span>
-                        <span class="list-item-trailing t-muted">{{ event.get('created_at', '')[:19] }}</span>
+                    <div class="history-item">
+                        <div class="history-title">{{ event.display_label }}</div>
+                        {% if event.display_detail %}
+                        <div class="history-meta">{{ event.display_detail }}</div>
+                        {% endif %}
+                        <div class="history-time">{{ event.display_time }}</div>
                     </div>
                     {% endfor %}
                 </div>
@@ -264,6 +298,69 @@
 {% block scripts %}
 {{ super() }}
 <script>
+function buildReadingLevelChip(level) {
+    var chip = document.createElement('span');
+    chip.className = 'reading-level-chip';
+    var normalized = String(level || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    if (normalized === 'deep_read') {
+        chip.className += ' chip sage';
+        chip.textContent = 'Deep Read';
+    } else if (normalized === 'skim') {
+        chip.className += ' chip gold';
+        chip.textContent = 'Skim';
+    } else if (normalized === 'ignore') {
+        chip.className += ' chip';
+        chip.style.background = 'var(--line)';
+        chip.style.color = 'var(--ink-3)';
+        chip.textContent = 'Skip';
+    } else {
+        chip.className += ' chip';
+        chip.style.color = 'var(--ink-muted)';
+        chip.textContent = level || 'Unknown';
+    }
+    return chip;
+}
+
+function createAIAnalysisDOM(analysis) {
+    var container = document.createElement('div');
+    container.className = 'ai-result';
+
+    var fields = [
+        {key: 'one_sentence_summary', label: 'Summary'},
+        {key: 'problem', label: 'Problem'},
+        {key: 'method', label: 'Method'},
+        {key: 'contribution', label: 'Contribution'},
+        {key: 'limitations', label: 'Limitations'},
+        {key: 'why_it_matters', label: 'Why It Matters'}
+    ];
+
+    fields.forEach(function(f) {
+        if (analysis[f.key]) {
+            var p = document.createElement('p');
+            var strong = document.createElement('strong');
+            strong.textContent = f.label + ': ';
+            p.appendChild(strong);
+            var span = document.createElement('span');
+            span.textContent = analysis[f.key];
+            p.appendChild(span);
+            container.appendChild(p);
+        }
+    });
+
+    // Reading level chip
+    if (analysis.recommended_reading_level) {
+        var p = document.createElement('p');
+        p.className = 'reading-level-row';
+        var strong = document.createElement('strong');
+        strong.textContent = 'Reading Level: ';
+        p.appendChild(strong);
+        p.appendChild(buildReadingLevelChip(analysis.recommended_reading_level));
+        container.appendChild(p);
+    }
+
+    return container;
+}
+
 async function paperDetailAction(action, paperId, extra) {
     try {
         switch (action) {
@@ -304,23 +401,45 @@ async function paperDetailAction(action, paperId, extra) {
     }
 }
 
-async function generateAnalysis(paperId) {
-    const btn = document.getElementById('generateAIBtn');
+async function generateAIAnalysis(paperId) {
+    var btn = document.getElementById('aiGenerateBtn');
+    var spinner = document.getElementById('aiSpinner');
+    var errorEl = document.getElementById('aiError');
+    var content = document.getElementById('aiAnalysisContent');
+    var placeholder = document.getElementById('aiPlaceholder');
+
+    if (!btn) return;
+
     btn.disabled = true;
-    btn.textContent = 'Generating...';
+    spinner.hidden = false;
+    if (errorEl) errorEl.hidden = true;
+
     try {
-        const resp = await fetch(`/api/papers/${paperId}/analysis/generate`, { method: 'POST' });
-        const data = await resp.json();
-        if (data.success) {
-            window.location.reload();
+        var resp = await fetch('/api/papers/' + encodeURIComponent(paperId) + '/analysis/generate', {method: 'POST'});
+        var data = await resp.json();
+        if (data.success && data.analysis) {
+            // Clear placeholder/old content and render analysis using DOM API
+            while (content.firstChild) {
+                content.removeChild(content.firstChild);
+            }
+            content.appendChild(createAIAnalysisDOM(data.analysis));
+            // Update button to "Regenerate"
+            btn.textContent = 'Regenerate AI Analysis';
+            btn.className = 'btn btn-secondary btn-sm';
         } else {
-            alert('Generation failed: ' + (data.error || 'Unknown error'));
+            if (errorEl) {
+                errorEl.textContent = data.error || 'Analysis generation failed';
+                errorEl.hidden = false;
+            }
         }
-    } catch (err) {
-        alert('Error: ' + err.message);
+    } catch(e) {
+        if (errorEl) {
+            errorEl.textContent = 'Network error: ' + e.message;
+            errorEl.hidden = false;
+        }
     } finally {
         btn.disabled = false;
-        btn.textContent = 'Generate AI Analysis';
+        spinner.hidden = true;
     }
 }
 </script>

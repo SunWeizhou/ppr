@@ -7,10 +7,9 @@ from __future__ import annotations
 
 import os
 
-from state_store import QUEUE_STATUS_VALUES
-
 from app.services.feedback_service import FeedbackService
 from app.viewmodels.shared import assemble_page_context
+from state_store import QUEUE_STATUS_VALUES
 
 
 class SettingsViewModel:
@@ -38,7 +37,7 @@ class SettingsViewModel:
     # ── queue helpers ─────────────────────────────────────────────────────
 
     def _queue_counts(self) -> dict[str, int]:
-        counts: dict[str, int] = {status: 0 for status in QUEUE_STATUS_VALUES}
+        counts: dict[str, int] = dict.fromkeys(QUEUE_STATUS_VALUES, 0)
         for item in self._store.list_queue_items():
             status = item.get("status")
             if status in counts:
@@ -107,6 +106,9 @@ class SettingsViewModel:
     def to_template_context(self, tab: str = "profile") -> dict:
         """Assemble the full Settings page context.
         Replaces web_server.settings_page + _render_settings_research."""
+        # Backward compat: old "system" tab renamed to "diagnostics"
+        if tab == "system":
+            tab = "diagnostics"
         try:
             from config_manager import get_config
 
