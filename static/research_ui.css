@@ -2737,3 +2737,13 @@ select {
     color: #fff;
     border-color: var(--brand);
 }
+
+/* ---- Inbox: More actions dropdown ---- */
+.detail-secondary-actions {
+    position: relative;
+}
+.detail-secondary-actions .reason-menu {
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 4px;
+}

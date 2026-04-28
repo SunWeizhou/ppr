@@ -84,6 +84,7 @@
                                 data-paper-link="{{ paper.link or '' }}"
                                 data-paper-score="{{ paper.score or 0 }}"
                                 data-paper-first-author="{{ paper.first_author }}"
+                                data-paper-abstract="{{ paper.get('abstract', '') }}"
                                 data-feedback-state="{% if paper.is_liked %}liked{% elif paper.is_disliked %}disliked{% else %}none{% endif %}"
                                 data-queue-status="{{ paper.queue_status or '' }}"
                                 data-queue-note=""
@@ -109,6 +110,7 @@
 
                                 <div class="detail-payload" hidden>
                                     <div data-detail-summary>{{ paper.summary }}</div>
+                                    <span data-detail-abstract hidden>{{ paper.get('abstract', '') }}</span>
                                     <div data-detail-relevance>{{ paper.relevance_html | safe }}</div>
                                     <div data-detail-why-above>{{ paper.why_above }}</div>
                                     <div data-detail-why-hidden>{{ paper.why_hidden }}</div>
@@ -160,7 +162,7 @@
 
                 <div class="detail-section">
                     <div class="detail-label">Abstract</div>
-                    <p class="detail-copy" id="detailSummary">{{ first_paper.summary }}</p>
+                    <p class="detail-copy" id="detailSummary">{{ first_paper.get('abstract') or first_paper.get('summary', '') }}</p>
                 </div>
 
                 <div class="detail-section" data-ai-analysis-section>
@@ -187,15 +189,13 @@
                         <button type="button" class="btn btn-sage" onclick="queueSelectedPaper('Deep Read')" aria-label="Queue paper for deep read">Deep Read</button>
                     </div>
 
-                    <div class="detail-actions">
-                        <button type="button" class="btn btn-tertiary" data-more-actions-toggle onclick="toggleMoreActions()" aria-label="Show more actions">More actions</button>
-                        <div class="more-actions-dropdown">
-                            <div class="card more-actions-menu" id="moreActionsMenu" hidden>
-                                <div class="list-stack">
-                                    <button type="button" class="btn btn-tertiary" onclick="collectSelectedPaper(); closeMoreActions();" aria-label="Add selected paper to collection">Add to Collection</button>
-                                    <button type="button" class="btn btn-tertiary" onclick="toggleFullExplanation(); closeMoreActions();" aria-label="View full explanation for selected paper">View full explanation</button>
-                                </div>
-                            </div>
+                    <div class="detail-secondary-actions" style="margin-top: 8px; position: relative;">
+                        <button type="button" id="moreActionsBtn" class="btn btn-tertiary btn-sm" onclick="toggleMoreActions(event)" aria-expanded="false">
+                            More actions ▾
+                        </button>
+                        <div id="moreActionsMenu" class="reason-menu" role="menu" hidden style="position: absolute; bottom: 100%; left: 0; min-width: 180px;">
+                            <button type="button" class="btn btn-tertiary btn-sm" role="menuitem" onclick="collectSelectedPaper(); closeMoreActions();">Add to Collection</button>
+                            <button type="button" class="btn btn-tertiary btn-sm" role="menuitem" onclick="toggleFullExplanation(); closeMoreActions();">View Full Explanation</button>
                         </div>
                     </div>
                 </div>
@@ -206,6 +206,14 @@
             {% endif %}
         </aside>
     </div>
+
+    <div class="card empty-state-card" id="triageComplete" hidden>
+        <div class="empty-state-icon">&#10003;</div>
+        <h2 class="empty-state-title">Today's papers reviewed</h2>
+        <p class="empty-state-desc">All papers have been triaged. Head to Queue to start reading.</p>
+        <a href="/queue" class="btn btn-primary">Go to Queue →</a>
+    </div>
+
 </section>
 
 <div id="triageCompleteModal" class="modal-shell" hidden>

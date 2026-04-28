@@ -28,9 +28,35 @@
     return {
       id: currentInboxItem.dataset.paperId,
       title: currentInboxItem.dataset.paperTitle,
-      abstract: currentInboxItem.dataset.paperSummary,
+      abstract: currentInboxItem.dataset.paperAbstract || currentInboxItem.dataset.paperSummary || '',
       authors: currentInboxItem.dataset.paperAuthors
     };
+  }
+
+  var _metadataRequestId = 0;
+
+  async function loadSelectedPaperMetadata(item) {
+    if (item.dataset.paperAbstract) return; // Already have full abstract
+
+    var requestId = ++_metadataRequestId;
+    var paperId = item.dataset.paperId;
+    try {
+      var resp = await fetch('/api/fetch_paper/' + encodeURIComponent(paperId));
+      var data = await resp.json();
+      if (!data.success || requestId !== _metadataRequestId) return; // Stale request
+
+      if (data.abstract) {
+        item.dataset.paperAbstract = data.abstract;
+        var hiddenAbstract = item.querySelector('[data-detail-abstract]');
+        if (hiddenAbstract) hiddenAbstract.textContent = data.abstract;
+        // Update the current detail panel if this paper is still selected
+        if (currentInboxItem === item) {
+          document.getElementById('detailSummary').textContent = data.abstract;
+        }
+      }
+    } catch (e) {
+      // Best-effort — silently ignore fetch failures
+    }
   }
 
   function escapeAiHtml(value) {
@@ -45,6 +71,10 @@
   function renderAiAnalysis(analysis) {
     var output = document.getElementById('detailAiAnalysis');
     if (!output || !analysis) return;
+    // Clear existing content
+    while (output.firstChild) {
+      output.removeChild(output.firstChild);
+    }
     if (analysis.status === 'not_configured') {
       output.textContent = 'AI provider 未配置。当前显示原始摘要和规则推荐原因。';
       return;
@@ -58,10 +88,24 @@
         var key = _ref[0];
         var label = _ref[1];
         var value = analysis[key] || '';
-        return value ? '<div class="analysis-row"><strong>' + label + '</strong><span>' + escapeAiHtml(value) + '</span></div>' : '';
+        return value ? {label: label, value: escapeAiHtml(value)} : null;
       })
       .filter(function (s) { return s; });
-    output.innerHTML = rows.length ? rows.join('') : '暂无 AI 分析。你可以生成分析，或继续根据摘要和推荐原因判断。';
+    if (rows.length) {
+      rows.forEach(function(row) {
+        var div = document.createElement('div');
+        div.className = 'analysis-row';
+        var strong = document.createElement('strong');
+        strong.textContent = row.label;
+        div.appendChild(strong);
+        var span = document.createElement('span');
+        span.textContent = row.value;
+        div.appendChild(span);
+        output.appendChild(div);
+      });
+    } else {
+      output.textContent = '暂无 AI 分析。你可以生成分析，或继续根据摘要和推荐原因判断。';
+    }
   }
 
   async function loadSelectedAiAnalysis() {
@@ -104,11 +148,28 @@
     document.querySelectorAll('.paper-list-item').forEach(function (node) { return node.classList.remove('active'); });
     item.classList.add('active');
     currentInboxItem = item;
+    // Re-enable action buttons and reason toggle links in case they were
+    // disabled/hidden by an empty filter state
+    var actionButtons = document.querySelectorAll('#paperDetailPanel button');
+    for (var i = 0; i < actionButtons.length; i++) {
+      actionButtons[i].disabled = false;
+    }
+    var reasonLinks = document.querySelectorAll('.reason-toggle-link');
+    for (var j = 0; j < reasonLinks.length; j++) {
+      reasonLinks[j].hidden = false;
+    }
+    var detailLink = document.getElementById('detailLink');
+    var detailPageLink = document.getElementById('detailPageLink');
+    if (detailLink) detailLink.style.pointerEvents = '';
+    if (detailPageLink) detailPageLink.style.pointerEvents = '';
 
     document.getElementById('detailTitle').textContent = item.dataset.paperTitle || '';
     document.getElementById('detailAuthors').textContent = item.dataset.paperAuthors || '';
     document.getElementById('detailScore').textContent = 'Score ' + Number(item.dataset.paperScore || '0').toFixed(1);
-    document.getElementById('detailSummary').textContent = item.querySelector('[data-detail-summary]')?.textContent || '';
+    document.getElementById('detailSummary').textContent =
+      item.querySelector('[data-detail-abstract]')?.textContent ||
+      item.querySelector('[data-detail-summary]')?.textContent ||
+      '';
     document.getElementById('detailRelevance').innerHTML = item.querySelector('[data-detail-relevance]')?.innerHTML || '';
     document.getElementById('detailCategories').innerHTML = item.querySelector('[data-detail-categories]')?.innerHTML || '';
     document.getElementById('detailLink').href = item.dataset.paperLink || '#';
@@ -128,6 +189,7 @@
       item.scrollIntoView({block: 'nearest', behavior: 'smooth'});
     }
     loadSelectedAiAnalysis();
+    loadSelectedPaperMetadata(item);
   }
 
   function applyInboxFilter(filterName) {
@@ -157,6 +219,32 @@
     var firstVisible = visibleInboxItems()[0];
     if (firstVisible) {
       setActiveInboxItem(firstVisible, {scroll: false});
+    } else {
+      currentInboxItem = null;
+      document.getElementById('detailTitle').textContent = 'No papers match this filter';
+      document.getElementById('detailAuthors').textContent = '';
+      document.getElementById('detailScore').textContent = '';
+      document.getElementById('detailSummary').textContent = '';
+      document.getElementById('detailRelevance').textContent = '';
+      document.getElementById('detailCategories').textContent = '';
+      document.getElementById('detailAiAnalysis').textContent = '';
+      document.getElementById('detailLink').href = '#';
+      document.getElementById('detailPageLink').href = '#';
+      var detailQueueState = document.getElementById('detailQueueState');
+      detailQueueState.textContent = '';
+      detailQueueState.hidden = true;
+      var actionButtons = document.querySelectorAll('#paperDetailPanel button');
+      for (var i = 0; i < actionButtons.length; i++) {
+        actionButtons[i].disabled = true;
+      }
+      var reasonLinks = document.querySelectorAll('.reason-toggle-link');
+      for (var k = 0; k < reasonLinks.length; k++) {
+        reasonLinks[k].hidden = true;
+      }
+      var detailLink = document.getElementById('detailLink');
+      var detailPageLink = document.getElementById('detailPageLink');
+      if (detailLink) detailLink.style.pointerEvents = 'none';
+      if (detailPageLink) detailPageLink.style.pointerEvents = 'none';
     }
   }
 
@@ -201,30 +289,158 @@
     }
   });
 
-  async function submitSelectedFeedback(action) {
+  function buildFeedbackBody(action, reason) {
+    var body = {
+      paper_id: currentInboxItem.dataset.paperId,
+      action: action,
+      title: currentInboxItem.dataset.paperTitle,
+      abstract: currentInboxItem.dataset.paperAbstract || currentInboxItem.dataset.paperSummary,
+      authors: currentInboxItem.dataset.paperAuthors,
+      score: Number(currentInboxItem.dataset.paperScore || '0'),
+      relevance: currentInboxItem.dataset.paperRelevance,
+      source: 'home_research'
+    };
+    if (reason) {
+      body.reason = reason;
+    }
+    return body;
+  }
+
+  async function submitSelectedFeedback(action, reason) {
     if (!currentInboxItem) return;
     try {
       await requestJson('/api/feedback', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          paper_id: currentInboxItem.dataset.paperId,
-          action: action,
-          title: currentInboxItem.dataset.paperTitle,
-          abstract: currentInboxItem.dataset.paperSummary,
-          authors: currentInboxItem.dataset.paperAuthors,
-          score: Number(currentInboxItem.dataset.paperScore || '0'),
-          relevance: currentInboxItem.dataset.paperRelevance,
-          source: 'home_research'
-        })
+        body: JSON.stringify(buildFeedbackBody(action, reason))
       });
       currentInboxItem.dataset.feedbackState = action === 'like' ? 'liked' : 'disliked';
       currentInboxItem.classList.toggle('state-liked', action === 'like');
       currentInboxItem.classList.toggle('state-disliked', action === 'dislike');
-      showToast(action === 'like' ? '已标为 Relevant' : '已忽略该论文');
+      if (reason) {
+        showToast(action === 'like' ? '已标为 Relevant (' + reason + ')' : '已忽略 (' + reason + ')');
+      } else {
+        showToast(action === 'like' ? '已标为 Relevant' : '已忽略该论文');
+      }
       refreshInboxProgress();
+      var remaining = visibleInboxItems();
+      if (!remaining.length) {
+          var triageBanner = document.getElementById('triageComplete');
+          if (triageBanner) triageBanner.hidden = false;
+          var paperList = document.querySelector('.paper-list');
+          if (paperList) paperList.hidden = true;
+      }
     } catch (error) {
       showToast('操作失败: ' + error.message, 'error');
+    }
+  }
+
+  // ---- Reason menu (finer feedback) ----
+
+  var REASON_OPTIONS = {
+    dislike: [
+      {code: 'not_my_topic', label: 'Not my topic'},
+      {code: 'too_applied', label: 'Too applied'},
+      {code: 'too_engineering', label: 'Too engineering'},
+      {code: 'too_shallow', label: 'Too shallow'},
+      {code: 'already_known', label: 'Already known'},
+      {code: '', label: 'Skip — just ignore'}
+    ],
+    like: [
+      {code: 'important_author', label: 'Important author'},
+      {code: 'important_method', label: 'Important method'},
+      {code: 'important_for_collection', label: 'Important for collection'},
+      {code: '', label: 'Skip — just relevant'}
+    ]
+  };
+
+  function closeReasonMenu() {
+    var menu = document.querySelector('.reason-menu');
+    if (menu) menu.remove();
+  }
+
+  function showReasonMenu(action, anchor) {
+    closeReasonMenu();
+
+    var options = REASON_OPTIONS[action];
+    if (!options) return;
+
+    var menu = document.createElement('div');
+    menu.className = 'reason-menu';
+    menu.setAttribute('role', 'menu');
+    menu.style.cssText = 'margin-top:8px;padding:6px;border:1px solid #ddd;border-radius:6px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.12);display:flex;flex-wrap:wrap;gap:4px;';
+
+    options.forEach(function (opt) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = opt.code ? 'btn btn-tertiary btn-sm' : 'btn btn-tertiary btn-sm reason-skip';
+      btn.textContent = opt.label;
+      btn.setAttribute('role', 'menuitem');
+      btn.style.cssText = 'font-size:0.82em;padding:4px 10px;';
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (opt.code) {
+          submitSelectedFeedback(action, opt.code);
+        }
+        closeReasonMenu();
+      });
+      menu.appendChild(btn);
+    });
+
+    var actionsContainer = document.querySelector('.detail-primary-actions');
+    if (actionsContainer) {
+      actionsContainer.insertAdjacentElement('afterend', menu);
+    }
+
+    // Dismiss on outside click
+    setTimeout(function () {
+      document.addEventListener('click', function handler(e) {
+        if (!menu.contains(e.target) && e.target !== anchor) {
+          closeReasonMenu();
+          document.removeEventListener('click', handler);
+        }
+      });
+    }, 0);
+  }
+
+  function initReasonToggleLinks() {
+    var container = document.querySelector('.detail-primary-actions');
+    if (!container) return;
+
+    var linkStyle = 'font-size:0.78em;color:#888;cursor:pointer;margin-left:3px;text-decoration:underline dotted;user-select:none;';
+
+    var likeBtn = container.querySelector('.btn-primary');
+    if (likeBtn) {
+      var likeLink = document.createElement('span');
+      likeLink.className = 'reason-toggle-link';
+      likeLink.textContent = 'why?';
+      likeLink.setAttribute('role', 'button');
+      likeLink.setAttribute('tabindex', '0');
+      likeLink.setAttribute('aria-label', 'Add reason for relevance');
+      likeLink.style.cssText = linkStyle;
+      likeLink.addEventListener('click', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        showReasonMenu('like', likeLink);
+      });
+      likeBtn.insertAdjacentElement('afterend', likeLink);
+    }
+
+    var dislikeBtn = container.querySelector('.btn-danger');
+    if (dislikeBtn) {
+      var dislikeLink = document.createElement('span');
+      dislikeLink.className = 'reason-toggle-link';
+      dislikeLink.textContent = 'why?';
+      dislikeLink.setAttribute('role', 'button');
+      dislikeLink.setAttribute('tabindex', '0');
+      dislikeLink.setAttribute('aria-label', 'Add reason for ignoring');
+      dislikeLink.style.cssText = linkStyle;
+      dislikeLink.addEventListener('click', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        showReasonMenu('dislike', dislikeLink);
+      });
+      dislikeBtn.insertAdjacentElement('afterend', dislikeLink);
     }
   }
 
@@ -259,14 +475,31 @@
     trackPaperOpen(currentInboxItem.dataset.paperId, 'home_research');
   }
 
-  function toggleMoreActions() {
+  function toggleMoreActions(e) {
+    e.stopPropagation();
     var menu = document.getElementById('moreActionsMenu');
-    if (menu) menu.hidden = !menu.hidden;
+    var btn = document.getElementById('moreActionsBtn');
+    if (menu.hidden) {
+        menu.hidden = false;
+        btn.setAttribute('aria-expanded', 'true');
+        setTimeout(function () {
+            document.addEventListener('click', function handler(ev) {
+                if (!menu.contains(ev.target) && ev.target !== btn) {
+                    closeMoreActions();
+                    document.removeEventListener('click', handler);
+                }
+            });
+        }, 0);
+    } else {
+        closeMoreActions();
+    }
   }
 
   function closeMoreActions() {
     var menu = document.getElementById('moreActionsMenu');
+    var btn = document.getElementById('moreActionsBtn');
     if (menu) menu.hidden = true;
+    if (btn) btn.setAttribute('aria-expanded', 'false');
   }
 
   function toggleFullExplanation() {
@@ -404,6 +637,7 @@
   // Initialize
   applyInboxFilter(window.__inboxFilter || 'all');
   refreshInboxProgress();
+  initReasonToggleLinks();
 
   Object.assign(window, {
     visibleInboxItems: visibleInboxItems,
@@ -427,6 +661,8 @@
     updateProgressUI: updateProgressUI,
     refreshInboxProgress: refreshInboxProgress,
     finishToday: finishToday,
-    confirmTriageComplete: confirmTriageComplete
+    confirmTriageComplete: confirmTriageComplete,
+    showReasonMenu: showReasonMenu,
+    closeReasonMenu: closeReasonMenu
   });
 })();
