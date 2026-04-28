@@ -13,8 +13,6 @@ import re
 import time
 from datetime import datetime, timedelta
 
-from state_store import QUEUE_STATUS_VALUES, _canonical_paper_id
-
 from app.services.feedback_service import FeedbackService
 from app.services.paper_utils import (
     extract_primary_author,
@@ -27,7 +25,7 @@ from app.viewmodels.shared import (
     assemble_page_context,
     serialize_collection,
 )
-
+from state_store import QUEUE_STATUS_VALUES, _canonical_paper_id
 
 # ── static category labels (mirrored from web_server.py) ──────────────────
 
@@ -98,7 +96,7 @@ class LibraryViewModel:
         if default is None:
             default = {}
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError, Exception):
             return default
@@ -110,7 +108,7 @@ class LibraryViewModel:
         }
 
     def _queue_counts(self) -> dict[str, int]:
-        counts: dict[str, int] = {status: 0 for status in QUEUE_STATUS_VALUES}
+        counts: dict[str, int] = dict.fromkeys(QUEUE_STATUS_VALUES, 0)
         for item in self._store.list_queue_items():
             status = item.get("status")
             if status in counts:
@@ -153,7 +151,7 @@ class LibraryViewModel:
         papers: list = []
         keywords: list = []
 
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             content = f.read()
 
         themes_match = re.search(r"\*\*Research Themes:\*\*\s*(.+)", content)
@@ -165,7 +163,7 @@ class LibraryViewModel:
         for entry in entries[1:]:  # skip header
             paper = {}
             # title — first non-empty line
-            lines = [l.strip() for l in entry.split("\n") if l.strip()]
+            lines = [line.strip() for line in entry.split("\n") if line.strip()]
             if not lines:
                 continue
             paper["title"] = lines[0].lstrip("#").strip()
@@ -228,6 +226,23 @@ class LibraryViewModel:
                     item = dict(paper)
                     item["date"] = date
                     index[paper_id] = item
+
+        # Enrich index with data from the papers table when available
+        try:
+            list_papers = getattr(self._store, 'list_papers_by_ids', None)
+            if callable(list_papers) and index:
+                paper_ids = list(index.keys())
+                enriched_map = {p["paper_id"]: p for p in list_papers(paper_ids)}
+                for pid, paper in index.items():
+                    ep = enriched_map.get(pid)
+                    if ep:
+                        for key in ('pdf_url', 'source_url', 'source',
+                                    'published_at', 'updated_at'):
+                            if ep.get(key) and key not in paper:
+                                paper[key] = ep[key]
+        except Exception:
+            pass
+
         return index
 
     def _resolve_paper_record(
@@ -538,7 +553,7 @@ class LibraryViewModel:
         cache_file = self._resolve_path("CACHE_FILE")
         if os.path.exists(cache_file):
             try:
-                with open(cache_file, "r", encoding="utf-8") as f:
+                with open(cache_file, encoding="utf-8") as f:
                     total_seen = len(json.load(f))
             except Exception:
                 total_seen = 0

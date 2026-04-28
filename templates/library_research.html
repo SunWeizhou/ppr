@@ -21,9 +21,8 @@
 
 {% block content %}
 <div class="tabs">
-    <a href="/library?tab=collections{% if selected_collection %}&collection_id={{ selected_collection.id }}{% endif %}" class="tab-button {% if tab == 'collections' %}active{% endif %}">Collections</a>
+    <a href="/library?tab=collections{% if selected_collection %}&collection_id={{ selected_collection.id }}{% endif %}" class="tab-button {% if tab == 'collections' or not tab %}active{% endif %}">Collections</a>
     <a href="/library?tab=saved" class="tab-button {% if tab == 'saved' %}active{% endif %}">Saved Papers <span class="count">{{ saved_papers_count }}</span></a>
-    <a href="/library?tab=history{% if selected_date %}&date={{ selected_date }}{% endif %}" class="tab-button {% if tab == 'history' %}active{% endif %}">History</a>
 </div>
 
 {% if tab == 'collections' %}
@@ -59,6 +58,7 @@
                 {% endif %}
                 <span class="spacer"></span>
                 {% if selected_collection %}
+                    <button type="button" class="btn btn-sage btn-sm" onclick="generateCollectionFeed({{ selected_collection.id }})">Generate Recommendations</button>
                     <button type="button" class="btn btn-tertiary" onclick='editCollection({{ selected_collection|tojson|forceescape }})'>Edit</button>
                 {% endif %}
             </div>
@@ -76,6 +76,13 @@
             </div>
 
             {% if selected_collection %}
+                <div id="collectionFeedSection" class="card card-spaced" hidden>
+                    <div class="section-kicker">Recommendation Feed</div>
+                    <h2 class="panel-title">Collection-driven Recommendations</h2>
+                    <p class="muted-copy mt-2" id="collectionFeedInfo"></p>
+                    <div id="collectionFeedPapers" class="card card--flush mt-3"></div>
+                </div>
+
                 <div class="toolbar">
                     <input type="text" id="collectionPaperFilter" class="form-input input-md" placeholder="按标题或作者筛选">
                     <select id="collectionStatusFilter" class="form-input input-sm">
@@ -156,6 +163,11 @@
             </div>
         </aside>
     </section>
+<div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line); text-align: center;">
+    <a href="/library?tab=history" class="btn btn-tertiary btn-sm" style="color: var(--ink-3);">
+        Browse history ({{ history_dates|length }} days)
+    </a>
+</div>
 {% elif tab == 'saved' %}
     <section class="split split--rail-left section-gap">
         <aside class="rail">
@@ -389,6 +401,258 @@ function applyCollectionFilters() {
         }
         card.hidden = !(matchesKeyword && matchesStatus);
     });
+}
+
+// ── Collection Feed (Recommendation generation) ──
+
+async function generateCollectionFeed(collectionId) {
+    const section = document.getElementById('collectionFeedSection');
+    if (section) section.hidden = false;
+    const info = document.getElementById('collectionFeedInfo');
+    if (info) info.textContent = 'Generating recommendations...';
+    try {
+        const resp = await fetch('/api/collections/' + collectionId + '/recommendations', {method: 'POST'});
+        const data = await resp.json();
+        if (data.success) {
+            showToast('Generated ' + data.paper_count + ' recommendations');
+            loadCollectionFeed(collectionId);
+        } else {
+            showToast('Generation failed: ' + data.error, 'error');
+            if (info) info.textContent = 'Generation failed: ' + (data.error || 'unknown error');
+        }
+    } catch(e) {
+        showToast('Generation failed: ' + e.message, 'error');
+        if (info) info.textContent = 'Generation failed: ' + e.message;
+    }
+}
+
+async function loadCollectionFeed(collectionId) {
+    const section = document.getElementById('collectionFeedSection');
+    const info = document.getElementById('collectionFeedInfo');
+    const container = document.getElementById('collectionFeedPapers');
+    if (!container) return;
+    try {
+        const resp = await fetch('/api/collections/' + collectionId + '/recommendations/latest');
+        const data = await resp.json();
+        if (!data.success) {
+            if (info) info.textContent = 'Failed to load: ' + (data.error || '');
+            return;
+        }
+        if (!data.has_recommendation || !data.papers || data.papers.length === 0) {
+            if (info) info.textContent = 'No recommendations yet. Click "Generate Recommendations" to create one.';
+            container.innerHTML = '';
+            return;
+        }
+        if (info) info.textContent = data.paper_count + ' papers recommended based on collection seed terms.';
+        if (section) section.hidden = false;
+        renderCollectionFeed(data.papers, collectionId, data.run_id);
+    } catch(e) {
+        console.error('Failed to load collection feed', e);
+        if (info) info.textContent = 'Failed to load recommendations.';
+    }
+}
+
+function renderCollectionFeed(papers, collectionId, runId) {
+    const container = document.getElementById('collectionFeedPapers');
+    if (!container) return;
+
+    // Clear container and set up event delegation (once)
+    container.innerHTML = '';
+    if (!container._delegationSetup) {
+        container._delegationSetup = true;
+        container.addEventListener('click', function(e) {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const article = btn.closest('article[data-paper-id]');
+            if (!article) return;
+            const paperId = article.dataset.paperId;
+            const collId = article.dataset.collectionId;
+            const action = btn.dataset.action;
+
+            if (action === 'skim') {
+                queueCollectionFeedPaper(paperId, 'Skim Later');
+            } else if (action === 'deepread') {
+                queueCollectionFeedPaper(paperId, 'Deep Read');
+            } else if (action === 'ignore') {
+                ignoreCollectionFeedPaper(paperId);
+            } else if (action === 'addtocollection') {
+                addCollectionFeedPaperToCollection(collId, paperId);
+            }
+        });
+    }
+
+    papers.forEach(function(paper, idx) {
+        const paperId = paper.paper_id || paper.id || '';
+        const title = paper.title || 'Untitled';
+        const authors = Array.isArray(paper.authors) ? paper.authors.join(', ') : (paper.authors || '');
+        const abstract = (paper.abstract || '').substring(0, 200);
+        const score = typeof paper.score === 'number' ? paper.score.toFixed(1) : '0.0';
+        const categories = Array.isArray(paper.categories) ? paper.categories.slice(0, 4) : [];
+        const detail = paper.score_details || {};
+        const collectionBoost = detail.collection_boost != null ? detail.collection_boost.toFixed(1) : '0.0';
+        const link = 'https://arxiv.org/abs/' + paperId;
+
+        // Create <article> element
+        const article = document.createElement('article');
+        article.className = 'row';
+        article.dataset.paperId = paperId;
+        article.dataset.collectionId = collectionId;
+
+        // row-lead: rank number
+        const rowLead = document.createElement('div');
+        rowLead.className = 'row-lead';
+        const rankSpan = document.createElement('span');
+        rankSpan.className = 'row-rank';
+        rankSpan.textContent = padTwo(idx + 1);
+
+        // row-body
+        const rowBody = document.createElement('div');
+        rowBody.className = 'row-body';
+
+        // title
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'row-title';
+        titleDiv.textContent = title;
+
+        // meta (authors)
+        const metaDiv = document.createElement('div');
+        metaDiv.className = 'row-meta';
+        metaDiv.textContent = authors;
+
+        // summary (abstract)
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'row-summary';
+        summaryDiv.textContent = abstract;
+
+        // row-tags
+        const rowTags = document.createElement('div');
+        rowTags.className = 'row-tags';
+        if (collectionBoost > 0) {
+            const boostSpan = document.createElement('span');
+            boostSpan.className = 'chip brand';
+            boostSpan.textContent = 'Boost +' + collectionBoost;
+            rowTags.appendChild(boostSpan);
+        }
+        for (var c = 0; c < categories.length; c++) {
+            const catSpan = document.createElement('span');
+            catSpan.className = 'tag';
+            catSpan.textContent = categories[c];
+            rowTags.appendChild(catSpan);
+        }
+
+        // Assemble row-body
+        rowBody.appendChild(titleDiv);
+        rowBody.appendChild(metaDiv);
+        rowBody.appendChild(summaryDiv);
+        rowBody.appendChild(rowTags);
+
+        // row-trail
+        const rowTrail = document.createElement('div');
+        rowTrail.className = 'row-trail';
+
+        // score chip
+        const scoreChip = document.createElement('span');
+        scoreChip.className = 'score-chip';
+        scoreChip.textContent = score;
+
+        // row-actions container
+        const rowActions = document.createElement('div');
+        rowActions.className = 'row-actions row-actions-compact';
+
+        // Open button (anchor)
+        const openBtn = document.createElement('a');
+        openBtn.className = 'btn btn-primary btn-sm';
+        openBtn.href = link;
+        openBtn.target = '_blank';
+        openBtn.rel = 'noopener noreferrer';
+        openBtn.textContent = 'Open';
+
+        // Detail button (anchor)
+        const detailBtn = document.createElement('a');
+        detailBtn.className = 'btn btn-tertiary btn-xs';
+        detailBtn.href = '/papers/' + paperId;
+        detailBtn.textContent = 'Detail';
+
+        // Skim button
+        const skimBtn = document.createElement('button');
+        skimBtn.type = 'button';
+        skimBtn.className = 'btn btn-tertiary btn-sm';
+        skimBtn.dataset.action = 'skim';
+        skimBtn.textContent = 'Skim';
+
+        // Deep Read button
+        const deepReadBtn = document.createElement('button');
+        deepReadBtn.type = 'button';
+        deepReadBtn.className = 'btn btn-tertiary btn-sm';
+        deepReadBtn.dataset.action = 'deepread';
+        deepReadBtn.textContent = 'Deep Read';
+
+        // Ignore button
+        const ignoreBtn = document.createElement('button');
+        ignoreBtn.type = 'button';
+        ignoreBtn.className = 'btn btn-tertiary btn-sm';
+        ignoreBtn.dataset.action = 'ignore';
+        ignoreBtn.textContent = 'Ignore';
+
+        // +Collection button
+        const addCollBtn = document.createElement('button');
+        addCollBtn.type = 'button';
+        addCollBtn.className = 'btn btn-sm btn-sage';
+        addCollBtn.dataset.action = 'addtocollection';
+        addCollBtn.textContent = '+ Collection';
+
+        // Assemble row-trail
+        rowActions.appendChild(openBtn);
+        rowActions.appendChild(detailBtn);
+        rowActions.appendChild(skimBtn);
+        rowActions.appendChild(deepReadBtn);
+        rowActions.appendChild(ignoreBtn);
+        rowActions.appendChild(addCollBtn);
+        rowTrail.appendChild(scoreChip);
+        rowTrail.appendChild(rowActions);
+
+        // Assemble article
+        rowLead.appendChild(rankSpan);
+        article.appendChild(rowLead);
+        article.appendChild(rowBody);
+        article.appendChild(rowTrail);
+
+        container.appendChild(article);
+    });
+}
+
+async function queueCollectionFeedPaper(paperId, status) {
+    try {
+        await queuePaperStatus(paperId, status, {source: 'collection_feed'});
+        showToast('Paper queued: ' + status);
+    } catch(e) {
+        showToast('Queue failed: ' + e.message, 'error');
+    }
+}
+
+async function ignoreCollectionFeedPaper(paperId) {
+    try {
+        await requestJson('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({paper_id: paperId, action: 'ignore'})
+        });
+        showToast('Paper ignored');
+    } catch(e) {
+        showToast('Ignore failed: ' + e.message, 'error');
+    }
+}
+
+async function addCollectionFeedPaperToCollection(collectionId, paperId) {
+    try {
+        await addPaperToCollection(paperId, {source: 'collection_feed'});
+    } catch(e) {
+        showToast('Add to collection failed: ' + e.message, 'error');
+    }
+}
+
+function padTwo(n) {
+    return n < 10 ? '0' + n : '' + n;
 }
 </script>
 {% endblock %}
