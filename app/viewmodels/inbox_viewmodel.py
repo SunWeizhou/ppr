@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import re
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
-from app_paths import CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
 from app.services.feedback_service import FeedbackService
 from app.services.paper_utils import (
     extract_primary_author,
@@ -19,15 +19,15 @@ from app.services.paper_utils import (
     status_class,
 )
 from app.viewmodels.shared import assemble_page_context
+from app_paths import CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
 from state_store import QUEUE_STATUS_VALUES
 from utils import CATEGORY_NAMES, count_keyword
-
 
 # ---------------------------------------------------------------------------
 # Per-process digest cache (avoids re-parsing the same file repeatedly)
 # ---------------------------------------------------------------------------
 _history_cache: dict = {}  # {date: (papers, keywords, timestamp)}
-_HISTORY_CACHE_TTL = 300  # 5 seconds — kept short so fresh data appears quickly
+_HISTORY_CACHE_TTL = 300  # 5 minutes — kept short so fresh data appears quickly
 
 
 class InboxViewModel:
@@ -35,7 +35,7 @@ class InboxViewModel:
 
     def __init__(self, state_store):
         self._store = state_store
-        self._feedback_service: Optional[FeedbackService] = None
+        self._feedback_service: FeedbackService | None = None
 
     # ==================================================================
     # Public API — template contexts
@@ -51,22 +51,29 @@ class InboxViewModel:
         papers: list,
         keywords: list,
         dates: list,
-        prev_date: Optional[str],
-        next_date: Optional[str],
+        prev_date: str | None,
+        next_date: str | None,
         feedback: dict,
-        selected_filter: str = "all",
     ) -> dict:
-        """Build the full template context for ``home_research.html``.
+        """Build the full template context for ``today.html``.
 
         Corresponds to the combined logic of ``_render_home_research()`` and
         ``_decorate_home_papers()`` in web_server.py.
+
+        Option C: only untriaged papers shown by default; filters removed.
         """
         keywords_config = self._load_keywords_config()
         today_matched_keywords = self._extract_today_keywords(papers, keywords_config)
         is_today = date == datetime.now().strftime("%Y-%m-%d")
 
-        page_ctx = self._build_page_context(active_tab="inbox")
+        page_ctx = self._build_page_context(active_tab="today")
         decorated = self._decorate_home_papers(papers, feedback)
+
+        # Option C: filter to untriaged papers only
+        untriaged_papers = [
+            p for p in decorated
+            if not p.get("is_liked") and not p.get("is_disliked") and not p.get("queue_status")
+        ]
 
         headline_metrics = [
             {"label": "Today's Papers", "value": len(decorated)},
@@ -79,15 +86,16 @@ class InboxViewModel:
         ]
 
         context = {
-            "title": f"arXiv Daily Digest - {date}",
+            "title": "Today - StatDesk",
             "date": date,
+            "today": datetime.now().strftime("%Y-%m-%d"),
             "is_today": is_today,
             "hero_keywords": today_matched_keywords or keywords[:8],
             "daily_themes": keywords[:10],
             "matched_keyword_count": len(today_matched_keywords),
             "papers": decorated,
-            "selected_filter": selected_filter,
-            "date_cards": self._build_date_cards(dates, date),
+            "untriaged_papers": untriaged_papers,
+            "date_cards": self._build_date_cards(date, set(dates)),
             "prev_date": prev_date,
             "next_date": next_date,
             "headline_metrics": headline_metrics,
@@ -97,10 +105,10 @@ class InboxViewModel:
 
     def to_generating_context(self) -> dict:
         """Build page context for ``generating.html``."""
-        context = assemble_page_context(self._store, active_tab="inbox")
+        context = assemble_page_context(self._store, active_tab="today")
         context["queue_counts"] = self._queue_counts()
         context["queue_status_values"] = QUEUE_STATUS_VALUES
-        context["title"] = "Generating Recommendations - arXiv Recommender"
+        context["title"] = "Generating Recommendations - StatDesk"
         return context
 
     def to_no_data_html(self, date: str) -> str:
@@ -126,7 +134,7 @@ class InboxViewModel:
         from state_store import get_state_store
         try:
             store = get_state_store()
-            sqlite_dates = store.list_recommendation_dates(limit=60)
+            sqlite_dates = store.list_recommendation_dates(limit=60, trigger_source="auto_homepage")
             if sqlite_dates:
                 return sqlite_dates
         except Exception:
@@ -149,7 +157,7 @@ class InboxViewModel:
         keyword strings, or ``(None, None)`` if the date has no SQLite run.
         """
         try:
-            run = self._store.get_recommendation_run_by_date(date)
+            run = self._store.get_recommendation_run_by_date(date, trigger_source="auto_homepage")
             if run:
                 items = self._store.get_recommendation_items(run["run_id"])
                 if items:
@@ -157,6 +165,27 @@ class InboxViewModel:
                     for item in items:
                         item["id"] = item["paper_id"]
                         del item["paper_id"]
+
+                    # Enrich each paper with data from the papers table when available
+                    try:
+                        list_papers = getattr(self._store, 'list_papers_by_ids', None)
+                        if callable(list_papers):
+                            paper_ids = [item["id"] for item in items if item.get("id")]
+                            if paper_ids:
+                                enriched_map = {p["paper_id"]: p for p in list_papers(paper_ids)}
+                                for item in items:
+                                    ep = enriched_map.get(item.get("id"))
+                                    if ep:
+                                        for key in ('pdf_url', 'source_url', 'source',
+                                                    'published_at', 'updated_at', 'abstract'):
+                                            if ep.get(key) and (key not in item or not item.get(key)):
+                                                item[key] = ep[key]
+                                        # Fallback: if source_url exists but link is empty, set link from source_url
+                                        if ep.get('source_url') and not item.get('link'):
+                                            item['link'] = ep['source_url']
+                    except Exception:
+                        pass
+
                     # Load themes from the run record
                     try:
                         themes = json.loads(run.get("themes_json", "[]"))
@@ -205,7 +234,7 @@ class InboxViewModel:
                 next_date = dates[idx - 1]
         return prev_date, next_date
 
-    def start_background_generation(self) -> Optional[str]:
+    def start_background_generation(self) -> str | None:
         """Start a background pipeline run; returns the job *run_id*.
 
         No-op if a generation is already running (checked via StateStore).
@@ -245,7 +274,7 @@ class InboxViewModel:
         return self._feedback_service
 
     def _queue_counts(self) -> dict:
-        counts = {status: 0 for status in QUEUE_STATUS_VALUES}
+        counts = dict.fromkeys(QUEUE_STATUS_VALUES, 0)
         for item in self._store.list_queue_items():
             status = item.get("status")
             if status in counts:
@@ -270,26 +299,25 @@ class InboxViewModel:
     # Internal — date cards / keywords
     # ==================================================================
 
-    def _build_date_cards(self, dates: list[str], current_date: str) -> list[dict]:
+    def _build_date_cards(self, current_date: str, available_dates: set[str]) -> list[dict]:
+        today_str = datetime.now().strftime("%Y-%m-%d")
         cards = []
-        for raw_date in dates[:14]:
-            try:
-                dt = datetime.strptime(raw_date, "%Y-%m-%d")
-                cards.append({
-                    "date": raw_date,
-                    "day": dt.strftime("%d"),
-                    "month": dt.strftime("%b").upper(),
-                    "weekday": dt.strftime("%a"),
-                    "active": raw_date == current_date,
-                })
-            except ValueError:
-                cards.append({
-                    "date": raw_date,
-                    "day": raw_date[-2:],
-                    "month": raw_date[5:7],
-                    "weekday": "",
-                    "active": raw_date == current_date,
-                })
+        try:
+            current_dt = datetime.strptime(current_date, "%Y-%m-%d")
+        except ValueError:
+            return cards
+        for offset in range(-5, 6):
+            dt = current_dt + timedelta(days=offset)
+            raw_date = dt.strftime("%Y-%m-%d")
+            cards.append({
+                "date": raw_date,
+                "day": dt.strftime("%d"),
+                "month": dt.strftime("%b").upper(),
+                "weekday": dt.strftime("%a"),
+                "active": raw_date == current_date,
+                "is_today": raw_date == today_str,
+                "has_data": raw_date in available_dates,
+            })
         return cards
 
     def _load_keywords_config(self) -> dict:
@@ -350,10 +378,8 @@ class InboxViewModel:
             profile["secondary_keywords"] = config.get_keywords_by_category("secondary")
         except Exception:
             pass
-        try:
+        with contextlib.suppress(Exception):
             profile["saved_searches"] = self._store.list_saved_searches()
-        except Exception:
-            pass
         return profile
 
     def _decorate_home_papers(self, papers: list, feedback: dict) -> list:
@@ -383,8 +409,48 @@ class InboxViewModel:
                 item["recommendation_reason"] = rec_reason
                 item["reason_summary"] = rec_reason.get("reason_summary", "")
             except Exception:
+                rec_reason = {}
                 item["recommendation_reason"] = {}
                 item["reason_summary"] = ""
+                item["source_chips"] = []
+
+            # Build the structured 5-group recommendation reason blocks
+            zotero_sim = rec_reason.get("zotero_similarity", 0) if isinstance(rec_reason, dict) else 0
+            sim_count = 1 if (isinstance(zotero_sim, (int, float)) and zotero_sim > 0) else 0
+            item["recommendation_reason_blocks"] = [
+                {
+                    "label": "Matched Topics",
+                    "items": rec_reason.get("matched_topics", []) if isinstance(rec_reason, dict) else [],
+                    "natural_text": "",
+                },
+                {
+                    "label": "Matched Subscriptions",
+                    "items": rec_reason.get("matched_subscriptions", []) if isinstance(rec_reason, dict) else [],
+                    "natural_text": "",
+                },
+                {
+                    "label": "Zotero Similarity",
+                    "items": [],
+                    "natural_text": "Semantically similar to papers in your Zotero library" if sim_count else "",
+                },
+                {
+                    "label": "Feedback Signals",
+                    "items": rec_reason.get("feedback_signals", []) if isinstance(rec_reason, dict) else [],
+                    "natural_text": "",
+                },
+                {
+                    "label": "Source",
+                    "items": rec_reason.get("source_tags", []) if isinstance(rec_reason, dict) else [],
+                    "natural_text": "",
+                },
+            ]
+
+            # Build source chips from subscription matches
+            sub_names = rec_reason.get("matched_subscriptions", []) if isinstance(rec_reason, dict) else []
+            source_chips = []
+            if sub_names:
+                source_chips.append({"label": sub_names[0], "type": "subscription"})
+            item["source_chips"] = source_chips
 
             item["relevance_html"] = generate_relevance_html(item)
             item["author_text"] = format_author_text(item.get("authors"), limit=4)
@@ -433,7 +499,7 @@ class InboxViewModel:
         papers = []
         keywords = []
 
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             content = f.read()
 
         themes_match = re.search(r"\*\*Research Themes:\*\* (.+)", content)
@@ -447,7 +513,7 @@ class InboxViewModel:
             metadata_path = os.path.join(PROJECT_ROOT, "cache", "daily_metadata.json")
             if os.path.exists(metadata_path):
                 try:
-                    with open(metadata_path, "r", encoding="utf-8") as f:
+                    with open(metadata_path, encoding="utf-8") as f:
                         metadata = json.load(f)
                         if metadata.get("date") == date_str and metadata.get("keywords"):
                             keywords = [k["word"] for k in metadata["keywords"]]
@@ -465,7 +531,7 @@ class InboxViewModel:
                 if not os.path.exists(rec_path):
                     continue
                 try:
-                    with open(rec_path, "r", encoding="utf-8") as f:
+                    with open(rec_path, encoding="utf-8") as f:
                         rec_data = json.load(f)
                     if isinstance(rec_data, dict):
                         articles = rec_data.get("articles") or rec_data.get("papers") or []
@@ -526,12 +592,10 @@ class InboxViewModel:
                     paper["relevance"] = line.replace("**Relevance:**", "").strip()
                     paper["relevance_reason"] = paper["relevance"]
                 elif line.startswith("**Score:**"):
-                    try:
+                    with contextlib.suppress(ValueError, IndexError):
                         paper["score"] = float(
                             line.replace("**Score:**", "").strip().split()[0]
                         )
-                    except (ValueError, IndexError):
-                        pass
                 elif line.startswith("**Categories:**"):
                     raw = line.replace("**Categories:**", "").strip()
                     paper["categories"] = [c.strip() for c in raw.split(",") if c.strip()]
@@ -578,37 +642,6 @@ class InboxViewModel:
     # ==================================================================
 
     def _build_recommendation_health(self, cached_papers=None) -> dict:
-        try:
-            from config_manager import get_config
+        from app.services.diagnostics_service import build_recommendation_health
 
-            config = get_config()
-            core_count = len(config.core_keywords)
-            secondary_count = len(config.get_keywords_by_category("secondary"))
-            theory_count = len(config.theory_keywords)
-            zotero_path = os.path.expanduser(config._zotero.database_path or "")
-            zotero_exists = bool(zotero_path and os.path.exists(zotero_path))
-            scores = [float(p.get("score", 0) or 0) for p in (cached_papers or [])]
-            max_score = max(scores, default=0.0)
-            low_signal_count = sum(1 for s in scores if s <= 0.7)
-            return {
-                "core_keyword_count": core_count,
-                "secondary_keyword_count": secondary_count,
-                "theory_keyword_count": theory_count,
-                "has_positive_profile": (core_count + secondary_count) > 0,
-                "max_score": max_score,
-                "low_signal_count": low_signal_count,
-                "zotero": {
-                    "enabled": bool(config._zotero.enabled),
-                    "configured_path": config._zotero.database_path,
-                    "path_exists": zotero_exists,
-                    "auto_detect": bool(config._zotero.auto_detect),
-                },
-            }
-        except Exception:
-            return {
-                "core_keyword_count": 0,
-                "secondary_keyword_count": 0,
-                "theory_keyword_count": 0,
-                "has_positive_profile": False,
-                "zotero": {"enabled": False, "configured_path": "", "path_exists": False},
-            }
+        return build_recommendation_health(cached_papers, state_store=self._store)

@@ -3,15 +3,16 @@ Shared utilities for arXiv Recommender.
 Consolidates common functionality to reduce code duplication.
 """
 
-import re
-import time
 import json
-import ssl
-import urllib.request
-import urllib.error
-from typing import Dict, List, Optional, Any
 import logging
+import re
+import ssl
+import time
+import urllib.error
+import urllib.request
+from typing import Any, Dict, List, Optional
 
+from app.services.safe_http import safe_urlopen
 from app_paths import PROJECT_ROOT
 
 logger = logging.getLogger(__name__)
@@ -64,7 +65,7 @@ def safe_load_json(filepath: str, default: Any = None) -> Any:
     if default is None:
         default = {}
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding='utf-8') as f:
             return json.load(f)
     except (FileNotFoundError, OSError):
         return default
@@ -90,7 +91,7 @@ def safe_save_json(filepath: str, data: Any, indent: int = 2) -> bool:
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=indent)
         return True
-    except (IOError, TypeError) as e:
+    except (OSError, TypeError) as e:
         logger.error(f"Failed to save JSON to {filepath}: {e}")
         return False
 
@@ -100,9 +101,9 @@ def fetch_with_retry(
     url: str,
     max_retries: int = 5,
     timeout: int = 60,
-    headers: Optional[Dict] = None,
-    context: Optional[ssl.SSLContext] = None
-) -> Optional[str]:
+    headers: dict | None = None,
+    context: ssl.SSLContext | None = None
+) -> str | None:
     """Fetch URL with exponential backoff on server errors.
 
     Handles: 429 (rate limit), 500, 502, 503, 504 (server errors)
@@ -126,7 +127,7 @@ def fetch_with_retry(
     for attempt in range(max_retries):
         try:
             req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=timeout, context=context) as response:
+            with safe_urlopen(req, timeout=timeout, context=context) as response:
                 return response.read().decode('utf-8')
 
         except urllib.error.HTTPError as e:
@@ -215,7 +216,7 @@ def validate_arxiv_id(paper_id: str) -> bool:
     return bool(re.match(new_format, paper_id) or re.match(old_format, paper_id))
 
 
-def validate_paper_data(paper: Dict) -> bool:
+def validate_paper_data(paper: dict) -> bool:
     """Validate that paper data has required fields.
 
     Args:
@@ -249,7 +250,7 @@ def parse_markdown_digest(filepath: str):
     papers = []
     keywords = []
 
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         content = f.read()
 
     # Extract themes/keywords from the header
@@ -265,7 +266,7 @@ def parse_markdown_digest(filepath: str):
         metadata_path = os.path.join(str(PROJECT_ROOT), 'cache', 'daily_metadata.json')
         if os.path.exists(metadata_path):
             try:
-                with open(metadata_path, 'r', encoding='utf-8') as f:
+                with open(metadata_path, encoding='utf-8') as f:
                     metadata = json.load(f)
                     if metadata.get('date') == date_str and metadata.get('keywords'):
                         keywords = [k['word'] for k in metadata['keywords']]
@@ -283,7 +284,7 @@ def parse_markdown_digest(filepath: str):
             if not os.path.exists(rec_path):
                 continue
             try:
-                with open(rec_path, 'r', encoding='utf-8') as f:
+                with open(rec_path, encoding='utf-8') as f:
                     rec_data = json.load(f)
                     if rec_data.get('date') != date_str:
                         continue
@@ -386,3 +387,44 @@ def parse_markdown_digest_cached(filepath: str, use_cache: bool = True):
         _digest_cache[cache_key] = (papers, keywords, current_time)
 
     return papers, keywords
+
+
+def load_history_paper_index(history_dir):
+    """Build a {paper_id: paper_dict} index from all digest_*.md files.
+
+    Args:
+        history_dir: Path (str or Path) to the history directory.
+
+    Returns:
+        dict mapping canonical paper_id to paper dict (includes ``date`` key).
+    """
+    import os as _os
+    from pathlib import Path as _Path
+
+    from state_store import _canonical_paper_id
+
+    hist_dir = _Path(history_dir)
+    index: dict = {}
+    if not hist_dir.exists():
+        return index
+
+    for fname in sorted(_os.listdir(str(hist_dir))):
+        if not (fname.startswith("digest_") and fname.endswith(".md")):
+            continue
+        filepath = _os.path.join(str(hist_dir), fname)
+        try:
+            papers, _ = parse_markdown_digest_cached(filepath)
+        except Exception:
+            continue
+        for paper in papers:
+            paper_id = paper.get("id")
+            if paper_id:
+                paper_id = _canonical_paper_id(paper_id)
+            if not paper_id or paper_id in index:
+                continue
+            item = dict(paper)
+            item["id"] = paper_id
+            item["date"] = fname.replace("digest_", "").replace(".md", "")
+            index[paper_id] = item
+
+    return index

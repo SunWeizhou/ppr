@@ -1,4 +1,4 @@
-"""arXiv Paper Recommender — web server entry point.
+"""StatDesk — web server entry point.
 
 Thin Flask application shell. Page rendering, business logic, and API
 handling live in app/viewmodels/, app/services/, and app/routes/.
@@ -6,15 +6,16 @@ handling live in app/viewmodels/, app/services/, and app/routes/.
 
 from __future__ import annotations
 
+import hashlib
 import os
 import subprocess  # noqa: F401 — test compat (mocked via web_server.subprocess)
 import time
+from urllib.parse import urlparse
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from urllib.parse import urlparse
 
-from app_paths import CACHE_DIR, PROJECT_ROOT, STATE_DB_PATH, ensure_runtime_dirs
+from app_paths import CACHE_DIR, PROJECT_ROOT, SNAPSHOT_FILES, STATE_DB_PATH, ensure_runtime_dirs
 from logger_config import get_logger
 from state_store import get_state_store
 
@@ -29,6 +30,40 @@ if os.getenv("USE_DEV_SERVER"):
     CORS(app)
 else:
     CORS(app, origins=["http://localhost:5555", "http://127.0.0.1:5555"])
+
+# Static assets: 1-year immutable cache (cache-bust via content hash)
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000
+
+
+def _compute_static_hash() -> str:
+    """MD5 of all static .js/.css content → auto cache-bust on any change."""
+    static_dir = os.path.join(PROJECT_ROOT, "static")
+    hasher = hashlib.md5()
+    for root, _dirs, files in os.walk(static_dir):
+        for f in sorted(files):
+            if f.endswith((".js", ".css")):
+                path = os.path.join(root, f)
+                try:
+                    with open(path, "rb") as fh:
+                        hasher.update(fh.read())
+                except OSError:
+                    pass  # skip unreadable files
+    return hasher.hexdigest()[:8]
+
+
+_STATIC_VERSION = _compute_static_hash()
+
+
+@app.after_request
+def _cache_static_assets(response):
+    if request.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
+
+
+@app.context_processor
+def _inject_static_version():
+    return {"static_version": _STATIC_VERSION}
 
 
 @app.before_request
@@ -75,15 +110,7 @@ FEEDBACK_FILE = str(CACHE_DIR / "user_feedback.json")
 FAVORITES_FILE = str(CACHE_DIR / "favorite_papers.json")
 CACHE_FILE = str(CACHE_DIR / "paper_cache.json")
 
-SNAPSHOT_FILES = {
-    "user_profile": PROJECT_ROOT / "user_profile.json",
-    "user_config": PROJECT_ROOT / "user_config.json",
-    "keywords_config": PROJECT_ROOT / "keywords_config.json",
-    "user_feedback": CACHE_DIR / "user_feedback.json",
-    "favorite_papers": CACHE_DIR / "favorite_papers.json",
-    "paper_cache": CACHE_DIR / "paper_cache.json",
-    "journal_update_log": CACHE_DIR / "journal_update_log.json",
-}
+# SNAPSHOT_FILES imported from app_paths (consolidated, single source of truth)
 
 # ---------------------------------------------------------------------------
 # Blueprint registration (module-level -- required for test clients)
@@ -103,6 +130,14 @@ register_blueprints(app)
 
 def main():
     ensure_runtime_dirs()
+
+    # Recover stale jobs on startup so no job blocks future runs
+    try:
+        recovered = STATE_STORE.recover_stale_jobs(stale_after_minutes=120)
+        if recovered:
+            logger.info("Recovered %d stale job(s) on startup", recovered)
+    except Exception:
+        logger.debug("Job recovery on startup skipped (DB not ready)")
 
     if os.getenv("USE_DEV_SERVER"):
         logger.info("Starting Flask dev server on http://localhost:5555")

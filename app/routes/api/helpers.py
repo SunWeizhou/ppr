@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import sys
 from datetime import datetime
 
@@ -17,7 +16,7 @@ from app.services.ai_analysis_service import AIAnalysisService
 from app.services.ai_providers import build_ai_provider_from_env
 from app.services.errors import AppError
 from app.services.queue_service import QueueService
-from app.viewmodels.shared import serialize_collection, serialize_saved_search, serialize_job  # noqa: F401
+from app.viewmodels.shared import serialize_collection, serialize_job, serialize_saved_search  # noqa: F401
 from app_paths import CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
 from state_store import QUEUE_STATUS_VALUES, _canonical_paper_id, get_state_store  # noqa: F401
 from utils import atomic_write_json, safe_load_json  # noqa: F401
@@ -158,16 +157,6 @@ def _scholar_service():
 # Snapshot helpers
 # ---------------------------------------------------------------------------
 
-SNAPSHOT_FILES = {
-    "user_profile": PROJECT_ROOT / "user_profile.json",
-    "user_config": PROJECT_ROOT / "user_config.json",
-    "keywords_config": PROJECT_ROOT / "keywords_config.json",
-    "user_feedback": CACHE_DIR / "user_feedback.json",
-    "favorite_papers": CACHE_DIR / "favorite_papers.json",
-    "paper_cache": CACHE_DIR / "paper_cache.json",
-    "journal_update_log": CACHE_DIR / "journal_update_log.json",
-}
-
 
 def _get_snapshot_files():
     """Return the snapshot file mapping, respecting web_server patches for tests."""
@@ -176,6 +165,8 @@ def _get_snapshot_files():
 
         return web_server.SNAPSHOT_FILES
     except Exception:
+        from app_paths import SNAPSHOT_FILES
+
         return SNAPSHOT_FILES
 
 
@@ -194,68 +185,17 @@ def _build_state_snapshot_inline():
 
 
 def _build_recommendation_health(cached_papers=None):
-    """Build recommendation health diagnostics."""
-    try:
-        from config_manager import get_config
+    """Build recommendation health diagnostics (delegates to shared helper)."""
+    from app.services.diagnostics_service import build_recommendation_health
 
-        config = get_config()
-        core_count = len(config.core_keywords)
-        secondary_count = len(config.get_keywords_by_category("secondary"))
-        theory_count = len(config.theory_keywords)
-        zotero_path = os.path.expanduser(config._zotero.database_path or "")
-        zotero_exists = bool(zotero_path and os.path.exists(zotero_path))
-        scores = [float(paper.get("score", 0) or 0) for paper in (cached_papers or [])]
-        max_score = max(scores, default=0.0)
-        low_signal_count = sum(1 for score in scores if score <= 0.7)
-        return {
-            "core_keyword_count": core_count,
-            "secondary_keyword_count": secondary_count,
-            "theory_keyword_count": theory_count,
-            "has_positive_profile": (core_count + secondary_count) > 0,
-            "max_score": max_score,
-            "low_signal_count": low_signal_count,
-            "zotero": {
-                "enabled": bool(config._zotero.enabled),
-                "configured_path": config._zotero.database_path,
-                "path_exists": zotero_exists,
-                "auto_detect": bool(config._zotero.auto_detect),
-            },
-        }
-    except Exception:
-        logger.warning("Could not build recommendation health", exc_info=True)
-        return {
-            "core_keyword_count": 0,
-            "secondary_keyword_count": 0,
-            "theory_keyword_count": 0,
-            "has_positive_profile": False,
-            "zotero": {"enabled": False, "configured_path": "", "path_exists": False},
-        }
+    return build_recommendation_health(cached_papers, logger=logger)
 
 
 def _load_history_paper_index():
-    """Lightweight inline version of _load_history_paper_index for related-paper lookups."""
-    all_papers = {}
-    hist_dir = str(HISTORY_DIR)
-    if not os.path.exists(hist_dir):
-        return all_papers
-    for fname in sorted(os.listdir(hist_dir)):
-        if not (fname.startswith("digest_") and fname.endswith(".md")):
-            continue
-        filepath = os.path.join(hist_dir, fname)
-        try:
-            from utils import parse_markdown_digest_cached
+    """Build {paper_id: paper_dict} index from history digest files."""
+    from utils import load_history_paper_index
 
-            papers, _ = parse_markdown_digest_cached(filepath)
-        except Exception:
-            continue
-        for paper in papers:
-            paper_id = paper.get("id")
-            if not paper_id or paper_id in all_papers:
-                continue
-            item = dict(paper)
-            item["date"] = fname.replace("digest_", "").replace(".md", "")
-            all_papers[paper_id] = item
-    return all_papers
+    return load_history_paper_index(HISTORY_DIR)
 
 
 # ---------------------------------------------------------------------------

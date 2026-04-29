@@ -3,19 +3,28 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 from typing import Optional
 
-from app_paths import CACHE_DIR, HISTORY_DIR
 from app.services.paper_utils import (
     category_labels,
+)
+from app.services.paper_utils import (
     extract_primary_author as _extract_primary_author,
+)
+from app.services.paper_utils import (
     format_author_text as _format_author_text,
+)
+from app.services.paper_utils import (
     generate_relevance_html as _generate_relevance_html,
+)
+from app.services.paper_utils import (
     normalize_queue_status as _normalize_queue_status,
+)
+from app.services.paper_utils import (
     status_class as _status_class,
 )
+from app_paths import CACHE_DIR, HISTORY_DIR
 from state_store import QUEUE_STATUS_VALUES, _canonical_paper_id
 
 
@@ -34,7 +43,7 @@ class QueueService:
         self.cache_dir = Path(cache_dir)
         self.history_dir = Path(history_dir)
 
-    def list_items(self, status: Optional[str] = None):
+    def list_items(self, status: str | None = None):
         if status and status not in QUEUE_STATUS_VALUES:
             raise ValueError(f"Invalid queue status: {status}")
         return self.state_store.list_queue_items(status=status)
@@ -87,7 +96,7 @@ class QueueService:
         return updated
 
     def count_by_status(self):
-        counts = {status: 0 for status in QUEUE_STATUS_VALUES}
+        counts = dict.fromkeys(QUEUE_STATUS_VALUES, 0)
         for item in self.state_store.list_queue_items():
             status = item.get("status")
             if status in counts:
@@ -125,61 +134,10 @@ class QueueService:
                 paper_cache[canonical] = dict(info) if isinstance(info, dict) else {}
         return paper_cache
 
-    def _available_history_dates(self):
-        if not self.history_dir.exists():
-            return []
-        dates = []
-        for path in self.history_dir.glob("digest_*.md"):
-            match = re.search(r"digest_(\d{4}-\d{2}-\d{2})", path.name)
-            if match:
-                dates.append(match.group(1))
-        return sorted(dates, reverse=True)
-
-    def _parse_history_digest(self, path: Path):
-        content = path.read_text(encoding="utf-8")
-        papers = []
-        for section in re.split(r"## \d+\.\s*", content)[1:]:
-            lines = [line.strip() for line in section.strip().splitlines() if line.strip()]
-            if not lines:
-                continue
-            paper = {"title": lines[0]}
-            for line in lines[1:]:
-                if line.startswith("**Authors:**"):
-                    paper["authors"] = line.replace("**Authors:**", "").strip()
-                elif line.startswith("**arXiv:**") or line.startswith("**arXiv Link:**"):
-                    match = re.search(r"\[([^\]]+)\]\(([^)]+)\)", line)
-                    if match:
-                        paper["id"] = _canonical_paper_id(match.group(1))
-                        paper["link"] = match.group(2)
-                elif line.startswith("**Summary:**"):
-                    paper["summary"] = line.replace("**Summary:**", "").strip()
-                    paper["abstract"] = paper["summary"]
-                elif line.startswith("**Relevance:**"):
-                    paper["relevance"] = line.replace("**Relevance:**", "").strip()
-                elif line.startswith("**Score:**"):
-                    try:
-                        paper["score"] = float(line.replace("**Score:**", "").strip())
-                    except ValueError:
-                        paper["score"] = 0
-            if paper.get("id"):
-                papers.append(paper)
-        return papers
-
     def _load_history_paper_index(self):
-        index = {}
-        for date in self._available_history_dates():
-            path = self.history_dir / f"digest_{date}.md"
-            try:
-                papers = self._parse_history_digest(path)
-            except OSError:
-                continue
-            for paper in papers:
-                paper_id = paper.get("id")
-                if paper_id and paper_id not in index:
-                    item = dict(paper)
-                    item["date"] = date
-                    index[paper_id] = item
-        return index
+        from utils import load_history_paper_index
+
+        return load_history_paper_index(self.history_dir)
 
     def _resolve_paper_record(self, paper_id, *, history_index, favorites, paper_cache):
         paper_id = _canonical_paper_id(paper_id)
@@ -187,12 +145,12 @@ class QueueService:
             favorite = favorites[paper_id]
             return {
                 "id": paper_id,
-                "title": favorite.get("title", f"论文 {paper_id}"),
+                "title": favorite.get("title", f"Paper {paper_id}"),
                 "link": favorite.get("link", f"https://arxiv.org/abs/{paper_id}"),
                 "authors": favorite.get("authors", ""),
                 "summary": favorite.get("summary", favorite.get("abstract", "")[:300] if favorite.get("abstract") else ""),
                 "abstract": favorite.get("abstract", favorite.get("summary", "")),
-                "relevance": favorite.get("relevance", "来自你的长期收藏"),
+                "relevance": favorite.get("relevance", "From your long-term collection"),
                 "score": favorite.get("score", 0),
                 "date": (favorite.get("date_published") or favorite.get("date_added") or "")[:10],
                 "categories": favorite.get("categories", []),
@@ -209,12 +167,12 @@ class QueueService:
             cached = paper_cache[paper_id]
             return {
                 "id": paper_id,
-                "title": cached.get("title", f"论文 {paper_id}"),
+                "title": cached.get("title", f"Paper {paper_id}"),
                 "link": f"https://arxiv.org/abs/{paper_id}",
-                "authors": cached.get("authors", "作者信息不可用"),
-                "summary": cached.get("abstract", "摘要不可用"),
+                "authors": cached.get("authors", "Author information unavailable"),
+                "summary": cached.get("abstract", "Abstract unavailable"),
                 "abstract": cached.get("abstract", ""),
-                "relevance": cached.get("relevance", "来自缓存"),
+                "relevance": cached.get("relevance", "From cache"),
                 "score": cached.get("score", 0),
                 "date": cached.get("date", ""),
                 "categories": cached.get("categories", []),
@@ -222,12 +180,12 @@ class QueueService:
             }
         return {
             "id": paper_id,
-            "title": f"论文 {paper_id}",
+            "title": f"Paper {paper_id}",
             "link": f"https://arxiv.org/abs/{paper_id}",
-            "authors": "详情不可用",
-            "summary": "此论文信息暂时不在历史记录或缓存中，可按需补全。",
+            "authors": "Details unavailable",
+            "summary": "Paper information not found in history or cache.",
             "abstract": "",
-            "relevance": "点击查看 arXiv 页面",
+            "relevance": "View on arXiv",
             "score": 0,
             "date": "",
             "categories": [],
@@ -314,7 +272,7 @@ class QueueService:
             "skim_later": skim_later[:5],
         }
 
-    def resolve_papers(self, status: Optional[str] = None):
+    def resolve_papers(self, status: str | None = None):
         feedback = self.load_feedback()
         history_index = self._load_history_paper_index()
         favorites = self._load_favorites()
