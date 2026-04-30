@@ -2451,6 +2451,10 @@ select {
   font-weight: bold;
 }
 
+.value-good { color: var(--sage); }
+.value-warn { color: var(--gold); }
+.value-bad { color: var(--danger); }
+
 #eval-spinner {
   display: none;
   text-align: center;

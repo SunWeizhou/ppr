@@ -24,6 +24,22 @@
     </div>
 
     <div id="eval-results">
+        {% if feedback_auc is not none %}
+        <div class="card card-spaced">
+            <div class="section-head">
+                <h2 class="panel-title">Feedback Model</h2>
+            </div>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="value {% if feedback_auc >= 0.55 %}value-good{% elif feedback_auc >= 0.50 %}value-warn{% else %}value-bad{% endif %}">
+                        {{ "%.3f"|format(feedback_auc) }}
+                    </div>
+                    <div class="label">AUC (≥0.55 = used in scoring)</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         {% if latest_report %}
         {% set variants = latest_report.get('variants', {}) %}
         {% if variants %}

@@ -101,10 +101,12 @@ class EvalViewModel:
         page_ctx.setdefault("queue_status_values", QUEUE_STATUS_VALUES)
 
         reports = self.list_reports()
+        feedback_auc = self._store.get_feedback_model_auc()
         return {
             "title": "Evaluation Dashboard - arXiv Recommender",
             "reports": reports,
             "has_reports": len(reports) > 0,
             "latest_report": reports[0] if reports else None,
+            "feedback_auc": feedback_auc,
             **page_ctx,
         }
