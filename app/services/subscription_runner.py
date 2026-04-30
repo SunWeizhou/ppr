@@ -9,7 +9,7 @@ the arXiv API, then dedupe and persist new hits.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
 from logger_config import get_logger
 from app.services.subscription_service import SubscriptionService
@@ -92,6 +92,50 @@ class SubscriptionRunner:
         }
 
     # ------------------------------------------------------------------
+    # Shared helpers
+    # ------------------------------------------------------------------
+
+    def _search_local_recommendations(
+        self, match_fn: Callable[[dict], bool]
+    ) -> List[str]:
+        """Iterate recent recommendation items and collect paper_ids where *match_fn* is True."""
+        paper_ids: List[str] = []
+        try:
+            runs = self._store.list_recommendation_runs(limit=10)
+            for run in runs:
+                items = self._store.get_recommendation_items(run["run_id"])
+                for item in items:
+                    if match_fn(item):
+                        pid = _canonical_paper_id(item.get("paper_id") or "")
+                        if pid and pid not in paper_ids:
+                            paper_ids.append(pid)
+        except Exception as e:
+            logger.debug(f"Local recommendation lookup failed: {e}")
+        return paper_ids
+
+    def _search_arxiv_api(
+        self, query_terms: List[str], subscription_name: str
+    ) -> List[str]:
+        """Search arXiv API and return paper IDs."""
+        from app.services.arxiv_source import search_by_keywords
+
+        try:
+            papers = search_by_keywords(
+                query_terms, max_results=10, days_back=90
+            )
+        except Exception as e:
+            logger.warning(
+                f"arXiv search failed for '{subscription_name}': {e}"
+            )
+            return []
+        paper_ids: List[str] = []
+        for p in papers:
+            pid = _canonical_paper_id(p.get("id") or p.get("paper_id") or "")
+            if pid and pid not in paper_ids:
+                paper_ids.append(pid)
+        return paper_ids
+
+    # ------------------------------------------------------------------
     # Type-specific runners
     # ------------------------------------------------------------------
 
@@ -102,8 +146,6 @@ class SubscriptionRunner:
         text and also checks cached recommendation items for keyword matches
         in titles.  Returns the number of *new* hits persisted.
         """
-        from app.services.arxiv_source import search_by_keywords
-
         query_text = sub.get("query_text") or sub.get("name", "")
         keywords = [
             k.strip()
@@ -113,39 +155,13 @@ class SubscriptionRunner:
         if not keywords:
             return 0
 
-        paper_ids: List[str] = []
+        def _match(item: dict) -> bool:
+            title = (item.get("title") or "").lower()
+            abstract = (item.get("abstract") or "").lower()
+            return any(kw.lower() in title or kw.lower() in abstract for kw in keywords)
 
-        # 1. Check cached recommendation_items for matching titles
-        try:
-            runs = self._store.list_recommendation_runs(limit=10)
-            for run in runs:
-                items = self._store.get_recommendation_items(run["run_id"])
-                for item in items:
-                    title = (item.get("title") or "").lower()
-                    abstract = (item.get("abstract") or "").lower()
-                    for kw in keywords:
-                        if kw.lower() in title or kw.lower() in abstract:
-                            pid = _canonical_paper_id(
-                                item.get("paper_id") or ""
-                            )
-                            if pid and pid not in paper_ids:
-                                paper_ids.append(pid)
-                            break
-        except Exception as e:
-            logger.debug(f"Query local lookup failed: {e}")
-
-        # 2. Search arXiv API
-        try:
-            papers = search_by_keywords(keywords, max_results=10, days_back=90)
-            for p in papers:
-                pid = _canonical_paper_id(
-                    p.get("id") or p.get("paper_id") or ""
-                )
-                if pid and pid not in paper_ids:
-                    paper_ids.append(pid)
-        except Exception as e:
-            logger.warning(f"Query arXiv search failed for '{query_text}': {e}")
-
+        paper_ids = self._search_local_recommendations(_match)
+        paper_ids.extend(self._search_arxiv_api(keywords, query_text))
         return self.persist_hits(sub["id"], paper_ids, "query")
 
     def run_author_subscription(self, sub: dict) -> int:
@@ -155,49 +171,20 @@ class SubscriptionRunner:
         and also searches the arXiv API via the ``au:`` prefix.  Returns the
         number of *new* hits persisted.
         """
-        from app.services.arxiv_source import search_by_keywords
-
         author_name = sub.get("query_text") or sub.get("name", "")
         if not author_name:
             return 0
 
-        paper_ids: List[str] = []
+        def _match(item: dict) -> bool:
+            authors = item.get("authors", [])
+            if isinstance(authors, list):
+                return any(author_name.lower() in a.lower() for a in authors)
+            return False
 
-        # 1. Check cached recommendation_items for papers by this author
-        try:
-            runs = self._store.list_recommendation_runs(limit=10)
-            for run in runs:
-                items = self._store.get_recommendation_items(run["run_id"])
-                for item in items:
-                    authors = item.get("authors", [])
-                    if isinstance(authors, list):
-                        for a in authors:
-                            if author_name.lower() in a.lower():
-                                pid = _canonical_paper_id(
-                                    item.get("paper_id") or ""
-                                )
-                                if pid and pid not in paper_ids:
-                                    paper_ids.append(pid)
-                                break
-        except Exception as e:
-            logger.debug(f"Author local lookup failed: {e}")
-
-        # 2. Search arXiv API via author prefix
-        try:
-            papers = search_by_keywords(
-                [f'au:{author_name}'], max_results=10, days_back=90
-            )
-            for p in papers:
-                pid = _canonical_paper_id(
-                    p.get("id") or p.get("paper_id") or ""
-                )
-                if pid and pid not in paper_ids:
-                    paper_ids.append(pid)
-        except Exception as e:
-            logger.warning(
-                f"Author arXiv search failed for '{author_name}': {e}"
-            )
-
+        paper_ids = self._search_local_recommendations(_match)
+        paper_ids.extend(
+            self._search_arxiv_api([f"au:{author_name}"], author_name)
+        )
         return self.persist_hits(sub["id"], paper_ids, "author")
 
     def run_venue_subscription(self, sub: dict) -> int:
@@ -207,45 +194,18 @@ class SubscriptionRunner:
         the venue string and also searches the arXiv API.  Returns the
         number of *new* hits persisted.
         """
-        from app.services.arxiv_source import search_by_keywords
-
         venue = sub.get("query_text") or sub.get("name", "")
         if not venue:
             return 0
 
-        paper_ids: List[str] = []
+        def _match(item: dict) -> bool:
+            categories = item.get("categories", [])
+            if isinstance(categories, list):
+                return any(venue.lower() in cat.lower() for cat in categories)
+            return False
 
-        # 1. Check recommendation_items for papers matching venue/category
-        try:
-            runs = self._store.list_recommendation_runs(limit=10)
-            for run in runs:
-                items = self._store.get_recommendation_items(run["run_id"])
-                for item in items:
-                    categories = item.get("categories", [])
-                    if isinstance(categories, list):
-                        for cat in categories:
-                            if venue.lower() in cat.lower():
-                                pid = _canonical_paper_id(
-                                    item.get("paper_id") or ""
-                                )
-                                if pid and pid not in paper_ids:
-                                    paper_ids.append(pid)
-                                break
-        except Exception as e:
-            logger.debug(f"Venue local lookup failed: {e}")
-
-        # 2. Search arXiv API
-        try:
-            papers = search_by_keywords([venue], max_results=10, days_back=90)
-            for p in papers:
-                pid = _canonical_paper_id(
-                    p.get("id") or p.get("paper_id") or ""
-                )
-                if pid and pid not in paper_ids:
-                    paper_ids.append(pid)
-        except Exception as e:
-            logger.warning(f"Venue arXiv search failed for '{venue}': {e}")
-
+        paper_ids = self._search_local_recommendations(_match)
+        paper_ids.extend(self._search_arxiv_api([venue], venue))
         return self.persist_hits(sub["id"], paper_ids, "venue")
 
     # ------------------------------------------------------------------
