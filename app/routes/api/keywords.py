@@ -139,24 +139,17 @@ def save_settings():
 
         cm = get_config()
 
-        # Parse topics from arrays (new format)
+        # Parse core topics
         core_topics = data.get("coreTopics", [])
-        secondary_topics = data.get("secondaryTopics", [])
-        demote_text = str(data.get("demoteTopics", ""))
-        demote_topics = [t.strip() for t in demote_text.split(",") if t.strip()]
-        theory_keywords = data.get("theoryKeywords", [])
-        dislike_text = data.get("dislikeTopics", "")
-        dislike_topics = [t.strip() for t in dislike_text.split(",") if t.strip()]
 
         # If coreTopics is empty, try legacy format
         if not core_topics:
             priority_text = data.get("priorityTopics", "")
             core_topics = [t.strip() for t in priority_text.split(",") if t.strip()]
 
-        # Clear existing keywords first
+        # Clear existing keywords and set core topics
         cm._keywords.clear()
 
-        # Set core topics
         core_weights = {
             "statistical learning theory": 4.5,
             "nonparametric estimation": 4.0,
@@ -174,41 +167,12 @@ def save_settings():
             weight = core_weights.get(topic.lower(), 4.0)
             cm.set_keyword(topic, weight, "core", save=False)
 
-        # Set secondary topics
-        secondary_weights = {
-            "uniform convergence": 3.0,
-            "algorithmic stability": 2.5,
-            "empirical risk minimization": 2.0,
-            "concentration inequalities": 3.0,
-            "learning theory": 2.5,
-            "estimation": 0.5,
-            "risk bounds": 2.5,
-        }
-        for topic in secondary_topics:
-            weight = secondary_weights.get(topic.lower(), 2.5)
-            cm.set_keyword(topic, weight, "secondary", save=False)
-
-        for topic in demote_topics:
-            cm.set_keyword(topic, -0.8, "demote", save=False)
-
-        # Set theory keywords in config
-        cm._config["theory_keywords"] = theory_keywords
-
-        # Set dislike topics
-        for topic in dislike_topics:
-            cm.set_keyword(topic, -1.0, "dislike", save=False)
-
         # Update settings
         cm._settings.papers_per_day = data.get("papersPerDay", 20)
-        cm._settings.prefer_theory = data.get("preferTheory", True)
-        cm._settings.theory_enabled = data.get("theoryEnabled", True)
         cm._sources.arxiv_enabled = bool(data.get("arxivEnabled", True))
         cm._sources.journal_enabled = bool(data.get("journalEnabled", True))
         cm._sources.scholar_enabled = bool(data.get("scholarEnabled", False))
         cm._sources.lookback_days = int(data.get("lookbackDays", cm._sources.lookback_days or 14))
-        cm._zotero.enabled = bool(data.get("zoteroEnabled", True))
-        cm._zotero.auto_detect = bool(data.get("zoteroAutoDetect", True))
-        cm._zotero.database_path = str(data.get("zoteroPath", cm._zotero.database_path or "")).strip()
 
         # Save to user_profile.json
         cm.save()
@@ -217,8 +181,8 @@ def save_settings():
         reload_config()
 
         logger.info(
-            "Saved %d core, %d secondary, %d theory keywords",
-            len(core_topics), len(secondary_topics), len(theory_keywords),
+            "Saved %d core keywords",
+            len(core_topics),
         )
 
         # Regenerate if requested
@@ -250,11 +214,8 @@ def save_settings():
 
         return jsonify({
             "success": True,
-            "message": f"Saved {len(core_topics)} core, {len(secondary_topics)} secondary, {len(theory_keywords)} theory keywords",
+            "message": f"Saved {len(core_topics)} core keywords",
             "core_count": len(core_topics),
-            "secondary_count": len(secondary_topics),
-            "demote_count": len(demote_topics),
-            "theory_count": len(theory_keywords),
             "job": serialize_job(regeneration_job) if regeneration_job else None,
         })
 

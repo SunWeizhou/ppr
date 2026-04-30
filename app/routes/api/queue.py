@@ -33,6 +33,8 @@ def manage_queue():
         note=data.get("note"),
         tags=data.get("tags"),
     )
+    # Record queue status change interaction event
+    _current_state_store().record_event("queue_status_changed", paper_id, {"status": status})
     return jsonify({"success": True, "item": item, "event_id": event_id})
 
 
@@ -52,5 +54,10 @@ def manage_queue_bulk():
         if "Invalid queue status" in message:
             message = "Invalid status"
         return jsonify({"success": False, "error": message}), 400
+
+    # Record queue status change interaction events for each paper
+    store = _current_state_store()
+    for paper_id in data.get("paper_ids", []):
+        store.record_event("queue_status_changed", paper_id, {"status": data.get("status")})
 
     return jsonify({"success": True, "items": updated, "count": len(updated)})

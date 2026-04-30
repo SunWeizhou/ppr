@@ -83,16 +83,16 @@ class LocalProductizationTests(unittest.TestCase):
             self.assertIn("theorem", config.theory_keywords)
             self.assertIn("benchmark", config.demote_keywords)
 
-    def test_scorer_uses_configured_theory_keywords(self):
+    def test_scorer_uses_core_keywords(self):
         with tempfile.TemporaryDirectory() as tmp:
             profile = Path(tmp) / "user_profile.json"
             profile.write_text(
                 json.dumps(
                     {
                         "version": 2,
-                        "keywords": {},
-                        "theory_keywords": ["lyapunov"],
-                        "settings": {"theory_enabled": True},
+                        "keywords": {
+                            "conformal prediction": {"weight": 5.0, "category": "core"},
+                        },
                     }
                 ),
                 encoding="utf-8",
@@ -106,17 +106,16 @@ class LocalProductizationTests(unittest.TestCase):
             score, details = scorer.compute_score(
                 {
                     "id": "2604.12345v2",
-                    "title": "Lyapunov Analysis for Stable Learning",
-                    "abstract": "A short abstract.",
+                    "title": "Conformal Prediction for Stable Learning",
+                    "abstract": "A short abstract about conformal prediction methods.",
                     "authors": [],
                     "categories": [],
                 }
             )
 
             self.assertGreater(score, 0)
-            self.assertTrue(
-                any(reason.get("type") == "theory" for reason in details["breakdown"])
-            )
+            self.assertIn("relevance", details)
+            self.assertGreater(details["relevance"], 0)
 
     def test_arxiv_identity_normalizes_versioned_ids(self):
         import arxiv_recommender_v5

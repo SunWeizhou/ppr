@@ -218,6 +218,21 @@ class StateStore:
                 CREATE INDEX IF NOT EXISTS idx_rec_runs_date ON recommendation_runs(run_date);
                 CREATE INDEX IF NOT EXISTS idx_rec_items_run ON recommendation_items(run_id);
                 CREATE INDEX IF NOT EXISTS idx_rec_items_paper ON recommendation_items(paper_id);
+
+                CREATE TABLE IF NOT EXISTS paper_embeddings (
+                    paper_id TEXT PRIMARY KEY,
+                    embedding BLOB,
+                    model_name TEXT,
+                    created_at TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS feedback_models (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    trained_at TEXT,
+                    sample_count INTEGER,
+                    auc REAL,
+                    pickle_blob BLOB
+                );
                 """
             )
             # Check current schema version and migrate if needed
@@ -242,6 +257,12 @@ class StateStore:
                 conn.execute("ALTER TABLE recommendation_runs ADD COLUMN themes_json TEXT NOT NULL DEFAULT '[]'")
             except sqlite3.OperationalError:
                 pass  # Column already exists
+
+            if current_version < 5:
+                conn.execute(
+                    "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '5')"
+                )
+            # feedback_models table is created via CREATE TABLE IF NOT EXISTS above
             self._migrate_arxiv_paper_ids(conn)
 
     def _migrate_arxiv_paper_ids(self, conn: sqlite3.Connection) -> None:
@@ -1535,6 +1556,91 @@ class StateStore:
             ).fetchone()
         return self._row_to_dict(row)
 
+    # ------------------------------------------------------------------
+    # Paper Embeddings
+    # ------------------------------------------------------------------
+
+    def save_paper_embedding(self, paper_id: str, embedding_bytes: bytes, model_name: str) -> None:
+        """Save a paper embedding to the paper_embeddings table."""
+        paper_id = _canonical_paper_id(paper_id)
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO paper_embeddings(paper_id, embedding, model_name, created_at) VALUES (?, ?, ?, ?)",
+                (paper_id, embedding_bytes, model_name, now),
+            )
+
+    def get_paper_embedding(self, paper_id: str):
+        """Get a paper embedding. Returns (embedding_blob, model_name, created_at) or None."""
+        paper_id = _canonical_paper_id(paper_id)
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT embedding, model_name, created_at FROM paper_embeddings WHERE paper_id = ?",
+                (paper_id,),
+            ).fetchone()
+        if row:
+            return (row["embedding"], row["model_name"], row["created_at"])
+        return None
+
+    def get_all_embeddings_for_model(self, model_name: str):
+        """Get all embeddings for a given model. Returns list of (paper_id, embedding_blob, created_at)."""
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT paper_id, embedding, created_at FROM paper_embeddings WHERE model_name = ?",
+                (model_name,),
+            ).fetchall()
+        return [(row["paper_id"], row["embedding"], row["created_at"]) for row in rows]
+
+    # ------------------------------------------------------------------
+    # Feedback Models
+    # ------------------------------------------------------------------
+
+    def save_feedback_model(self, sample_count: int, auc: float, pickle_blob: bytes) -> int:
+        """Save a trained feedback model. Returns the new row id."""
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            cursor = conn.execute(
+                """INSERT INTO feedback_models(trained_at, sample_count, auc, pickle_blob)
+                   VALUES (?, ?, ?, ?)""",
+                (now, sample_count, auc, pickle_blob),
+            )
+            return int(cursor.lastrowid)
+
+    def get_latest_feedback_model(self) -> Optional[Dict]:
+        """Return the most recently saved feedback model row, or None."""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM feedback_models ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    def get_feedback_model_auc(self) -> Optional[float]:
+        """Return the AUC of the most recent feedback model, or None."""
+        row = self.get_latest_feedback_model()
+        if row:
+            return float(row["auc"])
+        return None
+
+    # ------------------------------------------------------------------
+    # Generic schema_meta key-value store
+    # ------------------------------------------------------------------
+
+    def get(self, key: str) -> Optional[str]:
+        """Get a string value from the schema_meta table by key. Returns None if not found."""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT value FROM schema_meta WHERE key = ?", (key,)
+            ).fetchone()
+        return row["value"] if row else None
+
+    def save(self, key: str, value: str) -> None:
+        """Save a string value into the schema_meta table (upsert by key)."""
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO schema_meta(key, value) VALUES(?, ?)",
+                (key, value),
+            )
+
     def export_state(self) -> Dict[str, List[Dict]]:
         tables = [
             "job_runs",
@@ -1547,6 +1653,8 @@ class StateStore:
             "paper_ai_analyses",
             "subscriptions",
             "subscription_hits",
+            "paper_embeddings",
+            "feedback_models",
         ]
         snapshot: Dict[str, List[Dict]] = {}
         with self._connect() as conn:
@@ -1592,6 +1700,12 @@ class StateStore:
             "subscription_hits": [
                 "id", "subscription_id", "paper_id", "matched_reason",
                 "hit_date", "status", "created_at",
+            ],
+            "paper_embeddings": [
+                "paper_id", "embedding", "model_name", "created_at",
+            ],
+            "feedback_models": [
+                "id", "trained_at", "sample_count", "auc", "pickle_blob",
             ],
         }
 

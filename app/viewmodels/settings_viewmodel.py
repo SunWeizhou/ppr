@@ -54,7 +54,6 @@ class SettingsViewModel:
             config = get_config()
             core_count = len(config.core_keywords)
             secondary_count = len(config.get_keywords_by_category("secondary"))
-            theory_count = len(config.theory_keywords)
             zotero_path = os.path.expanduser(config._zotero.database_path or "")
             zotero_exists = bool(zotero_path and os.path.exists(zotero_path))
             scores = [
@@ -66,7 +65,6 @@ class SettingsViewModel:
             return {
                 "core_keyword_count": core_count,
                 "secondary_keyword_count": secondary_count,
-                "theory_keyword_count": theory_count,
                 "has_positive_profile": (core_count + secondary_count) > 0,
                 "max_score": max_score,
                 "low_signal_count": low_signal_count,
@@ -81,7 +79,6 @@ class SettingsViewModel:
             return {
                 "core_keyword_count": 0,
                 "secondary_keyword_count": 0,
-                "theory_keyword_count": 0,
                 "has_positive_profile": False,
                 "zotero": {
                     "enabled": False,
@@ -114,15 +111,7 @@ class SettingsViewModel:
 
             config = get_config()
             core_keywords = list(config.core_keywords.keys())
-            secondary_keywords = list(
-                config.get_keywords_by_category("secondary").keys()
-            )
-            demote_keywords = list(config.demote_keywords.keys())
-            dislike_topics = list(config.dislike_keywords.keys())
-            theory_keywords = config._config.get("theory_keywords", [])
             papers_per_day = config._settings.papers_per_day
-            prefer_theory = config._settings.prefer_theory
-            theory_enabled = getattr(config._settings, "theory_enabled", True)
             sources = {
                 "arxiv_enabled": config._sources.arxiv_enabled,
                 "journal_enabled": config._sources.journal_enabled,
@@ -137,13 +126,7 @@ class SettingsViewModel:
             ai_config = config.get_ai_config()
         except Exception:
             core_keywords = []
-            secondary_keywords = []
-            demote_keywords = []
-            dislike_topics = []
-            theory_keywords = []
             papers_per_day = 20
-            prefer_theory = True
-            theory_enabled = True
             sources = {
                 "arxiv_enabled": True,
                 "journal_enabled": True,
@@ -159,22 +142,13 @@ class SettingsViewModel:
                 "enabled": False,
             }
 
-        dislike_text = ", ".join(dislike_topics)
-        demote_text = ", ".join(demote_keywords)
-
         page_context = self._build_page_context("settings")
 
         return {
             "title": "Settings - arXiv Recommender",
             "tab": tab,
             "core_keywords": core_keywords,
-            "secondary_keywords": secondary_keywords,
-            "demote_keywords": demote_text,
-            "theory_keywords": theory_keywords,
-            "dislike_text": dislike_text,
             "papers_per_day": papers_per_day,
-            "prefer_theory": prefer_theory,
-            "theory_enabled": theory_enabled,
             "sources": sources,
             "zotero": zotero,
             "ai_config": ai_config,

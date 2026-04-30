@@ -506,21 +506,6 @@ class ConfigManager:
             'enabled': self._ai.enabled,
         }
 
-    def add_theory_bonus(self, paper: Dict) -> float:
-        """计算论文的理论得分加成"""
-        if not self._settings.prefer_theory or not self._settings.theory_enabled:
-            return 0.0
-
-        text = (paper.get('title', '') + ' ' + paper.get('abstract', '')).lower()
-        bonus = 0.0
-
-        for keyword in self._config.get('theory_keywords', []):
-            if keyword.lower() in text:
-                bonus += self._settings.recency_bonus * 0.2
-                break
-
-        return min(bonus, self._settings.recency_bonus)
-
 
 # 全局单例
 _config_manager: Optional[ConfigManager] = None

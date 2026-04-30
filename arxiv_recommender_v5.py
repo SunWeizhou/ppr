@@ -1,12 +1,14 @@
-"""arXiv Daily Paper Recommender System v2.0 - re-export hub."""
+"""arXiv Daily Paper Recommender System v2.0 - re-export hub with feature-flag routing."""
+
+from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import List, Dict
 
 from app_paths import CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
 from app.services.daily_pipeline import (
     load_daily_recommendation as load_daily_recommendation,
-    run_pipeline as run_pipeline,
     save_daily_recommendation as save_daily_recommendation,
     save_recommendation_run as save_recommendation_run,
 )
@@ -58,3 +60,23 @@ CONFIG = {
     "embedding_model": "",
     "cache_expiry_days": 30,
 }
+
+
+def run_pipeline(force_refresh: bool = False) -> List[Dict]:
+    """Run the daily recommendation pipeline.
+
+    Feature flag: when ``STATDESK_RANKER=v2`` is set in the environment,
+    delegates to the new recall->rank->top-K pipeline (``run_pipeline_v2``).
+    Otherwise, uses the existing v1 pipeline (``run_pipeline`` from
+    :mod:`app.services.daily_pipeline`).
+
+    All existing callers (inbox, keywords, feedback) import this function,
+    so a single env-var check in this module activates v2 everywhere.
+    """
+    if os.environ.get("STATDESK_RANKER") == "v2":
+        from app.services.daily_pipeline import run_pipeline_v2
+
+        return run_pipeline_v2(force_refresh)
+    from app.services.daily_pipeline import run_pipeline as _run_pipeline_v1
+
+    return _run_pipeline_v1(force_refresh)

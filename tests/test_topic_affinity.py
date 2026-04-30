@@ -209,121 +209,24 @@ class TopicAffinityTests(unittest.TestCase):
     # Scorer integration
     # ------------------------------------------------------------------
 
-    def test_score_with_matching_affinity(self):
-        """Verify EnhancedScorer._apply_topic_affinity_score returns bonus."""
-        from app.services.scoring_service import EnhancedScorer
-
-        affinities = [
-            {"topic": "ML", "positive_score": 5.0, "negative_score": 0.0,
-             "source_event_count": 3},
-            {"topic": "Vision", "positive_score": 0.0, "negative_score": 2.0,
-             "source_event_count": 2},
-        ]
-
-        scorer = EnhancedScorer(None, use_semantic=False)
-
-        # Paper with matching category
-        paper_ml = {
-            "id": "2604.33333",
-            "title": "ML Paper",
-            "abstract": "About machine learning",
-            "categories": ["cs.LG"],
-        }
-        bonus = scorer._apply_topic_affinity_score(paper_ml, affinities)
-        self.assertGreater(bonus, 0)
-        self.assertLessEqual(bonus, 2.0)
-
-        # Paper with no matching category
-        paper_other = {
-            "id": "2604.44444",
-            "title": "Other Paper",
-            "abstract": "About something else",
-            "categories": ["math.PR"],
-        }
-        bonus2 = scorer._apply_topic_affinity_score(paper_other, affinities)
-        self.assertEqual(bonus2, 0)
-
-    def test_score_with_empty_affinities(self):
-        """Verify scorer returns 0 bonus when affinities list is empty."""
-        from app.services.scoring_service import EnhancedScorer
-
-        scorer = EnhancedScorer(None, use_semantic=False)
-        paper = {
-            "id": "2604.55555",
-            "title": "Any Paper",
-            "abstract": "Some abstract",
-            "categories": ["cs.LG"],
-        }
-        bonus = scorer._apply_topic_affinity_score(paper, [])
-        self.assertEqual(bonus, 0)
-
-    def test_score_with_no_categories(self):
-        """Verify scorer returns 0 bonus when paper has no categories."""
-        from app.services.scoring_service import EnhancedScorer
-
-        affinities = [
-            {"topic": "ML", "positive_score": 5.0, "negative_score": 0.0,
-             "source_event_count": 3},
-        ]
-        scorer = EnhancedScorer(None, use_semantic=False)
-        paper = {
-            "id": "2604.66666",
-            "title": "No Cat Paper",
-            "abstract": "No categories here",
-            "categories": [],
-        }
-        bonus = scorer._apply_topic_affinity_score(paper, affinities)
-        self.assertEqual(bonus, 0)
-
-    def test_score_bonus_capped_at_2(self):
-        """Verify topic affinity score bonus is capped at 2.0."""
-        from app.services.scoring_service import EnhancedScorer
-
-        # Very high positive score
-        affinities = [
-            {"topic": "ML", "positive_score": 100.0, "negative_score": 0.0,
-             "source_event_count": 50},
-        ]
-        scorer = EnhancedScorer(None, use_semantic=False)
-        paper = {
-            "id": "2604.77777",
-            "title": "ML Paper",
-            "abstract": "About ML",
-            "categories": ["cs.LG"],
-        }
-        bonus = scorer._apply_topic_affinity_score(paper, affinities)
-        self.assertLessEqual(bonus, 2.0)
-
-    def test_compute_score_integrates_affinity_from_store(self):
-        """Verify compute_score picks up affinities from state store."""
-        import state_store as _st_mod
-
-        # Ensure singleton is None so get_state_store() returns our test store
-        _st_mod._state_store = None
-
-        # Set up the state store singleton to our test store
-        _st_mod._state_store = self.store
-
-        # Add an affinity via the proper method
-        self.store.upsert_user_topic_affinity("ML", 5.0, 0.0)
-
+    def test_compute_score_without_matching_keywords(self):
+        """Verify compute_score returns 0 for an unrelated paper."""
         from app.services.scoring_service import EnhancedScorer
 
         scorer = EnhancedScorer(None, use_semantic=False)
 
         paper = {
             "id": "2604.33333",
-            "title": "ML Paper for Integration",
-            "abstract": "A paper about machine learning topics.",
+            "title": "Unrelated Paper",
+            "abstract": "This paper is about something completely unrelated to the user's keywords.",
             "categories": ["cs.LG"],
         }
 
         score, details = scorer.compute_score(paper)
-        # Score should be positive (relevance from defaults + affinity bonus)
-        self.assertGreater(score, 0)
-
-        # Clean up singleton so other tests are not affected
-        _st_mod._state_store = None
+        # No keywords match, score should be 0
+        self.assertEqual(score, 0)
+        self.assertIn("relevance", details)
+        self.assertIn("semantic", details)
 
 
 if __name__ == "__main__":

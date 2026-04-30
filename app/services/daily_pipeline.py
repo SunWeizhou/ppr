@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
-import sqlite3
 import time
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
@@ -15,14 +13,10 @@ from logger_config import get_logger
 from app_paths import CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
 from app.services.arxiv_source import MultiSourceFetcher, PaperCache
 from app.services.digest_writer import MarkdownGenerator, generate_summary
-from app.services.feedback_service import load_user_feedback
-from app.services.feedback_learning_service import learn_from_feedback
 from app.services.html_digest_service import HTMLGenerator
 from app.services.paper_utils import download_pdfs
 from app.services.scoring_service import EnhancedScorer
-from app.services.semantic_similarity import SemanticSimilarity
-from app.services.settings_service import get_priority_topics, load_user_config
-from app.services.zotero_service import get_zotero_path
+from app.services.settings_service import get_priority_topics
 from state_store import get_state_store
 
 logger = get_logger(__name__)
@@ -113,63 +107,6 @@ def save_recommendation_run(cache_dir: str, date_str: str, papers: List[Dict], t
 # ---------------------------------------------------------------------------
 # Pipeline helper functions
 # ---------------------------------------------------------------------------
-
-
-def _load_zotero_papers() -> Tuple[List[Dict], List[str], bool]:
-    """Load Zotero papers from the Zotero database and extract research themes.
-
-    Returns:
-        A tuple of (zotero_papers, themes, use_semantic_flag) where
-        use_semantic_flag is True if Zotero papers were successfully loaded.
-    """
-    t0 = time.time()
-    zotero_path = get_zotero_path()
-    zotero_papers: List[Dict] = []
-
-    user_cfg = load_user_config()
-    use_zotero = user_cfg.get('zotero', {}).get('enabled', True)
-
-    if use_zotero and os.path.exists(zotero_path):
-        try:
-            conn = sqlite3.connect(zotero_path)
-            cursor = conn.cursor()
-            cursor.execute('''
-                SELECT i.itemID, it.typeName,
-                       MAX(CASE WHEN id.fieldID = 1 THEN idv.value END) as title,
-                       MAX(CASE WHEN id.fieldID = 2 THEN idv.value END) as abstract
-                FROM items i
-                JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
-                JOIN itemData id ON i.itemID = id.itemID
-                JOIN itemDataValues idv ON id.valueID = idv.valueID
-                WHERE i.itemTypeID IN (11, 22, 31)
-                GROUP BY i.itemID HAVING title IS NOT NULL
-            ''')
-            zotero_papers = [{'id': r[0], 'title': r[2], 'abstract': r[3] or ''} for r in cursor.fetchall()]
-            conn.close()
-            logger.info(f"Loaded {len(zotero_papers)} papers from Zotero ({time.time()-t0:.1f}s)")
-        except Exception as e:
-            logger.error(f"Zotero load error: {e}")
-    elif not use_zotero:
-        logger.info("Zotero disabled in config - running in keyword-only mode")
-    else:
-        logger.info(f"Zotero not found at {zotero_path}")
-        logger.info("  Running in keyword-only mode")
-        logger.info("  Tip: Set zotero.database_path in user_profile.json")
-
-    # Extract themes
-    t0 = time.time()
-    themes: List[str] = []
-    if zotero_papers:
-        all_text = ' '.join([p['title'] + ' ' + p['abstract'] for p in zotero_papers]).lower()
-        theme_scores: Dict[str, int] = {}
-        for topic in get_priority_topics():
-            count = len(re.findall(r'\b' + re.escape(topic.lower()) + r'\b', all_text))
-            if count > 0:
-                theme_scores[topic] = count
-        themes = [t[0] for t in sorted(theme_scores.items(), key=lambda x: -x[1])[:10]]
-        logger.debug(f"Research themes: {themes} ({time.time()-t0:.1f}s)")
-
-    return zotero_papers, themes, bool(zotero_papers)
 
 
 def _run_scoring(
@@ -280,6 +217,137 @@ def _generate_outputs(
         logger.warning(f"Failed to save recommendation to SQLite: {e}")
 
 
+def run_pipeline_v2(force_refresh: bool = False) -> list[dict]:
+    """
+    New v2 pipeline: recall -> rank -> top-K -> persist.
+    Feature flag: STATDESK_RANKER=v2 (default v1).
+    """
+    cache_dir = str(CACHE_DIR)
+    output_dir = str(PROJECT_ROOT)
+    history_dir = str(HISTORY_DIR)
+
+    logger.info("=" * 60)
+    logger.info("StatDesk Daily Pipeline v2 (recall -> rank -> top-K)")
+    logger.info("=" * 60)
+
+    # Initialize cache
+    cache = PaperCache(cache_dir)
+
+    # Check if today's recommendation already exists (pipeline-level cache)
+    today = datetime.now().strftime('%Y-%m-%d')
+    if not force_refresh:
+        store = get_state_store()
+        today_run = store.get_recommendation_run_by_date(today)
+        if today_run:
+            items = store.get_recommendation_items(today_run["run_id"])
+            if items:
+                logger.info("Found today's recommendation in SQLite (%s)", today)
+                os.makedirs(output_dir, exist_ok=True)
+                os.makedirs(history_dir, exist_ok=True)
+                html_gen = HTMLGenerator()
+                html = html_gen.generate(items, [], today, cache.get_stats())
+                with open(os.path.join(output_dir, 'index.html'), 'w', encoding='utf-8') as f:
+                    f.write(html)
+                logger.info("HTML updated: %s/index.html", output_dir)
+                logger.info("Done! Open http://localhost:5555 for interactive view")
+                return items
+
+        cached_papers, cached_themes = load_daily_recommendation(cache_dir)
+        if cached_papers:
+            logger.info("Today's recommendation exists in JSON cache, backfilling SQLite (%s)", today)
+            store.save_recommendation_run(today, "auto_homepage", cached_papers, cached_themes or [])
+            os.makedirs(output_dir, exist_ok=True)
+            os.makedirs(history_dir, exist_ok=True)
+            html_gen = HTMLGenerator()
+            html = html_gen.generate(cached_papers, cached_themes or [], today, cache.get_stats())
+            with open(os.path.join(output_dir, 'index.html'), 'w', encoding='utf-8') as f:
+                f.write(html)
+            logger.info("HTML updated: %s/index.html", output_dir)
+            logger.info("Done! Open http://localhost:5555 for interactive view")
+            return cached_papers
+
+    cache.cleanup_old_entries(_CONFIG['cache_expiry_days'])
+    logger.info("Cache: %s", cache.get_stats())
+
+    pipeline_start = time.time()
+
+    # 1. RECALL: fetch candidates via recall module (single fetch, dedup + seen-skip)
+    from app.services.recall import recall_candidates
+
+    papers = recall_candidates(
+        _CONFIG['arxiv_categories'],
+        lookback_days=_CONFIG['lookback_days'],
+        max_results=500,
+    )
+
+    if not papers:
+        logger.warning("No papers found!")
+        return []
+
+    # 2. RANK: score each paper using the ranker (keyword + author signals)
+    from app.services.ranker import score_paper
+
+    try:
+        from config_manager import get_config
+        cfg = get_config()
+        keywords = list(cfg.core_keywords.keys())
+        papers_per_day = cfg._settings.papers_per_day or _CONFIG['papers_per_day']
+    except Exception:
+        keywords = list(get_priority_topics())
+        papers_per_day = _CONFIG['papers_per_day']
+
+    ctx: dict = {"keywords": keywords}
+
+    # Enrich context with library embeddings, feedback model, and subscriptions
+    try:
+        from app.services.embedding_service import EmbeddingService
+
+        svc = EmbeddingService()
+        emb_rows = get_state_store().get_all_embeddings_for_model(svc.model_name)
+        if emb_rows:
+            import numpy as np
+
+            ctx["library_embeddings"] = [
+                np.frombuffer(blob, dtype=np.float32).tolist()
+                for _, blob, _ in emb_rows
+            ]
+    except Exception:
+        logger.warning("Could not load library embeddings for context")
+
+    try:
+        fb_data = get_state_store().get_latest_feedback_model()
+        if fb_data and fb_data.get("pickle_blob"):
+            import pickle
+
+            ctx["feedback_model"] = pickle.loads(fb_data["pickle_blob"])
+            ctx["feedback_model_auc"] = fb_data["auc"]
+    except Exception:
+        logger.warning("Could not load feedback model for context")
+
+    try:
+        ctx["subscriptions"] = get_state_store().list_subscriptions()
+    except Exception:
+        logger.warning("Could not load subscriptions for context")
+
+    for paper in papers:
+        score, explanation = score_paper(paper, ctx)
+        paper["score"] = score
+        paper["relevance_reason"] = explanation
+        paper["summary"] = generate_summary(paper.get("abstract", ""))
+
+    # 3. TOP-K: sort by score descending, take top papers_per_day
+    papers.sort(key=lambda x: -x["score"])
+    top_papers = papers[:papers_per_day]
+
+    # 4. PERSIST: reuse existing output generation (HTML, Markdown, SQLite)
+    date_str = datetime.now().strftime('%Y-%m-%d')
+    _generate_outputs(top_papers, [], date_str, cache, output_dir, history_dir, cache_dir)
+
+    _print_summary(top_papers, time.time() - pipeline_start)
+
+    return top_papers
+
+
 def _print_summary(top_papers: List[Dict], duration: float) -> None:
     """Print pipeline completion summary."""
     logger.info("=" * 60)
@@ -350,23 +418,6 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
 
     pipeline_start = time.time()
 
-    # Load user feedback and learn from it
-    feedback = load_user_feedback(cache_dir)
-
-    # Load Zotero papers
-    zotero_papers, themes, use_semantic = _load_zotero_papers()
-
-    # Initialize semantic similarity
-    t0 = time.time()
-    semantic = SemanticSimilarity(_CONFIG['embedding_model'], cache_dir)
-    if _CONFIG['use_semantic_similarity'] and zotero_papers:
-        logger.info("Computing semantic embeddings...")
-        semantic.compute_zotero_embedding(zotero_papers, get_zotero_path())
-        logger.info(f"Semantic init done ({time.time()-t0:.1f}s)")
-    elif not zotero_papers:
-        logger.info("Running in keyword-only mode (no Zotero library found)")
-        semantic = None
-
     # Fetch papers from multiple sources
     t0 = time.time()
     fetcher = MultiSourceFetcher(_CONFIG['arxiv_categories'], cache)
@@ -377,14 +428,9 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
         logger.warning("No new papers found!")
         return []
 
-    # Learn topic weights from feedback
-    t0 = time.time()
-    topic_weights = learn_from_feedback(feedback, papers)
-    logger.debug(f"Learned weights from feedback ({time.time()-t0:.1f}s)")
-
-    # Score papers
-    use_semantic_flag = _CONFIG['use_semantic_similarity'] and semantic is not None
-    top_papers = _run_scoring(papers, semantic, topic_weights, use_semantic_flag)
+    # Score papers (keyword-only mode, no semantic/Zotero)
+    themes: List[str] = []
+    top_papers = _run_scoring(papers, semantic=None, topic_weights={}, use_semantic=False)
 
     # Generate and persist outputs
     date_str = datetime.now().strftime('%Y-%m-%d')
@@ -397,6 +443,7 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
 
 __all__ = [
     "run_pipeline",
+    "run_pipeline_v2",
     "load_daily_recommendation",
     "save_daily_recommendation",
     "save_recommendation_run",

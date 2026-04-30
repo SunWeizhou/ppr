@@ -24,6 +24,18 @@ logger = logging.getLogger(__name__)
 def handle_feedback():
     data = request.get_json() or {}
     result, status = _feedback_service().handle_feedback(data)
+
+    # Record semantic interaction events for feedback actions
+    if status == 200 and result.get("success"):
+        store = _current_state_store()
+        action = data.get("action", "")
+        paper_id = data.get("paper_id", "")
+        if paper_id:
+            if action == "like":
+                store.record_event("feedback_relevant", paper_id)
+            elif action == "dislike":
+                store.record_event("feedback_ignored", paper_id)
+
     return jsonify(result), status
 
 

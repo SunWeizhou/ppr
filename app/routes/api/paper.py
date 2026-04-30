@@ -84,6 +84,9 @@ def fetch_paper_info(paper_id):
         if metadata is None:
             return jsonify({"success": False, "error": "Paper not found"}), 404
 
+        # Record paper opened interaction event
+        _current_state_store().record_event("paper_opened", paper_id)
+
         # Save to cache
         cache_path = str(CACHE_DIR / "paper_cache.json")
         paper_cache = safe_load_json(cache_path, {})
