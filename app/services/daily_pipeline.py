@@ -6,7 +6,7 @@ import json
 import os
 import time
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from logger_config import get_logger
 
@@ -111,7 +111,7 @@ def save_recommendation_run(cache_dir: str, date_str: str, papers: List[Dict], t
 
 def _run_scoring(
     papers: List[Dict],
-    semantic: Optional[SemanticSimilarity],
+    semantic: Optional[Any],
     topic_weights: Dict,
     use_semantic: bool,
 ) -> List[Dict]:

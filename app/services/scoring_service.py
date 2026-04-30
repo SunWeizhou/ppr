@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from enum import Enum
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from config_manager import get_config
 from logger_config import get_logger
@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 class EnhancedScorer:
     """Enhanced paper scorer with smart keyword matching."""
 
-    def __init__(self, semantic: 'SemanticSimilarity' = None, use_semantic: bool = True, topic_weights: Dict[str, float] = None):
+    def __init__(self, semantic: Optional[Any] = None, use_semantic: bool = True, topic_weights: Dict[str, float] = None):
         self.semantic = semantic
         self.use_semantic = use_semantic
         self.topic_weights = topic_weights or {}

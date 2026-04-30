@@ -51,20 +51,18 @@ def feedback_stats():
 
 @bp.post("/api/feedback/learn")
 def trigger_learning():
-    """Trigger feedback learning to update topic weights."""
+    """Trigger feedback model training (new v2 learner)."""
     try:
-        from arxiv_recommender_v5 import FeedbackLearner
+        from app.services.learner import retrain_if_needed
+        from state_store import get_state_store
 
-        learner = FeedbackLearner(FEEDBACK_FILE, str(CACHE_DIR))
-        result = learner.learn_from_feedback(min_feedback=3)
+        trained = retrain_if_needed(get_state_store())
+        auc = get_state_store().get_feedback_model_auc()
 
         return jsonify({
             "success": True,
-            "status": result.get("status"),
-            "feedback_count": result.get("feedback_count", 0),
-            "adjustments": result.get("adjustments", {}),
-            "liked_topics": result.get("liked_topics", {}),
-            "disliked_topics": result.get("disliked_topics", {}),
+            "trained": trained,
+            "auc": auc,
         })
     except Exception as exc:
         return jsonify({"success": False, "error": str(exc)}), 500

@@ -127,46 +127,6 @@ class LocalProductizationTests(unittest.TestCase):
         self.assertEqual(identity["canonical_id"], "2604.12345")
         self.assertEqual(identity["source_url"], "https://arxiv.org/abs/2604.12345v2")
 
-    def test_feedback_learner_uses_historical_cached_papers(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            cache_dir = Path(tmp)
-            (cache_dir / "user_feedback.json").write_text(
-                json.dumps({"liked": ["2604.11111v1"], "disliked": ["2604.22222v1"]}),
-                encoding="utf-8",
-            )
-            run_dir = cache_dir / "recommendation_runs"
-            run_dir.mkdir()
-            (run_dir / "2026-04-22.json").write_text(
-                json.dumps(
-                    {
-                        "papers": [
-                            {
-                                "id": "2604.11111v1",
-                                "title": "Conformal Prediction with Guarantees",
-                                "abstract": "conformal prediction theorem",
-                            },
-                            {
-                                "id": "2604.22222v1",
-                                "title": "Federated Learning Benchmark",
-                                "abstract": "benchmark federated learning",
-                            },
-                        ]
-                    }
-                ),
-                encoding="utf-8",
-            )
-
-            import arxiv_recommender_v5
-
-            learner = arxiv_recommender_v5.FeedbackLearner(
-                str(cache_dir / "user_feedback.json"), str(cache_dir)
-            )
-            result = learner.learn_from_feedback(min_feedback=1)
-
-            self.assertEqual(result["status"], "learned")
-            self.assertIn("conformal prediction", result["liked_topics"])
-            self.assertIn("federated learning", result["disliked_topics"])
-
     def test_state_store_rejects_missing_collection_parent(self):
         from state_store import StateStore
 

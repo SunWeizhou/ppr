@@ -34,7 +34,6 @@ class Phase1ArchitectureTests(unittest.TestCase):
             "app/services/scoring_service.py",
             "app/services/arxiv_source.py",
             "app/services/zotero_service.py",
-            "app/services/semantic_similarity.py",
             "app/services/citation_service.py",
             "app/viewmodels/inbox_viewmodel.py",
             "app/viewmodels/queue_viewmodel.py",
@@ -117,12 +116,10 @@ class Phase1ArchitectureTests(unittest.TestCase):
     def test_recommender_public_imports_remain_compatible(self):
         import arxiv_recommender_v5
         from app.services.scoring_service import EnhancedScorer
-        from app.services.semantic_similarity import SemanticSimilarity
         from app.services.citation_service import CitationAnalyzer
         from app.services.arxiv_source import search_by_keywords
 
         self.assertIs(arxiv_recommender_v5.EnhancedScorer, EnhancedScorer)
-        self.assertIs(arxiv_recommender_v5.SemanticSimilarity, SemanticSimilarity)
         self.assertIs(arxiv_recommender_v5.CitationAnalyzer, CitationAnalyzer)
         self.assertIs(arxiv_recommender_v5.search_by_keywords, search_by_keywords)
         self.assertTrue(inspect.isclass(EnhancedScorer))

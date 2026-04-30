@@ -16,20 +16,11 @@ from app.services.digest_writer import (
     MarkdownGenerator as MarkdownGenerator,
     generate_summary as generate_summary,
 )
-from app.services.feedback_learning_service import (
-    FeedbackLearner as FeedbackLearner,
-    learn_from_feedback as learn_from_feedback,
-)
-from app.services.feedback_service import load_user_feedback as load_user_feedback
 from app.services.html_digest_service import (
     HTMLGenerator as HTMLGenerator,
     generate_search_html as generate_search_html,
 )
 from app.services.paper_utils import parse_arxiv_identity as parse_arxiv_identity
-from app.services.semantic_similarity import (
-    SemanticSimilarity as SemanticSimilarity,
-    get_best_embedding_model as get_best_embedding_model,
-)
 from app.services.settings_service import (
     get_priority_topics as get_priority_topics,
     load_keywords_config as load_keywords_config,
