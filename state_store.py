@@ -219,6 +219,12 @@ class StateStore:
                 CREATE INDEX IF NOT EXISTS idx_rec_items_run ON recommendation_items(run_id);
                 CREATE INDEX IF NOT EXISTS idx_rec_items_paper ON recommendation_items(paper_id);
 
+                CREATE TABLE IF NOT EXISTS paper_metadata (
+                    paper_id TEXT PRIMARY KEY,
+                    metadata_json TEXT,
+                    created_at TEXT
+                );
+
                 CREATE TABLE IF NOT EXISTS paper_embeddings (
                     paper_id TEXT PRIMARY KEY,
                     embedding BLOB,
@@ -263,6 +269,12 @@ class StateStore:
                     "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '5')"
                 )
             # feedback_models table is created via CREATE TABLE IF NOT EXISTS above
+
+            if current_version < 6:
+                # paper_metadata table already created via CREATE TABLE IF NOT EXISTS above
+                conn.execute(
+                    "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '6')"
+                )
             self._migrate_arxiv_paper_ids(conn)
 
     def _migrate_arxiv_paper_ids(self, conn: sqlite3.Connection) -> None:
@@ -1582,6 +1594,34 @@ class StateStore:
             return (row["embedding"], row["model_name"], row["created_at"])
         return None
 
+    # ------------------------------------------------------------------
+    # Paper Metadata Cache
+    # ------------------------------------------------------------------
+
+    def save_paper_metadata(self, paper_id: str, metadata: dict) -> None:
+        """Cache paper metadata (title, abstract, authors, etc.) in the metadata table."""
+        paper_id = _canonical_paper_id(paper_id)
+        now = _utc_now()
+        metadata_json = json.dumps(metadata)
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """INSERT OR REPLACE INTO paper_metadata(paper_id, metadata_json, created_at)
+                   VALUES (?, ?, ?)""",
+                (paper_id, metadata_json, now),
+            )
+
+    def get_paper_metadata(self, paper_id: str) -> Optional[dict]:
+        """Retrieve cached paper metadata, or None if not found."""
+        paper_id = _canonical_paper_id(paper_id)
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT metadata_json, created_at FROM paper_metadata WHERE paper_id = ?",
+                (paper_id,),
+            ).fetchone()
+        if row:
+            return json.loads(row["metadata_json"])
+        return None
+
     def get_all_embeddings_for_model(self, model_name: str):
         """Get all embeddings for a given model. Returns list of (paper_id, embedding_blob, created_at)."""
         with self._connect() as conn:
@@ -1654,6 +1694,7 @@ class StateStore:
             "subscriptions",
             "subscription_hits",
             "paper_embeddings",
+            "paper_metadata",
             "feedback_models",
         ]
         snapshot: Dict[str, List[Dict]] = {}
@@ -1703,6 +1744,9 @@ class StateStore:
             ],
             "paper_embeddings": [
                 "paper_id", "embedding", "model_name", "created_at",
+            ],
+            "paper_metadata": [
+                "paper_id", "metadata_json", "created_at",
             ],
             "feedback_models": [
                 "id", "trained_at", "sample_count", "auc", "pickle_blob",

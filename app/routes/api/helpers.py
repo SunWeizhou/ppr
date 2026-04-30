@@ -37,7 +37,6 @@ _own_state_store = get_state_store()
 # File paths used by services
 FEEDBACK_FILE = str(CACHE_DIR / "user_feedback.json")
 FAVORITES_FILE = str(CACHE_DIR / "favorite_papers.json")
-CACHE_FILE = str(CACHE_DIR / "paper_cache.json")
 # TODO: migrate ScholarService to use subscriptions(type='author')
 SCHOLARS_DATA_FILE = str(CACHE_DIR / "scholars.json")
 
@@ -139,7 +138,7 @@ def _feedback_service():
         _current_state_store(),
         feedback_file=_resolve_path("FEEDBACK_FILE", FEEDBACK_FILE),
         favorites_file=_resolve_path("FAVORITES_FILE", FAVORITES_FILE),
-        cache_file=_resolve_path("CACHE_FILE", CACHE_FILE),
+        cache_file=str(CACHE_DIR / "paper_cache.json"),
         history_dir=_resolve_path("HISTORY_DIR", str(HISTORY_DIR)),
         scholar_service=ScholarService(_resolve_path("SCHOLARS_DATA_FILE", SCHOLARS_DATA_FILE)),
         keywords_loader=svc.load_keywords_config,

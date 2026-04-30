@@ -186,6 +186,63 @@ class WebProductizationTests(unittest.TestCase):
         self.assertEqual(import_response.status_code, 200)
         self.assertEqual(restored_feedback["liked"], ["2604.55555v1"])
 
+    def test_save_paper_metadata_via_state_store(self):
+        """Save paper metadata and retrieve it, verifying fields match."""
+        from state_store import StateStore
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            paper_id = "2604.12345"
+            metadata = {
+                "title": "Test Paper Title",
+                "abstract": "This is a test abstract for the paper.",
+                "authors": "Author One, Author Two",
+                "date": "2026-04-30",
+                "score": 0,
+                "relevance": "从 arXiv 获取",
+            }
+
+            store.save_paper_metadata(paper_id, metadata)
+            retrieved = store.get_paper_metadata(paper_id)
+
+            self.assertIsNotNone(retrieved)
+            self.assertEqual(retrieved["title"], "Test Paper Title")
+            self.assertEqual(retrieved["abstract"], "This is a test abstract for the paper.")
+            self.assertEqual(retrieved["authors"], "Author One, Author Two")
+            self.assertEqual(retrieved["date"], "2026-04-30")
+            self.assertEqual(retrieved["score"], 0)
+            self.assertEqual(retrieved["relevance"], "从 arXiv 获取")
+
+    def test_get_paper_metadata_returns_none_for_missing(self):
+        """Getting metadata for a non-existent paper_id returns None."""
+        from state_store import StateStore
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            result = store.get_paper_metadata("9999.99999")
+            self.assertIsNone(result)
+
+    def test_save_paper_metadata_canonicalizes_paper_id(self):
+        """Saving with versioned paper_id should canonicalize and be retrievable."""
+        from state_store import StateStore
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            metadata = {
+                "title": "Versioned Paper",
+                "abstract": "Abstract.",
+                "authors": "Author",
+                "date": "2026-04-30",
+                "score": 0,
+                "relevance": "from arXiv",
+            }
+
+            store.save_paper_metadata("2604.12345v2", metadata)
+            # Should be retrievable without version
+            retrieved = store.get_paper_metadata("2604.12345")
+            self.assertIsNotNone(retrieved)
+            self.assertEqual(retrieved["title"], "Versioned Paper")
+
     def test_setup_py_is_python_entrypoint_not_batch_script(self):
         setup_text = Path("setup.py").read_text(encoding="utf-8")
 

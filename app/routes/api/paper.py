@@ -9,7 +9,6 @@ from flask import jsonify, make_response, request, send_file
 from . import bp
 from .helpers import _current_state_store, _feedback_service, _load_history_paper_index, CACHE_DIR, PROJECT_ROOT, HISTORY_DIR
 from state_store import _canonical_paper_id
-from utils import safe_load_json, atomic_write_json
 
 logger = logging.getLogger(__name__)
 
@@ -87,21 +86,15 @@ def fetch_paper_info(paper_id):
         # Record paper opened interaction event
         _current_state_store().record_event("paper_opened", paper_id)
 
-        # Save to cache
-        cache_path = str(CACHE_DIR / "paper_cache.json")
-        paper_cache = safe_load_json(cache_path, {})
-
-        paper_cache[paper_id] = {
+        # Save to state_store
+        _current_state_store().save_paper_metadata(paper_id, {
             "title": metadata["title"],
             "abstract": metadata["abstract"][:500],
             "authors": ", ".join(metadata["authors"]),
             "date": datetime.now().strftime("%Y-%m-%d"),
             "score": 0,
             "relevance": "从 arXiv 获取",
-        }
-
-        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-        atomic_write_json(cache_path, paper_cache)
+        })
 
         return jsonify({
             "success": True,
