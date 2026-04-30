@@ -11,6 +11,50 @@ from utils import CATEGORY_NAMES
 logger = get_logger(__name__)
 
 
+def _format_event(event: dict) -> dict:
+    """Convert a raw interaction_event row into a dict with display_* keys."""
+    event_type = event.get("event_type", "")
+    payload = event.get("payload_json", {})
+    if isinstance(payload, str):
+        try:
+            payload = json.loads(payload)
+        except (TypeError, json.JSONDecodeError):
+            payload = {}
+
+    created_at = event.get("created_at", "")
+    display_time = ""
+    if created_at:
+        try:
+            dt = datetime.fromisoformat(created_at)
+            display_time = dt.strftime("%b %d, %H:%M")
+        except (ValueError, TypeError):
+            display_time = created_at
+
+    label_map = {
+        "queue_status_changed": {
+            "Deep Read": "Marked for Deep Reading",
+            "Skim Later": "Marked to Skim",
+            "Saved": "Saved",
+        },
+        "feedback_relevant": "Marked as Relevant",
+        "feedback_ignored": "Ignored",
+        "paper_opened": "Opened on arXiv",
+        "export_to_zotero": "Exported to Zotero",
+    }
+
+    if event_type == "queue_status_changed":
+        status = payload.get("status", "")
+        label = label_map["queue_status_changed"].get(status, f"Status: {status}")
+    else:
+        label = label_map.get(event_type, event_type)
+
+    return {
+        "display_label": label,
+        "display_detail": "",
+        "display_time": display_time,
+    }
+
+
 class PaperViewModel:
     """Build template context for the paper detail page."""
 
@@ -97,8 +141,8 @@ class PaperViewModel:
         # Interaction history from interaction_events table
         try:
             if hasattr(self._store, 'list_interaction_events'):
-                events = self._store.list_interaction_events(paper_id=paper_id, limit=20)
-                paper["interaction_history"] = events[:20]
+                raw_events = self._store.list_interaction_events(paper_id=paper_id, limit=20)
+                paper["interaction_history"] = [_format_event(e) for e in raw_events[:20]]
             else:
                 paper["interaction_history"] = []
         except Exception:
@@ -139,14 +183,6 @@ class PaperViewModel:
             except (TypeError, json.JSONDecodeError):
                 details = {}
         paper["score_details"] = details
-
-        # Get recommendation reason
-        try:
-            from app.services.scoring_service import build_recommendation_reason
-            rec_reason = build_recommendation_reason(paper)
-            paper["recommendation_reason"] = rec_reason
-        except Exception:
-            paper["recommendation_reason"] = {}
 
         context = {
             "title": f"{paper.get('title', 'Paper Detail')[:60]} - arXiv Recommender",

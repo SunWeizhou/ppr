@@ -2261,6 +2261,34 @@ select {
   margin-top: 8px;
 }
 
+.score-simple {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-simple-value {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: var(--sage);
+  min-width: 56px;
+}
+
+.score-simple-track {
+  flex: 1;
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.score-simple-fill {
+  height: 100%;
+  background: var(--sage);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
 .ai-section {
   position: relative;
 }

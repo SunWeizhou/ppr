@@ -102,81 +102,34 @@
                 <div id="aiError" hidden class="ai-error-msg"></div>
             </div>
 
-            <!-- Score Breakdown -->
+            <!-- Score & Recommendation -->
             <div class="card card-spaced">
-                <h2 class="panel-title">Score Breakdown</h2>
-                <div class="score-bar">
-                    <div class="score-item">
-                        <div class="value">{{ "%.1f"|format(paper.get('score', 0) or 0) }}</div>
-                        <div class="label">Total Score</div>
+                <h2 class="panel-title">Recommendation Score</h2>
+                {% set score = paper.get('score', 0) or 0 %}
+                {% set pct = "%.0f"|format(score * 100) %}
+                <div class="score-simple">
+                    <div class="score-simple-value">{{ pct }}%</div>
+                    <div class="score-simple-track">
+                        <div class="score-simple-fill" style="width: {{ pct }}%;"></div>
                     </div>
-                    {% if paper.get('score_details') %}
-                    {% set sd = paper.get('score_details') %}
-                    <div class="score-item">
-                        <div class="value">{{ "%.1f"|format(sd.get('relevance', 0) or 0) }}</div>
-                        <div class="label">Theme</div>
-                    </div>
-                    <div class="score-item">
-                        <div class="value">{{ "%.1f"|format(sd.get('semantic', 0) or 0) }}</div>
-                        <div class="label">Semantic</div>
-                    </div>
-                    <div class="score-item">
-                        <div class="value">{{ "%.1f"|format(sd.get('author', 0) or 0) }}</div>
-                        <div class="label">Author</div>
-                    </div>
-                    <div class="score-item">
-                        <div class="value">{{ "%.1f"|format(sd.get('depth', 0) or 0) }}</div>
-                        <div class="label">Depth</div>
-                    </div>
-                    <div class="score-item">
-                        <div class="value">{{ "%.1f"|format(sd.get('affinity', 0) or 0) }}</div>
-                        <div class="label">Preference</div>
-                    </div>
-                    {% if sd.get('subscription', 0) != 0 %}
-                    <div class="score-item">
-                        <div class="value">{{ "%+.1f"|format(sd.get('subscription', 0)) }}</div>
-                        <div class="label">Subscription</div>
-                    </div>
-                    {% endif %}
-                    {% if sd.get('recency', 0) != 0 %}
-                    <div class="score-item">
-                        <div class="value">{{ "%+.1f"|format(sd.get('recency', 0)) }}</div>
-                        <div class="label">Recency</div>
-                    </div>
-                    {% endif %}
-                    {% if sd.get('penalty', 0) != 0 %}
-                    <div class="score-item">
-                        <div class="value">{{ "%+.1f"|format(sd.get('penalty', 0)) }}</div>
-                        <div class="label">Penalty</div>
-                    </div>
-                    {% endif %}
-                    {% endif %}
                 </div>
+                {% if paper.get('relevance_reason') %}
+                <p class="t-muted" style="margin-top: 12px;">{{ paper.get('relevance_reason') }}</p>
+                {% endif %}
 
-                {% if paper.get('score_details', {}).get('breakdown') %}
-                <ul class="breakdown-list">
-                    {% for reason in paper.get('score_details', {}).get('breakdown', []) %}
-                    <li>
-                        <span class="breakdown-icon">{{ reason.get('icon', '&#8226;') }}</span>
-                        <span class="breakdown-text">{{ reason.get('text', '') }}</span>
-                        {% if reason.get('score_impact') %}
-                        <span class="breakdown-score">+{{ "%.1f"|format(reason.get('score_impact', 0)) }}</span>
-                        {% endif %}
-                    </li>
+                {# Legacy fallback for v1 papers with score_details #}
+                {% if paper.get('score_details') and not paper.get('relevance_reason') %}
+                {% set sd = paper.get('score_details') %}
+                <div class="score-bar" style="margin-top: 12px;">
+                    {% for dim in ['relevance', 'semantic', 'author', 'depth', 'affinity'] %}
+                    {% if sd.get(dim, 0) != 0 %}
+                    <div class="score-item">
+                        <div class="value">{{ "%.1f"|format(sd.get(dim, 0)) }}</div>
+                        <div class="label">{{ dim|capitalize }}</div>
+                    </div>
+                    {% endif %}
                     {% endfor %}
-                </ul>
-                {% endif %}
-
-                {% if paper.get('recommendation_reason', {}).get('reason_summary') %}
-                <p class="t-muted breakdown-summary">
-                    {{ paper.get('recommendation_reason', {}).get('reason_summary') }}
-                </p>
-                {% endif %}
-
-                {% if paper.get('recommendation_reason', {}).get('affinity_reason') %}
-                <p class="t-muted t-sm mt-2">
-                    {{ paper.get('recommendation_reason', {}).get('affinity_reason') }}
-                </p>
+                </div>
                 {% endif %}
             </div>
 
