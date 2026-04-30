@@ -1,0 +1,79 @@
+/* ===== Design Tokens ===== */
+
+:root {
+  /* Colors — Light */
+  --bg:        #FAF9F5;
+  --bg-raised: #FFFFFF;
+  --bg-sunken: #F2F0E9;
+  --ink:       #1F1E1B;
+  --ink-2:     #4A4844;
+  --ink-3:     #8C8A82;
+  --line:      #E7E4DA;
+  --line-subtle: #F0EDE5;
+  --bg-subtle: #F5F3EE;
+  --accent:    #C96442;
+  --accent-alpha: rgba(201, 100, 66, 0.15);
+  --accent-soft:#F5E6DE;
+  --accent-text: #FFFFFF;
+  --danger:    #B7372E;
+  --scrim:     rgba(31, 30, 27, 0.32);
+
+  /* Radii */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+
+  /* Spacing */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+  --s-10: 60px;
+
+  /* Layout */
+  --topbar-h: 48px;
+  --content-max-w: 640px;
+
+  /* Font families */
+  --ff-display: "Source Serif 4", Georgia, "Songti SC", serif;
+  --ff-body:    "Inter", system-ui, -apple-system, "PingFang SC", sans-serif;
+  --ff-mono:    ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Type scale */
+  --text-display: 32px;
+  --text-title:   22px;
+  --text-lede:    17px;
+  --text-body:    15px;
+  --text-meta:    13px;
+  --text-micro:   12px;
+}
+
+/* Colors — Dark */
+[data-theme="dark"] {
+  --bg:        #1F1E1B;
+  --bg-raised: #2A2825;
+  --bg-sunken: #181715;
+  --ink:       #ECE9DF;
+  --ink-2:     #B8B5AB;
+  --ink-3:     #7A786F;
+  --line:      #34322D;
+  --line-subtle: #2E2D28;
+  --bg-subtle: #242320;
+  --accent:    #E08A6A;
+  --accent-alpha: rgba(224, 138, 106, 0.18);
+  --accent-soft:#361F18;
+  --accent-text: #FFFFFF;
+  --danger:    #E05A4F;
+  --scrim:     rgba(0, 0, 0, 0.62);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

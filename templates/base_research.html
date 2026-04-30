@@ -5,67 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <meta name="theme-color" content="#124c79">
-    <link rel="stylesheet" href="{{ url_for('static', filename='research_ui.css') }}">
-    <style>
-        :root {
-            --ff-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-            --ff-serif: Georgia, "Times New Roman", "Songti SC", serif;
-            --ff-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        }
-    </style>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23C96442'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='system-ui'>S</text></svg>">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v=static_version) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/typography.css', v=static_version) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css', v=static_version) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v=static_version) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v=static_version) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motion.css', v=static_version) }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='research_ui.css', v=static_version) }}">
     {% block head %}{% endblock %}
 </head>
 <body class="{{ body_class or '' }}">
-    {% set total_queue = queue_counts.values() | list | sum %}
     <div class="app">
-        <aside class="sidenav" aria-label="App sidebar">
-            <a href="/" class="brand" aria-label="StatDesk home">
+        <header class="topbar">
+            <a href="/" class="topbar-wordmark" aria-label="StatDesk home">
                 <span class="brand-mark">StatDesk</span>
-                <span class="brand-sub" data-i18n="brand.sub">local-first arXiv workflow for statistics researchers</span>
             </a>
-
-            <div class="sidenav-group-label" data-i18n="nav.workflow">Workflow</div>
-            <nav class="nav-list" aria-label="Main navigation">
+            <nav class="topbar-nav" aria-label="Main navigation">
                 {% for item in nav_items %}
-                    {% set nav_count = none %}
-                    {% if item.key == 'queue' %}
-                        {% set nav_count = total_queue %}
-                    {% elif item.key == 'library' %}
-                        {% set nav_count = all_collections|length %}
-                    {% elif item.key == 'monitor' %}
-                        {% set nav_count = all_saved_searches|length + 0 %}
-                    {% endif %}
                     <a
                         href="{{ item.href }}"
-                        class="nav-item {% if item.key == active_tab %}is-active{% endif %}"
-                    >
-                        <span data-i18n="nav.{{ item.key }}">{{ item.label }}</span>
-                        {% if nav_count is not none %}
-                            <span class="count">{{ nav_count }}</span>
-                        {% endif %}
-                    </a>
+                        class="topbar-nav-item {% if item.key == active_tab %}is-active{% endif %}"
+                        {% if item.key == active_tab %}aria-current="page"{% endif %}
+                        data-i18n="nav.{{ item.key }}"
+                    >{{ item.label }}</a>
                 {% endfor %}
             </nav>
-
-            <div class="sidenav-foot">
-                <div class="preference-switcher" role="group" aria-label="Display preferences">
-                    <button type="button" class="pref-toggle" data-action="toggle-language" aria-label="Toggle language between Chinese and English">中 / EN</button>
-                    <button type="button" class="pref-toggle" data-action="toggle-theme" aria-label="Toggle between light and dark mode">Dark</button>
-                </div>
-                <div class="foot-row">
-                    <span class="status-dot {% if latest_job and latest_job.status not in ['idle', 'success'] %}is-warn{% endif %}"></span>
-                    <span>{% if latest_job %}{{ latest_job.status }}{% else %}idle{% endif %}</span>
-                </div>
-                <div class="foot-row foot-row-muted">
-                    <span><span data-i18n="nav.queue">Queue</span> {{ total_queue }}</span>
-                    <span><span data-i18n="state.relevant">Relevant</span> {{ liked_count }}</span>
-                </div>
-                <div class="foot-row foot-row-muted">
-                    <span>{{ all_collections|length }} <span data-i18n="asset.collections">collections</span></span>
-                    <span>{{ all_saved_searches|length }} <span data-i18n="asset.queries">queries</span></span>
-                </div>
+            <span class="spacer"></span>
+            <div class="topbar-actions">
+                <button type="button" class="btn btn-ghost btn-sm" data-action="toggle-language" data-lang="zh" aria-label="Current language: Chinese, click to switch to English">中 / EN</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-action="toggle-theme" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-action="command-palette" aria-label="Open command palette" title="Command palette (Cmd+K)">⌘K</button>
+                <a href="/settings" class="btn btn-ghost btn-sm" aria-label="Open Settings" title="Settings">⚙</a>
             </div>
-        </aside>
+        </header>
 
         <main class="main">
             <div class="main-inner">
@@ -78,192 +52,27 @@
 
     <div id="toast" class="toast"></div>
 
-    <div id="collectionPickerModal" class="modal-shell" hidden>
-        <div class="modal-backdrop" onclick="closeModal('collectionPickerModal')"></div>
-        <div class="modal-card">
-            <div class="modal-head">
-                <div>
-                    <div class="section-kicker">Collection Picker</div>
-                    <h2 class="panel-title">加入 Collection</h2>
-                    <p class="muted-copy">先选择已有容器，或创建一个新的研究问题容器。</p>
-                </div>
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('collectionPickerModal')" aria-label="Close collection picker">关闭</button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-section">
-                    <label class="field-label">已有 Collection</label>
-                    <div class="list-stack modal-list" id="collectionPickerList"></div>
-                </div>
-                <div class="modal-section">
-                    <label class="checkbox-row">
-                        <input type="checkbox" id="collectionCreateNewToggle" onchange="toggleCollectionCreateNew()">
-                        <span>创建新的 Collection</span>
-                    </label>
-                </div>
-                <div id="collectionPickerNewFields" class="modal-section" hidden>
-                    <label class="field-label" for="collectionPickerName">名称</label>
-                    <input class="form-input" id="collectionPickerName" type="text" placeholder="例如：Conformal Prediction">
-                    <label class="field-label" for="collectionPickerDescription">描述</label>
-                    <textarea class="form-textarea" id="collectionPickerDescription" rows="3" placeholder="这个容器围绕什么研究问题？"></textarea>
-                    <label class="field-label" for="collectionPickerSeedQuery">Seed Query</label>
-                    <input class="form-input" id="collectionPickerSeedQuery" type="text" placeholder="例如：finite-sample conformal under shift">
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('collectionPickerModal')">取消</button>
-                <button type="button" class="btn btn-primary" onclick="submitCollectionPicker()">确认</button>
-            </div>
-        </div>
-    </div>
+    <div id="detailScrim" class="detail-scrim" onclick="closeMobileDetail()"></div>
 
-    <div id="collectionEditorModal" class="modal-shell" hidden>
-        <div class="modal-backdrop" onclick="closeModal('collectionEditorModal')"></div>
-        <div class="modal-card">
-            <div class="modal-head">
-                <div>
-                    <div class="section-kicker">Collection Editor</div>
-                    <h2 class="panel-title" id="collectionEditorTitle">Collection</h2>
-                </div>
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('collectionEditorModal')" aria-label="Close collection editor">关闭</button>
-            </div>
-            <div class="modal-body">
-                <label class="field-label" for="collectionEditorName">名称</label>
-                <input class="form-input" id="collectionEditorName" type="text" placeholder="例如：Transformer Theory">
-                <label class="field-label" for="collectionEditorDescription">描述</label>
-                <textarea class="form-textarea" id="collectionEditorDescription" rows="4" placeholder="这个容器的研究意图是什么？"></textarea>
-                <label class="field-label" for="collectionEditorSeedQuery">Seed Query</label>
-                <input class="form-input" id="collectionEditorSeedQuery" type="text" placeholder="例如：minimax transformer generalization">
-                <div id="collectionEditorDanger" class="danger-zone" hidden>
-                    <div>
-                        <div class="detail-label">Danger Zone</div>
-                        <p class="muted-copy">删除 Collection 只移除研究容器和收纳关系，不删除论文、Queue 状态或历史记录。</p>
-                    </div>
-                    <button type="button" class="btn btn-danger" onclick="deleteCollectionFromEditor()">Delete collection</button>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('collectionEditorModal')">取消</button>
-                <button type="button" class="btn btn-primary" onclick="submitCollectionEditor()">保存</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="querySubscriptionModal" class="modal-shell" hidden>
-        <div class="modal-backdrop" onclick="closeModal('querySubscriptionModal')"></div>
-        <div class="modal-card">
-            <div class="modal-head">
-                <div>
-                    <div class="section-kicker">Query Subscription</div>
-                    <h2 class="panel-title" id="querySubscriptionTitle">保存问题订阅</h2>
-                    <p class="muted-copy">把当前问题变成长期监控对象，后续在 Monitor 中看命中。</p>
-                </div>
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('querySubscriptionModal')" aria-label="Close query subscription modal">关闭</button>
-            </div>
-            <div class="modal-body">
-                <label class="field-label" for="querySubscriptionName">显示名称</label>
-                <input class="form-input" id="querySubscriptionName" type="text" placeholder="例如：Finite-sample conformal shift">
-                <label class="field-label" for="querySubscriptionQuery">Query</label>
-                <input class="form-input" id="querySubscriptionQuery" type="text" placeholder="例如：finite-sample conformal under covariate shift">
-                <label class="field-label" for="querySubscriptionDescription">描述</label>
-                <textarea class="form-textarea" id="querySubscriptionDescription" rows="3" placeholder="为什么要长期订阅这个问题？"></textarea>
-                <div id="querySubscriptionDanger" class="danger-zone" hidden>
-                    <div>
-                        <div class="detail-label">Danger Zone</div>
-                        <p class="muted-copy">删除订阅会停止后续命中追踪，但不会影响已进入 Inbox、Queue 或 Collection 的论文。</p>
-                    </div>
-                    <button type="button" class="btn btn-danger" onclick="deleteQuerySubscriptionFromEditor()">Delete subscription</button>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('querySubscriptionModal')">取消</button>
-                <button type="button" class="btn btn-primary" onclick="submitQuerySubscription()">保存订阅</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="authorSubscriptionModal" class="modal-shell" hidden>
-        <div class="modal-backdrop" onclick="closeModal('authorSubscriptionModal')"></div>
-        <div class="modal-card">
-            <div class="modal-head">
-                <div>
-                    <div class="section-kicker">Author Subscription</div>
-                    <h2 class="panel-title" id="authorSubscriptionTitle">关注学者</h2>
-                    <p class="muted-copy">把长期关注的作者作为 Monitor 对象管理，而不是散落在论文卡片里。</p>
-                </div>
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('authorSubscriptionModal')" aria-label="Close author subscription modal">关闭</button>
-            </div>
-            <div class="modal-body">
-                <label class="field-label" for="authorSubscriptionName">姓名</label>
-                <input class="form-input" id="authorSubscriptionName" type="text" placeholder="例如：Emmanuel Candès">
-                <label class="field-label" for="authorSubscriptionAffiliation">机构</label>
-                <input class="form-input" id="authorSubscriptionAffiliation" type="text" placeholder="Stanford University">
-                <label class="field-label" for="authorSubscriptionFocus">关注方向</label>
-                <input class="form-input" id="authorSubscriptionFocus" type="text" placeholder="conformal inference, high-dimensional statistics">
-                <label class="field-label" for="authorSubscriptionArxiv">arXiv / Author Query</label>
-                <input class="form-input" id="authorSubscriptionArxiv" type="text" placeholder="https://arxiv.org/search/?searchtype=author&query=...">
-                <label class="field-label" for="authorSubscriptionScholar">Google Scholar</label>
-                <input class="form-input" id="authorSubscriptionScholar" type="text" placeholder="Google Scholar profile URL">
-                <label class="field-label" for="authorSubscriptionWebsite">Website</label>
-                <input class="form-input" id="authorSubscriptionWebsite" type="text" placeholder="Personal homepage">
-                <div id="authorSubscriptionDanger" class="danger-zone" hidden>
-                    <div>
-                        <div class="detail-label">Danger Zone</div>
-                        <p class="muted-copy">移除关注学者不会删除已保存论文、Queue 状态或历史记录。</p>
-                    </div>
-                    <button type="button" class="btn btn-danger" onclick="deleteAuthorSubscriptionFromEditor()">Remove author</button>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('authorSubscriptionModal')">取消</button>
-                <button type="button" class="btn btn-primary" onclick="submitAuthorSubscription()">保存</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="paperActionsModal" class="modal-shell" hidden>
-        <div class="modal-backdrop" onclick="closeModal('paperActionsModal')"></div>
+    <div id="shortcutsHelpModal" class="modal-shell" hidden>
+        <div class="modal-backdrop" onclick="closeModal('shortcutsHelpModal')"></div>
         <div class="modal-card modal-card--compact">
-            <div class="modal-head">
-                <div>
-                    <div class="section-kicker">Paper Actions</div>
-                    <h2 class="panel-title" id="paperActionsTitle">Paper actions</h2>
-                    <p class="muted-copy" id="paperActionsMeta">Choose the next operation for this paper.</p>
-                </div>
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('paperActionsModal')" aria-label="Close paper actions modal">关闭</button>
+            <div class="modal-head modal-head-center">
+                <h2 class="panel-title">键盘快捷键</h2>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="closeModal('shortcutsHelpModal')">关闭</button>
             </div>
             <div class="modal-body">
-                <div class="action-stack" role="group" aria-label="Paper actions">
-                    <a id="paperActionOpenLink" class="btn btn-primary" href="#" target="_blank" rel="noopener noreferrer" onclick="paperActionOpen(event)" aria-label="Open paper on arXiv">Open arXiv</a>
-                    <button type="button" class="btn btn-tertiary" onclick="paperActionQueue('Inbox')">Move to Inbox</button>
-                    <button type="button" class="btn btn-warm" onclick="paperActionQueue('Skim Later')">Skim Later</button>
-                    <button type="button" class="btn btn-sage" onclick="paperActionQueue('Deep Read')">Deep Read</button>
-                    <button type="button" class="btn btn-secondary" onclick="paperActionQueue('Saved')">Save paper</button>
-                    <button type="button" class="btn btn-tertiary" onclick="paperActionCollect()">Add to Collection</button>
-                    <button type="button" class="btn btn-tertiary" onclick="paperActionPdf()">Download PDF</button>
-                    <button type="button" class="btn btn-tertiary" onclick="paperActionBibtex()">Export BibTeX</button>
-                    <button type="button" class="btn btn-tertiary" onclick="paperActionFollow()">Follow author</button>
-                    <button type="button" class="btn btn-danger" id="paperActionRemoveCollection" onclick="paperActionRemoveFromCollection()" hidden>Remove from Collection</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="dangerConfirmModal" class="modal-shell" hidden>
-        <div class="modal-backdrop" onclick="closeModal('dangerConfirmModal')"></div>
-        <div class="modal-card modal-card--compact">
-            <div class="modal-head">
-                <div>
-                    <div class="section-kicker">Danger Zone</div>
-                    <h2 class="panel-title" id="dangerConfirmTitle">确认危险操作</h2>
-                    <p class="muted-copy" id="dangerConfirmBody">这个操作无法自动恢复，请确认后继续。</p>
-                </div>
-            </div>
-            <div class="modal-body">
-                <div class="danger-object" id="dangerConfirmObject" hidden></div>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="btn btn-tertiary" onclick="closeModal('dangerConfirmModal')">取消</button>
-                <button type="button" class="btn btn-danger" id="dangerConfirmButton" onclick="submitDangerConfirm()">Confirm</button>
+                <table class="shortcuts-table">
+                    <tr><td><kbd>j</kbd> / <kbd>↓</kbd></td><td>选择下一篇论文</td></tr>
+                    <tr><td><kbd>k</kbd> / <kbd>↑</kbd></td><td>选择上一篇论文</td></tr>
+                    <tr><td><kbd>r</kbd></td><td>标记为相关</td></tr>
+                    <tr><td><kbd>i</kbd></td><td>忽略</td></tr>
+                    <tr><td><kbd>s</kbd></td><td>稍后浏览</td></tr>
+                    <tr><td><kbd>d</kbd></td><td>精读</td></tr>
+                    <tr><td><kbd>o</kbd></td><td>打开论文详情</td></tr>
+                    <tr><td><kbd>⌘K</kbd></td><td>命令面板</td></tr>
+                    <tr><td><kbd>?</kbd></td><td>查看帮助</td></tr>
+                </table>
             </div>
         </div>
     </div>
@@ -274,13 +83,24 @@
         'queueStatuses': queue_status_values or [],
         'latestJob': latest_job or {}
     } | tojson }}</script>
-    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/modals.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/collections.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/subscriptions.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/paper_actions.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/preferences.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/core.js', v=static_version) }}"></script>
+    <script src="{{ url_for('static', filename='js/modals.js', v=static_version) }}"></script>
+    <script src="{{ url_for('static', filename='js/collections.js', v=static_version) }}"></script>
+    <script src="{{ url_for('static', filename='js/subscriptions.js', v=static_version) }}"></script>
+    <script src="{{ url_for('static', filename='js/paper_actions.js', v=static_version) }}"></script>
+    <script src="{{ url_for('static', filename='js/preferences.js', v=static_version) }}"></script>
+    <script src="{{ url_for('static', filename='js/command_palette.js', v=static_version) }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js', v=static_version) }}"></script>
     {% block scripts %}{% endblock %}
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+      onload="renderMathInElement(document.body, {
+        delimiters: [
+          {left:'$$', right:'$$', display:true},
+          {left:'$', right:'$', display:false},
+          {left:'\\(', right:'\\)', display:false},
+          {left:'\\[', right:'\\]', display:true}
+        ]
+      });"></script>
 </body>
 </html>

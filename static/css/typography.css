@@ -1,0 +1,85 @@
+/* ===== Typography ===== */
+/* Self-hosted fonts loaded via @font-face. Fallbacks defined in tokens.css. */
+
+/* Source Serif 4 */
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("../fonts/source-serif-4-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("../fonts/source-serif-4-latin-600-normal.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Inter */
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/inter-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/inter-latin-500-normal.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/inter-latin-600-normal.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Base */
+body {
+  font-family: var(--ff-body), sans-serif;
+  font-size: var(--text-body);
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+/* Display / heading */
+h1, h2, h3, h4 {
+  font-family: var(--ff-display), serif;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+h1 { font-size: var(--text-display); }
+h2 { font-size: var(--text-title); }
+
+/* Utility classes */
+.kicker {
+  font-family: var(--ff-body);
+  font-size: var(--text-micro);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+.lede {
+  font-size: var(--text-lede);
+  line-height: 1.55;
+}
+.meta {
+  font-size: var(--text-meta);
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+.micro {
+  font-size: var(--text-micro);
+  font-family: var(--ff-mono);
+}
+.numeral {
+  font-family: var(--ff-display), serif;
+  font-variant-numeric: tabular-nums;
+}
