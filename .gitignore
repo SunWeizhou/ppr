@@ -60,6 +60,9 @@ scholars.html
 scholars_test.html
 search.html
 
+# Git worktrees
+.worktrees/
+
 # OS files
 .DS_Store
 Thumbs.db
