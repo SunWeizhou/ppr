@@ -16,8 +16,9 @@ paper triage.
 
 ## Product Direction
 
-- Inbox: today's recommendation list, filters, detail panel, why recommended,
-  Relevant/Ignore, Skim Later/Deep Read, and Open arXiv.
+- Inbox: today's recommendation list (3-stage Recall→Rank→Learn pipeline),
+  filters, detail panel, why recommended, Relevant/Ignore, Skim Later/Deep Read,
+  and Open arXiv.
 - Queue: reading workflow states such as Inbox, Skim Later, Deep Read, Saved,
   and Archived.
 - Library: collections, saved papers, and history.
@@ -63,11 +64,29 @@ python -m unittest discover -s tests -v
 `python -m unittest discover -v` is also expected to discover tests from the
 repository root.
 
+## Recommendation Pipeline (Feature Flag)
+
+A new 3-stage pipeline is available behind the `STATDESK_RANKER=v2` environment
+variable:
+
+- **Recall**: single arXiv API fetch (category-based)
+- **Rank**: 5-signal geometric mean blend (keyword, author, semantic/library,
+  feedback model, subscription), producing a single `[0, 1]` score and a short
+  Chinese explanation
+- **Learn**: online logistic regression on paper embeddings (AUC ≥ 0.55 gate)
+
+```bash
+export STATDESK_RANKER=v2
+```
+
+The default pipeline (no env var) uses the legacy 7-stage heuristic scorer. The
+v2 pipeline will become the default after sufficient production validation.
+
 ## Recommendation Evaluation
 
-Phase 3 adds a local offline evaluator for the current heuristic ranking. It
-uses SQLite workflow state and cached recommendation snapshots, and it does not
-fetch arXiv or change the default recommendation pipeline.
+A local offline evaluator measures ranking quality against weak labels from user
+feedback (Relevant, Deep Read, Ignored). It uses SQLite workflow state and cached
+recommendation snapshots, and does not fetch arXiv or change the active pipeline.
 
 ```bash
 python -m evaluation.run_evaluation --output-dir reports --k 5,10,20
@@ -108,10 +127,8 @@ outputs unless a future architecture document explicitly says otherwise.
 
 ## Documentation Map
 
-- `PRD.md`: canonical product direction.
-- `PRODUCT_REDESIGN_EXECUTION.md`: product redesign execution notes.
-- `docs/ARCHITECTURE.md`: current architecture, target architecture, and state
-  source policy.
+- `docs/ARCHITECTURE.md`: architecture, state source policy, and migration
+  notes.
 - `docs/AGENTS.md`: agent roles, PR rules, and product/architecture guardrails.
 - `docs/archive/removed-artifacts.md`: record of runtime and draft artifacts
   removed during Phase 0 hygiene.
