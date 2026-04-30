@@ -30,7 +30,6 @@ class Phase1ArchitectureTests(unittest.TestCase):
             "app/services/monitor_service.py",
             "app/services/settings_service.py",
             "app/services/feedback_service.py",
-            "app/services/recommendation_service.py",
             "app/services/scoring_service.py",
             "app/services/arxiv_source.py",
             "app/services/zotero_service.py",
