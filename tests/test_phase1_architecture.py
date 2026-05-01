@@ -9,8 +9,8 @@ class Phase1ArchitectureTests(unittest.TestCase):
             "app/__init__.py",
             "app/routes/inbox.py",
             "app/routes/queue.py",
-            "app/routes/library.py",
-            "app/routes/monitor.py",
+            "app/routes/reading.py",
+            "app/routes/watch.py",
             "app/routes/settings.py",
             "app/routes/api/__init__.py",
             "app/routes/api/helpers.py",
@@ -55,7 +55,7 @@ class Phase1ArchitectureTests(unittest.TestCase):
         import web_server
 
         client = web_server.app.test_client()
-        for path in ["/", "/queue", "/library", "/monitor", "/settings"]:
+        for path in ["/", "/queue", "/reading", "/watch", "/settings"]:
             response = client.get(path)
             self.assertEqual(response.status_code, 200, path)
 

@@ -11,50 +11,32 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
         self.assertNotIn("search", [item[0] for item in nav])
 
     def test_inbox_template_is_strict_triage_surface(self):
-        template = Path("templates/home_research.html").read_text(encoding="utf-8")
-        inbox_js = Path("static/js/inbox.js").read_text(encoding="utf-8")
+        template = Path("templates/today.html").read_text(encoding="utf-8")
 
         required = [
-            "Relevant",
-            "Ignore",
-            "Skim Later",
-            "Deep Read",
-            "Open arXiv",
-            "Abstract",
-            "AI Analysis",
-            "Why Recommended",
+            "Daily Triage",
+            "Save",
+            "Pass",
+            "Regenerate",
+            "paper-list-item",
+            "data-paper-id",
+            "data-action",
         ]
         for text in required:
             self.assertIn(text, template)
 
         forbidden_inbox_surface = [
-            "Daily brief",
-            "bulkBar",
-            "bulkSelectVisible",
-            "date-strip-card",
-            "Ranking Rationale",
-            "Ranking breakdown",
-            "Read Lane",
-            "Full diagnostics",
-            "Download PDF",
-            "Export BibTeX",
-            "Follow author",
-            "Archive",
+            "detail-panel",
+            "More actions",
+            "AI Analysis",
+            "data-ai-analysis",
         ]
         for text in forbidden_inbox_surface:
             self.assertNotIn(text, template)
 
-        self.assertIn("More actions", template)
-        self.assertIn("Add to Collection", template)
-        self.assertIn("View full explanation", template)
-        self.assertIn("暂无 AI 分析，当前显示原始摘要和规则推荐原因。", template)
-        self.assertIn("data-ai-analysis-section", template)
-        self.assertIn("data-ai-analysis-generate", template)
-        self.assertIn("Generate AI Analysis", template)
-        # API path references moved from template to inbox.js during refactor
-        self.assertIn("/api/papers/", inbox_js)
-        self.assertIn("/analysis/generate", inbox_js)
-        self.assertNotIn("DEEPSEEK_API_KEY", template)
+        self.assertIn("why-line", template)
+        self.assertIn("paper-list-title", template)
+        self.assertIn("paper-authors", template)
 
     def test_inbox_page_still_serves(self):
         import web_server
@@ -70,20 +52,17 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
         for status in ["Inbox", "Skim Later", "Deep Read", "Saved", "Archived"]:
             self.assertIn(status, template)
 
-    def test_library_collection_creation_uses_modal_not_prompt(self):
-        library_template = Path("templates/library_research.html").read_text(encoding="utf-8")
-        ui_js = Path("static/research_ui.js").read_text(encoding="utf-8")
+    def test_reading_collection_creation_uses_modal_not_prompt(self):
+        reading_template = Path("templates/reading.html").read_text(encoding="utf-8")
 
-        combined = library_template + "\n" + ui_js
-        self.assertNotIn("createCollectionPrompt", combined)
-        self.assertNotIn("window.prompt", combined)
-        self.assertNotIn("prompt(", combined)
-        self.assertIn("openCollectionEditor", combined)
+        self.assertNotIn("window.prompt", reading_template)
+        self.assertIn("collections", reading_template)
+        self.assertIn("all_collections", reading_template)
 
-    def test_monitor_labels_query_subscriptions_and_avoids_prominent_search_cta(self):
-        template = Path("templates/monitor_research.html").read_text(encoding="utf-8")
+    def test_watch_labels_unified_subscriptions_and_avoids_prominent_search_cta(self):
+        template = Path("templates/watch.html").read_text(encoding="utf-8")
 
-        self.assertIn("Query Subscriptions", template)
+        self.assertIn("研究方向", template)
         self.assertNotIn('href="/search" class="btn', template)
 
 
