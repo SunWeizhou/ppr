@@ -7,6 +7,7 @@
 
 import json
 import os
+import threading
 import time
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -84,29 +85,34 @@ class ConfigManager:
     """统一配置管理器 - 单例模式"""
 
     _instance: Optional['ConfigManager'] = None
+    _lock: threading.Lock = threading.Lock()
 
     def __new__(cls):
         if cls._instance is not None:
             return cls._instance
 
-        instance = super().__new__(cls)
-        cls._instance = instance
+        with cls._lock:
+            if cls._instance is not None:
+                return cls._instance
 
-        # 初始化属性
-        instance._keywords = {}
-        instance._config = {}
-        instance._settings = Settings()
-        instance._sources = SourceConfig()
-        instance._zotero = ZoteroConfig()
-        instance._venue_priority = VenuePriority()
-        instance._ai = AIConfig()
-        instance._config_mtime = 0.0
-        instance._last_loaded = 0.0
+            instance = super().__new__(cls)
+            cls._instance = instance
 
-        # 加载配置文件
-        instance._load_config()
+            # 初始化属性
+            instance._keywords = {}
+            instance._config = {}
+            instance._settings = Settings()
+            instance._sources = SourceConfig()
+            instance._zotero = ZoteroConfig()
+            instance._venue_priority = VenuePriority()
+            instance._ai = AIConfig()
+            instance._config_mtime = 0.0
+            instance._last_loaded = 0.0
 
-        return instance
+            # 加载配置文件
+            instance._load_config()
+
+            return instance
 
     def _load_config(self):
         """加载配置文件"""
@@ -507,26 +513,14 @@ class ConfigManager:
         }
 
 
-# 全局单例
-_config_manager: Optional[ConfigManager] = None
-
-
 def get_config() -> ConfigManager:
-    """获取全局配置管理器实例"""
-    global _config_manager
-
-    if _config_manager is None:
-        _config_manager = ConfigManager()
-
-    return _config_manager
+    """Get the global ConfigManager singleton (thread-safe)."""
+    return ConfigManager()
 
 
 def reload_config() -> bool:
     """重新加载全局配置"""
-    global _config_manager
-    if _config_manager:
-        return _config_manager.reload()
-    return False
+    return get_config().reload()
 
 
 # ============ 兼容旧代码的辅助函数 ============
