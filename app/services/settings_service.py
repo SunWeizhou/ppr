@@ -73,7 +73,7 @@ def save_user_config(config: Dict) -> bool:
 
         return True
     except Exception as e:
-        logger.error(f"Error saving user config: {e}")
+        logger.error("Error saving user config: %s", e)
         return False
 
 
@@ -131,7 +131,7 @@ def save_keywords_config(config: Dict) -> bool:
 
         return True
     except Exception as e:
-        logger.error(f"Error saving keywords config: {e}")
+        logger.error("Error saving keywords config: %s", e)
         return False
 
 
@@ -178,7 +178,7 @@ class SettingsService:
                 "dislike_topics": list(cm.dislike_keywords.keys()),
             }
         except Exception as e:
-            logger.error(f"Error loading keywords config: {e}")
+            logger.error("Error loading keywords config: %s", e)
             return {"core_topics": {}, "secondary_topics": {}, "theory_keywords": [], "demote_topics": {}, "dislike_topics": []}
 
     def save_keywords_config(self, config: dict) -> None:
@@ -207,7 +207,7 @@ class SettingsService:
                         cm.set_keyword(topic, -1.0, "dislike", save=False)
             cm.save()
         except Exception as e:
-            logger.error(f"Error saving keywords config: {e}")
+            logger.error("Error saving keywords config: %s", e)
 
     def get_config_manager(self):
         from config_manager import get_config

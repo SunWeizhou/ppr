@@ -61,17 +61,17 @@ def download_pdfs(papers: List[Dict], output_dir: str, min_score: float = 2.5):
             if not os.path.exists(pdf_path):
                 pdf_url = f'https://arxiv.org/pdf/{paper_id}.pdf'
                 try:
-                    logger.debug(f"Downloading PDF: {paper_id}...")
+                    logger.debug("Downloading PDF: %s...", paper_id)
                     req = urllib.request.Request(pdf_url, headers={'User-Agent': 'Mozilla/5.0'})
                     with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:
                         with open(pdf_path, 'wb') as f:
                             f.write(response.read())
                     downloaded.append(paper_id)
                 except Exception as e:
-                    logger.warning(f"Failed to download {paper_id}: {e}")
+                    logger.warning("Failed to download %s: %s", paper_id, e)
 
     if downloaded:
-        logger.info(f"Downloaded {len(downloaded)} PDFs to {pdf_dir}")
+        logger.info("Downloaded %s PDFs to %s", len(downloaded), pdf_dir)
     return downloaded
 
 

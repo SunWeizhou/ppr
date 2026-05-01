@@ -110,7 +110,7 @@ class ScholarService:
                 }
                 papers.append(paper)
         except Exception as e:
-            logger.error(f"Error fetching papers for {scholar_name}: {e}")
+            logger.error("Error fetching papers for %s: %s", scholar_name, e)
         return papers
 
     def get_all_papers(self, max_per_scholar: int = 3) -> dict:

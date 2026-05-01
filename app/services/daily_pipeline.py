@@ -141,13 +141,13 @@ def _run_scoring(
         else:
             paper['relevance_reason'] = 'Matches your research interests'
             paper['relevance_breakdown'] = []
-    logger.info(f"Scored {len(papers)} papers ({time.time()-t0:.1f}s)")
+    logger.info("Scored %d papers (%.1fs)", len(papers), time.time() - t0)
 
     # Sort and select top papers
     papers.sort(key=lambda x: -x['score'])
     top_papers = papers[:_CONFIG['papers_per_day']]
 
-    logger.debug(f"Top scores: {[round(p['score'], 1) for p in top_papers[:5]]}")
+    logger.debug("Top scores: %s", [round(p['score'], 1) for p in top_papers[:5]])
 
     return top_papers
 
@@ -191,30 +191,30 @@ def _generate_outputs(
 
     with open(os.path.join(output_dir, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(html)
-    logger.info(f"HTML saved to: {output_dir}/index.html")
+    logger.info("HTML saved to: %s/index.html", output_dir)
 
     with open(os.path.join(output_dir, 'daily_arxiv_digest.md'), 'w', encoding='utf-8') as f:
         f.write(md)
-    logger.info(f"Markdown saved to: {output_dir}/daily_arxiv_digest.md")
+    logger.info("Markdown saved to: %s/daily_arxiv_digest.md", output_dir)
 
     # Save history
     history_path = os.path.join(history_dir, f'digest_{date_str}.md')
     with open(history_path, 'w', encoding='utf-8') as f:
         f.write(md)
-    logger.info(f"History saved to: {history_path}")
+    logger.info("History saved to: %s", history_path)
 
     # Save daily recommendation cache
     save_daily_recommendation(cache_dir, top_papers, themes)
     save_recommendation_run(cache_dir, date_str, top_papers, themes)
-    logger.info(f"Daily recommendation cached for {date_str}")
+    logger.info("Daily recommendation cached for %s", date_str)
 
     # Save to SQLite as primary state source
     try:
         store = get_state_store()
         store.save_recommendation_run(date_str, "auto_homepage", top_papers, themes)
-        logger.info(f"Recommendation saved to SQLite for {date_str}")
+        logger.info("Recommendation saved to SQLite for %s", date_str)
     except Exception as e:
-        logger.warning(f"Failed to save recommendation to SQLite: {e}")
+        logger.warning("Failed to save recommendation to SQLite: %s", e)
 
 
 def run_pipeline_v2(force_refresh: bool = False) -> list[dict]:
@@ -364,11 +364,11 @@ def _print_summary(top_papers: List[Dict], duration: float) -> None:
     logger.info("Today's Top Recommendations:")
     logger.info("=" * 60)
     for i, p in enumerate(top_papers[:5], 1):
-        logger.info(f"{i}. {p['title'][:70]}...")
-        logger.info(f"   Score: {p['score']:.1f} | {p['link']}")
+        logger.info("%d. %s...", i, p['title'][:70])
+        logger.info("   Score: %.1f | %s", p['score'], p['link'])
 
     logger.info("=" * 60)
-    logger.info(f"Pipeline complete! Total time: {duration:.1f}s")
+    logger.info("Pipeline complete! Total time: %.1fs", duration)
     logger.info("=" * 60)
 
 
@@ -398,20 +398,20 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
         if today_run:
             items = store.get_recommendation_items(today_run["run_id"])
             if items:
-                logger.info(f"Found today's recommendation in SQLite ({today})")
+                logger.info("Found today's recommendation in SQLite (%s)", today)
                 os.makedirs(output_dir, exist_ok=True)
                 os.makedirs(history_dir, exist_ok=True)
                 html_gen = HTMLGenerator()
                 html = html_gen.generate(items, [], today, cache.get_stats())
                 with open(os.path.join(output_dir, 'index.html'), 'w', encoding='utf-8') as f:
                     f.write(html)
-                logger.info(f"HTML updated: {output_dir}/index.html")
+                logger.info("HTML updated: %s/index.html", output_dir)
                 logger.info("Done! Open http://localhost:5555 for interactive view")
                 return items
 
         cached_papers, cached_themes = load_daily_recommendation(cache_dir)
         if cached_papers:
-            logger.info(f"Today's recommendation exists in JSON cache, backfilling SQLite ({today})")
+            logger.info("Today's recommendation exists in JSON cache, backfilling SQLite (%s)", today)
             store.save_recommendation_run(today, "auto_homepage", cached_papers, cached_themes)
             os.makedirs(output_dir, exist_ok=True)
             os.makedirs(history_dir, exist_ok=True)
@@ -419,12 +419,12 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
             html = html_gen.generate(cached_papers, cached_themes or [], today, cache.get_stats())
             with open(os.path.join(output_dir, 'index.html'), 'w', encoding='utf-8') as f:
                 f.write(html)
-            logger.info(f"HTML updated: {output_dir}/index.html")
+            logger.info("HTML updated: %s/index.html", output_dir)
             logger.info("Done! Open http://localhost:5555 for interactive view")
             return cached_papers
 
     cache.cleanup_old_entries(_CONFIG['cache_expiry_days'])
-    logger.info(f"Cache: {cache.get_stats()}")
+    logger.info("Cache: %s", cache.get_stats())
 
     pipeline_start = time.time()
 
@@ -432,7 +432,7 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
     t0 = time.time()
     fetcher = MultiSourceFetcher(_CONFIG['arxiv_categories'], cache)
     papers = fetcher.fetch_all_sources(_CONFIG['lookback_days'], force_refresh=force_refresh)
-    logger.info(f"Fetched {len(papers)} papers from arXiv ({time.time()-t0:.1f}s)")
+    logger.info("Fetched %d papers from arXiv (%.1fs)", len(papers), time.time() - t0)
 
     if not papers:
         logger.warning("No new papers found!")

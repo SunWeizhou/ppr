@@ -53,7 +53,7 @@ class EvalViewModel:
         except subprocess.TimeoutExpired:
             return {"success": False, "error": "Evaluation timed out"}
         except Exception as e:
-            logger.warning(f"Evaluation failed: {e}")
+            logger.warning("Evaluation failed: %s", e)
             return {"success": False, "error": str(e)}
 
     def _persist_report(self, report: dict) -> None:

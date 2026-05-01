@@ -175,7 +175,7 @@ def search_keywords(keywords):
 
         papers = search_by_keywords(keyword_list, max_results=25, days_back=60)
     except Exception as e:
-        logger.error(f"Search error: {e}")
+        logger.error("Search error: %s", e)
         safe_err = str(e).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         return (
             '<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#fff;">'

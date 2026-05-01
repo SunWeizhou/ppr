@@ -58,7 +58,7 @@ def import_state_snapshot():
 
             reload_config()
         except Exception as exc:
-            logger.warning(f"Config reload after snapshot import failed: {exc}")
+            logger.warning("Config reload after snapshot import failed: %s", exc)
 
         return jsonify({
             "success": True,
@@ -68,7 +68,7 @@ def import_state_snapshot():
     except json.JSONDecodeError:
         return jsonify({"success": False, "error": "Snapshot is not valid JSON"}), 400
     except Exception as exc:
-        logger.error(f"State import failed: {exc}")
+        logger.error("State import failed: %s", exc)
         return jsonify({"success": False, "error": str(exc)}), 500
 
 

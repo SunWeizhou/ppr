@@ -120,7 +120,7 @@ def get_best_embedding_model() -> str:
         model = 'sentence-transformers/all-MiniLM-L6-v2'
         reason = f'Standard config ({ram_gb}GB RAM)'
 
-    logger.info(f"Auto-selected model: {model} ({reason})")
+    logger.info("Auto-selected model: %s (%s)", model, reason)
     return model
 
 

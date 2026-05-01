@@ -59,7 +59,7 @@ class SubscriptionRunner:
         except ImportError:
             return {"success": False, "hit_count": 0, "error": "Search module not available"}
         except Exception as e:
-            logger.error(f"Error running subscription {subscription_id}: {e}")
+            logger.error("Error running subscription %s: %s", subscription_id, e)
             return {"success": False, "hit_count": 0, "error": str(e)}
 
     def run_all_subscriptions(self) -> dict:
@@ -110,7 +110,7 @@ class SubscriptionRunner:
                         if pid and pid not in paper_ids:
                             paper_ids.append(pid)
         except Exception as e:
-            logger.debug(f"Local recommendation lookup failed: {e}")
+            logger.debug("Local recommendation lookup failed: %s", e)
         return paper_ids
 
     def _search_arxiv_api(
@@ -256,7 +256,7 @@ class SubscriptionRunner:
         try:
             return self._svc.send_hit_to_inbox(hit_id)
         except Exception as e:
-            logger.error(f"Error sending hit {hit_id} to inbox: {e}")
+            logger.error("Error sending hit %s to inbox: %s", hit_id, e)
             return False
 
     def ignore_hit(self, hit_id: int) -> bool:
@@ -264,5 +264,5 @@ class SubscriptionRunner:
         try:
             return self._svc.ignore_hit(hit_id)
         except Exception as e:
-            logger.error(f"Error ignoring hit {hit_id}: {e}")
+            logger.error("Error ignoring hit %s: %s", hit_id, e)
             return False

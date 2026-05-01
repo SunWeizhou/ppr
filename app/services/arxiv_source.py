@@ -154,7 +154,7 @@ class MultiSourceFetcher:
             logger.warning("Combined query failed, trying individual categories...")
             arxiv_papers = self._fetch_arxiv(days)
         all_papers.extend(arxiv_papers)
-        logger.info(f"Found {len(arxiv_papers)} papers from arXiv")
+        logger.info("Found %s papers from arXiv", len(arxiv_papers))
 
         # Source 2: Topic-focused search
         logger.info("Searching for priority topics...")
@@ -162,7 +162,7 @@ class MultiSourceFetcher:
         for p in topic_papers:
             if p['id'] not in [x['id'] for x in all_papers]:
                 all_papers.append(p)
-        logger.info(f"Found {len(topic_papers)} papers from topic search")
+        logger.info("Found %s papers from topic search", len(topic_papers))
 
         # Source 3: Recent submissions (last 7 days if today is empty)
         if len(arxiv_papers) < 50:
@@ -173,13 +173,13 @@ class MultiSourceFetcher:
             for p in extended_papers:
                 if p['id'] not in [x['id'] for x in all_papers]:
                     all_papers.append(p)
-            logger.info(f"Total: {len(all_papers)} papers")
+            logger.info("Total: %s papers", len(all_papers))
 
         if not force_refresh:
             # Remove already seen papers (skip on force refresh so re-scored
             # candidates can be re-ranked after preference changes)
             all_papers = [p for p in all_papers if not self.cache.is_seen(p['id'])]
-            logger.info(f"After removing seen papers: {len(all_papers)}")
+            logger.info("After removing seen papers: %s", len(all_papers))
 
         return all_papers
 
@@ -222,12 +222,12 @@ class MultiSourceFetcher:
                             pass
 
                     if topic_papers:
-                        logger.debug(f"'{topic}': {len([p for p in topic_papers if datetime.strptime(p['published'][:10], '%Y-%m-%d') >= start_date])} papers")
+                        logger.debug("'%s': %s papers", topic, len([p for p in topic_papers if datetime.strptime(p['published'][:10], '%Y-%m-%d') >= start_date]))
 
                 time.sleep(3)
 
             except Exception as e:
-                logger.warning(f"Error searching '{topic}': {e}")
+                logger.warning("Error searching '%s': %s", topic, e)
                 continue
 
         seen = set()
@@ -273,19 +273,19 @@ class MultiSourceFetcher:
                         except Exception:
                             papers.append(paper)
 
-                    logger.debug(f"Combined query: {len(papers)} papers in date range")
+                    logger.debug("Combined query: %s papers in date range", len(papers))
                     return papers
 
             except urllib.error.HTTPError as e:
                 if e.code == 429:
                     wait_time = (attempt + 1) * 60
-                    logger.warning(f"Rate limited (429), waiting {wait_time}s...")
+                    logger.warning("Rate limited (429), waiting %ss...", wait_time)
                     time.sleep(wait_time)
                 else:
-                    logger.error(f"HTTP error: {e.code}")
+                    logger.error("HTTP error: %s", e.code)
                     break
             except Exception as e:
-                logger.error(f"Fetch error: {e}")
+                logger.error("Fetch error: %s", e)
                 if attempt < 2:
                     time.sleep(30)
 
@@ -307,7 +307,7 @@ class MultiSourceFetcher:
                 except urllib.error.HTTPError as e:
                     if e.code == 429:
                         wait_time = (attempt + 1) * 30
-                        logger.warning(f"Rate limited, waiting {wait_time}s before retry {attempt + 1}/{max_retries}...")
+                        logger.warning("Rate limited, waiting %ss before retry %s/%s...", wait_time, attempt + 1, max_retries)
                         time.sleep(wait_time)
                     else:
                         raise
@@ -340,12 +340,12 @@ class MultiSourceFetcher:
                                 papers.append(paper)
                         except Exception:
                             papers.append(paper)
-                    logger.debug(f"{category}: {len(category_papers)} papers")
+                    logger.debug("%s: %s papers", category, len(category_papers))
                 else:
-                    logger.warning(f"{category}: Failed after retries")
+                    logger.warning("%s: Failed after retries", category)
 
             except Exception as e:
-                logger.error(f"Error fetching {category}: {e}")
+                logger.error("Error fetching %s: %s", category, e)
 
             if i < len(self.categories) - 1:
                 time.sleep(5)
@@ -406,7 +406,7 @@ class MultiSourceFetcher:
 
                 papers.append(paper)
         except Exception as e:
-            logger.error(f"XML parsing error: {e}")
+            logger.error("XML parsing error: %s", e)
 
         return papers
 
@@ -428,7 +428,7 @@ def search_by_keywords(keywords: List[str], max_results: int = 20, days_back: in
         List of matching papers sorted by relevance score
     """
     logger.info("=" * 60)
-    logger.info(f"Searching arXiv for: {', '.join(keywords)}")
+    logger.info("Searching arXiv for: %s", ', '.join(keywords))
     logger.info("=" * 60)
 
     query_parts: List[str] = []
@@ -450,19 +450,19 @@ def search_by_keywords(keywords: List[str], max_results: int = 20, days_back: in
     }
 
     url = f"https://export.arxiv.org/api/query?{urllib.parse.urlencode(params)}"
-    logger.debug(f"Query URL: {url}")
+    logger.debug("Query URL: %s", url)
 
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:
             xml_data = response.read().decode('utf-8')
-            logger.debug(f"Received {len(xml_data)} bytes from arXiv")
+            logger.debug("Received %s bytes from arXiv", len(xml_data))
 
             root = ET.fromstring(xml_data)
             ns = {'atom': 'http://www.w3.org/2005/Atom', 'arxiv': 'http://arxiv.org/schemas/atom'}
 
             entries = root.findall('atom:entry', ns)
-            logger.debug(f"Found {len(entries)} entries in XML")
+            logger.debug("Found %s entries in XML", len(entries))
 
             for entry in entries:
                 paper: Dict = {}
@@ -510,12 +510,12 @@ def search_by_keywords(keywords: List[str], max_results: int = 20, days_back: in
                     papers.append(paper)
 
     except Exception as e:
-        logger.error(f"Error fetching from arXiv: {e}")
+        logger.error("Error fetching from arXiv: %s", e)
         import traceback
         logger.debug(traceback.format_exc())
         return []
 
-    logger.info(f"Found {len(papers)} papers from arXiv")
+    logger.info("Found %s papers from arXiv", len(papers))
 
     def compute_keyword_score(paper: Dict) -> Tuple[float, Dict]:
         """Compute score based on keyword matching."""
@@ -566,7 +566,7 @@ def search_by_keywords(keywords: List[str], max_results: int = 20, days_back: in
     papers.sort(key=lambda x: -x['score'])
     results = papers[:max_results]
 
-    logger.info(f"Top {len(results)} papers after scoring")
+    logger.info("Top %s papers after scoring", len(results))
     return results
 
 
