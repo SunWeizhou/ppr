@@ -1753,9 +1753,13 @@ class StateStore:
                 snapshot[table] = [self._row_to_dict(row) for row in rows]
         return snapshot
 
+    _MAX_IMPORT_ROWS_PER_TABLE = 10_000
+
     def import_state(self, snapshot: Dict[str, List[Dict]]) -> None:
         if not isinstance(snapshot, dict):
             raise ValueError("Invalid state snapshot")
+        if not snapshot:
+            raise ValueError("Empty state snapshot")
 
         table_columns = {
             "job_runs": [
@@ -1811,6 +1815,13 @@ class StateStore:
                 rows = snapshot.get(table, [])
                 if not isinstance(rows, list):
                     raise ValueError(f"Invalid rows for {table}")
+                if len(rows) > self._MAX_IMPORT_ROWS_PER_TABLE:
+                    raise ValueError(
+                        f"Too many rows for {table}: {len(rows)} "
+                        f"(max {self._MAX_IMPORT_ROWS_PER_TABLE})"
+                    )
+                if table not in table_columns:
+                    raise ValueError(f"Unknown table: {table}")
                 placeholders = ", ".join(["?"] * len(columns))
                 column_sql = ", ".join(columns)
                 for row in rows:
