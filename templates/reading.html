@@ -1,0 +1,150 @@
+{% import "_components.html" as ui %}
+{% extends "base_research.html" %}
+{% set body_class = (body_class or '') ~ ' page-reading' %}
+
+{% block hero %}
+<section class="page-header">
+    <div class="lead">
+        <span class="section-kicker">Reading List</span>
+        <h1 class="page-title">Reading</h1>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section>
+    <div class="tabs" role="tablist">
+        <a href="/reading" class="tab {% if tab == 'active' %}is-active{% endif %}">Active</a>
+        <a href="/reading?tab=saved" class="tab {% if tab == 'saved' %}is-active{% endif %}">Saved</a>
+        <a href="/reading?tab=collections" class="tab {% if tab == 'collections' %}is-active{% endif %}">Collections</a>
+    </div>
+
+    {% if tab == 'active' %}
+        <div class="toolbar" role="group" aria-label="Filter reading type">
+            <button type="button" class="chip is-active" data-reading-filter="all">All</button>
+            <button type="button" class="chip" data-reading-filter="skim">Skim Later</button>
+            <button type="button" class="chip" data-reading-filter="deepread">Deep Read</button>
+        </div>
+        {% if active_items or deep_read_items %}
+            <div class="paper-list" id="readingPaperList">
+            {% for paper in active_items %}
+                <article class="paper-list-item" data-href="/papers/{{ paper.id }}" data-paper-id="{{ paper.id }}" data-queue-status="{{ paper.queue_status or 'Skim Later' }}">
+                    <div class="reading-item-header">
+                        <div class="chip-row">
+                            <span class="chip is-muted">{{ paper.queue_status or 'Skim Later' }}</span>
+                            {% for label in paper.category_labels[:2] %}
+                                <span class="chip">{{ label }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="reading-item-actions">
+                            <button type="button" class="btn btn-ghost btn-xs" onclick="queuePaper('{{ paper.id }}', 'Deep Read')">Deep Read</button>
+                            <button type="button" class="btn btn-ghost btn-xs" onclick="queuePaper('{{ paper.id }}', 'Saved')">Save</button>
+                        </div>
+                    </div>
+                    <h3 class="paper-list-title">{{ paper.title or 'Details unavailable' }}</h3>
+                    <div class="paper-authors">{{ paper.author_text }}</div>
+                </article>
+            {% endfor %}
+            {% for paper in deep_read_items %}
+                <article class="paper-list-item" data-href="/papers/{{ paper.id }}" data-paper-id="{{ paper.id }}" data-queue-status="Deep Read">
+                    <div class="reading-item-header">
+                        <div class="chip-row">
+                            <span class="chip is-muted">Deep Read</span>
+                            {% for label in paper.category_labels[:2] %}
+                                <span class="chip">{{ label }}</span>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-ghost btn-xs" onclick="queuePaper('{{ paper.id }}', 'Saved')">Save</button>
+                    </div>
+                    <h3 class="paper-list-title">{{ paper.title or 'Details unavailable' }}</h3>
+                    <div class="paper-authors">{{ paper.author_text }}</div>
+                </article>
+            {% endfor %}
+            </div>
+        {% else %}
+            {{ ui.empty_state('All done', 'Reading queue is empty.', '', '<a href="/" class="btn btn-primary">Today</a>') }}
+        {% endif %}
+
+    {% elif tab == 'saved' %}
+        {% if saved_items %}
+            <div class="paper-list">
+            {% for paper in saved_items %}
+                <article class="paper-list-item" data-href="/papers/{{ paper.id }}" data-paper-id="{{ paper.id }}">
+                    <div class="reading-item-header">
+                        <div class="chip-row">
+                            <span class="chip is-muted">Saved</span>
+                            {% for label in paper.category_labels[:2] %}
+                                <span class="chip">{{ label }}</span>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-ghost btn-xs" onclick="queuePaper('{{ paper.id }}', 'Skim Later')">Read Later</button>
+                    </div>
+                    <h3 class="paper-list-title">{{ paper.title or 'Details unavailable' }}</h3>
+                    <div class="paper-authors">{{ paper.author_text }}</div>
+                </article>
+            {% endfor %}
+            </div>
+        {% else %}
+            {{ ui.empty_state('No saved items', '', '', '<a href="/" class="btn btn-primary">Today</a>') }}
+        {% endif %}
+
+    {% elif tab == 'collections' %}
+        {% if all_collections %}
+            <div class="card">
+            {% for collection in all_collections %}
+                <a href="/reading?tab=collections&collection_id={{ collection.id }}" class="list-strip-item">
+                    <div>
+                        <div class="list-item-title">{{ collection.name }}</div>
+                        {% if collection.description %}
+                            <div class="list-item-meta">{{ collection.description[:120] }}{% if collection.description|length > 120 %}…{% endif %}</div>
+                        {% endif %}
+                    </div>
+                    <span class="chip is-muted">{{ collection.paper_count or 0 }}</span>
+                </a>
+            {% endfor %}
+            </div>
+        {% else %}
+            {{ ui.empty_state('No collections', 'Create a collection to organize papers by research topic.', '', '<a href="/reading?tab=collections" class="btn btn-primary">Manage</a>') }}
+        {% endif %}
+
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var filterToolbar = document.querySelector('.toolbar[role="group"][aria-label="Filter reading type"]');
+  if (!filterToolbar) return;
+
+  filterToolbar.addEventListener('click', function(e) {
+    var chip = e.target.closest('[data-reading-filter]');
+    if (!chip) return;
+    filterToolbar.querySelectorAll('[data-reading-filter]').forEach(function(c) { c.classList.remove('is-active'); });
+    chip.classList.add('is-active');
+    var filter = chip.dataset.readingFilter;
+    var list = document.getElementById('readingPaperList');
+    if (!list) return;
+    list.querySelectorAll('.paper-list-item').forEach(function(item) {
+      if (filter === 'all') {
+        item.hidden = false;
+      } else if (filter === 'deepread') {
+        item.hidden = item.dataset.queueStatus !== 'Deep Read';
+      } else if (filter === 'skim') {
+        item.hidden = item.dataset.queueStatus !== 'Skim Later';
+      }
+    });
+  });
+
+  // Card clicks → navigate to paper detail
+  document.getElementById('readingPaperList')?.addEventListener('click', function(e) {
+    if (e.target.closest('button') || e.target.closest('a')) return;
+    var article = e.target.closest('.paper-list-item');
+    if (article && article.dataset.href) {
+      window.location.href = article.dataset.href;
+    }
+  });
+});
+</script>
+{% endblock %}

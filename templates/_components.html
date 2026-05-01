@@ -13,13 +13,12 @@
 <span class="state-chip {{ class_name }}" {% if not label %}hidden{% endif %}>{{ label }}</span>
 {%- endmacro %}
 
-{% macro empty_state(title='', copy='', action_href='', action_label='') -%}
+{% macro empty_state(title='', copy='', icon='', action='') -%}
 <div class="empty-state">
+    {% if icon %}<div class="empty-icon">{{ icon }}</div>{% endif %}
     {% if title %}<div class="empty-title">{{ title }}</div>{% endif %}
     {% if copy %}<p class="muted-copy">{{ copy }}</p>{% endif %}
-    {% if action_href and action_label %}
-        <a class="btn btn-primary" href="{{ action_href }}">{{ action_label }}</a>
-    {% endif %}
+    {% if action %}{{ action|safe }}{% endif %}
 </div>
 {%- endmacro %}
 

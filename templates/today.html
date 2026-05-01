@@ -1,0 +1,134 @@
+{% from "_components.html" import empty_state %}
+{% extends "base_research.html" %}
+{% set body_class = (body_class or '') ~ ' page-today' %}
+
+{% block hero %}
+<section class="page-header">
+    <div class="lead">
+        <span class="section-kicker">Daily Triage</span>
+        <h1 class="page-title">{{ date }}</h1>
+    </div>
+    <div class="actions">
+        {% if is_today and papers %}
+        <button type="button" class="btn btn-ghost" onclick="confirmRefreshToday()">Regenerate</button>
+        {% endif %}
+    </div>
+</section>
+
+{% if date_cards %}
+<div class="date-strip" role="tablist" aria-label="Available dates">
+    {% for card in date_cards %}
+    <a href="{% if card.date == today %}/{% else %}/date/{{ card.date }}{% endif %}"
+       class="date-strip-item{% if card.active %} is-active{% endif %}{% if card.is_today %} is-today{% endif %}{% if not card.has_data %} no-data{% endif %}"
+       role="tab"
+       aria-selected="{{ 'true' if card.active else 'false' }}">
+        <span class="date-strip-weekday">{{ card.weekday }}</span>
+        <span class="date-strip-day">{{ card.day }}</span>
+        <span class="date-strip-month">{{ card.month }}</span>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<section>
+    {% if papers %}
+    {% if untriaged_papers %}
+    <div class="paper-list" id="inboxPaperList" role="list" aria-label="Paper list">
+        {% for paper in untriaged_papers %}
+        <article class="paper-list-item"
+            role="listitem"
+            data-href="/papers/{{ paper.id }}"
+            data-paper-id="{{ paper.id }}"
+            data-paper-title="{{ paper.title }}"
+            data-paper-authors="{{ paper.author_text }}"
+            data-paper-summary="{{ paper.summary_short }}"
+            data-paper-abstract="{{ paper.abstract_short or paper.abstract or '' }}"
+            data-paper-score="{{ paper.score }}"
+            data-feedback-state="{% if paper.is_liked %}liked{% elif paper.is_disliked %}disliked{% else %}none{% endif %}"
+            data-queue-status="{{ paper.queue_status or '' }}"
+            tabindex="0"
+        >
+            <div class="chip-row">
+                {% if paper.queue_status %}
+                <span class="chip is-muted {{ paper.queue_status_class }}">{{ paper.queue_status }}</span>
+                {% endif %}
+                {% for label in paper.category_labels[:2] %}
+                <span class="chip">{{ label }}</span>
+                {% endfor %}
+            </div>
+
+            <h3 class="paper-list-title">{{ paper.title }}</h3>
+            <p class="paper-authors">{{ paper.author_text }}</p>
+            <p class="paper-list-summary">{{ paper.summary_short }}</p>
+
+            {% if paper.recommendation_reason_blocks %}
+            <p class="why-line">{{ paper.recommendation_reason_blocks[0].natural_text or '' }}</p>
+            {% elif paper.relevance_html %}
+            <p class="why-line">{{ paper.relevance_html | safe }}</p>
+            {% endif %}
+
+            <div class="detail-actions" role="group" aria-label="Paper actions">
+                <button type="button" class="btn btn-primary btn-xs" data-action="save" data-paper="{{ paper.id }}">Save</button>
+                <button type="button" class="btn btn-ghost btn-xs" data-action="pass" data-paper="{{ paper.id }}">Pass</button>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    {# All papers triaged on page load — already done #}
+    {% endif %}
+    {% else %}
+        {% if is_today %}
+        {{ empty_state('No Recommendations Yet', 'Generate your first set of paper recommendations.', '📄', '<a href="/settings?tab=profile" class="btn btn-primary">Configure Keywords</a>') }}
+        {% else %}
+        {{ empty_state('No Papers on This Date', 'No recommendations were found for this date.', '📄', '<a href="/" class="btn btn-primary">Go to Today</a>') }}
+        {% endif %}
+    {% endif %}
+
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Event delegation for action buttons + paper card clicks
+  var list = document.getElementById('inboxPaperList');
+  if (list) {
+    list.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (btn) {
+        var action = btn.dataset.action;
+        var paperId = btn.dataset.paper;
+        if (action === 'save') queuePaper(paperId, 'Skim Later');
+        else if (action === 'pass') submitPaperFeedback(paperId, 'dislike');
+        return;
+      }
+      // Click outside buttons/links → navigate to paper detail
+      if (e.target.closest('a') || e.target.closest('button')) return;
+      var article = e.target.closest('.paper-list-item');
+      if (article && article.dataset.href) {
+        window.location.href = article.dataset.href;
+      }
+    });
+  }
+});
+
+function confirmRefreshToday() {
+  if (!confirm('Regenerate will replace all current recommendations. Continue?')) return;
+  fetch('/api/refresh?force=1', { method: 'POST' })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.success) {
+        showToast('Refresh task submitted');
+        setTimeout(function(){ window.location.reload(); }, 1500);
+      } else {
+        showToast(data.error || 'Refresh failed', 'error');
+      }
+    })
+    .catch(function(err){ showToast('Refresh failed: ' + err.message, 'error'); });
+}
+</script>
+<script src="{{ url_for('static', filename='js/inbox.js', v=static_version) }}"></script>
+{% endblock %}

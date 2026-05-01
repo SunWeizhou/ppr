@@ -47,10 +47,6 @@ def index():
         feedback = vm.load_feedback()
         prev_date, next_date = InboxViewModel.build_date_nav(date, dates)
 
-        selected_filter = request.args.get("filter", "all").strip().lower()
-        if selected_filter not in {"all", "untriaged", "queued", "relevant", "ignored"}:
-            selected_filter = "all"
-
         context = vm.to_template_context(
             date=date,
             papers=papers,
@@ -59,9 +55,8 @@ def index():
             prev_date=prev_date,
             next_date=next_date,
             feedback=feedback,
-            selected_filter=selected_filter,
         )
-        return render_template("home_research.html", **context)
+        return render_template("today.html", **context)
 
     # Fallback: markdown digest
     filepath = os.path.join(HISTORY_DIR, f"digest_{date}.md")
@@ -78,10 +73,6 @@ def index():
     feedback = vm.load_feedback()
     prev_date, next_date = InboxViewModel.build_date_nav(date, dates)
 
-    selected_filter = request.args.get("filter", "all").strip().lower()
-    if selected_filter not in {"all", "untriaged", "queued", "relevant", "ignored"}:
-        selected_filter = "all"
-
     context = vm.to_template_context(
         date=date,
         papers=papers,
@@ -90,9 +81,8 @@ def index():
         prev_date=prev_date,
         next_date=next_date,
         feedback=feedback,
-        selected_filter=selected_filter,
     )
-    return render_template("home_research.html", **context)
+    return render_template("today.html", **context)
 
 
 @bp.get("/date/<date>")
@@ -109,10 +99,6 @@ def view_date(date):
         feedback = vm.load_feedback()
         prev_date, next_date = InboxViewModel.build_date_nav(date, dates)
 
-        selected_filter = request.args.get("filter", "all").strip().lower()
-        if selected_filter not in {"all", "untriaged", "queued", "relevant", "ignored"}:
-            selected_filter = "all"
-
         context = vm.to_template_context(
             date=date,
             papers=papers,
@@ -121,9 +107,8 @@ def view_date(date):
             prev_date=prev_date,
             next_date=next_date,
             feedback=feedback,
-            selected_filter=selected_filter,
         )
-        return render_template("home_research.html", **context)
+        return render_template("today.html", **context)
 
     # Fallback: markdown digest
     filepath = os.path.join(HISTORY_DIR, f"digest_{date}.md")
@@ -136,10 +121,6 @@ def view_date(date):
     feedback = vm.load_feedback()
     prev_date, next_date = InboxViewModel.build_date_nav(date, dates)
 
-    selected_filter = request.args.get("filter", "all").strip().lower()
-    if selected_filter not in {"all", "untriaged", "queued", "relevant", "ignored"}:
-        selected_filter = "all"
-
     context = vm.to_template_context(
         date=date,
         papers=papers,
@@ -148,9 +129,8 @@ def view_date(date):
         prev_date=prev_date,
         next_date=next_date,
         feedback=feedback,
-        selected_filter=selected_filter,
     )
-    return render_template("home_research.html", **context)
+    return render_template("today.html", **context)
 
 
 @bp.get("/papers/<paper_id>")

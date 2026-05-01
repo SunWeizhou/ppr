@@ -1,0 +1,220 @@
+{% extends "base_research.html" %}
+{% import "_components.html" as ui %}
+
+{% set body_class = (body_class or '') ~ ' page-watch' %}
+
+{% block hero %}
+<section class="page-header">
+    <div class="lead">
+        <span class="section-kicker" data-i18n="nav.watch">Watch</span>
+        <h1 class="page-title" data-i18n="nav.watch">Watch</h1>
+        <div class="page-context">你正在追踪 {{ unified_query_count }} 个研究方向、{{ unified_author_count }} 位作者、{{ unified_venue_count }} 本期刊。</div>
+    </div>
+    <div class="actions">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="runAllSubscriptions()">
+            <span data-i18n="watch.refresh_all">刷新全部</span> &#8635;
+        </button>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+
+{# =============================================
+   研究方向 (Queries)
+   ============================================= #}
+<section class="watch-section">
+    <div class="watch-section-header">
+        <h2 class="section-heading">
+            研究方向
+            <span class="chip is-muted">Query</span>
+        </h2>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="createQuerySubscription()">+ 新增</button>
+    </div>
+
+    {% if query_subs %}
+    <div class="watch-sub-list">
+        {% for sub in query_subs %}
+        <div class="card watch-sub-card">
+            <div class="watch-sub-card-header">
+                <div>
+                    <h3 class="watch-sub-card-name">{{ sub.name }}</h3>
+                    <div class="watch-sub-card-meta">
+                        {% if sub.query_text %}
+                        <span class="watch-sub-meta-item">
+                            <code>{{ sub.query_text[:80] }}{% if sub.query_text|length > 80 %}&hellip;{% endif %}</code>
+                        </span>
+                        {% endif %}
+                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at }}</time></span>
+                        {% if not sub.enabled %}<span class="chip is-warn">已禁用</span>{% endif %}
+                    </div>
+                </div>
+                <span class="chip">{{ sub.latest_hit_count }} 篇命中</span>
+            </div>
+
+            {% if sub.recent_hits %}
+            <div class="watch-sub-hits">
+                {% for hit in sub.recent_hits %}
+                <div class="watch-sub-hit">
+                    <span class="watch-sub-hit-arrow">&#9656;</span>
+                    <a href="/papers/{{ hit.paper_id }}" class="watch-sub-hit-title">{{ hit.title }}</a>
+                    {% if hit.hit_date_rel %}<span class="chip is-muted"><time datetime="{{ hit.hit_date }}">{{ hit.hit_date_rel }}</time></span>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="watch-sub-card-actions">
+                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">手动刷新</button>
+                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }})">编辑</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    {{ ui.empty_state('暂无研究方向订阅', '添加查询订阅以追踪特定方向的新论文。', '&#128269;', '<button type="button" class="btn btn-primary btn-sm" onclick="createQuerySubscription()">+ 新增查询</button>') }}
+    {% endif %}
+</section>
+
+{# =============================================
+   作者 (Authors)
+   ============================================= #}
+<section class="watch-section">
+    <div class="watch-section-header">
+        <h2 class="section-heading">
+            作者
+            <span class="chip is-muted">Author</span>
+        </h2>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="createAuthorSubscription()">+ 新增</button>
+    </div>
+
+    {% if author_subs %}
+    <div class="watch-sub-list">
+        {% for sub in author_subs %}
+        <div class="card watch-sub-card">
+            <div class="watch-sub-card-header">
+                <div>
+                    <h3 class="watch-sub-card-name">{{ sub.name }}</h3>
+                    <div class="watch-sub-card-meta">
+                        {% if sub.affiliation %}<span class="watch-sub-meta-item">{{ sub.affiliation }}</span>{% endif %}
+                        {% if sub.focus %}<span class="watch-sub-meta-item">{{ sub.focus }}</span>{% endif %}
+                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at }}</time></span>
+                        {% if not sub.enabled %}<span class="chip is-warn">已禁用</span>{% endif %}
+                    </div>
+                </div>
+                <span class="chip">{{ sub.latest_hit_count }} 篇命中</span>
+            </div>
+
+            {% if sub.recent_hits %}
+            <div class="watch-sub-hits">
+                {% for hit in sub.recent_hits %}
+                <div class="watch-sub-hit">
+                    <span class="watch-sub-hit-arrow">&#9656;</span>
+                    <a href="/papers/{{ hit.paper_id }}" class="watch-sub-hit-title">{{ hit.title }}</a>
+                    {% if hit.hit_date_rel %}<span class="chip is-muted"><time datetime="{{ hit.hit_date }}">{{ hit.hit_date_rel }}</time></span>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="watch-sub-no-hits muted-copy">暂无命中论文</div>
+            {% endif %}
+
+            <div class="watch-sub-card-actions">
+                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">刷新</button>
+                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }})">编辑</button>
+                {% for link in sub.links %}
+                <a href="{{ link.href }}" target="_blank" class="btn btn-ghost btn-xs">{{ link.label }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    {{ ui.empty_state('暂无作者订阅', '添加作者订阅以追踪特定学者的新论文。', '&#128100;', '<button type="button" class="btn btn-primary btn-sm" onclick="createAuthorSubscription()">+ 新增作者</button>') }}
+    {% endif %}
+</section>
+
+{# =============================================
+   期刊/会议 (Venues)
+   ============================================= #}
+<section class="watch-section">
+    <div class="watch-section-header">
+        <h2 class="section-heading">
+            期刊/会议
+            <span class="chip is-muted">Venue</span>
+        </h2>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="createVenueSubscription()">+ 新增</button>
+    </div>
+
+    {% if venue_subs %}
+    <div class="watch-sub-list">
+        {% for sub in venue_subs %}
+        <div class="card watch-sub-card">
+            <div class="watch-sub-card-header">
+                <div>
+                    <h3 class="watch-sub-card-name">{{ sub.name }}</h3>
+                    <div class="watch-sub-card-meta">
+                        <span class="watch-sub-meta-item chip is-muted">{{ sub.venue_type }}</span>
+                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at }}</time></span>
+                        {% if not sub.enabled %}<span class="chip is-warn">已禁用</span>{% endif %}
+                    </div>
+                </div>
+                <span class="chip">{{ sub.latest_hit_count }} 篇命中</span>
+            </div>
+
+            {% if sub.recent_hits %}
+            <div class="watch-sub-hits">
+                {% for hit in sub.recent_hits %}
+                <div class="watch-sub-hit">
+                    <span class="watch-sub-hit-arrow">&#9656;</span>
+                    <a href="/papers/{{ hit.paper_id }}" class="watch-sub-hit-title">{{ hit.title }}</a>
+                    {% if hit.hit_date_rel %}<span class="chip is-muted"><time datetime="{{ hit.hit_date }}">{{ hit.hit_date_rel }}</time></span>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="watch-sub-card-actions">
+                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">刷新</button>
+                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }})">编辑</button>
+                {% if sub.homepage_url %}
+                <a href="{{ sub.homepage_url }}" target="_blank" class="btn btn-ghost btn-xs">访问主页</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    {{ ui.empty_state('暂无期刊/会议订阅', '添加期刊或会议订阅以追踪特定来源的新论文。', '&#128240;', '<button type="button" class="btn btn-primary btn-sm" onclick="createVenueSubscription()">+ 新增期刊/会议</button>') }}
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script id="watchSubsData" type="application/json">{{ unified_subs | tojson }}</script>
+<script>
+function humanTime(isoString) {
+  if (!isoString) return '';
+  var date = new Date(isoString);
+  if (isNaN(date.getTime())) return isoString;
+  var now = new Date();
+  var diffMs = now - date;
+  if (diffMs < 0) return '刚刚';
+  var diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return '刚刚';
+  if (diffMin < 60) return diffMin + ' 分钟前';
+  var diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return diffHour + ' 小时前';
+  var diffDay = Math.floor(diffHour / 24);
+  if (diffDay < 30) return diffDay + ' 天前';
+  var diffMonth = Math.floor(diffDay / 30);
+  return diffMonth + ' 个月前';
+}
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('time[datetime]').forEach(function(el) {
+    el.textContent = humanTime(el.getAttribute('datetime'));
+  });
+});
+</script>
+<script src="{{ url_for('static', filename='js/subscriptions.js', v=static_version) }}"></script>
+{% endblock %}

@@ -6,11 +6,9 @@ Extracted from web_server.py and queue_viewmodel.py to eliminate duplication.
 from __future__ import annotations
 
 NAV_ITEM_CONFIG = [
-    ("inbox", "/", "Inbox", "tone-home"),
-    ("queue", "/queue", "Queue", "tone-queue"),
-    ("library", "/library", "Library", "tone-library"),
-    ("monitor", "/monitor", "Monitor", "tone-monitor"),
-    ("settings", "/settings", "Settings", "tone-settings"),
+    ("inbox", "/", "Today", "tone-home"),
+    ("reading", "/reading", "Reading", "tone-reading"),
+    ("watch", "/watch", "Watch", "tone-watch"),
 ]
 
 

@@ -3,11 +3,11 @@ from pathlib import Path
 
 
 class Phase2InformationArchitectureTests(unittest.TestCase):
-    def test_top_level_nav_has_only_five_product_destinations(self):
+    def test_top_level_nav_has_three_product_destinations(self):
         import web_server
 
         nav = web_server.NAV_ITEM_CONFIG
-        self.assertEqual([item[0] for item in nav], ["inbox", "queue", "library", "monitor", "settings"])
+        self.assertEqual([item[0] for item in nav], ["inbox", "reading", "watch"])
         self.assertNotIn("search", [item[0] for item in nav])
 
     def test_inbox_template_is_strict_triage_surface(self):

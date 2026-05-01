@@ -66,7 +66,7 @@ class InboxViewModel:
         today_matched_keywords = self._extract_today_keywords(papers, keywords_config)
         is_today = date == datetime.now().strftime("%Y-%m-%d")
 
-        page_ctx = self._build_page_context(active_tab="today")
+        page_ctx = self._build_page_context(active_tab="inbox")
         decorated = self._decorate_home_papers(papers, feedback)
 
         # Option C: filter to untriaged papers only
@@ -105,7 +105,7 @@ class InboxViewModel:
 
     def to_generating_context(self) -> dict:
         """Build page context for ``generating.html``."""
-        context = assemble_page_context(self._store, active_tab="today")
+        context = assemble_page_context(self._store, active_tab="inbox")
         context["queue_counts"] = self._queue_counts()
         context["queue_status_values"] = QUEUE_STATUS_VALUES
         context["title"] = "Generating Recommendations - StatDesk"
