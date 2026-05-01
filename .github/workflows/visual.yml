@@ -1,0 +1,63 @@
+name: Visual Regression
+
+on:
+  pull_request:
+    paths:
+      - "templates/**"
+      - "static/**"
+      - "app/viewmodels/**"
+      - "app/routes/**"
+      - "tests/visual/**"
+      - ".github/workflows/visual.yml"
+  workflow_dispatch:
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt -c constraints.txt
+          python -m pip install -r requirements-test.txt
+
+      - name: Install Chromium for Playwright
+        run: python -m playwright install --with-deps chromium
+
+      - name: Check goldens exist
+        id: check_goldens
+        run: |
+          count=$(find tests/visual/golden -name "*.png" -not -name ".gitkeep" 2>/dev/null | wc -l)
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          if [ "$count" -eq 0 ]; then
+            echo "::warning::No goldens in tests/visual/golden/. Skipping visual tests."
+            echo "::warning::Generate them with: git checkout ui-v1.0 && python tests/visual/regenerate_goldens.py"
+          else
+            echo "Found $count golden(s)."
+          fi
+
+      - name: Run visual regression tests
+        if: steps.check_goldens.outputs.count != '0'
+        run: |
+          # Don't let an accidentally-set DEEPSEEK key make the AI tab flake
+          unset DEEPSEEK_API_KEY
+          pytest tests/visual/ -v --tb=short
+
+      - name: Upload diff artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diff
+          path: tests/visual/diff/
+          if-no-files-found: ignore
+          retention-days: 14

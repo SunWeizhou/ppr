@@ -63,6 +63,17 @@ search.html
 # Git worktrees
 .worktrees/
 
+# Visual regression test artifacts (goldens are committed; diffs are not)
+tests/visual/diff/*.png
+!tests/visual/diff/.gitkeep
+.playwright-mcp/
+
+# Pytest / coverage caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
 # OS files
 .DS_Store
 Thumbs.db

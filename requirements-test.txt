@@ -1,0 +1,18 @@
+# Test-only dependencies. Production install does NOT need these.
+#
+# Install with:
+#   pip install -r requirements-test.txt
+#   python -m playwright install chromium
+#
+# Visual regression tests live under tests/visual/. See
+# tests/visual/README.md for usage.
+
+# Test runner
+pytest>=8.0
+pytest-playwright>=0.5
+
+# Browser automation (paired with `playwright install chromium`)
+playwright>=1.45
+
+# Image diffing for visual regression
+Pillow>=10.0
