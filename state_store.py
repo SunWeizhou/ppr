@@ -275,7 +275,14 @@ class StateStore:
                 conn.execute(
                     "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '6')"
                 )
-            self._migrate_arxiv_paper_ids(conn)
+            already_migrated = conn.execute(
+                "SELECT value FROM schema_meta WHERE key = 'arxiv_ids_migrated'"
+            ).fetchone()
+            if not already_migrated or already_migrated["value"] != "1":
+                self._migrate_arxiv_paper_ids(conn)
+                conn.execute(
+                    "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('arxiv_ids_migrated', '1')"
+                )
 
     def _migrate_arxiv_paper_ids(self, conn: sqlite3.Connection) -> None:
         queue_rows = conn.execute(
