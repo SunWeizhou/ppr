@@ -339,6 +339,12 @@ class ConfigManager:
         ai_data = raw.get('ai', {})
         self._ai.provider = ai_data.get('provider', 'none')
         self._ai.api_key = ai_data.get('api_key', '')
+        if self._ai.api_key:
+            logger.warning(
+                "API key stored in plaintext config file. Consider using an "
+                "environment variable (STATDESK_AI_API_KEY) instead of "
+                "storing secrets in %s", CONFIG_FILE
+            )
         self._ai.base_url = ai_data.get('base_url', 'https://api.deepseek.com')
         self._ai.model = ai_data.get('model', 'deepseek-chat')
         self._ai.enabled = ai_data.get('enabled', False)
