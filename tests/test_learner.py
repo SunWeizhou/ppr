@@ -141,10 +141,11 @@ class TestRetrainIfNeeded(unittest.TestCase):
         # Verify model was saved
         self.mock_store.save_feedback_model.assert_called_once()
         args, _ = self.mock_store.save_feedback_model.call_args
-        sample_count, auc, pickle_blob = args
+        sample_count, auc, model_json = args
         self.assertEqual(sample_count, 80)
         self.assertEqual(auc, 0.85)
-        self.assertIsInstance(pickle_blob, bytes)
+        self.assertIsInstance(model_json, str)
+        self.assertIn("coef", model_json)
 
         # Verify state was updated
         self.mock_store.save.assert_any_call("feedback_model_trained_at", unittest.mock.ANY)
