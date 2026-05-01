@@ -572,6 +572,36 @@ class StateStore:
             ).fetchone()
         return row is not None
 
+    def recover_stale_jobs(self, stale_after_minutes: int = 120) -> int:
+        """Mark jobs stuck in 'queued'/'running' for too long as 'failed'.
+
+        Returns the number of recovered jobs. This is called on startup to
+        unblock future pipeline runs that were interrupted by a crash.
+        """
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            # Find stale jobs: queued/running and updated_at older than threshold
+            rows = conn.execute(
+                """SELECT run_id FROM job_runs
+                   WHERE status IN ('queued', 'running')
+                     AND updated_at < datetime('now', ?)""",
+                (f"-{stale_after_minutes} minutes",),
+            ).fetchall()
+            if not rows:
+                return 0
+            run_ids = [row["run_id"] for row in rows]
+            for run_id in run_ids:
+                conn.execute(
+                    """UPDATE job_runs
+                       SET status = 'failed',
+                           error_text = 'Recovered: stale job on startup',
+                           updated_at = ?,
+                           finished_at = ?
+                       WHERE run_id = ?""",
+                    (now, now, run_id),
+                )
+        return len(run_ids)
+
     def list_collections(self) -> List[Dict]:
         with self._connect() as conn:
             rows = conn.execute(
@@ -1466,23 +1496,35 @@ class StateStore:
             ).fetchall()
         return [dict(r) for r in rows]
 
-    def get_recommendation_run_by_date(self, date: str) -> Optional[Dict]:
+    def get_recommendation_run_by_date(self, date: str, trigger_source: Optional[str] = None) -> Optional[Dict]:
         """Get the latest recommendation run for a specific date."""
         with self._connect() as conn:
             conn.row_factory = sqlite3.Row
-            row = conn.execute(
-                "SELECT * FROM recommendation_runs WHERE run_date = ? ORDER BY created_at DESC LIMIT 1",
-                (date,),
-            ).fetchone()
+            if trigger_source:
+                row = conn.execute(
+                    "SELECT * FROM recommendation_runs WHERE run_date = ? AND trigger_source = ? ORDER BY created_at DESC LIMIT 1",
+                    (date, trigger_source),
+                ).fetchone()
+            else:
+                row = conn.execute(
+                    "SELECT * FROM recommendation_runs WHERE run_date = ? ORDER BY created_at DESC LIMIT 1",
+                    (date,),
+                ).fetchone()
         return dict(row) if row else None
 
-    def list_recommendation_dates(self, limit: int = 30) -> List[str]:
+    def list_recommendation_dates(self, limit: int = 30, trigger_source: Optional[str] = None) -> List[str]:
         """List dates that have recommendation runs, newest first."""
         with self._connect() as conn:
-            rows = conn.execute(
-                "SELECT DISTINCT run_date FROM recommendation_runs ORDER BY run_date DESC LIMIT ?",
-                (limit,),
-            ).fetchall()
+            if trigger_source:
+                rows = conn.execute(
+                    "SELECT DISTINCT run_date FROM recommendation_runs WHERE trigger_source = ? ORDER BY run_date DESC LIMIT ?",
+                    (trigger_source, limit),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT DISTINCT run_date FROM recommendation_runs ORDER BY run_date DESC LIMIT ?",
+                    (limit,),
+                ).fetchall()
         return [row[0] for row in rows]
 
     def get_paper_ai_analysis(self, paper_id: str) -> Optional[Dict]:

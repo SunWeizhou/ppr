@@ -28,12 +28,24 @@ from state_store import get_state_store
 
 logger = logging.getLogger(__name__)
 
-# Default model name -- BAAI/bge-large-en-v1.5 produces 1024-dim vectors
+# Default model name — used when config_manager is unavailable
 _DEFAULT_MODEL_NAME = "BAAI/bge-large-en-v1.5"
 
 # Global model cache (module-level) so it is shared across service instances
 _CACHED_MODEL = None
 _CACHED_MODEL_NAME: Optional[str] = None
+
+
+def _resolve_default_model_name() -> str:
+    """Resolve the default embedding model from config, with fallback."""
+    try:
+        from config_manager import get_config
+        model = get_config()._settings.embedding_model
+        if model:
+            return model
+    except Exception:
+        pass
+    return _DEFAULT_MODEL_NAME
 
 
 class EmbeddingService:
@@ -46,8 +58,8 @@ class EmbeddingService:
         # vec is a list[float] of length 1024
     """
 
-    def __init__(self, model_name: str = _DEFAULT_MODEL_NAME):
-        self.model_name = model_name
+    def __init__(self, model_name: str | None = None):
+        self.model_name = model_name or _resolve_default_model_name()
         self._model = None  # will be set on first use (lazy)
         self._load_attempted = False
 

@@ -162,4 +162,87 @@ def score_papers_for_evaluation(
     return sorted(scored, key=lambda item: (-item["evaluation_score"], item["_input_index"]))
 
 
-__all__ = ["EnhancedScorer", "ScoringVariant", "score_papers_for_evaluation"]
+def build_recommendation_reason(
+    paper: dict,
+    *,
+    user_profile: dict | None = None,
+    run_context: dict | None = None,
+) -> dict:
+    """Build a structured recommendation reason for a paper.
+
+    Returns a dict with keys:
+        reason_summary: str — one-line human-readable summary
+        matched_topics: list[str] — core/secondary keywords that matched
+        matched_subscriptions: list[str] — subscription names that matched
+        zotero_similarity: float — semantic similarity to library (from score_details)
+        feedback_signals: list[str] — feedback-related signals
+        source_tags: list[str] — source/provenance tags (e.g. "arXiv", "subscription")
+    """
+    user_profile = user_profile or {}
+    run_context = run_context or {}
+
+    title_lower = (paper.get("title") or "").lower()
+    abstract_lower = (paper.get("abstract") or paper.get("summary") or "").lower()
+    text = title_lower + " " + abstract_lower
+
+    # 1. Matched topics
+    matched_topics: list[str] = []
+    for category_key in ("core_keywords", "secondary_keywords"):
+        keywords_dict = user_profile.get(category_key, {})
+        for kw in keywords_dict:
+            if kw.lower() in text and kw not in matched_topics:
+                matched_topics.append(kw)
+
+    # 2. Matched subscriptions
+    matched_subscriptions: list[str] = []
+    for search in run_context.get("saved_searches", []):
+        query = (search.get("query_text") or search.get("name") or "").lower()
+        if query and query in text:
+            matched_subscriptions.append(search.get("name") or query)
+
+    # 3. Score details
+    score_details = paper.get("score_details") or {}
+    zotero_similarity = 0.0
+    if isinstance(score_details, dict):
+        zotero_similarity = float(score_details.get("semantic", 0) or 0)
+
+    # 4. Feedback signals
+    feedback_signals: list[str] = []
+    feedback = run_context.get("feedback", {})
+    paper_id = paper.get("id") or paper.get("paper_id") or ""
+    if paper_id and paper_id in feedback.get("liked", []):
+        feedback_signals.append("Previously liked")
+
+    # 5. Source tags
+    source_tags: list[str] = []
+    source = paper.get("source") or ""
+    if source:
+        source_tags.append(source)
+
+    # Build summary
+    parts: list[str] = []
+    if matched_topics:
+        parts.append(f"匹配关键词: {', '.join(matched_topics[:3])}")
+    if matched_subscriptions:
+        parts.append(f"命中订阅: {', '.join(matched_subscriptions[:2])}")
+    if zotero_similarity > 0:
+        parts.append("与你的论文库语义相似")
+    if not parts:
+        # Fallback: use relevance_reason if available
+        rel = paper.get("relevance_reason") or paper.get("relevance") or ""
+        if rel:
+            parts.append(rel[:80])
+        else:
+            parts.append("基于你的研究领域推荐")
+
+    return {
+        "reason_summary": "; ".join(parts),
+        "matched_topics": matched_topics,
+        "matched_subscriptions": matched_subscriptions,
+        "zotero_similarity": zotero_similarity,
+        "feedback_signals": feedback_signals,
+        "source_tags": source_tags,
+    }
+
+
+__all__ = ["EnhancedScorer", "ScoringVariant", "score_papers_for_evaluation", "build_recommendation_reason"]

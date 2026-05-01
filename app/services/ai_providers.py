@@ -99,7 +99,11 @@ class OpenAICompatibleProvider:
     model_name = "openai-compatible"
 
     def analyze(self, paper, user_profile=None, recommendation_context=None):
-        raise NotImplementedError("OpenAI-compatible provider is not implemented in this PR")
+        import logging
+        logging.getLogger(__name__).warning(
+            "OpenAI-compatible provider is not yet implemented; returning fallback analysis"
+        )
+        return fallback_analysis(reading_level="skim")
 
 
 class DeepSeekProvider:
