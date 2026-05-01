@@ -54,11 +54,9 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
             original_store = web_server.STATE_STORE
             original_api_store = api_routes.STATE_STORE
             original_instance = ConfigManager._instance
-            original_cm = cm_mod._config_manager
 
             cm_mod.CONFIG_FILE = tmp_config
             ConfigManager._instance = None
-            cm_mod._config_manager = None
             web_server.STATE_STORE = self._temp_state_store(tmp)
             api_routes.STATE_STORE = web_server.STATE_STORE
 
@@ -101,7 +99,6 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
                 web_server.STATE_STORE = original_store
                 api_routes.STATE_STORE = original_api_store
                 ConfigManager._instance = original_instance
-                cm_mod._config_manager = original_cm
 
     def test_onboarding_save_creates_keywords(self):
         """Core keywords in ConfigManager match the submitted topics after save."""
@@ -117,11 +114,9 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
             original_store = web_server.STATE_STORE
             original_api_store = api_routes.STATE_STORE
             original_instance = ConfigManager._instance
-            original_cm = cm_mod._config_manager
 
             cm_mod.CONFIG_FILE = tmp_config
             ConfigManager._instance = None
-            cm_mod._config_manager = None
             web_server.STATE_STORE = self._temp_state_store(tmp)
             api_routes.STATE_STORE = web_server.STATE_STORE
 
@@ -144,7 +139,6 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
 
                 # Re-read config through ConfigManager (fresh load from saved file)
                 ConfigManager._instance = None
-                cm_mod._config_manager = None
                 cm = get_config()
                 core_kw = cm.core_keywords
             finally:
@@ -152,7 +146,6 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
                 web_server.STATE_STORE = original_store
                 api_routes.STATE_STORE = original_api_store
                 ConfigManager._instance = original_instance
-                cm_mod._config_manager = original_cm
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.get_json()["success"])
@@ -178,11 +171,9 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
             original_store = web_server.STATE_STORE
             original_api_store = api_routes.STATE_STORE
             original_instance = ConfigManager._instance
-            original_cm = cm_mod._config_manager
 
             cm_mod.CONFIG_FILE = tmp_config
             ConfigManager._instance = None
-            cm_mod._config_manager = None
             temp_store = self._temp_state_store(tmp)
             web_server.STATE_STORE = temp_store
             api_routes.STATE_STORE = temp_store
@@ -215,7 +206,6 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
                 web_server.STATE_STORE = original_store
                 api_routes.STATE_STORE = original_api_store
                 ConfigManager._instance = original_instance
-                cm_mod._config_manager = original_cm
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(body["success"])
@@ -281,11 +271,9 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
 
             original_cf = cm_mod.CONFIG_FILE
             original_instance = ConfigManager._instance
-            original_cm = cm_mod._config_manager
 
             cm_mod.CONFIG_FILE = tmp_config
             ConfigManager._instance = None
-            cm_mod._config_manager = None
 
             try:
                 client = web_server.app.test_client()
@@ -303,12 +291,10 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
 
                 # Re-read via ConfigManager
                 ConfigManager._instance = None
-                cm_mod._config_manager = None
                 ai_cfg = get_config().get_ai_config()
             finally:
                 cm_mod.CONFIG_FILE = original_cf
                 ConfigManager._instance = original_instance
-                cm_mod._config_manager = original_cm
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.get_json()["success"])
@@ -330,18 +316,15 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
 
             original_cf = cm_mod.CONFIG_FILE
             original_instance = ConfigManager._instance
-            original_cm = cm_mod._config_manager
 
             cm_mod.CONFIG_FILE = tmp_config
             ConfigManager._instance = None
-            cm_mod._config_manager = None
 
             try:
                 ai_cfg = get_config().get_ai_config()
             finally:
                 cm_mod.CONFIG_FILE = original_cf
                 ConfigManager._instance = original_instance
-                cm_mod._config_manager = original_cm
 
         self.assertEqual(ai_cfg["provider"], "none")
         self.assertFalse(ai_cfg["enabled"])
@@ -359,11 +342,9 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
 
             original_cf = cm_mod.CONFIG_FILE
             original_instance = ConfigManager._instance
-            original_cm = cm_mod._config_manager
 
             cm_mod.CONFIG_FILE = tmp_config
             ConfigManager._instance = None
-            cm_mod._config_manager = None
 
             try:
                 client = web_server.app.test_client()
@@ -377,7 +358,6 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
                 self.assertTrue(r1.get_json()["success"])
 
                 ConfigManager._instance = None
-                cm_mod._config_manager = None
                 self.assertEqual(get_config().get_ai_config()["provider"], "none")
 
                 # Round 2: switch to deepseek
@@ -393,12 +373,10 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
                 self.assertTrue(r2.get_json()["success"])
 
                 ConfigManager._instance = None
-                cm_mod._config_manager = None
                 final_cfg = get_config().get_ai_config()
             finally:
                 cm_mod.CONFIG_FILE = original_cf
                 ConfigManager._instance = original_instance
-                cm_mod._config_manager = original_cm
 
         self.assertEqual(final_cfg["provider"], "deepseek")
         self.assertTrue(final_cfg["enabled"])
@@ -429,11 +407,9 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
 
             original_cf = cm_mod.CONFIG_FILE
             original_instance = ConfigManager._instance
-            original_cm = cm_mod._config_manager
 
             cm_mod.CONFIG_FILE = tmp_config
             ConfigManager._instance = None
-            cm_mod._config_manager = None
 
             try:
                 # Ensure env var does NOT interfere
@@ -442,7 +418,6 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
             finally:
                 cm_mod.CONFIG_FILE = original_cf
                 ConfigManager._instance = original_instance
-                cm_mod._config_manager = original_cm
 
         self.assertIsInstance(provider, DeepSeekProvider)
         self.assertEqual(provider.api_key, "sk-config-key")
