@@ -9,10 +9,11 @@ the arXiv API, then dedupe and persist new hits.
 
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import Dict, List, Optional
 
-from logger_config import get_logger
 from app.services.subscription_service import SubscriptionService
+from logger_config import get_logger
 from state_store import _canonical_paper_id
 
 logger = get_logger(__name__)
@@ -97,9 +98,9 @@ class SubscriptionRunner:
 
     def _search_local_recommendations(
         self, match_fn: Callable[[dict], bool]
-    ) -> List[str]:
+    ) -> list[str]:
         """Iterate recent recommendation items and collect paper_ids where *match_fn* is True."""
-        paper_ids: List[str] = []
+        paper_ids: list[str] = []
         try:
             runs = self._store.list_recommendation_runs(limit=10)
             for run in runs:
@@ -114,8 +115,8 @@ class SubscriptionRunner:
         return paper_ids
 
     def _search_arxiv_api(
-        self, query_terms: List[str], subscription_name: str
-    ) -> List[str]:
+        self, query_terms: list[str], subscription_name: str
+    ) -> list[str]:
         """Search arXiv API and return paper IDs."""
         from app.services.arxiv_source import search_by_keywords
 
@@ -128,7 +129,7 @@ class SubscriptionRunner:
                 f"arXiv search failed for '{subscription_name}': {e}"
             )
             return []
-        paper_ids: List[str] = []
+        paper_ids: list[str] = []
         for p in papers:
             pid = _canonical_paper_id(p.get("id") or p.get("paper_id") or "")
             if pid and pid not in paper_ids:
@@ -215,7 +216,7 @@ class SubscriptionRunner:
     def persist_hits(
         self,
         subscription_id: int,
-        paper_ids: List[str],
+        paper_ids: list[str],
         matched_reason: str = "",
     ) -> int:
         """Dedupe and persist paper IDs as subscription hits.
@@ -236,8 +237,8 @@ class SubscriptionRunner:
         return len(new_ids)
 
     def dedupe_hits(
-        self, paper_ids: List[str], subscription_id: int
-    ) -> List[str]:
+        self, paper_ids: list[str], subscription_id: int
+    ) -> list[str]:
         """Return only *paper_ids* not yet recorded for this subscription."""
         if not paper_ids:
             return []

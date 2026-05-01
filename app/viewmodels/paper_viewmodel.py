@@ -1,11 +1,13 @@
 """Paper detail viewmodel — builds context for the paper detail page."""
 from __future__ import annotations
+
 import json
 from datetime import datetime
 from typing import Optional
-from logger_config import get_logger
+
+from app.services.paper_utils import extract_primary_author, format_author_text
 from app_paths import CACHE_DIR, HISTORY_DIR
-from app.services.paper_utils import format_author_text, extract_primary_author
+from logger_config import get_logger
 from utils import CATEGORY_NAMES
 
 logger = get_logger(__name__)
@@ -76,7 +78,7 @@ class PaperViewModel:
 
         page_ctx = assemble_page_context(self._store, active_tab="inbox")
         try:
-            queue_counts = {status: 0 for status in QUEUE_STATUS_VALUES}
+            queue_counts = dict.fromkeys(QUEUE_STATUS_VALUES, 0)
             for item in self._store.list_queue_items():
                 status = item.get("status")
                 if status in queue_counts:
@@ -191,7 +193,7 @@ class PaperViewModel:
         context.update(page_ctx)
         return context
 
-    def _find_paper_data(self, paper_id: str) -> Optional[dict]:
+    def _find_paper_data(self, paper_id: str) -> dict | None:
         """Find paper data from any available source."""
         from state_store import _canonical_paper_id
 
@@ -208,7 +210,8 @@ class PaperViewModel:
             pass
 
         # Try reading from history markdown files
-        import os, re
+        import os
+        import re
         if os.path.exists(str(HISTORY_DIR)):
             for fname in sorted(os.listdir(str(HISTORY_DIR)), reverse=True):
                 if not fname.startswith("digest_") or not fname.endswith(".md"):

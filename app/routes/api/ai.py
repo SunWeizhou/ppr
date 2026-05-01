@@ -87,6 +87,7 @@ def _resolve_paper_context(paper_id: str) -> dict | None:
 
     # 2) Fallback to Markdown history
     import os
+
     from app_paths import HISTORY_DIR
 
     if os.path.exists(str(HISTORY_DIR)):

@@ -33,7 +33,7 @@ _DEFAULT_MODEL_NAME = "BAAI/bge-large-en-v1.5"
 
 # Global model cache (module-level) so it is shared across service instances
 _CACHED_MODEL = None
-_CACHED_MODEL_NAME: Optional[str] = None
+_CACHED_MODEL_NAME: str | None = None
 
 
 class EmbeddingService:
@@ -130,7 +130,7 @@ class EmbeddingService:
         vectors = self._model.encode(texts, batch_size=32).tolist()  # type: ignore[union-attr]
 
         # Store and collect results
-        for paper, vector in zip(uncached, vectors):
+        for paper, vector in zip(uncached, vectors, strict=False):
             paper_id = paper.get("id") or paper.get("paper_id", "")
             blob = np.array(vector, dtype=np.float32).tobytes()
             store.save_paper_embedding(paper_id, blob, self.model_name)
@@ -188,7 +188,7 @@ class EmbeddingService:
         self._load_attempted = True
 
         # Check global cache first
-        if _CACHED_MODEL is not None and _CACHED_MODEL_NAME == self.model_name:
+        if _CACHED_MODEL is not None and self.model_name == _CACHED_MODEL_NAME:
             self._model = _CACHED_MODEL
             return True
 

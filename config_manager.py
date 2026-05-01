@@ -6,12 +6,12 @@
 """
 
 import json
+import logging
 import os
 import time
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
-from dataclasses import dataclass, field
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -60,10 +60,10 @@ class ZoteroConfig:
 @dataclass
 class VenuePriority:
     """期刊/会议优先级"""
-    statistics_journals: List[str] = field(default_factory=lambda: ["Annals of Statistics", "JASA", "Biometrika", "JRSS-B"])
-    ml_journals: List[str] = field(default_factory=lambda: ["JMLR"])
-    top_conferences: List[str] = field(default_factory=lambda: ["NeurIPS", "ICML", "ICLR", "COLT", "AISTATS"])
-    theory_conferences: List[str] = field(default_factory=lambda: ["COLT", "AISTATS"])
+    statistics_journals: list[str] = field(default_factory=lambda: ["Annals of Statistics", "JASA", "Biometrika", "JRSS-B"])
+    ml_journals: list[str] = field(default_factory=lambda: ["JMLR"])
+    top_conferences: list[str] = field(default_factory=lambda: ["NeurIPS", "ICML", "ICLR", "COLT", "AISTATS"])
+    theory_conferences: list[str] = field(default_factory=lambda: ["COLT", "AISTATS"])
     statistics_bonus: float = 1.0
     ml_journal_bonus: float = 0.8
     conference_bonus: float = 0.5
@@ -112,7 +112,7 @@ class ConfigManager:
         """加载配置文件"""
         if CONFIG_FILE.exists():
             try:
-                with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                with open(CONFIG_FILE, encoding='utf-8') as f:
                     raw = json.load(f)
                 logger.info(f"Loaded config from {CONFIG_FILE}")
                 raw, migrated = self._merge_legacy_config_if_needed(raw)
@@ -133,7 +133,7 @@ class ConfigManager:
         self._parse_config(raw)
         self._config_mtime = time.time()
 
-    def _merge_legacy_config_if_needed(self, raw: Dict) -> tuple[Dict, bool]:
+    def _merge_legacy_config_if_needed(self, raw: dict) -> tuple[dict, bool]:
         """Backfill v2 profile fields from legacy local config files.
 
         Older installs may have a v2 ``user_profile.json`` that only contains
@@ -169,7 +169,7 @@ class ConfigManager:
 
                 dislike = legacy.get('dislike_topics') or {}
                 if isinstance(dislike, list):
-                    dislike = {name: -1.0 for name in dislike}
+                    dislike = dict.fromkeys(dislike, -1.0)
                 for name, weight in dislike.items():
                     if name not in keywords:
                         keywords[name] = {'weight': weight, 'category': 'dislike'}
@@ -207,7 +207,7 @@ class ConfigManager:
         return raw, migrated
 
     @property
-    def defaults(self) -> Dict:
+    def defaults(self) -> dict:
         """获取默认配置"""
         return {
             'version': 1,
@@ -270,11 +270,11 @@ class ConfigManager:
             }
         }
 
-    def _get_defaults(self) -> Dict:
+    def _get_defaults(self) -> dict:
         """获取默认配置（兼容旧调用）"""
         return self.defaults
 
-    def _parse_config(self, raw: Dict):
+    def _parse_config(self, raw: dict):
         """解析原始配置到结构化对象"""
         self._config = {
             'version': raw.get('version', 1),
@@ -337,7 +337,7 @@ class ConfigManager:
         self._ai.model = ai_data.get('model', 'deepseek-chat')
         self._ai.enabled = ai_data.get('enabled', False)
 
-    def _to_dict(self) -> Dict:
+    def _to_dict(self) -> dict:
         """将配置转换为字典格式（用于保存）"""
         return {
             'version': self._config.get('version', 1),
@@ -403,7 +403,7 @@ class ConfigManager:
         """重新加载配置文件"""
         try:
             if CONFIG_FILE.exists():
-                with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                with open(CONFIG_FILE, encoding='utf-8') as f:
                     raw = json.load(f)
                 self._parse_config(raw)
                 self._config_mtime = time.time()
@@ -417,7 +417,7 @@ class ConfigManager:
     # ============ 便捷访问方法 ============
 
     @property
-    def core_keywords(self) -> Dict[str, float]:
+    def core_keywords(self) -> dict[str, float]:
         """获取核心关键词（category='core'）"""
         return {
             name: kw.weight
@@ -426,7 +426,7 @@ class ConfigManager:
         }
 
     @property
-    def demote_keywords(self) -> Dict[str, float]:
+    def demote_keywords(self) -> dict[str, float]:
         """获取降权关键词（category='demote'）"""
         return {
             name: kw.weight
@@ -435,12 +435,12 @@ class ConfigManager:
         }
 
     @property
-    def theory_keywords(self) -> List[str]:
+    def theory_keywords(self) -> list[str]:
         """获取理论信号关键词"""
         return list(self._config.get('theory_keywords', []))
 
     @property
-    def dislike_keywords(self) -> Dict[str, float]:
+    def dislike_keywords(self) -> dict[str, float]:
         """获取不感兴趣关键词"""
         return {
             name: kw.weight
@@ -449,7 +449,7 @@ class ConfigManager:
         }
 
     @property
-    def all_keywords(self) -> Dict[str, KeywordConfig]:
+    def all_keywords(self) -> dict[str, KeywordConfig]:
         """获取所有关键词"""
         return self._keywords.copy()
 
@@ -488,7 +488,7 @@ class ConfigManager:
             return True
         return False
 
-    def get_keywords_by_category(self, category: str) -> Dict[str, float]:
+    def get_keywords_by_category(self, category: str) -> dict[str, float]:
         """按类别获取关键词"""
         return {
             name: kw.weight
@@ -508,7 +508,7 @@ class ConfigManager:
 
 
 # 全局单例
-_config_manager: Optional[ConfigManager] = None
+_config_manager: ConfigManager | None = None
 
 
 def get_config() -> ConfigManager:
@@ -531,27 +531,27 @@ def reload_config() -> bool:
 
 # ============ 兼容旧代码的辅助函数 ============
 
-def get_core_topics() -> Dict[str, float]:
+def get_core_topics() -> dict[str, float]:
     """获取核心主题（兼容旧代码）"""
     return get_config().core_keywords
 
 
-def get_demote_topics() -> Dict[str, float]:
+def get_demote_topics() -> dict[str, float]:
     """获取降权主题（兼容旧代码）"""
     return get_config().demote_keywords
 
 
-def get_theory_keywords_list() -> List[str]:
+def get_theory_keywords_list() -> list[str]:
     """获取理论关键词列表（兼容旧代码）"""
     return get_config()._config.get('theory_keywords', [])
 
 
-def get_priority_topics() -> List[str]:
+def get_priority_topics() -> list[str]:
     """获取优先主题列表（兼容旧代码）"""
     return list(get_config().core_keywords.keys())
 
 
-def get_dislike_topics() -> List[str]:
+def get_dislike_topics() -> list[str]:
     """获取不感兴趣主题（兼容旧代码）"""
     return list(get_config().dislike_keywords.keys())
 

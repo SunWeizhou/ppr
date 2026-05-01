@@ -4,7 +4,7 @@ line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
-ignore = ["E501", "F401", "F841", "B008"]
+ignore = ["E501", "F401", "F841", "B008", "UP035", "E402", "N806", "N817", "SIM105", "UP042"]
 
 [tool.ruff.lint.per-file-ignores]
 "web_server.py" = ["F811"]

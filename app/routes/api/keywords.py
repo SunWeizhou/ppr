@@ -6,7 +6,15 @@ from datetime import datetime
 from flask import jsonify, request
 
 from . import bp
-from .helpers import _current_state_store, _scholar_service, _settings_service, serialize_job, CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
+from .helpers import (
+    CACHE_DIR,
+    HISTORY_DIR,
+    PROJECT_ROOT,
+    _current_state_store,
+    _scholar_service,
+    _settings_service,
+    serialize_job,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +51,7 @@ def manage_keywords():
         elif kw_type == "dislike":
             dislike = config.get("dislike_topics", {})
             if isinstance(dislike, list):
-                dislike = {item: -1.0 for item in dislike}
+                dislike = dict.fromkeys(dislike, -1.0)
             dislike[keyword] = -1.0
             config["dislike_topics"] = dislike
         svc.save_keywords_config(config)

@@ -9,7 +9,7 @@ from typing import Dict, List
 class MarkdownGenerator:
     """Generate Markdown archive."""
 
-    def generate(self, papers: List[Dict], themes: List[str], date: str) -> str:
+    def generate(self, papers: list[dict], themes: list[str], date: str) -> str:
         md = f'''# arXiv Daily Digest
 
 **Date:** {date}

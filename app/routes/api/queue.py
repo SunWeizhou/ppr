@@ -1,9 +1,10 @@
 """Queue API routes."""
 from flask import jsonify, request
 
+from state_store import QUEUE_STATUS_VALUES
+
 from . import bp
 from .helpers import _current_state_store, _queue_service
-from state_store import QUEUE_STATUS_VALUES
 
 
 @bp.route("/api/queue", methods=["GET", "POST"])

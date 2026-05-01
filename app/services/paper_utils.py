@@ -10,7 +10,6 @@ import urllib.request
 from typing import Dict, List
 
 from logger_config import get_logger
-
 from utils import CATEGORY_NAMES
 
 logger = get_logger(__name__)
@@ -19,7 +18,7 @@ logger = get_logger(__name__)
 _SSL_CONTEXT = ssl.create_default_context()
 
 
-def parse_arxiv_identity(raw_id_or_url: str) -> Dict[str, str]:
+def parse_arxiv_identity(raw_id_or_url: str) -> dict[str, str]:
     """Return stable arXiv identity fields from an id or abs/pdf URL."""
     raw = str(raw_id_or_url or '').strip()
     source_url = raw
@@ -47,7 +46,7 @@ def parse_arxiv_identity(raw_id_or_url: str) -> Dict[str, str]:
     }
 
 
-def download_pdfs(papers: List[Dict], output_dir: str, min_score: float = 2.5):
+def download_pdfs(papers: list[dict], output_dir: str, min_score: float = 2.5):
     """Download PDFs for high-scoring papers."""
     pdf_dir = os.path.join(output_dir, 'cache', 'pdfs')
     os.makedirs(pdf_dir, exist_ok=True)
@@ -63,9 +62,9 @@ def download_pdfs(papers: List[Dict], output_dir: str, min_score: float = 2.5):
                 try:
                     logger.debug(f"Downloading PDF: {paper_id}...")
                     req = urllib.request.Request(pdf_url, headers={'User-Agent': 'Mozilla/5.0'})
-                    with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:
-                        with open(pdf_path, 'wb') as f:
-                            f.write(response.read())
+                    with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response, \
+                         open(pdf_path, 'wb') as f:
+                        f.write(response.read())
                     downloaded.append(paper_id)
                 except Exception as e:
                     logger.warning(f"Failed to download {paper_id}: {e}")

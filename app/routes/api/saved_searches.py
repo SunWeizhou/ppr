@@ -4,9 +4,10 @@ import sqlite3
 
 from flask import jsonify, request
 
+from app.services.paper_utils import split_query_terms
+
 from . import bp
 from .helpers import _current_state_store, serialize_saved_search
-from app.services.paper_utils import split_query_terms
 
 
 @bp.route("/api/saved-searches", methods=["GET", "POST", "PUT", "DELETE"])
