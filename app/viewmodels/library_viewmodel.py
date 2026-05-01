@@ -141,72 +141,9 @@ class LibraryViewModel:
             if cached_time >= file_mtime and (now - cached_time) < _HISTORY_CACHE_TTL:
                 return cached_papers, cached_keywords
 
-        papers, keywords = self._parse_markdown_digest(filepath)
+        from utils import parse_markdown_digest
+        papers, keywords = parse_markdown_digest(filepath)
         self._digest_cache[cache_key] = (papers, keywords, now)
-        return papers, keywords
-
-    @staticmethod
-    def _parse_markdown_digest(filepath: str) -> tuple[list, list]:
-        """Minimal markdown digest parser — extracts papers and keywords."""
-        papers: list = []
-        keywords: list = []
-
-        with open(filepath, encoding="utf-8") as f:
-            content = f.read()
-
-        themes_match = re.search(r"\*\*Research Themes:\*\*\s*(.+)", content)
-        if themes_match:
-            keywords = [k.strip() for k in themes_match.group(1).split(",")]
-
-        # Simple paper extraction: split by paper entries
-        entries = re.split(r"\n##\s+(?:\d+\.\s+)?", content)
-        for entry in entries[1:]:  # skip header
-            paper = {}
-            # title — first non-empty line
-            lines = [line.strip() for line in entry.split("\n") if line.strip()]
-            if not lines:
-                continue
-            paper["title"] = lines[0].lstrip("#").strip()
-
-            # arxiv id
-            id_match = re.search(
-                r"arxiv\.org/abs/([\w\.\-]+)", entry, re.IGNORECASE
-            )
-            if not id_match:
-                id_match = re.search(r"arXiv:([\w\.\-]+)", entry)
-            paper["id"] = id_match.group(1) if id_match else ""
-
-            # authors
-            auth_match = re.search(r"\*\*Authors?:\*\*\s*(.+)", entry)
-            if auth_match:
-                paper["authors"] = auth_match.group(1).strip()
-
-            # score
-            score_match = re.search(r"\*\*Score:\*\*\s*([\d\.]+)", entry)
-            if score_match:
-                paper["score"] = float(score_match.group(1))
-
-            # relevance / reason
-            reason_match = re.search(r"\*\*(?:Recommendation|Relevance):\*\*\s*(.+)", entry)
-            if reason_match:
-                paper["relevance_reason"] = reason_match.group(1).strip()
-                paper["relevance"] = reason_match.group(1).strip()
-
-            # categories
-            cat_match = re.search(r"\*\*Categories:\*\*\s*(.+)", entry)
-            if cat_match:
-                paper["categories"] = [
-                    c.strip() for c in cat_match.group(1).split(",")
-                ]
-
-            # summary / abstract (short paragraph after metadata)
-            abstract_match = re.search(r"\*\*(?:Summary|Abstract):\*\*\s*(.+)", entry)
-            if abstract_match:
-                paper["summary"] = abstract_match.group(1).strip()
-                paper["abstract"] = abstract_match.group(1).strip()
-
-            papers.append(paper)
-
         return papers, keywords
 
     def _load_history_paper_index(self) -> dict[str, dict]:

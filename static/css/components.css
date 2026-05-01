@@ -1368,3 +1368,55 @@
   padding: 32px; text-align: center;
   color: var(--ink-3); font-size: 14px;
 }
+
+/* ===================================================================
+   Dark-mode overrides for hardcoded rgba() backgrounds
+   =================================================================== */
+
+[data-theme="dark"] .search-input,
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-textarea,
+[data-theme="dark"] .keyword-add-form input,
+[data-theme="dark"] .keyword-add-form select {
+  background: var(--bg-raised);
+}
+
+[data-theme="dark"] .search-input:focus,
+[data-theme="dark"] .form-input:focus,
+[data-theme="dark"] .form-textarea:focus {
+  border-color: rgba(224, 138, 106, 0.4);
+  box-shadow: 0 0 0 3px rgba(224, 138, 106, 0.12);
+}
+
+[data-theme="dark"] .detail-box {
+  background: var(--bg-sunken);
+  border-color: var(--line);
+}
+
+[data-theme="dark"] .bulk-bar {
+  background: var(--bg-raised);
+}
+
+[data-theme="dark"] .relevance-item {
+  background: var(--bg-sunken);
+  border-color: var(--line);
+}
+
+[data-theme="dark"] .date-pill,
+[data-theme="dark"] .date-card-link {
+  background: var(--bg-raised);
+  border-color: var(--line);
+}
+
+[data-theme="dark"] .icon-btn {
+  background: var(--bg-raised);
+}
+
+[data-theme="dark"] .keyword-tag-item {
+  border-color: rgba(224, 138, 106, 0.2);
+}
+
+[data-theme="dark"] .keyword-tag-item.secondary {
+  border-color: var(--line);
+}
+

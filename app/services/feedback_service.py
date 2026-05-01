@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from state_store import _canonical_paper_id
-from utils import CATEGORY_NAMES, atomic_write_json, safe_load_json
+from utils import CATEGORY_NAMES, atomic_write_json, parse_markdown_digest, safe_load_json
 
 QUEUE_ACTIONS = {
     "inbox": "Inbox",
@@ -191,7 +191,7 @@ class FeedbackService:
             filepath = self.history_dir / f"digest_{date}.md"
             if not filepath.exists():
                 continue
-            papers = self._parse_markdown_digest(str(filepath))
+            papers, _ = parse_markdown_digest(str(filepath))
             for paper in papers:
                 if _canonical_paper_id(paper.get("id")) == paper_id:
                     return {
@@ -213,41 +213,6 @@ class FeedbackService:
             if match:
                 dates.append(match.group(1))
         return sorted(dates, reverse=True)
-
-    @staticmethod
-    def _parse_markdown_digest(filepath: str) -> list:
-        papers = []
-        try:
-            with open(filepath, "r", encoding="utf-8") as f:
-                content = f.read()
-        except OSError:
-            return papers
-        for section in re.split(r"## \d+\.\s*", content)[1:]:
-            lines = [line.strip() for line in section.strip().splitlines() if line.strip()]
-            if not lines:
-                continue
-            paper = {"title": lines[0]}
-            for line in lines[1:]:
-                if line.startswith("**Authors:**"):
-                    paper["authors"] = line.replace("**Authors:**", "").strip()
-                elif line.startswith("**arXiv:**") or line.startswith("**arXiv Link:**"):
-                    match = re.search(r"\[([^\]]+)\]\(([^)]+)\)", line)
-                    if match:
-                        paper["id"] = match.group(1)
-                        paper["link"] = match.group(2)
-                elif line.startswith("**Summary:**"):
-                    paper["summary"] = line.replace("**Summary:**", "").strip()
-                    paper["abstract"] = paper["summary"]
-                elif line.startswith("**Relevance:**"):
-                    paper["relevance"] = line.replace("**Relevance:**", "").strip()
-                elif line.startswith("**Score:**"):
-                    try:
-                        paper["score"] = float(line.replace("**Score:**", "").strip())
-                    except ValueError:
-                        paper["score"] = 0
-            if paper.get("id"):
-                papers.append(paper)
-        return papers
 
     # ---- handle_feedback action handler ----
 

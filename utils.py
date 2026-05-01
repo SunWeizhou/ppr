@@ -345,6 +345,12 @@ def parse_markdown_digest(filepath: str):
                     paper['relevance'] = breakdown_map[pid]['relevance_reason']
             else:
                 paper['relevance_breakdown'] = breakdown_from_text(paper.get('relevance', ''))
+
+            # Ensure consistent shape for all callers
+            paper.setdefault('abstract', paper.get('summary', ''))
+            paper.setdefault('relevance_reason', paper.get('relevance', ''))
+            paper.setdefault('categories', [])
+
             papers.append(paper)
 
     return papers, keywords

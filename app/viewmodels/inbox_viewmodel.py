@@ -21,7 +21,7 @@ from app.services.paper_utils import (
 from app.viewmodels.shared import assemble_page_context
 from app_paths import CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
 from state_store import QUEUE_STATUS_VALUES
-from utils import CATEGORY_NAMES, count_keyword
+from utils import CATEGORY_NAMES, count_keyword, parse_markdown_digest
 
 # ---------------------------------------------------------------------------
 # Per-process digest cache (avoids re-parsing the same file repeatedly)
@@ -215,7 +215,7 @@ class InboxViewModel:
             except OSError:
                 pass
 
-        papers, keywords = InboxViewModel._parse_markdown_digest(filepath)
+        papers, keywords = parse_markdown_digest(filepath)
 
         if use_cache and papers:
             _history_cache[cache_key] = (papers, keywords, current_time)
@@ -492,122 +492,6 @@ class InboxViewModel:
     # ==================================================================
     # Internal — digest parsing
     # ==================================================================
-
-    @staticmethod
-    def _parse_markdown_digest(filepath: str):
-        """Parse a markdown digest to extract papers and keywords."""
-        papers = []
-        keywords = []
-
-        with open(filepath, encoding="utf-8") as f:
-            content = f.read()
-
-        themes_match = re.search(r"\*\*Research Themes:\*\* (.+)", content)
-        if themes_match:
-            keywords = [k.strip() for k in themes_match.group(1).split(",")]
-
-        date_match = re.search(r"digest_(\d{4}-\d{2}-\d{2})", filepath)
-        date_str = date_match.group(1) if date_match else None
-
-        if date_str:
-            metadata_path = os.path.join(PROJECT_ROOT, "cache", "daily_metadata.json")
-            if os.path.exists(metadata_path):
-                try:
-                    with open(metadata_path, encoding="utf-8") as f:
-                        metadata = json.load(f)
-                        if metadata.get("date") == date_str and metadata.get("keywords"):
-                            keywords = [k["word"] for k in metadata["keywords"]]
-                except Exception:
-                    pass
-
-        # Try to load breakdown info from recommendation run files
-        breakdown_map = {}
-        if date_str:
-            run_paths = [
-                os.path.join(PROJECT_ROOT, "cache", "recommendation_runs", f"{date_str}.json"),
-                os.path.join(PROJECT_ROOT, "cache", "daily_recommendation.json"),
-            ]
-            for rec_path in run_paths:
-                if not os.path.exists(rec_path):
-                    continue
-                try:
-                    with open(rec_path, encoding="utf-8") as f:
-                        rec_data = json.load(f)
-                    if isinstance(rec_data, dict):
-                        articles = rec_data.get("articles") or rec_data.get("papers") or []
-                        for art in articles:
-                            paper_id = art.get("id") or art.get("arxiv_id", "")
-                            if paper_id:
-                                bd = art.get("breakdown") or art.get("score_details") or {}
-                                if bd:
-                                    breakdown_map[paper_id] = bd
-                        meta_kw = rec_data.get("keywords") or rec_data.get("themes") or []
-                        if meta_kw:
-                            keywords = (
-                                meta_kw
-                                if isinstance(meta_kw[0], str)
-                                else [kw.get("word", str(kw)) for kw in meta_kw]
-                            )
-                        break
-                except Exception:
-                    pass
-
-        # Parse individual paper sections
-        sections = re.split(r"\n## \d+\. ", content)
-        for section in sections[1:]:
-            lines = section.strip().split("\n")
-            if not lines:
-                continue
-
-            title = lines[0].strip()
-            paper = {
-                "title": title,
-                "authors": [],
-                "id": "",
-                "link": "",
-                "summary": "",
-                "abstract": "",
-                "relevance": "",
-                "score": 0.0,
-                "categories": [],
-                "relevance_reason": "",
-            }
-
-            for line in lines[1:]:
-                if line.startswith("**Authors:**"):
-                    paper["authors"] = [
-                        a.strip() for a in line.replace("**Authors:**", "").strip().split(",")
-                    ]
-                elif line.startswith("**arXiv:**"):
-                    arxiv_part = line.replace("**arXiv:**", "").strip()
-                    id_match = re.search(r"\[([^\]]+)\]", arxiv_part)
-                    link_match = re.search(r"\(([^)]+)\)", arxiv_part)
-                    if id_match:
-                        paper["id"] = id_match.group(1)
-                    if link_match:
-                        paper["link"] = link_match.group(1)
-                elif line.startswith("**Summary:**"):
-                    paper["summary"] = line.replace("**Summary:**", "").strip()
-                elif line.startswith("**Relevance:**"):
-                    paper["relevance"] = line.replace("**Relevance:**", "").strip()
-                    paper["relevance_reason"] = paper["relevance"]
-                elif line.startswith("**Score:**"):
-                    with contextlib.suppress(ValueError, IndexError):
-                        paper["score"] = float(
-                            line.replace("**Score:**", "").strip().split()[0]
-                        )
-                elif line.startswith("**Categories:**"):
-                    raw = line.replace("**Categories:**", "").strip()
-                    paper["categories"] = [c.strip() for c in raw.split(",") if c.strip()]
-
-            if paper.get("id"):
-                pid = paper["id"]
-                if pid in breakdown_map:
-                    paper["score_details"] = breakdown_map[pid]
-
-            papers.append(paper)
-
-        return papers, keywords
 
     # ==================================================================
     # Internal — background pipeline
