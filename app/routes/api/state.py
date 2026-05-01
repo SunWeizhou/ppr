@@ -179,7 +179,7 @@ def system_health():
                        'research_collections', 'subscriptions', 'interaction_events',
                        'paper_ai_analyses']:
             try:
-                row = conn.execute(f"SELECT COUNT(*) as cnt FROM {table}").fetchone()
+                row = conn.execute(f"SELECT COUNT(*) as cnt FROM {table}").fetchone()  # nosec B608
                 counts[table] = row['cnt'] if row else 0
             except Exception:
                 counts[table] = -1

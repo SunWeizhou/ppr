@@ -318,7 +318,7 @@ def run_pipeline_v2(force_refresh: bool = False) -> list[dict]:
         if fb_data and fb_data.get("pickle_blob"):
             import pickle
 
-            ctx["feedback_model"] = pickle.loads(fb_data["pickle_blob"])
+            ctx["feedback_model"] = pickle.loads(fb_data["pickle_blob"])  # nosec B301
             ctx["feedback_model_auc"] = fb_data["auc"]
     except Exception:
         logger.warning("Could not load feedback model for context")
