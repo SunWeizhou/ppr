@@ -9,7 +9,7 @@ influence paper scoring.
 from __future__ import annotations
 
 import logging
-import pickle
+import json
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
@@ -164,9 +164,13 @@ def retrain_if_needed(state_store) -> bool:
             auc,
         )
 
-    # ---- Persist ----
-    pickle_blob = pickle.dumps(model)
-    state_store.save_feedback_model(len(X_list), auc, pickle_blob)
+    # ---- Persist (JSON, not pickle — audit #9) ----
+    model_data = json.dumps({
+        "coef": model.coef_.tolist(),
+        "intercept": model.intercept_.tolist(),
+        "classes_": model.classes_.tolist(),
+    })
+    state_store.save_feedback_model(len(X_list), auc, model_data)
     state_store.save("feedback_model_trained_at", datetime.now(tz=timezone.utc).isoformat())
     state_store.save("feedback_model_auc", str(auc))
 

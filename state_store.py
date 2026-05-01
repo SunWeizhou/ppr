@@ -1684,14 +1684,14 @@ class StateStore:
     # Feedback Models
     # ------------------------------------------------------------------
 
-    def save_feedback_model(self, sample_count: int, auc: float, pickle_blob: bytes) -> int:
-        """Save a trained feedback model. Returns the new row id."""
+    def save_feedback_model(self, sample_count: int, auc: float, model_json: str) -> int:
+        """Save a trained feedback model as JSON. Returns the new row id."""
         now = _utc_now()
         with self._lock, self._connect() as conn:
             cursor = conn.execute(
                 """INSERT INTO feedback_models(trained_at, sample_count, auc, pickle_blob)
                    VALUES (?, ?, ?, ?)""",
-                (now, sample_count, auc, pickle_blob),
+                (now, sample_count, auc, model_json),
             )
             return int(cursor.lastrowid)
 

@@ -317,9 +317,19 @@ def run_pipeline_v2(force_refresh: bool = False) -> list[dict]:
     try:
         fb_data = get_state_store().get_latest_feedback_model()
         if fb_data and fb_data.get("pickle_blob"):
-            import pickle
+            import json as _json
+            import numpy as _np
+            from sklearn.linear_model import LogisticRegression as _LR
 
-            ctx["feedback_model"] = pickle.loads(fb_data["pickle_blob"])
+            blob = fb_data["pickle_blob"]
+            if isinstance(blob, bytes):
+                blob = blob.decode("utf-8")
+            model_data = _json.loads(blob)
+            model = _LR()
+            model.coef_ = _np.array(model_data["coef"])
+            model.intercept_ = _np.array(model_data["intercept"])
+            model.classes_ = _np.array(model_data["classes_"])
+            ctx["feedback_model"] = model
             ctx["feedback_model_auc"] = fb_data["auc"]
     except Exception:
         logger.warning("Could not load feedback model for context")
