@@ -10,15 +10,15 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from defusedxml import ElementTree as ET
 from collections import Counter
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
-from logger_config import get_logger
+from defusedxml import ElementTree as ET
 
 from app.services.paper_utils import parse_arxiv_identity
 from app.services.settings_service import load_user_config
+from logger_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -28,7 +28,7 @@ _SSL_CONTEXT = ssl.create_default_context()
 # Institution / author lists (moved from arxiv_recommender_v5)
 # ---------------------------------------------------------------------------
 
-TOP_INSTITUTIONS: List[str] = [
+TOP_INSTITUTIONS: list[str] = [
     'MIT', 'Stanford', 'CMU', 'Carnegie Mellon', 'Berkeley', 'UC Berkeley',
     'Oxford', 'Cambridge', 'ETH Zurich', 'Princeton', 'Harvard',
     'Tsinghua', 'Peking University', 'Caltech', 'Google DeepMind',
@@ -37,7 +37,7 @@ TOP_INSTITUTIONS: List[str] = [
     'INRIA', 'Max Planck', 'TTIC'
 ]
 
-KNOWN_AUTHORS: List[str] = [
+KNOWN_AUTHORS: list[str] = [
     'Peter Bartlett', 'Andreas Maurer', 'Massimiliano Pontil', 'Ben Recht',
     'Bin Yu', 'Trevor Hastie', 'Rob Tibshirani', 'Martin Wainwright',
     'Michael Jordan', 'Stuart Russell', 'Percy Liang', 'John Duchi',
@@ -64,8 +64,8 @@ class PaperCache:
         self.cache_dir = cache_dir
         self.cache_file = os.path.join(cache_dir, 'paper_cache.json')
         self.history_file = os.path.join(cache_dir, 'recommendation_history.json')
-        self.seen_papers: Dict[str, str] = {}  # paper_id -> first_seen_date
-        self.recommendation_history: Dict[str, List[str]] = {}  # date -> [paper_ids]
+        self.seen_papers: dict[str, str] = {}  # paper_id -> first_seen_date
+        self.recommendation_history: dict[str, list[str]] = {}  # date -> [paper_ids]
         self._load()
 
     def _load(self):
@@ -74,14 +74,14 @@ class PaperCache:
 
         if os.path.exists(self.cache_file):
             try:
-                with open(self.cache_file, 'r', encoding='utf-8') as f:
+                with open(self.cache_file, encoding='utf-8') as f:
                     self.seen_papers = json.load(f)
             except Exception:
                 self.seen_papers = {}
 
         if os.path.exists(self.history_file):
             try:
-                with open(self.history_file, 'r', encoding='utf-8') as f:
+                with open(self.history_file, encoding='utf-8') as f:
                     self.recommendation_history = json.load(f)
             except Exception:
                 self.recommendation_history = {}
@@ -103,7 +103,7 @@ class PaperCache:
         """Check if paper has been seen."""
         return paper_id in self.seen_papers
 
-    def record_recommendation(self, date: str, paper_ids: List[str]):
+    def record_recommendation(self, date: str, paper_ids: list[str]):
         """Record daily recommendations."""
         self.recommendation_history[date] = paper_ids
         for pid in paper_ids:
@@ -119,7 +119,7 @@ class PaperCache:
         }
         self._save()
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict:
         """Get cache statistics."""
         return {
             'total_seen': len(self.seen_papers),
@@ -135,17 +135,17 @@ class PaperCache:
 class MultiSourceFetcher:
     """Fetch papers from multiple sources."""
 
-    def __init__(self, categories: List[str], cache: PaperCache):
+    def __init__(self, categories: list[str], cache: PaperCache):
         self.categories = categories
         self.cache = cache
 
-    def fetch_all_sources(self, days: int = 1, *, force_refresh: bool = False) -> List[Dict]:
+    def fetch_all_sources(self, days: int = 1, *, force_refresh: bool = False) -> list[dict]:
         """Fetch papers from all sources.
 
         When *force_refresh* is True the seen-paper filter is skipped so that
         re-scored candidates can be re-ranked after preference changes.
         """
-        all_papers: List[Dict] = []
+        all_papers: list[dict] = []
 
         # Source 1: arXiv (try combined query first, then fallback to individual)
         logger.info("Fetching from arXiv...")
@@ -183,9 +183,9 @@ class MultiSourceFetcher:
 
         return all_papers
 
-    def _fetch_by_topics(self, days: int) -> List[Dict]:
+    def _fetch_by_topics(self, days: int) -> list[dict]:
         """Fetch papers by searching for specific topics."""
-        papers: List[Dict] = []
+        papers: list[dict] = []
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
 
@@ -231,7 +231,7 @@ class MultiSourceFetcher:
                 continue
 
         seen = set()
-        unique: List[Dict] = []
+        unique: list[dict] = []
         for p in papers:
             if p['id'] not in seen:
                 seen.add(p['id'])
@@ -239,9 +239,9 @@ class MultiSourceFetcher:
 
         return unique
 
-    def _fetch_arxiv_combined(self, days: int) -> List[Dict]:
+    def _fetch_arxiv_combined(self, days: int) -> list[dict]:
         """Fetch papers using a SINGLE combined query (minimizes API calls)."""
-        papers: List[Dict] = []
+        papers: list[dict] = []
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
 
@@ -291,13 +291,13 @@ class MultiSourceFetcher:
 
         return papers
 
-    def _fetch_arxiv(self, days: int) -> List[Dict]:
+    def _fetch_arxiv(self, days: int) -> list[dict]:
         """Fetch papers from arXiv API with retry and rate limiting."""
-        papers: List[Dict] = []
+        papers: list[dict] = []
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
 
-        def fetch_with_retry(url: str, max_retries: int = 3) -> Optional[str]:
+        def fetch_with_retry(url: str, max_retries: int = 3) -> str | None:
             """Fetch URL with exponential backoff on rate limit errors."""
             for attempt in range(max_retries):
                 try:
@@ -351,7 +351,7 @@ class MultiSourceFetcher:
                 time.sleep(5)
 
         seen = set()
-        unique: List[Dict] = []
+        unique: list[dict] = []
         for p in papers:
             if p['id'] not in seen:
                 seen.add(p['id'])
@@ -359,20 +359,20 @@ class MultiSourceFetcher:
 
         return unique
 
-    def _parse_arxiv_xml(self, xml_data: str) -> List[Dict]:
+    def _parse_arxiv_xml(self, xml_data: str) -> list[dict]:
         """Parse arXiv API XML response."""
-        papers: List[Dict] = []
+        papers: list[dict] = []
         try:
             root = ET.fromstring(xml_data)
             ns = {'atom': 'http://www.w3.org/2005/Atom', 'arxiv': 'http://arxiv.org/schemas/atom'}
 
             for entry in root.findall('atom:entry', ns):
-                paper: Dict = {}
+                paper: dict = {}
 
                 title_elem = entry.find('atom:title', ns)
                 paper['title'] = title_elem.text.strip() if title_elem is not None else ''
 
-                authors: List[str] = []
+                authors: list[str] = []
                 for author in entry.findall('atom:author', ns):
                     name_elem = author.find('atom:name', ns)
                     if name_elem is not None:
@@ -394,7 +394,7 @@ class MultiSourceFetcher:
                 paper['link'] = identity['source_url']
                 paper['source'] = 'arXiv'
 
-                categories: List[str] = []
+                categories: list[str] = []
                 for cat in entry.findall('atom:category', ns):
                     term = cat.get('term')
                     if term:
@@ -416,7 +416,7 @@ class MultiSourceFetcher:
 # ---------------------------------------------------------------------------
 
 
-def search_by_keywords(keywords: List[str], max_results: int = 20, days_back: int = 365) -> List[Dict]:
+def search_by_keywords(keywords: list[str], max_results: int = 20, days_back: int = 365) -> list[dict]:
     """Search arXiv papers by custom keywords.
 
     Args:
@@ -431,13 +431,13 @@ def search_by_keywords(keywords: List[str], max_results: int = 20, days_back: in
     logger.info(f"Searching arXiv for: {', '.join(keywords)}")
     logger.info("=" * 60)
 
-    query_parts: List[str] = []
+    query_parts: list[str] = []
     for kw in keywords[:5]:
         query_parts.append(f'(ti:"{kw}"+OR+abs:"{kw}")')
 
     search_query = '+OR+'.join(query_parts)
 
-    papers: List[Dict] = []
+    papers: list[dict] = []
     end_date = datetime.now()
     start_date = end_date - timedelta(days=days_back)
 
@@ -465,12 +465,12 @@ def search_by_keywords(keywords: List[str], max_results: int = 20, days_back: in
             logger.debug(f"Found {len(entries)} entries in XML")
 
             for entry in entries:
-                paper: Dict = {}
+                paper: dict = {}
 
                 title_elem = entry.find('atom:title', ns)
                 paper['title'] = title_elem.text.strip() if title_elem is not None else ''
 
-                authors: List[str] = []
+                authors: list[str] = []
                 for author in entry.findall('atom:author', ns):
                     name_elem = author.find('atom:name', ns)
                     if name_elem is not None:
@@ -492,7 +492,7 @@ def search_by_keywords(keywords: List[str], max_results: int = 20, days_back: in
                 paper['link'] = identity['source_url']
                 paper['source'] = 'arXiv'
 
-                categories: List[str] = []
+                categories: list[str] = []
                 for cat in entry.findall('atom:category', ns):
                     term = cat.get('term')
                     if term:
@@ -517,12 +517,12 @@ def search_by_keywords(keywords: List[str], max_results: int = 20, days_back: in
 
     logger.info(f"Found {len(papers)} papers from arXiv")
 
-    def compute_keyword_score(paper: Dict) -> Tuple[float, Dict]:
+    def compute_keyword_score(paper: dict) -> tuple[float, dict]:
         """Compute score based on keyword matching."""
         text = (paper['title'] + ' ' + paper.get('abstract', ''))
         text_lower = text.lower()
         score = 0.0
-        matched_keywords: List[str] = []
+        matched_keywords: list[str] = []
 
         for kw in keywords:
             kw_lower = kw.lower()
@@ -607,7 +607,7 @@ def fetch_arxiv_metadata(paper_id: str) -> dict | None:
     title_elem = entry.find("atom:title", ns)
     summary_elem = entry.find("atom:summary", ns)
     published_elem = entry.find("atom:published", ns)
-    authors: List[str] = []
+    authors: list[str] = []
     for author in entry.findall("atom:author", ns):
         name_elem = author.find("atom:name", ns)
         if name_elem is not None:

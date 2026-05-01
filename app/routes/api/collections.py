@@ -3,9 +3,10 @@ import sqlite3
 
 from flask import jsonify, request
 
+from state_store import _canonical_paper_id
+
 from . import bp
 from .helpers import _current_state_store, serialize_collection
-from state_store import _canonical_paper_id
 
 
 @bp.route("/api/collections", methods=["GET", "POST", "PUT", "DELETE"])

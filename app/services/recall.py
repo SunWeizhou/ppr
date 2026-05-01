@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
-import ssl, urllib.error, urllib.parse, urllib.request
+import ssl
+import urllib.error
+import urllib.parse
+import urllib.request
 from datetime import datetime, timedelta
+
 from defusedxml import ElementTree as ET
-from logger_config import get_logger
-from app_paths import CACHE_DIR
+
 from app.services.arxiv_source import PaperCache
 from app.services.paper_utils import parse_arxiv_identity
 from app.services.safe_http import safe_urlopen
+from app_paths import CACHE_DIR
+from logger_config import get_logger
 
 logger = get_logger(__name__)
 _SSL = ssl.create_default_context()

@@ -11,8 +11,8 @@ bp = Blueprint("onboarding", __name__)
 
 def _safe_list_collections():
     try:
-        from state_store import get_state_store
         from app.viewmodels.shared import serialize_collection
+        from state_store import get_state_store
 
         store = get_state_store()
         return [serialize_collection(c) for c in store.list_collections()]
@@ -22,8 +22,8 @@ def _safe_list_collections():
 
 def _safe_list_saved_searches():
     try:
-        from state_store import get_state_store
         from app.viewmodels.shared import serialize_saved_search
+        from state_store import get_state_store
 
         store = get_state_store()
         return [serialize_saved_search(s) for s in store.list_saved_searches()]
@@ -33,8 +33,8 @@ def _safe_list_saved_searches():
 
 def _safe_latest_job():
     try:
-        from state_store import get_state_store
         from app.viewmodels.shared import serialize_job
+        from state_store import get_state_store
 
         store = get_state_store()
         return serialize_job(store.get_latest_job("daily_recommendation"))

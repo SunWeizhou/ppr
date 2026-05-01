@@ -8,9 +8,8 @@ import urllib.parse
 import urllib.request
 from typing import Dict
 
-from logger_config import get_logger
-
 from app.services.paper_utils import parse_arxiv_identity
+from logger_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -23,7 +22,7 @@ class CitationAnalyzer:
     def __init__(self, cache_dir: str):
         self.cache_dir = cache_dir
 
-    def fetch_citation_data(self, paper_id: str) -> Dict[str, int]:
+    def fetch_citation_data(self, paper_id: str) -> dict[str, int]:
         identity = parse_arxiv_identity(paper_id)
         url = (
             "https://api.semanticscholar.org/graph/v1/paper/"

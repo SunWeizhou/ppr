@@ -12,7 +12,6 @@ import os
 import urllib.error
 import urllib.request
 
-
 ANALYSIS_FIELDS = (
     "one_sentence_summary",
     "problem",

@@ -8,12 +8,12 @@ from flask import jsonify, request
 
 from . import bp
 from .helpers import (
+    CACHE_DIR,
+    FEEDBACK_FILE,
+    HISTORY_DIR,
     _build_recommendation_health,
     _current_state_store,
     _feedback_service,
-    FEEDBACK_FILE,
-    CACHE_DIR,
-    HISTORY_DIR,
     serialize_job,
 )
 
@@ -74,7 +74,8 @@ def refresh_recommendations():
     force = request.args.get("force", "0") == "1"
 
     try:
-        from arxiv_recommender_v5 import load_daily_recommendation, CONFIG as PIPELINE_CONFIG
+        from arxiv_recommender_v5 import CONFIG as PIPELINE_CONFIG
+        from arxiv_recommender_v5 import load_daily_recommendation
 
         today = datetime.now().strftime("%Y-%m-%d")
 
@@ -145,8 +146,10 @@ def refresh_recommendations():
 def get_status():
     """Get recommendation status for today."""
     try:
-        from arxiv_recommender_v5 import load_daily_recommendation, CONFIG as PIPELINE_CONFIG
         import json as _json
+
+        from arxiv_recommender_v5 import CONFIG as PIPELINE_CONFIG
+        from arxiv_recommender_v5 import load_daily_recommendation
 
         today = datetime.now().strftime("%Y-%m-%d")
 

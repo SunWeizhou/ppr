@@ -7,9 +7,8 @@ import os
 import platform
 from typing import Tuple
 
-from logger_config import get_logger
-
 from app.services.settings_service import load_user_config
+from logger_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -63,7 +62,7 @@ def get_zotero_path() -> str:
     return 'D:/zetero_data/zotero.sqlite'
 
 
-def _detect_nvidia_gpu() -> Tuple[bool, int]:
+def _detect_nvidia_gpu() -> tuple[bool, int]:
     """Detect NVIDIA GPU and VRAM."""
     try:
         import subprocess
