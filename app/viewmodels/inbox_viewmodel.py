@@ -54,6 +54,7 @@ class InboxViewModel:
         prev_date: str | None,
         next_date: str | None,
         feedback: dict,
+        selected_filter: str = "all",
     ) -> dict:
         """Build the full template context for ``today.html``.
 
@@ -95,6 +96,7 @@ class InboxViewModel:
             "matched_keyword_count": len(today_matched_keywords),
             "papers": decorated,
             "untriaged_papers": untriaged_papers,
+            "selected_filter": selected_filter,
             "date_cards": self._build_date_cards(date, set(dates)),
             "prev_date": prev_date,
             "next_date": next_date,
