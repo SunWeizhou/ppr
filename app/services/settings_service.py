@@ -6,14 +6,13 @@ import json
 import os
 from typing import Dict, List
 
-from logger_config import get_logger
-
 from config_manager import get_config
+from logger_config import get_logger
 
 logger = get_logger(__name__)
 
 # Default priority topics (fallback if user config not found)
-DEFAULT_PRIORITY_TOPICS: List[str] = [
+DEFAULT_PRIORITY_TOPICS: list[str] = [
     'statistical learning theory', 'in-context learning', 'transformer theory',
     'transformer', 'prompt learning', 'prompt engineering',
     'nonparametric estimation', 'conditional density estimation',
@@ -32,7 +31,7 @@ _KEYWORDS_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 # ---------------------------------------------------------------------------
 
 
-def load_user_config() -> Dict:
+def load_user_config() -> dict:
     """Load user configuration - 使用统一配置管理器."""
     config = get_config()
     return {
@@ -55,7 +54,7 @@ def load_user_config() -> Dict:
     }
 
 
-def save_user_config(config: Dict) -> bool:
+def save_user_config(config: dict) -> bool:
     """Save user configuration - 使用统一配置管理器."""
     try:
         cm = get_config()
@@ -77,22 +76,22 @@ def save_user_config(config: Dict) -> bool:
         return False
 
 
-def get_priority_topics() -> List[str]:
+def get_priority_topics() -> list[str]:
     """Get priority topics from unified config."""
     return list(get_config().core_keywords.keys())
 
 
-def get_dislike_topics() -> List[str]:
+def get_dislike_topics() -> list[str]:
     """Get topics to deprioritize from unified config."""
     return list(get_config().dislike_keywords.keys())
 
 
-def get_topic_weights() -> Dict[str, float]:
+def get_topic_weights() -> dict[str, float]:
     """Get topic weights from unified config."""
     return get_config().core_keywords
 
 
-def load_keywords_config() -> Dict:
+def load_keywords_config() -> dict:
     """Load keywords configuration - 使用统一配置管理器."""
     cm = get_config()
     return {
@@ -104,7 +103,7 @@ def load_keywords_config() -> Dict:
     }
 
 
-def save_keywords_config(config: Dict) -> bool:
+def save_keywords_config(config: dict) -> bool:
     """Save keywords configuration - 使用统一配置管理器."""
     try:
         cm = get_config()
@@ -135,17 +134,17 @@ def save_keywords_config(config: Dict) -> bool:
         return False
 
 
-def get_core_topics() -> Dict[str, float]:
+def get_core_topics() -> dict[str, float]:
     """Get core topics from unified config."""
     return get_config().core_keywords
 
 
-def get_secondary_topics() -> Dict[str, float]:
+def get_secondary_topics() -> dict[str, float]:
     """Get secondary topics from unified config."""
     return get_config().get_keywords_by_category('secondary')
 
 
-def get_theory_keywords() -> List[str]:
+def get_theory_keywords() -> list[str]:
     """Get theory keywords from unified config."""
     return get_config()._config.get('theory_keywords', [
         "theorem", "proof", "bound", "convergence", "statistical",
@@ -154,12 +153,12 @@ def get_theory_keywords() -> List[str]:
     ])
 
 
-def get_demote_topics() -> Dict[str, float]:
+def get_demote_topics() -> dict[str, float]:
     """Get demote topics from unified config."""
     return get_config().demote_keywords
 
 
-def get_dislike_topics_list() -> List[str]:
+def get_dislike_topics_list() -> list[str]:
     """Get dislike topics from unified config."""
     return list(get_config().dislike_keywords.keys())
 

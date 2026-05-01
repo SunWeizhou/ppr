@@ -8,9 +8,8 @@ import re
 from datetime import datetime
 from typing import Dict, List
 
-from logger_config import get_logger
-
 from app.services.settings_service import load_keywords_config
+from logger_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -18,7 +17,7 @@ logger = get_logger(__name__)
 class HTMLGenerator:
     """Generate enhanced HTML page with keyword management."""
 
-    def generate(self, papers: List[Dict], themes: List[str], date: str, stats: Dict) -> str:
+    def generate(self, papers: list[dict], themes: list[str], date: str, stats: dict) -> str:
         # Load current keywords config
         keywords_config = load_keywords_config()
         core_topics = keywords_config.get('core_topics', {})
@@ -34,9 +33,9 @@ class HTMLGenerator:
         # Format keywords for display
         core_topics_html = self._generate_keyword_tags(core_topics, 'core')
         secondary_topics_html = self._generate_keyword_tags(secondary_topics, 'secondary')
-        theory_keywords_html = self._generate_keyword_tags({k: 1.0 for k in theory_keywords}, 'theory')
+        theory_keywords_html = self._generate_keyword_tags(dict.fromkeys(theory_keywords, 1.0), 'theory')
         demote_topics_html = self._generate_keyword_tags(demote_topics, 'demote')
-        dislike_topics_html = self._generate_keyword_tags({k: 1.0 for k in dislike_topics}, 'dislike')
+        dislike_topics_html = self._generate_keyword_tags(dict.fromkeys(dislike_topics, 1.0), 'dislike')
 
         # JSON for JavaScript
         keywords_config_json = json.dumps(keywords_config, ensure_ascii=False)
@@ -455,14 +454,14 @@ class HTMLGenerator:
 </body>
 </html>'''
 
-    def _generate_keyword_tags(self, keywords: Dict[str, float], tag_type: str) -> str:
+    def _generate_keyword_tags(self, keywords: dict[str, float], tag_type: str) -> str:
         """Generate HTML for keyword tags."""
         html = ''
-        for keyword, weight in keywords.items():
+        for keyword, _ in keywords.items():
             html += f'''<span class="keyword-tag {tag_type}">{keyword}<span class="remove-btn" onclick="removeKeyword('{tag_type}', '{keyword}')">×</span></span>'''
         return html
 
-    def _extract_today_keywords(self, papers: List[Dict], core_topics: Dict, secondary_topics: Dict, theory_keywords: List[str]) -> List[str]:
+    def _extract_today_keywords(self, papers: list[dict], core_topics: dict, secondary_topics: dict, theory_keywords: list[str]) -> list[str]:
         """Extract keywords that matched in today's papers."""
         matched: set = set()
         all_keywords = list(core_topics.keys()) + list(secondary_topics.keys()) + theory_keywords
@@ -487,7 +486,7 @@ class HTMLGenerator:
             pattern = r'\b' + re.escape(keyword_lower) + r'\b'
             return len(re.findall(pattern, text_lower))
 
-    def _generate_relevance_html(self, paper: Dict) -> str:
+    def _generate_relevance_html(self, paper: dict) -> str:
         """Generate HTML for structured relevance reasons with icons."""
         _SAFE_ICONS = frozenset({"🎯", "📌", "🔔", "🧠", "📋", "🏷️", "💡", "📐", "🏛️", "🆕", "🔗", "👤", "🏗️", "📊"})
 
@@ -517,7 +516,7 @@ class HTMLGenerator:
 
         return ''.join(html_items)
 
-    def _generate_paper_cards(self, papers: List[Dict]) -> str:
+    def _generate_paper_cards(self, papers: list[dict]) -> str:
         # arXiv category mapping
         category_names = {
             'stat.ML': 'Machine Learning',
@@ -600,7 +599,7 @@ class HTMLGenerator:
 # ---------------------------------------------------------------------------
 
 
-def generate_search_html(papers: List[Dict], keywords: List[str]) -> str:
+def generate_search_html(papers: list[dict], keywords: list[str]) -> str:
     """Generate HTML page for keyword search results."""
     date = datetime.now().strftime('%Y-%m-%d')
 

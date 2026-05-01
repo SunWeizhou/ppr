@@ -8,9 +8,10 @@ import re
 import ssl
 import urllib.parse
 import urllib.request
-from defusedxml import ElementTree as ET
 from datetime import datetime
 from html import unescape
+
+from defusedxml import ElementTree as ET
 
 from logger_config import get_logger
 from utils import safe_load_json

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from enum import Enum
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from config_manager import get_config
 from logger_config import get_logger
@@ -20,7 +21,7 @@ logger = get_logger(__name__)
 class EnhancedScorer:
     """Enhanced paper scorer with smart keyword matching."""
 
-    def __init__(self, semantic: Optional[Any] = None, use_semantic: bool = True, topic_weights: Dict[str, float] = None):
+    def __init__(self, semantic: Any | None = None, use_semantic: bool = True, topic_weights: dict[str, float] = None):
         self.semantic = semantic
         self.use_semantic = use_semantic
         self.topic_weights = topic_weights or {}
@@ -33,7 +34,7 @@ class EnhancedScorer:
         self.CORE_TOPICS = cm.core_keywords
         self.SECONDARY_TOPICS = cm.get_keywords_by_category('secondary')
 
-    def compute_score(self, paper: Dict) -> Tuple[float, Dict]:
+    def compute_score(self, paper: dict) -> tuple[float, dict]:
         """Compute overall score."""
         relevance = self._compute_relevance(paper)
         semantic_sim = self._compute_semantic_score(paper)
@@ -52,7 +53,7 @@ class EnhancedScorer:
             pattern = r'\b' + re.escape(keyword_lower) + r'\b'
             return len(re.findall(pattern, text_lower))
 
-    def _compute_relevance(self, paper: Dict) -> float:
+    def _compute_relevance(self, paper: dict) -> float:
         """Compute topic relevance with smart keyword matching."""
         title = paper.get('title', '').lower()
         abstract = paper.get('abstract', '').lower()
@@ -79,7 +80,7 @@ class EnhancedScorer:
 
         return min(max(score, 0), 10)
 
-    def _compute_semantic_score(self, paper: Dict) -> float:
+    def _compute_semantic_score(self, paper: dict) -> float:
         """Compute semantic similarity score (0-10 scale)."""
         if self.use_semantic and self.semantic is not None:
             sim = self.semantic.compute_similarity(paper)
@@ -128,7 +129,7 @@ def score_papers_for_evaluation(
     papers: Iterable[dict],
     variant: ScoringVariant | str,
     *,
-    labels: Optional[dict] = None,
+    labels: dict | None = None,
 ) -> list[dict]:
     """Return evaluation-only ranked papers for an ablation variant.
 

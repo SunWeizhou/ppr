@@ -1,11 +1,13 @@
 """Evaluation dashboard viewmodel — runs evaluation and builds context."""
 from __future__ import annotations
+
 import json
 import subprocess
 import sys
 from pathlib import Path
-from logger_config import get_logger
+
 from app_paths import CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
+from logger_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -90,7 +92,7 @@ class EvalViewModel:
 
         # Add queue_counts required by base_research.html
         try:
-            queue_counts = {status: 0 for status in QUEUE_STATUS_VALUES}
+            queue_counts = dict.fromkeys(QUEUE_STATUS_VALUES, 0)
             for item in self._store.list_queue_items():
                 status = item.get("status")
                 if status in queue_counts:

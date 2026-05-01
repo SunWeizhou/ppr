@@ -1,14 +1,22 @@
 """Paper-related API routes (fetch, BibTeX, citation, download, related)."""
+import logging
 import os
 import re
-import logging
 from datetime import datetime
 
 from flask import jsonify, make_response, request, send_file
 
-from . import bp
-from .helpers import _current_state_store, _feedback_service, _load_history_paper_index, CACHE_DIR, PROJECT_ROOT, HISTORY_DIR
 from state_store import _canonical_paper_id
+
+from . import bp
+from .helpers import (
+    CACHE_DIR,
+    HISTORY_DIR,
+    PROJECT_ROOT,
+    _current_state_store,
+    _feedback_service,
+    _load_history_paper_index,
+)
 
 logger = logging.getLogger(__name__)
 

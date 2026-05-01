@@ -12,9 +12,10 @@ import re
 import sqlite3
 import threading
 import uuid
+from collections.abc import Iterable
 from contextlib import contextmanager
-from datetime import datetime, timezone
-from typing import Dict, Iterable, List, Optional
+from datetime import UTC, datetime, timezone
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +26,10 @@ QUEUE_STATUS_VALUES = ("Inbox", "Skim Later", "Deep Read", "Saved", "Archived")
 
 
 def _utc_now() -> str:
-    return datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat() + "Z"
+    return datetime.now(tz=UTC).replace(microsecond=0).isoformat() + "Z"
 
 
-def _to_json(value: Optional[object], default: object) -> str:
+def _to_json(value: object | None, default: object) -> str:
     return json.dumps(value if value is not None else default, ensure_ascii=False)
 
 
@@ -406,7 +407,7 @@ class StateStore:
             )
 
     @staticmethod
-    def _row_to_dict(row: sqlite3.Row) -> Dict:
+    def _row_to_dict(row: sqlite3.Row) -> dict:
         data = dict(row)
         for key in ("payload_json", "result_json", "filters_json", "tags_json"):
             if key in data:
@@ -420,9 +421,9 @@ class StateStore:
         self,
         job_type: str,
         trigger_source: str = "unknown",
-        payload: Optional[Dict] = None,
+        payload: dict | None = None,
         status: str = "queued",
-    ) -> Dict:
+    ) -> dict:
         if status not in JOB_STATUS_VALUES:
             raise ValueError(f"Invalid job status: {status}")
 
@@ -459,8 +460,8 @@ class StateStore:
         self,
         job_type: str,
         trigger_source: str = "unknown",
-        payload: Optional[Dict] = None,
-    ) -> Optional[Dict]:
+        payload: dict | None = None,
+    ) -> dict | None:
         """Create a queued job only if no active (queued/running) job of this type exists.
 
         The check and insert run inside a single lock+transaction so two
@@ -505,9 +506,9 @@ class StateStore:
         run_id: str,
         status: str,
         *,
-        result: Optional[Dict] = None,
-        error_text: Optional[str] = None,
-    ) -> Optional[Dict]:
+        result: dict | None = None,
+        error_text: str | None = None,
+    ) -> dict | None:
         if status not in JOB_STATUS_VALUES:
             raise ValueError(f"Invalid job status: {status}")
 
@@ -545,16 +546,16 @@ class StateStore:
             ).fetchone()
         return self._row_to_dict(row) if row else None
 
-    def get_job(self, run_id: str) -> Optional[Dict]:
+    def get_job(self, run_id: str) -> dict | None:
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT * FROM job_runs WHERE run_id = ?", (run_id,)
             ).fetchone()
         return self._row_to_dict(row) if row else None
 
-    def get_latest_job(self, job_type: Optional[str] = None) -> Optional[Dict]:
+    def get_latest_job(self, job_type: str | None = None) -> dict | None:
         query = "SELECT * FROM job_runs"
-        params: List[object] = []
+        params: list[object] = []
         if job_type:
             query += " WHERE job_type = ?"
             params.append(job_type)
@@ -572,7 +573,7 @@ class StateStore:
             ).fetchone()
         return row is not None
 
-    def list_collections(self) -> List[Dict]:
+    def list_collections(self) -> list[dict]:
         with self._connect() as conn:
             rows = conn.execute(
                 """
@@ -586,7 +587,7 @@ class StateStore:
             ).fetchall()
         return [self._row_to_dict(row) for row in rows]
 
-    def get_collection(self, collection_id: int) -> Optional[Dict]:
+    def get_collection(self, collection_id: int) -> dict | None:
         with self._connect() as conn:
             row = conn.execute(
                 """
@@ -603,7 +604,7 @@ class StateStore:
 
     def create_collection(
         self, name: str, description: str = "", query_text: str = ""
-    ) -> Dict:
+    ) -> dict:
         now = _utc_now()
         with self._lock, self._connect() as conn:
             conn.execute(
@@ -640,13 +641,13 @@ class StateStore:
         self,
         collection_id: int,
         *,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
-        query_text: Optional[str] = None,
-        is_active: Optional[bool] = None,
-    ) -> Optional[Dict]:
+        name: str | None = None,
+        description: str | None = None,
+        query_text: str | None = None,
+        is_active: bool | None = None,
+    ) -> dict | None:
         updates = []
-        params: List[object] = []
+        params: list[object] = []
 
         if name is not None:
             updates.append("name = ?")
@@ -705,7 +706,7 @@ class StateStore:
             )
         return True
 
-    def list_collection_papers(self, collection_id: int) -> List[Dict]:
+    def list_collection_papers(self, collection_id: int) -> list[dict]:
         with self._connect() as conn:
             rows = conn.execute(
                 """
@@ -736,14 +737,14 @@ class StateStore:
                 )
         return result.rowcount > 0
 
-    def list_saved_searches(self) -> List[Dict]:
+    def list_saved_searches(self) -> list[dict]:
         with self._connect() as conn:
             rows = conn.execute(
                 "SELECT * FROM saved_searches ORDER BY updated_at DESC"
             ).fetchall()
         return [self._row_to_dict(row) for row in rows]
 
-    def get_saved_search(self, search_id: int) -> Optional[Dict]:
+    def get_saved_search(self, search_id: int) -> dict | None:
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT * FROM saved_searches WHERE id = ?",
@@ -752,8 +753,8 @@ class StateStore:
         return self._row_to_dict(row) if row else None
 
     def create_saved_search(
-        self, name: str, query_text: str, filters: Optional[Dict] = None
-    ) -> Dict:
+        self, name: str, query_text: str, filters: dict | None = None
+    ) -> dict:
         now = _utc_now()
         with self._lock, self._connect() as conn:
             conn.execute(
@@ -782,13 +783,13 @@ class StateStore:
         self,
         search_id: int,
         *,
-        name: Optional[str] = None,
-        query_text: Optional[str] = None,
-        filters: Optional[Dict] = None,
-        is_active: Optional[bool] = None,
-    ) -> Optional[Dict]:
+        name: str | None = None,
+        query_text: str | None = None,
+        filters: dict | None = None,
+        is_active: bool | None = None,
+    ) -> dict | None:
         updates = []
-        params: List[object] = []
+        params: list[object] = []
 
         if name is not None:
             updates.append("name = ?")
@@ -832,7 +833,7 @@ class StateStore:
         query_text: str = "",
         payload_json: str = "{}",
         enabled: bool = True,
-    ) -> Dict:
+    ) -> dict:
         if type not in ("query", "author", "venue"):
             raise ValueError(f"Invalid subscription type: {type}")
         if isinstance(payload_json, dict):
@@ -853,9 +854,9 @@ class StateStore:
             ).fetchone()
         return self._row_to_dict(row)
 
-    def update_subscription(self, subscription_id: int, **kwargs) -> Optional[Dict]:
+    def update_subscription(self, subscription_id: int, **kwargs) -> dict | None:
         updates = []
-        params: List[object] = []
+        params: list[object] = []
 
         direct_fields = {"type", "name", "query_text", "enabled", "latest_hit_count", "last_checked_at"}
         for field in direct_fields:
@@ -899,7 +900,7 @@ class StateStore:
             )
         return result.rowcount > 0
 
-    def get_subscription(self, subscription_id: int) -> Optional[Dict]:
+    def get_subscription(self, subscription_id: int) -> dict | None:
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT * FROM subscriptions WHERE id = ?",
@@ -907,9 +908,9 @@ class StateStore:
             ).fetchone()
         return self._row_to_dict(row) if row else None
 
-    def list_subscriptions(self, type: Optional[str] = None) -> List[Dict]:
+    def list_subscriptions(self, type: str | None = None) -> list[dict]:
         query = "SELECT * FROM subscriptions"
-        params: List[object] = []
+        params: list[object] = []
         if type:
             query += " WHERE type = ?"
             params.append(type)
@@ -927,9 +928,9 @@ class StateStore:
         subscription_id: int,
         paper_id: str,
         matched_reason: str = "",
-        hit_date: Optional[str] = None,
+        hit_date: str | None = None,
         status: str = "new",
-    ) -> Dict:
+    ) -> dict:
         paper_id = _canonical_paper_id(paper_id)
         if status not in ("new", "sent_to_inbox", "queued", "ignored"):
             raise ValueError(f"Invalid hit status: {status}")
@@ -983,12 +984,12 @@ class StateStore:
 
     def list_subscription_hits(
         self,
-        subscription_id: Optional[int] = None,
-        status: Optional[str] = None,
+        subscription_id: int | None = None,
+        status: str | None = None,
         limit: int = 50,
-    ) -> List[Dict]:
+    ) -> list[dict]:
         query = "SELECT * FROM subscription_hits WHERE 1 = 1"
-        params: List[object] = []
+        params: list[object] = []
         if subscription_id is not None:
             query += " AND subscription_id = ?"
             params.append(subscription_id)
@@ -1047,7 +1048,7 @@ class StateStore:
             )
             if not os.path.exists(scholars_path):
                 return 0
-            with open(scholars_path, "r", encoding="utf-8") as f:
+            with open(scholars_path, encoding="utf-8") as f:
                 data = json.load(f)
         except (OSError, json.JSONDecodeError):
             return 0
@@ -1094,8 +1095,8 @@ class StateStore:
         *,
         source: str = "",
         note: str = "",
-        tags: Optional[List[str]] = None,
-    ) -> Dict:
+        tags: list[str] | None = None,
+    ) -> dict:
         paper_id = _canonical_paper_id(paper_id)
         if status not in QUEUE_STATUS_VALUES:
             raise ValueError(f"Invalid queue status: {status}")
@@ -1128,9 +1129,9 @@ class StateStore:
             ).fetchone()
         return self._row_to_dict(row)
 
-    def list_queue_items(self, status: Optional[str] = None) -> List[Dict]:
+    def list_queue_items(self, status: str | None = None) -> list[dict]:
         query = "SELECT * FROM reading_queue_items"
-        params: List[object] = []
+        params: list[object] = []
         if status:
             query += " WHERE status = ?"
             params.append(status)
@@ -1139,7 +1140,7 @@ class StateStore:
             rows = conn.execute(query, params).fetchall()
         return [self._row_to_dict(row) for row in rows]
 
-    def get_queue_item(self, paper_id: str) -> Optional[Dict]:
+    def get_queue_item(self, paper_id: str) -> dict | None:
         paper_id = _canonical_paper_id(paper_id)
         with self._connect() as conn:
             row = conn.execute(
@@ -1148,7 +1149,7 @@ class StateStore:
             ).fetchone()
         return self._row_to_dict(row) if row else None
 
-    def get_inbox_progress(self, date_str: str) -> Dict:
+    def get_inbox_progress(self, date_str: str) -> dict:
         """Return triage progress stats for a given date.
 
         Returns counts for: handled, untriaged, liked, disliked, skimmed,
@@ -1189,8 +1190,8 @@ class StateStore:
                 (date_str,),
             ).fetchall()
 
-        event_counts: Dict[str, int] = {row["event_type"]: row["cnt"] for row in event_rows}
-        queue_counts: Dict[str, int] = {row["status"]: row["cnt"] for row in queue_rows}
+        event_counts: dict[str, int] = {row["event_type"]: row["cnt"] for row in event_rows}
+        queue_counts: dict[str, int] = {row["status"]: row["cnt"] for row in queue_rows}
 
         liked = event_counts.get("like", 0)
         disliked = event_counts.get("dislike", 0)
@@ -1210,8 +1211,8 @@ class StateStore:
         }
 
     def list_interaction_events(
-        self, paper_id: Optional[str] = None, limit: int = 100
-    ) -> List[Dict]:
+        self, paper_id: str | None = None, limit: int = 100
+    ) -> list[dict]:
         """List interaction events, optionally filtered by paper_id."""
         with self._connect() as conn:
             if paper_id:
@@ -1229,7 +1230,7 @@ class StateStore:
         return [self._row_to_dict(row) for row in rows]
 
     def record_event(
-        self, event_type: str, paper_id: str = "", payload: Optional[Dict] = None
+        self, event_type: str, paper_id: str = "", payload: dict | None = None
     ) -> int:
         paper_id = _canonical_paper_id(paper_id)
         now = _utc_now()
@@ -1279,7 +1280,7 @@ class StateStore:
     # Paper categories lookup helper
     # ------------------------------------------------------------------
 
-    def _get_paper_categories(self, paper_id: str) -> List[str]:
+    def _get_paper_categories(self, paper_id: str) -> list[str]:
         """Look up paper categories from recommendation_items."""
         try:
             from utils import CATEGORY_NAMES  # noqa: F811
@@ -1303,7 +1304,7 @@ class StateStore:
     # User Topic Affinity
     # ------------------------------------------------------------------
 
-    def get_user_topic_affinities(self) -> List[Dict]:
+    def get_user_topic_affinities(self) -> list[dict]:
         """Return all topic affinities ordered by positive_score DESC."""
         with self._connect() as conn:
             rows = conn.execute(
@@ -1337,8 +1338,8 @@ class StateStore:
     def update_affinity_from_event(
         self,
         event_type: str,
-        paper_categories: List[str],
-        paper_keywords: List[str],
+        paper_categories: list[str],
+        paper_keywords: list[str],
     ) -> bool:
         """Update topic affinity based on user interaction event."""
         positive_delta = 0.0
@@ -1367,7 +1368,7 @@ class StateStore:
             from utils import CATEGORY_NAMES  # noqa: F811
         except Exception:
             CATEGORY_NAMES = {}
-        topics: List[str] = []
+        topics: list[str] = []
         for cat in paper_categories:
             topics.append(CATEGORY_NAMES.get(cat, cat))
         for kw in paper_keywords:
@@ -1401,8 +1402,8 @@ class StateStore:
         self,
         run_date: str,
         trigger_source: str = "auto_homepage",
-        papers: Optional[List[Dict]] = None,
-        themes: Optional[List[str]] = None,
+        papers: list[dict] | None = None,
+        themes: list[str] | None = None,
     ) -> str:
         """Save a recommendation run and its items to SQLite. Returns run_id."""
         import uuid
@@ -1437,7 +1438,7 @@ class StateStore:
                 )
         return run_id
 
-    def get_recommendation_items(self, run_id: str) -> List[Dict]:
+    def get_recommendation_items(self, run_id: str) -> list[dict]:
         """Get all recommendation items for a run."""
         with self._connect() as conn:
             conn.row_factory = sqlite3.Row
@@ -1456,7 +1457,7 @@ class StateStore:
             result.append(item)
         return result
 
-    def list_recommendation_runs(self, limit: int = 10) -> List[Dict]:
+    def list_recommendation_runs(self, limit: int = 10) -> list[dict]:
         """List recent recommendation runs."""
         with self._connect() as conn:
             conn.row_factory = sqlite3.Row
@@ -1466,7 +1467,7 @@ class StateStore:
             ).fetchall()
         return [dict(r) for r in rows]
 
-    def get_recommendation_run_by_date(self, date: str) -> Optional[Dict]:
+    def get_recommendation_run_by_date(self, date: str) -> dict | None:
         """Get the latest recommendation run for a specific date."""
         with self._connect() as conn:
             conn.row_factory = sqlite3.Row
@@ -1476,7 +1477,7 @@ class StateStore:
             ).fetchone()
         return dict(row) if row else None
 
-    def list_recommendation_dates(self, limit: int = 30) -> List[str]:
+    def list_recommendation_dates(self, limit: int = 30) -> list[str]:
         """List dates that have recommendation runs, newest first."""
         with self._connect() as conn:
             rows = conn.execute(
@@ -1485,7 +1486,7 @@ class StateStore:
             ).fetchall()
         return [row[0] for row in rows]
 
-    def get_paper_ai_analysis(self, paper_id: str) -> Optional[Dict]:
+    def get_paper_ai_analysis(self, paper_id: str) -> dict | None:
         paper_id = _canonical_paper_id(paper_id)
         with self._connect() as conn:
             row = conn.execute(
@@ -1497,13 +1498,13 @@ class StateStore:
     def upsert_paper_ai_analysis(
         self,
         paper_id: str,
-        analysis: Dict,
+        analysis: dict,
         *,
         model_name: str,
         prompt_version: str,
         status: str = "ok",
         error_text: str = "",
-    ) -> Dict:
+    ) -> dict:
         paper_id = _canonical_paper_id(paper_id)
         if not paper_id:
             raise ValueError("Missing paper_id")
@@ -1610,7 +1611,7 @@ class StateStore:
                 (paper_id, metadata_json, now),
             )
 
-    def get_paper_metadata(self, paper_id: str) -> Optional[dict]:
+    def get_paper_metadata(self, paper_id: str) -> dict | None:
         """Retrieve cached paper metadata, or None if not found."""
         paper_id = _canonical_paper_id(paper_id)
         with self._connect() as conn:
@@ -1646,7 +1647,7 @@ class StateStore:
             )
             return int(cursor.lastrowid)
 
-    def get_latest_feedback_model(self) -> Optional[Dict]:
+    def get_latest_feedback_model(self) -> dict | None:
         """Return the most recently saved feedback model row, or None."""
         with self._connect() as conn:
             row = conn.execute(
@@ -1654,7 +1655,7 @@ class StateStore:
             ).fetchone()
         return self._row_to_dict(row) if row else None
 
-    def get_feedback_model_auc(self) -> Optional[float]:
+    def get_feedback_model_auc(self) -> float | None:
         """Return the AUC of the most recent feedback model, or None."""
         row = self.get_latest_feedback_model()
         if row:
@@ -1665,7 +1666,7 @@ class StateStore:
     # Generic schema_meta key-value store
     # ------------------------------------------------------------------
 
-    def get(self, key: str) -> Optional[str]:
+    def get(self, key: str) -> str | None:
         """Get a string value from the schema_meta table by key. Returns None if not found."""
         with self._connect() as conn:
             row = conn.execute(
@@ -1681,7 +1682,7 @@ class StateStore:
                 (key, value),
             )
 
-    def export_state(self) -> Dict[str, List[Dict]]:
+    def export_state(self) -> dict[str, list[dict]]:
         tables = [
             "job_runs",
             "research_collections",
@@ -1697,14 +1698,14 @@ class StateStore:
             "paper_metadata",
             "feedback_models",
         ]
-        snapshot: Dict[str, List[Dict]] = {}
+        snapshot: dict[str, list[dict]] = {}
         with self._connect() as conn:
             for table in tables:
                 rows = conn.execute(f"SELECT * FROM {table}").fetchall()
                 snapshot[table] = [self._row_to_dict(row) for row in rows]
         return snapshot
 
-    def import_state(self, snapshot: Dict[str, List[Dict]]) -> None:
+    def import_state(self, snapshot: dict[str, list[dict]]) -> None:
         if not isinstance(snapshot, dict):
             raise ValueError("Invalid state snapshot")
 
@@ -1783,7 +1784,7 @@ class StateStore:
             self._migrate_arxiv_paper_ids(conn)
 
 
-_state_store: Optional[StateStore] = None
+_state_store: StateStore | None = None
 
 
 def get_state_store() -> StateStore:

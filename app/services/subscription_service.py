@@ -1,6 +1,8 @@
 """Subscription CRUD helper — list hits, manage hit lifecycle."""
 from __future__ import annotations
+
 from typing import Dict, List
+
 from logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -15,7 +17,7 @@ class SubscriptionService:
     def __init__(self, state_store):
         self._store = state_store
 
-    def recent_hits(self, limit: int = 50) -> List[Dict]:
+    def recent_hits(self, limit: int = 50) -> list[dict]:
         """Get recent hits with subscription metadata."""
         hits = self._store.list_subscription_hits(limit=limit)
         result = []

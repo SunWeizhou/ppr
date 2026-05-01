@@ -12,20 +12,21 @@ STATE_STORE = None
 AI_ANALYSIS_PROVIDER = None
 
 # Import helpers first (no routes, just shared utilities)
-from . import helpers  # noqa: F401
-
 # Import all route modules to register their routes
-from . import ai  # noqa: F401
-from . import queue  # noqa: F401
-from . import feedback  # noqa: F401
-from . import state  # noqa: F401
-from . import collections  # noqa: F401
-from . import saved_searches  # noqa: F401
-from . import subscriptions  # noqa: F401
-from . import keywords  # noqa: F401
-from . import inbox  # noqa: F401
-from . import evaluation  # noqa: F401
-from . import paper  # noqa: F401
+from . import (
+    ai,  # noqa: F401
+    collections,  # noqa: F401
+    evaluation,  # noqa: F401
+    feedback,  # noqa: F401
+    helpers,  # noqa: F401
+    inbox,  # noqa: F401
+    keywords,  # noqa: F401
+    paper,  # noqa: F401
+    queue,  # noqa: F401
+    saved_searches,  # noqa: F401
+    state,  # noqa: F401
+    subscriptions,  # noqa: F401
+)
 
 # Re-export selected route functions for test backward compat
 # (tests and inspector reference api_routes.manage_queue etc.)

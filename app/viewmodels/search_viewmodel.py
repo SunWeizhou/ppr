@@ -53,7 +53,7 @@ class SearchViewModel:
         return base
 
     def _queue_counts(self) -> dict:
-        counts = {status: 0 for status in QUEUE_STATUS_VALUES}
+        counts = dict.fromkeys(QUEUE_STATUS_VALUES, 0)
         for item in self._store.list_queue_items():
             status = item.get("status")
             if status in counts:

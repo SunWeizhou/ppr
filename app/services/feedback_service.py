@@ -26,12 +26,12 @@ QUEUE_ACTIONS = {
 # ---------------------------------------------------------------------------
 
 
-def load_user_feedback(cache_dir: str) -> Dict:
+def load_user_feedback(cache_dir: str) -> dict:
     """Load user feedback from file."""
     feedback_file = os.path.join(cache_dir, 'user_feedback.json')
     if os.path.exists(feedback_file):
         try:
-            with open(feedback_file, 'r', encoding='utf-8') as f:
+            with open(feedback_file, encoding='utf-8') as f:
                 return json.load(f)
         except Exception:
             pass
@@ -182,7 +182,7 @@ class FeedbackService:
         self.cache_file.parent.mkdir(parents=True, exist_ok=True)
         atomic_write_json(str(self.cache_file), paper_cache)
 
-    def find_paper_in_history(self, paper_id: str) -> Optional[dict]:
+    def find_paper_in_history(self, paper_id: str) -> dict | None:
         from app.services.paper_utils import breakdown_from_text
 
         paper_id = _canonical_paper_id(paper_id)
@@ -218,7 +218,7 @@ class FeedbackService:
     def _parse_markdown_digest(filepath: str) -> list:
         papers = []
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 content = f.read()
         except OSError:
             return papers
@@ -337,7 +337,7 @@ class FeedbackService:
                 config = self._keywords_loader()
                 dislike_topics = config.get("dislike_topics", {})
                 if isinstance(dislike_topics, list):
-                    dislike_topics = {item: -1.0 for item in dislike_topics}
+                    dislike_topics = dict.fromkeys(dislike_topics, -1.0)
                 dislike_topics[topic] = -1.0
                 config["dislike_topics"] = dislike_topics
                 self._keywords_saver(config)

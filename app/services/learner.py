@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 import pickle
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 import numpy as np
 from sklearn.linear_model import LogisticRegression
@@ -67,9 +67,9 @@ def retrain_if_needed(state_store) -> bool:
     if last_trained_str:
         try:
             last_trained = datetime.fromisoformat(last_trained_str)
-            now = datetime.now(tz=timezone.utc)
+            now = datetime.now(tz=UTC)
             if last_trained.tzinfo is None:
-                last_trained = last_trained.replace(tzinfo=timezone.utc)
+                last_trained = last_trained.replace(tzinfo=UTC)
             if now - last_trained < _MIN_TRAINING_INTERVAL:
                 logger.info(
                     "Skipping feedback model training: last trained at %s (< %s)",
@@ -167,7 +167,7 @@ def retrain_if_needed(state_store) -> bool:
     # ---- Persist ----
     pickle_blob = pickle.dumps(model)
     state_store.save_feedback_model(len(X_list), auc, pickle_blob)
-    state_store.save("feedback_model_trained_at", datetime.now(tz=timezone.utc).isoformat())
+    state_store.save("feedback_model_trained_at", datetime.now(tz=UTC).isoformat())
     state_store.save("feedback_model_auc", str(auc))
 
     logger.info(

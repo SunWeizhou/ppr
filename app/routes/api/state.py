@@ -10,9 +10,10 @@ from io import BytesIO
 from flask import jsonify, request, send_file
 
 from app_paths import PROJECT_ROOT, STATE_DB_PATH
+from utils import atomic_write_json
+
 from . import bp
 from .helpers import _build_state_snapshot_inline, _current_state_store, _get_snapshot_files, serialize_job
-from utils import atomic_write_json
 
 logger = logging.getLogger(__name__)
 
@@ -178,7 +179,7 @@ def system_health():
                        'research_collections', 'subscriptions', 'interaction_events',
                        'paper_ai_analyses']:
             try:
-                row = conn.execute(f"SELECT COUNT(*) as cnt FROM {table}").fetchone()
+                row = conn.execute(f"SELECT COUNT(*) as cnt FROM {table}").fetchone()  # nosec B608
                 counts[table] = row['cnt'] if row else 0
             except Exception:
                 counts[table] = -1

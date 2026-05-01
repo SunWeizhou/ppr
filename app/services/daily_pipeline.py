@@ -8,15 +8,14 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
-from logger_config import get_logger
-
-from app_paths import CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
 from app.services.arxiv_source import MultiSourceFetcher, PaperCache
 from app.services.digest_writer import MarkdownGenerator, generate_summary
 from app.services.html_digest_service import HTMLGenerator
 from app.services.paper_utils import download_pdfs
 from app.services.scoring_service import EnhancedScorer
 from app.services.settings_service import get_priority_topics
+from app_paths import CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
+from logger_config import get_logger
 from state_store import get_state_store
 
 logger = get_logger(__name__)
@@ -37,14 +36,14 @@ _CONFIG = {
 # ---------------------------------------------------------------------------
 
 
-def load_daily_recommendation(cache_dir: str) -> Tuple[Optional[List[Dict]], Optional[str]]:
+def load_daily_recommendation(cache_dir: str) -> tuple[list[dict] | None, str | None]:
     """Load today's cached recommendation if exists."""
     cache_file = os.path.join(cache_dir, 'daily_recommendation.json')
     today = datetime.now().strftime('%Y-%m-%d')
 
     if os.path.exists(cache_file):
         try:
-            with open(cache_file, 'r', encoding='utf-8') as f:
+            with open(cache_file, encoding='utf-8') as f:
                 data = json.load(f)
                 if data.get('date') == today:
                     return data.get('papers', []), data.get('themes', [])
@@ -53,7 +52,7 @@ def load_daily_recommendation(cache_dir: str) -> Tuple[Optional[List[Dict]], Opt
     return None, None
 
 
-def save_daily_recommendation(cache_dir: str, papers: List[Dict], themes: List[str]):
+def save_daily_recommendation(cache_dir: str, papers: list[dict], themes: list[str]):
     """Save today's recommendation to cache."""
     cache_file = os.path.join(cache_dir, 'daily_recommendation.json')
     today = datetime.now().strftime('%Y-%m-%d')
@@ -76,7 +75,7 @@ def save_daily_recommendation(cache_dir: str, papers: List[Dict], themes: List[s
         json.dump(data, f, ensure_ascii=False, indent=2, default=str)
 
 
-def save_recommendation_run(cache_dir: str, date_str: str, papers: List[Dict], themes: List[str]):
+def save_recommendation_run(cache_dir: str, date_str: str, papers: list[dict], themes: list[str]):
     """Persist a dated recommendation snapshot for history playback."""
     run_dir = os.path.join(cache_dir, 'recommendation_runs')
     os.makedirs(run_dir, exist_ok=True)
@@ -110,11 +109,11 @@ def save_recommendation_run(cache_dir: str, date_str: str, papers: List[Dict], t
 
 
 def _run_scoring(
-    papers: List[Dict],
-    semantic: Optional[Any],
-    topic_weights: Dict,
+    papers: list[dict],
+    semantic: Any | None,
+    topic_weights: dict,
     use_semantic: bool,
-) -> List[Dict]:
+) -> list[dict]:
     """Score all papers using the EnhancedScorer and return top papers.
 
     Args:
@@ -153,8 +152,8 @@ def _run_scoring(
 
 
 def _generate_outputs(
-    top_papers: List[Dict],
-    themes: List[str],
+    top_papers: list[dict],
+    themes: list[str],
     date_str: str,
     cache: PaperCache,
     output_dir: str,
@@ -319,7 +318,7 @@ def run_pipeline_v2(force_refresh: bool = False) -> list[dict]:
         if fb_data and fb_data.get("pickle_blob"):
             import pickle
 
-            ctx["feedback_model"] = pickle.loads(fb_data["pickle_blob"])
+            ctx["feedback_model"] = pickle.loads(fb_data["pickle_blob"])  # nosec B301
             ctx["feedback_model_auc"] = fb_data["auc"]
     except Exception:
         logger.warning("Could not load feedback model for context")
@@ -348,7 +347,7 @@ def run_pipeline_v2(force_refresh: bool = False) -> list[dict]:
     return top_papers
 
 
-def _print_summary(top_papers: List[Dict], duration: float) -> None:
+def _print_summary(top_papers: list[dict], duration: float) -> None:
     """Print pipeline completion summary."""
     logger.info("=" * 60)
     logger.info("Today's Top Recommendations:")
@@ -367,7 +366,7 @@ def _print_summary(top_papers: List[Dict], duration: float) -> None:
 # ---------------------------------------------------------------------------
 
 
-def run_pipeline(force_refresh: bool = False) -> List[Dict]:
+def run_pipeline(force_refresh: bool = False) -> list[dict]:
     """Run the complete enhanced pipeline."""
     cache_dir = str(CACHE_DIR)
     output_dir = str(PROJECT_ROOT)
@@ -429,7 +428,7 @@ def run_pipeline(force_refresh: bool = False) -> List[Dict]:
         return []
 
     # Score papers (keyword-only mode, no semantic/Zotero)
-    themes: List[str] = []
+    themes: list[str] = []
     top_papers = _run_scoring(papers, semantic=None, topic_weights={}, use_semantic=False)
 
     # Generate and persist outputs
