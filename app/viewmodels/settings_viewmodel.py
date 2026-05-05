@@ -110,7 +110,10 @@ class SettingsViewModel:
             from config_manager import get_config
 
             config = get_config()
-            core_keywords = list(config.core_keywords.keys())
+            core_keywords = [
+                {"keyword": k, "weight": float(v)}
+                for k, v in config.core_keywords.items()
+            ]
             papers_per_day = config._settings.papers_per_day
             sources = {
                 "arxiv_enabled": config._sources.arxiv_enabled,

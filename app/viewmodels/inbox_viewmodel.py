@@ -519,7 +519,11 @@ class InboxViewModel:
                 )
         except Exception as e:
             if run_id:
-                self._store.update_job(run_id, "failed", error_text=str(e))
+                self._store.update_job(run_id, "failed", error_text=str(e)[:2000])
+        except BaseException:
+            if run_id:
+                self._store.update_job(run_id, "failed", error_text="Unexpected shutdown")
+            raise
 
     # ==================================================================
     # Internal — recommendation health

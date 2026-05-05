@@ -26,10 +26,7 @@ logger = get_logger(__name__)
 # ---------------------------------------------------------------------------
 
 app = Flask(__name__)
-if os.getenv("USE_DEV_SERVER"):
-    CORS(app)
-else:
-    CORS(app, origins=["http://localhost:5555", "http://127.0.0.1:5555"])
+CORS(app, origins=["http://localhost:5555", "http://127.0.0.1:5555"])
 
 # Static assets: 1-year immutable cache (cache-bust via content hash)
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000
@@ -51,7 +48,14 @@ def _compute_static_hash() -> str:
     return hasher.hexdigest()[:8]
 
 
-_STATIC_VERSION = _compute_static_hash()
+_static_version: str | None = None
+
+
+def _get_static_version() -> str:
+    global _static_version
+    if _static_version is None:
+        _static_version = _compute_static_hash()
+    return _static_version
 
 
 @app.after_request
@@ -63,7 +67,7 @@ def _cache_static_assets(response):
 
 @app.context_processor
 def _inject_static_version():
-    return {"static_version": _STATIC_VERSION}
+    return {"static_version": _get_static_version()}
 
 
 @app.before_request

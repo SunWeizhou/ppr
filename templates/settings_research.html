@@ -40,7 +40,13 @@
                     <div class="keyword-section-label">Core Topics</div>
                     <div class="keyword-tags-container" id="coreKeywords">
                         {% for kw in core_keywords %}
-                            <span class="keyword-tag-item" data-keyword="{{ kw }}" data-type="core">{{ kw }}<span class="keyword-tag-delete" onclick="deleteKeyword(this)">&times;</span></span>
+                            <span class="keyword-tag-item" data-keyword="{{ kw.keyword }}" data-type="core" data-weight="{{ kw.weight }}">
+                                {{ kw.keyword }}
+                                <input type="range" min="0.5" max="5.0" step="0.5" value="{{ kw.weight }}"
+                                       class="keyword-weight-slider" onchange="updateKeywordWeight(this)"
+                                       title="Weight: {{ kw.weight }}">
+                                <span class="keyword-tag-delete" onclick="deleteKeyword(this)">&times;</span>
+                            </span>
                         {% endfor %}
                     </div>
 
@@ -268,6 +274,30 @@ async function deleteKeyword(element) {
         showToast('关键词已删除');
     } catch (error) {
         showToast('删除失败: ' + error.message, 'error');
+    }
+}
+
+async function updateKeywordWeight(slider) {
+    const tag = slider.parentElement;
+    const keyword = tag.dataset.keyword;
+    const weight = parseFloat(slider.value);
+    const label = tag.querySelector('.keyword-weight-label');
+    if (label) label.textContent = weight.toFixed(1);
+    try {
+        const response = await fetch('/api/keywords', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({keyword: keyword, type: 'core', weight: weight})
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'weight update failed');
+        }
+        tag.dataset.weight = weight;
+        showToast('权重已更新: ' + weight.toFixed(1));
+    } catch (error) {
+        showToast('权重更新失败: ' + error.message, 'error');
+        slider.value = tag.dataset.weight || '1.0';
     }
 }
 

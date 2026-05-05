@@ -810,6 +810,15 @@
   opacity: 0.7;
 }
 
+.keyword-weight-slider {
+  width: 60px;
+  height: 4px;
+  margin: 0 4px;
+  accent-color: var(--brand, #124c79);
+  cursor: pointer;
+  vertical-align: middle;
+}
+
 /* ---- List Stack ---- */
 
 .list-stack {
