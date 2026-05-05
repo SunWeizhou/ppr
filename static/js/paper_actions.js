@@ -183,6 +183,7 @@
   }
 
   Object.assign(window, {
+    queuePaper: queuePaperStatus,
     queuePaperStatus: queuePaperStatus,
     syncPaperState: syncPaperState,
     followAuthor: followAuthor,

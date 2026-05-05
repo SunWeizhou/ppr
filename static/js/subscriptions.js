@@ -163,12 +163,59 @@
     if (typeof resolver === 'function') resolver({deleted: true, name: target.name});
   }
 
+  function openVenueSubscriptionModal(options) {
+    if (typeof window.showToast === 'function') {
+      window.showToast('期刊/会议订阅功能即将上线', 'info');
+    }
+  }
+
+  async function runSubscription(subId) {
+    try {
+      var resp = await fetch('/api/subscriptions/' + subId + '/run', {method: 'POST'});
+      var data = await resp.json();
+      if (data.success) {
+        if (typeof window.showToast === 'function') window.showToast('刷新完成');
+        setTimeout(function(){ location.reload(); }, 1500);
+      } else {
+        if (typeof window.showToast === 'function') window.showToast('刷新失败: ' + (data.error || 'unknown'), 'error');
+      }
+    } catch(e) {
+      if (typeof window.showToast === 'function') window.showToast('刷新失败', 'error');
+    }
+  }
+
+  async function runAllSubscriptions() {
+    try {
+      var resp = await fetch('/api/subscriptions/run-all', {method: 'POST'});
+      var data = await resp.json();
+      if (data.success) {
+        if (typeof window.showToast === 'function') window.showToast('全部刷新任务已启动');
+        setTimeout(function(){ location.reload(); }, 1500);
+      } else {
+        if (typeof window.showToast === 'function') window.showToast('刷新失败: ' + (data.error || 'unknown'), 'error');
+      }
+    } catch(e) {
+      if (typeof window.showToast === 'function') window.showToast('刷新失败', 'error');
+    }
+  }
+
+  function editSubscription(subId) {
+    window.location.href = '/settings?tab=subscriptions&edit=' + subId;
+  }
+
   Object.assign(window, {
     openQuerySubscriptionModal: openQuerySubscriptionModal,
+    createQuerySubscription: openQuerySubscriptionModal,
     submitQuerySubscription: submitQuerySubscription,
     deleteQuerySubscriptionFromEditor: deleteQuerySubscriptionFromEditor,
     openAuthorSubscriptionModal: openAuthorSubscriptionModal,
+    createAuthorSubscription: openAuthorSubscriptionModal,
     submitAuthorSubscription: submitAuthorSubscription,
-    deleteAuthorSubscriptionFromEditor: deleteAuthorSubscriptionFromEditor
+    deleteAuthorSubscriptionFromEditor: deleteAuthorSubscriptionFromEditor,
+    openVenueSubscriptionModal: openVenueSubscriptionModal,
+    createVenueSubscription: openVenueSubscriptionModal,
+    runSubscription: runSubscription,
+    runAllSubscriptions: runAllSubscriptions,
+    editSubscription: editSubscription
   });
 })();

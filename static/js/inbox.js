@@ -639,7 +639,23 @@
   refreshInboxProgress();
   initReasonToggleLinks();
 
+  async function submitPaperFeedback(paperId, action) {
+    try {
+      var resp = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({paper_id: paperId, action: action, source: 'research_ui'})
+      });
+      var data = await resp.json();
+      if (!resp.ok || !data.success) throw new Error(data.error || 'feedback failed');
+    } catch (e) {
+      console.error('submitPaperFeedback:', e);
+      throw e;
+    }
+  }
+
   Object.assign(window, {
+    submitPaperFeedback: submitPaperFeedback,
     visibleInboxItems: visibleInboxItems,
     escapeAiHtml: escapeAiHtml,
     renderAiAnalysis: renderAiAnalysis,

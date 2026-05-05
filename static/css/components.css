@@ -162,6 +162,37 @@
   font-size: 11px;
 }
 
+/* Sage: muted green for positive/reading actions */
+.btn-sage {
+  background: var(--sage, #2f6d57);
+  color: #FFFFFF;
+  border-color: transparent;
+}
+.btn-sage:hover {
+  opacity: 0.85;
+}
+
+/* Warm: amber/orange for queue/skim actions */
+.btn-warm {
+  background: var(--gold, #8a6b2c);
+  color: #FFFFFF;
+  border-color: transparent;
+}
+.btn-warm:hover {
+  opacity: 0.85;
+}
+
+/* Secondary: muted outline, inherits ink color */
+.btn-secondary {
+  background: transparent;
+  color: var(--ink-2);
+  border-color: var(--line-strong);
+}
+.btn-secondary:hover {
+  background: var(--bg-sunken);
+  border-color: var(--ink-3);
+}
+
 /* Disabled state */
 .btn:disabled,
 .btn[disabled] {

@@ -92,6 +92,13 @@
     <script src="{{ url_for('static', filename='js/command_palette.js', v=static_version) }}"></script>
     <script src="{{ url_for('static', filename='js/app.js', v=static_version) }}"></script>
     {% block scripts %}{% endblock %}
+    <script>
+    function closeMobileDetail() {
+        document.body.classList.remove('mobile-detail-open');
+        var scrim = document.getElementById('detailScrim');
+        if (scrim) scrim.hidden = true;
+    }
+    </script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
       onload="renderMathInElement(document.body, {
