@@ -33,6 +33,11 @@
 
 {% block content %}
 <section>
+    <div class="skeleton-list" id="skeletonLoader" style="display:none;">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+    </div>
     {% if papers %}
     {% if untriaged_papers %}
     <div class="paper-list" id="inboxPaperList" role="list" aria-label="Paper list">

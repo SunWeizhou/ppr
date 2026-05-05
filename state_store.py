@@ -40,6 +40,9 @@ def _canonical_paper_id(paper_id: str) -> str:
     return re.sub(r"v\d+$", "", value)
 
 
+_conn_local = threading.local()
+
+
 class StateStore:
     """Thin service layer around a local SQLite database."""
 
@@ -52,13 +55,17 @@ class StateStore:
 
     @contextmanager
     def _connect(self) -> Iterable[sqlite3.Connection]:
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
+        if not hasattr(_conn_local, 'conn') or _conn_local.conn is None:
+            _conn_local.conn = sqlite3.connect(self.db_path)
+            _conn_local.conn.row_factory = sqlite3.Row
+            _conn_local.conn.execute("PRAGMA journal_mode=WAL")
+        conn = _conn_local.conn
         try:
             yield conn
             conn.commit()
-        finally:
-            conn.close()
+        except Exception:
+            conn.rollback()
+            raise
 
     def _initialize(self) -> None:
         with self._lock, self._connect() as conn:

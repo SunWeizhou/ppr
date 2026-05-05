@@ -26,6 +26,8 @@
         { label: '新建查询订阅', action: 'new-query-sub' },
         { label: '新建期刊订阅', action: 'new-venue-sub' },
         { label: '完成今日', action: 'finish-today' },
+        { label: '重新生成推荐', action: 'regenerate' },
+        { label: '导出全部收藏 BibTeX', action: 'export-favs' },
       ]
     },
     {
@@ -416,6 +418,11 @@
       }
     } else if (cmd.action === 'jump-to-collection') {
       window.location.href = '/reading?tab=collections';
+    } else if (cmd.action === 'regenerate') {
+      if (typeof confirmRefreshToday === 'function') confirmRefreshToday();
+      else window.showToast('在今日页面使用此命令');
+    } else if (cmd.action === 'export-favs') {
+      window.location.href = '/api/export/bibtex/all';
     }
   }
 
