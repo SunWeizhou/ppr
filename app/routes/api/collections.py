@@ -107,3 +107,40 @@ def add_collection_paper(collection_id):
         {"collection_id": collection_id, "note": data.get("note", ""), "source": data.get("source", "web_collection")},
     )
     return jsonify({"success": True, "collection_id": collection_id, "paper_id": paper_id, "event_id": event_id})
+
+
+@bp.get("/api/collections/<int:collection_id>/export/bibtex")
+def export_collection_bibtex(collection_id):
+    store = _current_state_store()
+    papers = store.list_collection_papers(collection_id)
+    if not papers:
+        return jsonify({"success": False, "error": "Collection not found or empty"}), 404
+
+    paper_ids = [p["paper_id"] for p in papers if p.get("paper_id")]
+    metadata_map = {}
+    if hasattr(store, "list_papers_by_ids") and paper_ids:
+        try:
+            metadata_map = {m["paper_id"]: m for m in store.list_papers_by_ids(paper_ids)}
+        except Exception:
+            pass
+
+    collection = store.get_collection(collection_id)
+    name = collection.get("name", "collection") if collection else "collection"
+    entries = []
+    for p in papers:
+        pid = p.get("paper_id", "")
+        meta = metadata_map.get(pid, {})
+        title = meta.get("title") or pid
+        authors = meta.get("authors") or "Unknown"
+        year = (meta.get("published_at") or meta.get("published") or "2025")[:4]
+        entries.append(
+            f"@article{{{pid},\n"
+            f"  title = {{{title}}},\n"
+            f"  author = {{{authors}}},\n"
+            f"  year = {{{year}}},\n"
+            f"  note = {{Exported from StatDesk collection: {name}}}\n"
+            f"}}"
+        )
+    bibtex = "\n\n".join(entries)
+    return bibtex, 200, {"Content-Type": "text/plain; charset=utf-8",
+                          "Content-Disposition": f"attachment; filename={name}.bib"}

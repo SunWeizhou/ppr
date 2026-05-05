@@ -1,10 +1,23 @@
-"""arXiv Daily Paper Recommender System v2.0 - re-export hub with feature-flag routing."""
+"""arXiv Daily Paper Recommender System v2.0 - re-export hub with feature-flag routing.
+
+.. deprecated::
+    Import from source modules directly (e.g. ``app.services.daily_pipeline``).
+    This module is kept for backward compatibility and will be removed in a
+    future version.
+"""
 
 from __future__ import annotations
 
 import os
+import warnings
 from pathlib import Path
 from typing import List, Dict
+
+warnings.warn(
+    "arxiv_recommender_v5 is deprecated — import from app.services.* directly",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 from app_paths import CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
 from app.services.daily_pipeline import (
