@@ -47,18 +47,28 @@ class StateStore:
         ensure_runtime_dirs()
         self.db_path = db_path
         self._lock = threading.Lock()
+        self._conn = None
         self._initialize()
         self._auto_migrate_once()
 
     @contextmanager
     def _connect(self) -> Iterable[sqlite3.Connection]:
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
+        if self._conn is None:
+            self._conn = sqlite3.connect(self.db_path)
+            self._conn.row_factory = sqlite3.Row
+        conn = self._conn
         try:
             yield conn
             conn.commit()
-        finally:
-            conn.close()
+        except Exception:
+            conn.rollback()
+            raise
+
+    def close(self):
+        """Close the cached database connection, if any."""
+        if self._conn is not None:
+            self._conn.close()
+            self._conn = None
 
     def _initialize(self) -> None:
         with self._lock, self._connect() as conn:

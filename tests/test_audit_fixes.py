@@ -54,8 +54,13 @@ class TestRecoverStaleJobs(unittest.TestCase):
     """E2: Tests for StateStore.recover_stale_jobs."""
 
     def setUp(self):
+        import tempfile
         from state_store import StateStore
-        self.store = StateStore(":memory:")
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.store = StateStore(os.path.join(self._tmpdir.name, "test.db"))
+
+    def tearDown(self):
+        self._tmpdir.cleanup()
 
     def test_recover_stale_running_job(self):
         """A job running for > stale_after_minutes should be marked failed."""
@@ -92,8 +97,13 @@ class TestTriggerSourceFiltering(unittest.TestCase):
     """E3: Tests for trigger_source parameter on list_recommendation_dates / get_recommendation_run_by_date."""
 
     def setUp(self):
+        import tempfile
         from state_store import StateStore
-        self.store = StateStore(":memory:")
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.store = StateStore(os.path.join(self._tmpdir.name, "test.db"))
+
+    def tearDown(self):
+        self._tmpdir.cleanup()
 
     def _insert_run(self, date, trigger_source):
         with self.store._connect() as conn:
