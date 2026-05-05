@@ -37,8 +37,7 @@ class Phase1ArchitectureTests(unittest.TestCase):
             "app/viewmodels/inbox_viewmodel.py",
             "app/viewmodels/queue_viewmodel.py",
             "app/viewmodels/library_viewmodel.py",
-            "app/repositories/__init__.py",
-            "app/models/__init__.py",
+            "app/viewmodels/reading_viewmodel.py",
         ]
 
         missing = [path for path in expected if not Path(path).exists()]
