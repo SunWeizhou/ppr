@@ -78,6 +78,11 @@
         </article>
         {% endfor %}
     </div>
+    <div class="inbox-footer-actions" style="margin-top:16px; text-align:center;">
+        <button type="button" class="btn btn-ghost" onclick="passAllRemaining()">
+            Pass remaining {{ untriaged_papers|length }} papers
+        </button>
+    </div>
     {% else %}
     {# All papers triaged on page load — already done #}
     {% endif %}
@@ -132,6 +137,40 @@ function confirmRefreshToday() {
       }
     })
     .catch(function(err){ showToast('Refresh failed: ' + err.message, 'error'); });
+}
+
+function passAllRemaining() {
+  var cards = document.querySelectorAll('#inboxPaperList .paper-list-item');
+  var ids = [];
+  cards.forEach(function(c) { ids.push(c.dataset.paperId); });
+  if (!ids.length) return;
+  if (!confirm('Pass all ' + ids.length + ' remaining papers?')) return;
+
+  // Optimistic: hide all cards immediately
+  cards.forEach(function(c) { c.style.opacity = '0.3'; c.style.pointerEvents = 'none'; });
+
+  fetch('/api/feedback/batch', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({paper_ids: ids, action: 'dislike'})
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.success) {
+        cards.forEach(function(c) { c.remove(); });
+        showToast(data.processed + ' papers passed');
+        if (!document.querySelectorAll('#inboxPaperList .paper-list-item').length) {
+          location.reload();
+        }
+      } else {
+        cards.forEach(function(c) { c.style.opacity = '1'; c.style.pointerEvents = ''; });
+        showToast(data.error || 'Batch action failed', 'error');
+      }
+    })
+    .catch(function(err){
+      cards.forEach(function(c) { c.style.opacity = '1'; c.style.pointerEvents = ''; });
+      showToast('Batch action failed: ' + err.message, 'error');
+    });
 }
 </script>
 <script src="{{ url_for('static', filename='js/inbox.js', v=static_version) }}"></script>

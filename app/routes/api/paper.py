@@ -203,3 +203,22 @@ def get_related_papers(paper_id):
 
     except Exception as exc:
         return jsonify({"success": False, "error": str(exc), "related": []}), 500
+
+
+@bp.post("/api/papers/<paper_id>/note")
+def save_paper_note(paper_id):
+    data = request.get_json() or {}
+    note = str(data.get("note", "") or "")[:5000]
+    store = get_state_store()
+    try:
+        existing = store.get_queue_item(paper_id)
+        from app.services.queue_service import QueueService
+        svc = QueueService(store)
+        if existing:
+            svc.update_status(paper_id, existing["status"], note=note)
+        else:
+            svc.add_to_queue(paper_id, "Saved", note=note)
+        store.record_event("note_saved", paper_id, {"note_length": len(note)})
+        return jsonify({"success": True, "note": note})
+    except Exception as exc:
+        return jsonify({"success": False, "error": str(exc)}), 500
