@@ -14,10 +14,10 @@
 {%- endmacro %}
 
 {% macro empty_state(title='', copy='', icon='', action='') -%}
-<div class="empty-state">
-    {% if icon %}<div class="empty-icon">{{ icon }}</div>{% endif %}
-    {% if title %}<div class="empty-title">{{ title }}</div>{% endif %}
-    {% if copy %}<p class="muted-copy">{{ copy }}</p>{% endif %}
+<div class="card empty-state-card fade-slide-in" style="text-align:center; padding:48px 24px;">
+    {% if icon %}<div style="font-size:48px; margin-bottom:16px;">{{ icon }}</div>{% endif %}
+    {% if title %}<h2 class="panel-title">{{ title }}</h2>{% endif %}
+    {% if copy %}<p class="muted-copy" style="max-width:360px; margin:8px auto 16px;">{{ copy }}</p>{% endif %}
     {% if action %}{{ action|safe }}{% endif %}
 </div>
 {%- endmacro %}

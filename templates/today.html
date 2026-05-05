@@ -50,27 +50,29 @@
             data-queue-status="{{ paper.queue_status or '' }}"
             tabindex="0"
         >
-            <div class="chip-row">
-                {% if paper.queue_status %}
-                <span class="chip is-muted {{ paper.queue_status_class }}">{{ paper.queue_status }}</span>
-                {% endif %}
-                {% for label in paper.category_labels[:2] %}
-                <span class="chip">{{ label }}</span>
-                {% endfor %}
+            <div class="paper-list-head">
+                <div class="chip-row">
+                    {% for label in paper.category_labels[:2] %}
+                    <span class="chip">{{ label }}</span>
+                    {% endfor %}
+                </div>
+                <span class="score-chip">Score {{ "%.1f"|format(paper.score or 0) }}</span>
             </div>
 
             <h3 class="paper-list-title">{{ paper.title }}</h3>
             <p class="paper-authors">{{ paper.author_text }}</p>
             <p class="paper-list-summary">{{ paper.summary_short }}</p>
 
-            {% if paper.recommendation_reason_blocks %}
-            <p class="why-line">{{ paper.recommendation_reason_blocks[0].natural_text or '' }}</p>
+            {% if paper.reason_summary %}
+            <p class="why-line">{{ paper.reason_summary }}</p>
             {% elif paper.relevance_html %}
             <p class="why-line">{{ paper.relevance_html | safe }}</p>
             {% endif %}
 
             <div class="detail-actions" role="group" aria-label="Paper actions">
-                <button type="button" class="btn btn-primary btn-xs" data-action="save" data-paper="{{ paper.id }}">Save</button>
+                <button type="button" class="btn btn-primary btn-xs" data-action="skim" data-paper="{{ paper.id }}">Skim Later</button>
+                <button type="button" class="btn btn-sage btn-xs" data-action="deepread" data-paper="{{ paper.id }}">Deep Read</button>
+                <button type="button" class="btn btn-ghost btn-xs" data-action="save" data-paper="{{ paper.id }}">Save</button>
                 <button type="button" class="btn btn-ghost btn-xs" data-action="pass" data-paper="{{ paper.id }}">Pass</button>
             </div>
         </article>
@@ -101,7 +103,9 @@ document.addEventListener('DOMContentLoaded', function() {
       if (btn) {
         var action = btn.dataset.action;
         var paperId = btn.dataset.paper;
-        if (action === 'save') queuePaper(paperId, 'Skim Later');
+        if (action === 'skim') queuePaper(paperId, 'Skim Later');
+        else if (action === 'deepread') queuePaper(paperId, 'Deep Read');
+        else if (action === 'save') queuePaper(paperId, 'Saved');
         else if (action === 'pass') submitPaperFeedback(paperId, 'dislike');
         return;
       }
