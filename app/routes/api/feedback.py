@@ -122,6 +122,8 @@ def refresh_recommendations():
                 "job_id": None,
             })
 
+        # Recover stale running jobs (stuck > 30 min) before creating new one
+        _current_state_store().recover_stale_jobs(stale_after_minutes=30)
         job = _current_state_store().create_job_if_no_active_job(
             "daily_recommendation",
             trigger_source="manual_refresh",

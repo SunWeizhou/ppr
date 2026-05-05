@@ -233,6 +233,18 @@
   color: var(--accent);
 }
 
+[data-theme="dark"] .status-skim-later,
+[data-theme="dark"] .status-inbox,
+[data-theme="dark"] .status-new {
+  background: rgba(224, 138, 106, 0.18);
+  color: #e5a184;
+}
+[data-theme="dark"] .status-deep-read,
+[data-theme="dark"] .status-saved {
+  background: rgba(255, 255, 255, 0.08);
+  color: #c8d6e5;
+}
+
 .job-idle {
   background: transparent;
   color: var(--ink-3);
@@ -1334,8 +1346,14 @@
 [data-theme="dark"] .form-textarea,
 [data-theme="dark"] .keyword-add-form input,
 [data-theme="dark"] .keyword-add-form select {
-  background: rgba(255,255,255,0.05);
-  color: var(--ink);
+  background: rgba(255,255,255,0.08);
+  color: #e8edf2;
+  border-color: var(--line, rgba(255,255,255,0.12));
+}
+[data-theme="dark"] .search-input::placeholder,
+[data-theme="dark"] .form-input::placeholder,
+[data-theme="dark"] .form-textarea::placeholder {
+  color: rgba(255,255,255,0.35);
 }
 [data-theme="dark"] .search-input:focus,
 [data-theme="dark"] .form-input:focus,
