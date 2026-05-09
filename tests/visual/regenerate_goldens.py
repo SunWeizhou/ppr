@@ -6,8 +6,8 @@ to tests/visual/golden/<test_id>.png.
 
 Recommended workflow:
   1. Decide which baseline you want goldens for.
-     - For ui-v1.0 anchor:  git checkout ui-v1.0
-     - For latest main:     git checkout main
+     - For an approved baseline commit: git checkout <commit>
+     - For latest main:                git checkout main
   2. Make sure the app's cache/ has the data you want frozen as the baseline.
   3. Run this script.
   4. Inspect the generated goldens, then `git add tests/visual/golden/` and commit.

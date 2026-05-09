@@ -363,7 +363,7 @@ class SubscriptionTests(unittest.TestCase):
 
         self.assertEqual(context["title"], "Queue - arXiv Recommender")
         self.assertEqual(context["active_tab"], "queue")
-        self.assertEqual(context["active_status"], "Inbox")
+        self.assertEqual(context["active_status"], "Skim Later")
         self.assertIsInstance(context["queue_counts"], dict)
         self.assertIsInstance(context["queue_items"], list)
 

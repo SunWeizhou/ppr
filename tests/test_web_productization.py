@@ -275,11 +275,44 @@ class WebProductizationTests(unittest.TestCase):
 
     def test_search_route_returns_page_with_results(self):
         import web_server
+        from state_store import StateStore
 
-        response = web_server.app.test_client().get("/search/conformal%20prediction")
-        self.assertEqual(response.status_code, 200)
-        html = response.data.decode("utf-8")
-        self.assertIn("conformal prediction", html.lower() or "conformal".lower())
+        fake_papers = [
+            {
+                "id": "2604.22787",
+                "paper_id": "2604.22787v1",
+                "title": "Mock Conformal Prediction Paper",
+                "summary": "A mocked result for conformal prediction search.",
+                "abstract": "A mocked result for conformal prediction search.",
+                "authors": ["Ada Lovelace", "Grace Hopper"],
+                "categories": ["stat.ML"],
+                "published_at": "2026-04-30",
+                "link": "https://arxiv.org/abs/2604.22787",
+                "score": 7.5,
+            }
+        ]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            client = web_server.app.test_client()
+            with (
+                mock.patch("app.routes.inbox.get_state_store", return_value=store),
+                mock.patch(
+                    "arxiv_recommender_v5.search_by_keywords",
+                    return_value=fake_papers,
+                ),
+            ):
+                response = client.get("/search/conformal%20prediction")
+                self.assertEqual(response.status_code, 200)
+                html = response.data.decode("utf-8")
+                self.assertIn("Mock Conformal Prediction Paper", html)
+
+                detail = client.get("/papers/2604.22787")
+                self.assertEqual(detail.status_code, 200)
+                self.assertIn(
+                    "Mock Conformal Prediction Paper",
+                    detail.data.decode("utf-8"),
+                )
 
     def test_search_route_returns_empty_state_for_no_keywords(self):
         import web_server

@@ -1,4 +1,4 @@
-"""StatDesk — web server entry point.
+"""Agent Literature Research Assistant — web server entry point.
 
 Thin Flask application shell. Page rendering, business logic, and API
 handling live in app/viewmodels/, app/services/, and app/routes/.
@@ -26,7 +26,26 @@ logger = get_logger(__name__)
 # ---------------------------------------------------------------------------
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5555", "http://127.0.0.1:5555"])
+
+
+def _configured_port() -> int:
+    """Return the local server port, defaulting to the product port."""
+    raw = os.getenv("PORT") or os.getenv("FLASK_RUN_PORT") or "5555"
+    try:
+        return int(raw)
+    except ValueError:
+        return 5555
+
+
+CORS(
+    app,
+    origins=[
+        "http://localhost:5555",
+        "http://127.0.0.1:5555",
+        f"http://localhost:{_configured_port()}",
+        f"http://127.0.0.1:{_configured_port()}",
+    ],
+)
 
 # Static assets: 1-year immutable cache (cache-bust via content hash)
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000
@@ -79,7 +98,9 @@ def _log_and_guard_request():
     if request.method in ("POST", "PUT", "DELETE", "PATCH"):
         origin = request.headers.get("Origin") or ""
         referer = request.headers.get("Referer") or ""
-        allowed = frozenset({("localhost", 5555), ("127.0.0.1", 5555)})
+        port = _configured_port()
+        allowed = frozenset({("localhost", 5555), ("127.0.0.1", 5555),
+                             ("localhost", port), ("127.0.0.1", port)})
 
         def _host_port_ok(url: str) -> bool:
             if not url:
@@ -143,14 +164,15 @@ def main():
     except Exception:
         logger.debug("Job recovery on startup skipped (DB not ready)")
 
+    port = _configured_port()
     if os.getenv("USE_DEV_SERVER"):
-        logger.info("Starting Flask dev server on http://localhost:5555")
-        app.run(host="localhost", port=5555, debug=True)
+        logger.info("Starting Flask dev server on http://localhost:%s", port)
+        app.run(host="localhost", port=port, debug=True)
     else:
         from waitress import serve
 
-        logger.info("Starting waitress on http://localhost:5555")
-        serve(app, host="localhost", port=5555)
+        logger.info("Starting waitress on http://localhost:%s", port)
+        serve(app, host="localhost", port=port)
 
 
 if __name__ == "__main__":
