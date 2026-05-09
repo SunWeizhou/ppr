@@ -140,9 +140,19 @@ function doSearch() {
     const input = document.getElementById('keywordInput').value.trim();
     if (!input) return;
     const keywords = input.split(/[,，\s]+/).filter(Boolean);
-    if (keywords.length) {
-        window.location.href = '/search/' + encodeURIComponent(keywords.join(','));
+    if (!keywords.length) return;
+
+    // Show loading feedback
+    const btn = document.querySelector('.toolbar .btn-primary');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Searching arXiv...';
     }
+
+    // Navigate after a brief yield so the disabled state renders
+    setTimeout(function () {
+        window.location.href = '/search/' + encodeURIComponent(keywords.join(','));
+    }, 50);
 }
 
 document.getElementById('keywordInput')?.addEventListener('keypress', function(event) {

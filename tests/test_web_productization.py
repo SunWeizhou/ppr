@@ -273,6 +273,27 @@ class WebProductizationTests(unittest.TestCase):
         self.assertIn("setuptools", setup_text)
         self.assertIn("arxiv-recommender=web_server:main", setup_text)
 
+    def test_search_route_returns_page_with_results(self):
+        import web_server
+
+        response = web_server.app.test_client().get("/search/conformal%20prediction")
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode("utf-8")
+        self.assertIn("conformal prediction", html.lower() or "conformal".lower())
+
+    def test_search_route_returns_empty_state_for_no_keywords(self):
+        import web_server
+
+        response = web_server.app.test_client().get("/search")
+        self.assertEqual(response.status_code, 200)
+
+    def test_search_route_has_loading_feedback(self):
+        """Verify the search template includes a loading feedback mechanism."""
+        template = Path("templates/search_research.html").read_text(encoding="utf-8")
+        # Should disable the search button during submit
+        self.assertIn("disabled", template)
+        self.assertIn("Searching", template)
+
     def test_today_template_does_not_require_detail_panel_elements(self):
         """The today.html template is list-only (no #paperDetailPanel).
         inbox.js must not crash when those elements are absent.
