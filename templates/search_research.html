@@ -15,25 +15,76 @@
         </div>
     </div>
     <div class="actions">
-        <button class="btn btn-secondary" onclick="saveSearch()">保存为 Query Subscription</button>
-        <button class="btn btn-primary" onclick="createCollectionFromCurrentQuery()">转成 Collection</button>
+        {% if active_research_question_id %}
+            <button class="btn btn-secondary" onclick="runWorkspacePlanner()">Run planner</button>
+        {% endif %}
+        <button class="btn btn-primary" onclick="createWorkspaceQuestion()">Create workspace</button>
     </div>
 </section>
 {% endblock %}
 
 {% block content %}
 <section>
-    <div class="toolbar">
-        <input type="text" id="keywordInput" class="search-input input-lg" placeholder="例如：finite-sample conformal under covariate shift" value="{{ current_query }}">
-        <button class="btn btn-primary" onclick="doSearch()">搜索</button>
-        <span class="spacer"></span>
-        {% if keywords %}
-            <span class="chip brand">搜索时间 {{ date }}</span>
-        {% endif %}
+    <div class="split section-gap workspace-search-shell" data-research-question-id="{{ active_research_question_id or '' }}">
+        <div class="card workspace-chat-card">
+            <div class="section-kicker">Research Question</div>
+            <h2 class="panel-title">Start from intent</h2>
+            <textarea id="workspacePrompt" class="input-lg" rows="4" placeholder="Describe what you want to understand, compare, or decide...">{{ intent_card.intent_statement or current_query }}</textarea>
+            <div class="toolbar compact-toolbar">
+                <button class="btn btn-primary" onclick="confirmIntentAndSearch()">Search candidates</button>
+                {% if active_research_question_id %}
+                    <button class="btn btn-secondary" onclick="runWorkspacePlanner()">Run bounded planner</button>
+                {% endif %}
+                <span class="spacer"></span>
+                {% if planner_result %}
+                    <span class="chip brand">Planner {{ planner_result.status }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <aside class="card intent-card">
+            <div class="section-kicker">Intent Card</div>
+            <input type="hidden" id="researchQuestionId" value="{{ active_research_question_id or '' }}">
+            <label class="form-label" for="queryText">Searchable question</label>
+            <input type="text" id="queryText" class="input" value="{{ intent_card.query_text }}" placeholder="finite-sample conformal prediction under shift">
+            <label class="form-label" for="intentStatement">Intent statement</label>
+            <textarea id="intentStatement" class="input" rows="4" placeholder="What should the agent optimize for?">{{ intent_card.intent_statement }}</textarea>
+            <div class="list-stack mt-3">
+                <div class="list-item">
+                    <span class="list-item-title">Status</span>
+                    <span class="list-item-trailing">{{ intent_card.status }}</span>
+                </div>
+                <div class="list-item">
+                    <span class="list-item-title">Source</span>
+                    <span class="list-item-trailing">{{ intent_card.source }}</span>
+                </div>
+                {% if workspace_stats %}
+                    <div class="list-item">
+                        <span class="list-item-title">Active reading</span>
+                        <span class="list-item-trailing">{{ workspace_stats.active_reading_count }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        </aside>
     </div>
 
     <div class="split section-gap">
         <div>
+            <div class="card workspace-brief">
+                <div class="section-kicker">Workspace Brief</div>
+                <h2 class="panel-title">{{ workspace_brief.message }}</h2>
+                {% if workspace_brief.mode == 'results' %}
+                    <div class="row-tags">
+                        <span class="chip brand">{{ workspace_brief.candidate_count }} candidates</span>
+                        {% for category in workspace_brief.top_categories %}
+                            <span class="tag">{{ category }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="muted-copy">Create or select a research question, then search candidates for the workspace.</p>
+                {% endif %}
+            </div>
+
             {% if papers %}
                 <div class="card card--flush">
                     {% for paper in papers %}
@@ -46,7 +97,8 @@
                             data-paper-link="{{ paper.link or '' }}"
                             data-paper-score="{{ paper.score or 0 }}"
                             data-paper-first-author="{{ paper.first_author }}"
-                            data-queue-status="{{ paper.queue_status or '' }}">
+                            data-queue-status="{{ paper.queue_status or '' }}"
+                            data-research-question-id="{{ active_research_question_id or '' }}">
                             <div class="row-lead">
                                 <span class="row-rank">{{ '%02d'|format(paper.rank) }}</span>
                             </div>
@@ -207,41 +259,82 @@ async function createCollectionFromCurrentQuery() {
 async function queueSearchCard(button, status) {
     const card = getSearchCard(button);
     if (!card) return;
+    const questionId = document.getElementById('researchQuestionId')?.value || card.dataset.researchQuestionId || '';
     try {
-        await queuePaperStatus(card.dataset.paperId, status, {source: 'search_research'});
+        await queuePaperStatus(card.dataset.paperId, status, {
+            source: 'search_workspace',
+            research_question_id: questionId ? Number(questionId) : null,
+            decision_context: 'Decision from Search workspace'
+        });
     } catch (error) {
         showToast('加入队列失败: ' + error.message, 'error');
     }
 }
 
+function workspaceKeywordsFromIntent() {
+    const query = document.getElementById('queryText')?.value.trim()
+        || document.getElementById('workspacePrompt')?.value.trim()
+        || '';
+    return query.split(/[,，\s]+/).filter(Boolean);
+}
+
+function confirmIntentAndSearch() {
+    const keywords = workspaceKeywordsFromIntent();
+    if (!keywords.length) {
+        showToast('先输入一个研究问题', 'error');
+        return;
+    }
+    const questionId = document.getElementById('researchQuestionId')?.value || '';
+    const suffix = questionId ? '?research_question_id=' + encodeURIComponent(questionId) : '';
+    window.location.href = '/search/' + encodeURIComponent(keywords.join(',')) + suffix;
+}
+
+async function createWorkspaceQuestion() {
+    const query = document.getElementById('queryText')?.value.trim()
+        || document.getElementById('workspacePrompt')?.value.trim()
+        || '';
+    const intent = document.getElementById('intentStatement')?.value.trim()
+        || document.getElementById('workspacePrompt')?.value.trim()
+        || query;
+    if (!query) {
+        showToast('先输入一个研究问题', 'error');
+        return;
+    }
+    try {
+        const payload = await requestJson('/api/workspaces/questions', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({query_text: query, intent_statement: intent})
+        });
+        const question = payload.question;
+        document.getElementById('researchQuestionId').value = question.id;
+        showToast('Research workspace created');
+        window.location.href = '/search/' + encodeURIComponent(query) + '?research_question_id=' + encodeURIComponent(question.id);
+    } catch (error) {
+        showToast('创建 workspace 失败: ' + error.message, 'error');
+    }
+}
+
+async function runWorkspacePlanner() {
+    const questionId = document.getElementById('researchQuestionId')?.value || '';
+    if (!questionId) {
+        showToast('先创建或选择 Research Question', 'error');
+        return;
+    }
+    try {
+        await requestJson('/api/workspaces/questions/' + encodeURIComponent(questionId) + '/planner-runs', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({trigger: 'manual'})
+        });
+        showToast('Planner run recorded');
+        window.location.reload();
+    } catch (error) {
+        showToast('Planner run failed: ' + error.message, 'error');
+    }
+}
+
 async function collectSearchCard(button) {
-    const card = getSearchCard(button);
-    if (!card) return;
-    try {
-        await addPaperToCollection(card.dataset.paperId, {
-            defaultName: card.dataset.paperTitle.slice(0, 48),
-            source: 'search_research'
-        });
-    } catch (error) {
-        showToast('加入 Collection 失败: ' + error.message, 'error');
-    }
-}
-
-async function followSearchCard(button) {
-    const card = getSearchCard(button);
-    if (!card) return;
-    try {
-        await followAuthor(card.dataset.paperFirstAuthor, {
-            paperId: card.dataset.paperId,
-            title: card.dataset.paperTitle,
-            source: 'search_research'
-        });
-    } catch (error) {
-        showToast('关注失败: ' + error.message, 'error');
-    }
-}
-
-async function deleteSavedSearch(searchId, name) {
     const ok = await confirmDangerAction({
         title: '删除 Query Subscription',
         objectName: name,

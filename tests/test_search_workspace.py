@@ -62,6 +62,17 @@ class SearchWorkspaceViewModelTests(unittest.TestCase):
         self.assertEqual(brief["candidate_count"], 1)
         self.assertIn("stat.ML", brief["top_categories"])
 
+    def test_search_template_has_workspace_shell(self):
+        template = Path("templates/search_research.html").read_text(encoding="utf-8")
+
+        self.assertIn("workspacePrompt", template)
+        self.assertIn("intentStatement", template)
+        self.assertIn("researchQuestionId", template)
+        self.assertIn("createWorkspaceQuestion", template)
+        self.assertIn("runWorkspacePlanner", template)
+        self.assertIn("workspace_brief", template)
+        self.assertIn("data-research-question-id", template)
+
 
 class SearchWorkspaceRouteTests(unittest.TestCase):
     def setUp(self):
