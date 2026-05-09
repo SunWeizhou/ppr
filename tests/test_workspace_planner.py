@@ -26,9 +26,11 @@ class WorkspacePlannerTests(unittest.TestCase):
                 max_query_rewrites=3,
                 max_candidates=25,
                 max_analyses=10,
+                days_back=60,
                 phase_budget_seconds={
                     "plan": 5,
                     "discover": 30,
+                    "rank": 10,
                     "analyze": 60,
                     "route": 10,
                 },
@@ -42,10 +44,11 @@ class WorkspacePlannerTests(unittest.TestCase):
         self.assertEqual(plan["max_query_rewrites"], 3)
         self.assertEqual(plan["max_candidates"], 25)
         self.assertEqual(plan["max_analyses"], 10)
+        self.assertEqual(plan["days_back"], 60)
         self.assertEqual(plan["query_rewrites"][0], self.question["query_text"])
         self.assertEqual(
             [phase["name"] for phase in plan["phases"]],
-            ["plan", "discover", "analyze", "route"],
+            ["plan", "discover", "rank", "analyze", "route"],
         )
 
     def test_start_run_records_job(self):

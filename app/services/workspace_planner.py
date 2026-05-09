@@ -11,10 +11,12 @@ class PlannerBudget:
     max_query_rewrites: int = 3
     max_candidates: int = 25
     max_analyses: int = 10
+    days_back: int = 60
     phase_budget_seconds: Dict[str, int] = field(
         default_factory=lambda: {
             "plan": 5,
             "discover": 30,
+            "rank": 10,
             "analyze": 60,
             "route": 10,
         }
@@ -39,7 +41,7 @@ class WorkspacePlannerService:
         if question["status"] != "active":
             raise ValueError(f"Research question is not active: {research_question_id}")
 
-        phase_names = ("plan", "discover", "analyze", "route")
+        phase_names = ("plan", "discover", "rank", "analyze", "route")
         return {
             "research_question_id": research_question_id,
             "trigger": trigger,
@@ -49,6 +51,7 @@ class WorkspacePlannerService:
             "max_query_rewrites": self.budget.max_query_rewrites,
             "max_candidates": self.budget.max_candidates,
             "max_analyses": self.budget.max_analyses,
+            "days_back": self.budget.days_back,
             "phases": [
                 {
                     "name": name,
