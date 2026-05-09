@@ -15,6 +15,7 @@
       label: '通用',
       items: [
         { label: '前往今日', href: '/' },
+        { label: '前往搜索', href: '/search' },
         { label: '前往阅读', href: '/reading' },
         { label: '前往关注', href: '/watch' },
         { label: '打开设置', href: '/settings' },

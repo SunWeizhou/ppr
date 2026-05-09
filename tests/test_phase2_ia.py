@@ -3,12 +3,16 @@ from pathlib import Path
 
 
 class Phase2InformationArchitectureTests(unittest.TestCase):
-    def test_top_level_nav_has_three_product_destinations(self):
+    def test_top_level_nav_has_core_product_destinations(self):
         import web_server
 
         nav = web_server.NAV_ITEM_CONFIG
-        self.assertEqual([item[0] for item in nav], ["inbox", "reading", "watch"])
-        self.assertNotIn("search", [item[0] for item in nav])
+        keys = [item[0] for item in nav]
+        self.assertIn("inbox", keys)
+        self.assertIn("search", keys)
+        self.assertIn("reading", keys)
+        self.assertIn("watch", keys)
+        self.assertIn("settings", keys)
 
     def test_inbox_template_is_strict_triage_surface(self):
         template = Path("templates/today.html").read_text(encoding="utf-8")
