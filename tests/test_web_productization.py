@@ -287,6 +287,24 @@ class WebProductizationTests(unittest.TestCase):
         response = web_server.app.test_client().get("/search")
         self.assertEqual(response.status_code, 200)
 
+    def test_settings_page_does_not_render_full_api_key(self):
+        """The settings page must not contain a full API key in the HTML
+        response body."""
+        import web_server
+
+        response = web_server.app.test_client().get("/settings")
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode("utf-8")
+        # An unredacted key would look like "sk-..." with 20+ chars after
+        # Masked form is "sk-...XYZ" (short). Check we don't leak full keys.
+        import re
+        long_key_pattern = re.compile(r'sk-[a-zA-Z0-9_\-]{10,}')
+        matches = long_key_pattern.findall(html)
+        for m in matches:
+            # Allow masked form like "sk-...XXXX"
+            if "..." not in m and m.count("-") <= 2:
+                self.fail(f"Potential API key leak in settings HTML: {m}")
+
     def test_search_route_has_loading_feedback(self):
         """Verify the search template includes a loading feedback mechanism."""
         template = Path("templates/search_research.html").read_text(encoding="utf-8")

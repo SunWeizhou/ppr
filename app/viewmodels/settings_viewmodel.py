@@ -12,6 +12,22 @@ from app.viewmodels.shared import assemble_page_context
 from state_store import QUEUE_STATUS_VALUES
 
 
+def _mask_api_key(key: str) -> str:
+    """Return a masked version of an API key — show only last 4 chars.
+
+    Examples:
+        "sk-test-abc-123456" → "sk-...3456"
+        "short" → "****"
+        "" → ""
+    """
+    if not key:
+        return ""
+    key = key.strip()
+    if len(key) <= 6:
+        return key[:2] + "****" if len(key) > 2 else "****"
+    return key[:3] + "..." + key[-4:]
+
+
 class SettingsViewModel:
     """Assembles template context for the Settings page."""
 
@@ -127,6 +143,16 @@ class SettingsViewModel:
                 "database_path": config._zotero.database_path,
             }
             ai_config = config.get_ai_config()
+            # Mask the API key so it never renders in full in the DOM
+            raw_key = ai_config.get("api_key", "") or ""
+            if raw_key:
+                ai_config["api_key"] = _mask_api_key(raw_key)
+                ai_config["api_key_mask"] = True
+            else:
+                ai_config["api_key_mask"] = False
+            # Check if env var provides the key
+            import os
+            ai_config["using_env_var"] = bool(os.environ.get("STATDESK_AI_API_KEY"))
         except Exception:
             core_keywords = []
             papers_per_day = 20

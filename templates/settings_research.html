@@ -74,10 +74,15 @@
 
                     <div id="aiProviderFields" {% if ai_config.provider == 'none' %}style="display: none;"{% endif %}>
                         <label class="field-label" for="aiApiKey">API Key</label>
+                        {% if ai_config.using_env_var %}
+                        <div class="field-help" style="margin-bottom:8px;">Using environment variable <code>STATDESK_AI_API_KEY</code></div>
+                        <input type="password" class="form-input" id="aiApiKey" value="__env_var__" placeholder="sk-..." style="flex:1; opacity:0.6;" readonly>
+                        {% else %}
                         <div style="display: flex; gap: 0.5rem; align-items: center;">
                             <input type="password" class="form-input" id="aiApiKey" value="{{ ai_config.api_key or '' }}" placeholder="sk-..." style="flex:1;">
                             <button type="button" class="btn btn-tertiary btn-sm" id="aiApiKeyToggle" onclick="toggleAIApiKeyVisibility()">Show</button>
                         </div>
+                        {% endif %}
 
                         <label class="field-label" for="aiBaseUrl">Base URL</label>
                         <input type="text" class="form-input" id="aiBaseUrl" value="{{ ai_config.base_url or 'https://api.deepseek.com' }}" placeholder="https://api.deepseek.com">
@@ -373,10 +378,13 @@ function toggleAIApiKeyVisibility() {
 
 function _getAIConfigPayload() {
     const provider = document.getElementById('aiProvider') ? document.getElementById('aiProvider').value : 'none';
-    const enabled = provider !== 'none' && (document.getElementById('aiApiKey') ? document.getElementById('aiApiKey').value.trim() !== '' : false);
+    const raw = document.getElementById('aiApiKey') ? document.getElementById('aiApiKey').value.trim() : '';
+    // Detect masked or env-var placeholder — send sentinel to keep existing key
+    const api_key = (raw === '__env_var__' || raw.indexOf('...') !== -1) ? '__keep__' : raw;
+    const enabled = provider !== 'none' && api_key !== '' && api_key !== '__keep__';
     return {
         provider: provider,
-        api_key: document.getElementById('aiApiKey') ? document.getElementById('aiApiKey').value.trim() : '',
+        api_key: api_key,
         base_url: document.getElementById('aiBaseUrl') ? document.getElementById('aiBaseUrl').value.trim() : 'https://api.deepseek.com',
         model: document.getElementById('aiModel') ? document.getElementById('aiModel').value.trim() : 'deepseek-chat',
         enabled: enabled,
