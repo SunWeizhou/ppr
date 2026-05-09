@@ -119,3 +119,53 @@ class WorkspaceBackendSchemaTests(unittest.TestCase):
             {"conformal prediction": {"weight": 3, "category": "core"}}
         )
         self.assertEqual(second_count, 0)
+
+    # ------------------------------------------------------------------
+    #  Workspace field extensions
+    # ------------------------------------------------------------------
+
+    def test_queue_item_can_store_research_question_context(self):
+        question = self.store.create_research_question("causal inference")
+        item = self.store.upsert_queue_item(
+            "2604.55555v1",
+            "Deep Read",
+            research_question_id=question["id"],
+            decision_context="Useful for identification assumptions.",
+        )
+
+        self.assertEqual(item["paper_id"], "2604.55555")
+        self.assertEqual(item["research_question_id"], question["id"])
+        self.assertEqual(item["decision_context"], "Useful for identification assumptions.")
+
+    def test_ai_analysis_can_store_evidence_links_and_confidence(self):
+        analysis = self.store.upsert_paper_ai_analysis(
+            "2604.44444",
+            {"problem": "Studies robust prediction."},
+            model_name="rule",
+            prompt_version="workspace-v1",
+            evidence_claim_ids=["claim-a", "claim-b"],
+            confidence=0.72,
+        )
+
+        self.assertEqual(analysis["evidence_claim_ids"], ["claim-a", "claim-b"])
+        self.assertAlmostEqual(analysis["confidence"], 0.72)
+
+    def test_paper_metadata_keeps_workspace_source_columns_outside_metadata_json(self):
+        self.store.save_paper_metadata(
+            "2604.33333",
+            {"title": "Source paper"},
+            source="search",
+            source_run_id="run-1",
+            workspace_status="active",
+        )
+
+        with sqlite3.connect(str(self.db_path)) as conn:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute(
+                "SELECT source, source_run_id, workspace_status FROM paper_metadata WHERE paper_id = ?",
+                ("2604.33333",),
+            ).fetchone()
+
+        self.assertEqual(row["source"], "search")
+        self.assertEqual(row["source_run_id"], "run-1")
+        self.assertEqual(row["workspace_status"], "active")

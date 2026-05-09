@@ -500,12 +500,12 @@ class StateStore:
     @staticmethod
     def _row_to_dict(row: sqlite3.Row) -> Dict:
         data = dict(row)
-        for key in ("payload_json", "result_json", "filters_json", "tags_json"):
+        for key in ("payload_json", "result_json", "filters_json", "tags_json", "evidence_claim_ids"):
             if key in data:
                 try:
                     data[key] = json.loads(data[key])
                 except (TypeError, json.JSONDecodeError):
-                    data[key] = {}
+                    data[key] = [] if key == "evidence_claim_ids" else {}
         return data
 
     # ------------------------------------------------------------------
@@ -1354,6 +1354,8 @@ class StateStore:
         source: str = "",
         note: str = "",
         tags: Optional[List[str]] = None,
+        research_question_id: Optional[int] = None,
+        decision_context: str = "",
     ) -> Dict:
         paper_id = _canonical_paper_id(paper_id)
         if status not in QUEUE_STATUS_VALUES:
@@ -1377,14 +1379,17 @@ class StateStore:
             conn.execute(
                 """
                 INSERT INTO reading_queue_items(
-                    paper_id, status, source, note, tags_json, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                    paper_id, status, source, note, tags_json, updated_at,
+                    research_question_id, decision_context
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(paper_id) DO UPDATE SET
                     status = excluded.status,
                     source = excluded.source,
                     note = excluded.note,
                     tags_json = excluded.tags_json,
-                    updated_at = excluded.updated_at
+                    updated_at = excluded.updated_at,
+                    research_question_id = excluded.research_question_id,
+                    decision_context = excluded.decision_context
                 """,
                 (
                     paper_id,
@@ -1393,6 +1398,8 @@ class StateStore:
                     note,
                     _to_json(tags, []),
                     now,
+                    research_question_id,
+                    str(decision_context or "").strip(),
                 ),
             )
             row = conn.execute(
@@ -1788,6 +1795,8 @@ class StateStore:
         prompt_version: str,
         status: str = "ok",
         error_text: str = "",
+        evidence_claim_ids: Optional[List[str]] = None,
+        confidence: Optional[float] = None,
     ) -> Dict:
         paper_id = _canonical_paper_id(paper_id)
         if not paper_id:
@@ -1803,6 +1812,7 @@ class StateStore:
             "recommended_reading_level": "skim",
         }
         values.update({key: analysis.get(key, values[key]) or values[key] for key in values})
+        evidence_claim_ids_json = _to_json(evidence_claim_ids, [])
         with self._lock, self._connect() as conn:
             existing = conn.execute(
                 "SELECT created_at FROM paper_ai_analyses WHERE paper_id = ?",
@@ -1814,8 +1824,9 @@ class StateStore:
                 INSERT INTO paper_ai_analyses(
                     paper_id, one_sentence_summary, problem, method, contribution,
                     limitations, why_it_matters, recommended_reading_level,
-                    model_name, prompt_version, status, error_text, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    model_name, prompt_version, status, error_text, created_at, updated_at,
+                    evidence_claim_ids, confidence
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(paper_id) DO UPDATE SET
                     one_sentence_summary = excluded.one_sentence_summary,
                     problem = excluded.problem,
@@ -1828,7 +1839,9 @@ class StateStore:
                     prompt_version = excluded.prompt_version,
                     status = excluded.status,
                     error_text = excluded.error_text,
-                    updated_at = excluded.updated_at
+                    updated_at = excluded.updated_at,
+                    evidence_claim_ids = excluded.evidence_claim_ids,
+                    confidence = excluded.confidence
                 """,
                 (
                     paper_id,
@@ -1845,6 +1858,8 @@ class StateStore:
                     error_text,
                     created_at,
                     now,
+                    evidence_claim_ids_json,
+                    confidence,
                 ),
             )
             row = conn.execute(
@@ -1883,16 +1898,46 @@ class StateStore:
     # Paper Metadata Cache
     # ------------------------------------------------------------------
 
-    def save_paper_metadata(self, paper_id: str, metadata: dict) -> None:
+    def save_paper_metadata(
+        self,
+        paper_id: str,
+        metadata: dict,
+        *,
+        source: str = "",
+        source_run_id: str = "",
+        first_seen_at: Optional[str] = None,
+        workspace_status: str = "active",
+    ) -> None:
         """Cache paper metadata (title, abstract, authors, etc.) in the metadata table."""
         paper_id = _canonical_paper_id(paper_id)
         now = _utc_now()
         metadata_json = json.dumps(metadata)
         with self._lock, self._connect() as conn:
             conn.execute(
-                """INSERT OR REPLACE INTO paper_metadata(paper_id, metadata_json, created_at)
-                   VALUES (?, ?, ?)""",
-                (paper_id, metadata_json, now),
+                """
+                INSERT INTO paper_metadata(
+                    paper_id, metadata_json, created_at,
+                    source, source_run_id, first_seen_at, workspace_status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(paper_id) DO UPDATE SET
+                    metadata_json = excluded.metadata_json,
+                    source = excluded.source,
+                    source_run_id = excluded.source_run_id,
+                    first_seen_at = CASE
+                        WHEN paper_metadata.first_seen_at = '' THEN excluded.first_seen_at
+                        ELSE paper_metadata.first_seen_at
+                    END,
+                    workspace_status = excluded.workspace_status
+                """,
+                (
+                    paper_id,
+                    metadata_json,
+                    now,
+                    str(source or ""),
+                    str(source_run_id or ""),
+                    first_seen_at or now,
+                    workspace_status,
+                ),
             )
 
     def get_paper_metadata(self, paper_id: str) -> Optional[dict]:
