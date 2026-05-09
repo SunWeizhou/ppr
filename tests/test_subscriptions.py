@@ -299,6 +299,22 @@ class SubscriptionTests(unittest.TestCase):
         self.assertEqual(data["handled"], 1, "handled should count unique paper_ids")
         self.assertEqual(data["total"], 10)
 
+    def test_inbox_progress_counts_events_by_local_day_not_utc_prefix(self):
+        """Progress should count events created during the requested local day.
+
+        This catches the bug where local time is already the next day but
+        _utc_now() still stores the previous UTC date.
+        """
+        today = datetime.now().strftime("%Y-%m-%d")
+        paper_id = "2604.91919"
+
+        self.store.record_event("like", paper_id)
+
+        progress = self.store.get_inbox_progress(today)
+
+        self.assertEqual(progress["handled"], 1)
+        self.assertEqual(progress["liked"], 1)
+
     def test_inbox_triage_complete_records_event(self):
         """POST /api/inbox/triage-complete returns success and records event."""
         today = datetime.now().strftime("%Y-%m-%d")

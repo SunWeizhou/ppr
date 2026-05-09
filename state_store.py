@@ -13,7 +13,7 @@ import sqlite3
 import threading
 import uuid
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Iterable, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -26,6 +26,17 @@ QUEUE_STATUS_VALUES = ("Inbox", "Skim Later", "Deep Read", "Saved", "Archived")
 
 def _utc_now() -> str:
     return datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat() + "Z"
+
+
+def _utc_bounds_for_local_date(date_str: str) -> tuple[str, str]:
+    """Return UTC timestamp bounds for a YYYY-MM-DD date in system local time."""
+    day = datetime.strptime(date_str, "%Y-%m-%d").date()
+    local_tz = datetime.now().astimezone().tzinfo
+    start_local = datetime.combine(day, datetime.min.time()).replace(tzinfo=local_tz)
+    end_local = start_local + timedelta(days=1)
+    start_utc = start_local.astimezone(timezone.utc).replace(microsecond=0)
+    end_utc = end_local.astimezone(timezone.utc).replace(microsecond=0)
+    return start_utc.isoformat() + "Z", end_utc.isoformat() + "Z"
 
 
 def _to_json(value: Optional[object], default: object) -> str:
@@ -1535,17 +1546,15 @@ class StateStore:
         deep_read, queued.  ``total`` is set to handled so the caller can
         override it when the page knows how many papers were shown.
         """
+        start_utc, end_utc = _utc_bounds_for_local_date(date_str)
         with self._lock, self._connect() as conn:
-            # _utc_now() produces timestamps like "2026-04-26T10:15:37+00:00Z".
-            # SQLite DATE() cannot parse the +00:00Z suffix, so we use
-            # substr(..., 1, 10) to extract the YYYY-MM-DD prefix.
             handled_row = conn.execute(
                 """
                 SELECT COUNT(DISTINCT paper_id) AS cnt
                 FROM interaction_events
-                WHERE substr(created_at, 1, 10) = ? AND paper_id != ''
+                WHERE created_at >= ? AND created_at < ? AND paper_id != ''
                 """,
-                (date_str,),
+                (start_utc, end_utc),
             ).fetchone()
             handled = handled_row["cnt"] if handled_row else 0
 
@@ -1553,20 +1562,20 @@ class StateStore:
                 """
                 SELECT event_type, COUNT(*) AS cnt
                 FROM interaction_events
-                WHERE substr(created_at, 1, 10) = ? AND paper_id != ''
+                WHERE created_at >= ? AND created_at < ? AND paper_id != ''
                 GROUP BY event_type
                 """,
-                (date_str,),
+                (start_utc, end_utc),
             ).fetchall()
 
             queue_rows = conn.execute(
                 """
                 SELECT status, COUNT(*) AS cnt
                 FROM reading_queue_items
-                WHERE substr(updated_at, 1, 10) = ?
+                WHERE updated_at >= ? AND updated_at < ?
                 GROUP BY status
                 """,
-                (date_str,),
+                (start_utc, end_utc),
             ).fetchall()
 
         event_counts: Dict[str, int] = {row["event_type"]: row["cnt"] for row in event_rows}
