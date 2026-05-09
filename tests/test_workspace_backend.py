@@ -210,3 +210,37 @@ class WorkspaceBackendSchemaTests(unittest.TestCase):
                 claim="Bad analyst.",
                 analyst="robot",
             )
+
+
+class WorkspaceServiceTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.store = StateStore(str(Path(self.tmp.name) / "state.db"))
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_create_question_and_stats(self):
+        from app.services.workspace_service import WorkspaceService
+
+        service = WorkspaceService(self.store)
+        question = service.create_question(
+            "How reliable is conformal prediction under shift?",
+            intent_statement="Understand finite-sample reliability under shift.",
+        )
+        self.store.upsert_queue_item(
+            "2604.11111",
+            "Skim Later",
+            research_question_id=question["id"],
+        )
+        self.store.upsert_queue_item(
+            "2604.22222",
+            "Deep Read",
+            research_question_id=question["id"],
+        )
+
+        stats = service.workspace_stats(question["id"])
+        self.assertEqual(stats["research_question_id"], question["id"])
+        self.assertEqual(stats["queue_counts"]["Skim Later"], 1)
+        self.assertEqual(stats["queue_counts"]["Deep Read"], 1)
+        self.assertEqual(stats["undecided_count"], 0)
