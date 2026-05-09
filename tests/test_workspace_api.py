@@ -2,6 +2,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from state_store import StateStore
 
@@ -79,15 +80,31 @@ class WorkspaceApiTests(unittest.TestCase):
     def test_start_planner_run_endpoint_records_job(self):
         question = self.store.create_research_question("causal inference")
 
-        response = self.client().post(
-            f"/api/workspaces/questions/{question['id']}/planner-runs",
-            json={"trigger": "manual"},
-        )
+        fake_papers = [
+            {
+                "id": "2604.50001",
+                "title": "Causal Inference Candidate",
+                "abstract": "A paper about causal inference.",
+                "authors": ["D"],
+                "categories": ["stat.ML"],
+                "score": 8.0,
+            }
+        ]
+
+        with mock.patch(
+            "app.services.workspace_planner._default_search_fn",
+            return_value=fake_papers,
+        ):
+            response = self.client().post(
+                f"/api/workspaces/questions/{question['id']}/planner-runs",
+                json={"trigger": "manual"},
+            )
 
         self.assertEqual(response.status_code, 200)
         payload = response.get_json()
         self.assertTrue(payload["success"])
         self.assertEqual(payload["result"]["status"], "succeeded")
+        self.assertEqual(payload["result"]["queued_count"], 1)
 
         job = self.store.get_job(payload["result"]["run_id"])
         self.assertEqual(job["job_type"], "workspace_planner")

@@ -325,13 +325,15 @@ async function runWorkspacePlanner() {
         return;
     }
     try {
-        await requestJson('/api/workspaces/questions/' + encodeURIComponent(questionId) + '/planner-runs', {
+        const payload = await requestJson('/api/workspaces/questions/' + encodeURIComponent(questionId) + '/planner-runs', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({trigger: 'manual'})
         });
-        showToast('Planner run recorded');
-        window.location.reload();
+        const result = payload.result || {};
+        const queued = result.queued_count || 0;
+        showToast('Planner added ' + queued + ' candidates to Inbox');
+        window.location.href = '/queue?status=Inbox';
     } catch (error) {
         showToast('Planner run failed: ' + error.message, 'error');
     }
