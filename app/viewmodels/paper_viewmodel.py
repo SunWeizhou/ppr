@@ -65,7 +65,7 @@ class PaperViewModel:
     # interaction history, queue status, collections) into a PaperDetailService
     # once the viewmodel grows more complex or needs reuse beyond this view.
 
-    def to_detail_context(self, paper_id: str) -> dict:
+    def to_detail_context(self, paper_id: str, research_question_id: int | None = None) -> dict:
         """Build the full detail context for a paper."""
         from state_store import _canonical_paper_id
         paper_id = _canonical_paper_id(paper_id)
@@ -102,7 +102,36 @@ class PaperViewModel:
 
         # AI analysis
         analysis = self._store.get_paper_ai_analysis(paper_id) if hasattr(self._store, 'get_paper_ai_analysis') else None
+
+        # Workspace context & evidence claims
+        queue_item = self._store.get_queue_item(paper_id)
+        active_question_id = self._resolve_active_research_question_id(
+            research_question_id,
+            queue_item,
+            analysis,
+        )
+        active_question = (
+            self._store.get_research_question(active_question_id)
+            if active_question_id is not None
+            else None
+        )
+        evidence_claims = self._load_evidence_claims(
+            paper_id,
+            analysis=analysis,
+            research_question_id=active_question_id,
+        )
         paper["ai_analysis"] = analysis
+        paper["evidence_claims"] = evidence_claims
+        paper["evidence_summary"] = self._build_evidence_summary(evidence_claims)
+        paper["active_research_question"] = active_question
+        paper["active_research_question_id"] = active_question_id
+        paper["decision_context"] = (queue_item or {}).get("decision_context", "")
+        paper["workspace_context"] = {
+            "active_research_question_id": active_question_id,
+            "active_research_question": active_question,
+            "decision_context": paper["decision_context"],
+            "source": "url" if research_question_id is not None else ("queue" if queue_item else ""),
+        }
 
         # Related papers — find papers with similar categories from recent runs
         try:
@@ -190,6 +219,59 @@ class PaperViewModel:
         }
         context.update(page_ctx)
         return context
+
+    def _resolve_active_research_question_id(self, explicit_id, queue_item, analysis):
+        if explicit_id is not None and self._store.get_research_question(explicit_id):
+            return explicit_id
+        if queue_item and queue_item.get("research_question_id") is not None:
+            return queue_item.get("research_question_id")
+        claim_ids = []
+        if isinstance(analysis, dict):
+            claim_ids = analysis.get("evidence_claim_ids") or []
+        if claim_ids:
+            claims = self._store.list_evidence_claims()
+            claim_by_id = {claim.get("id"): claim for claim in claims}
+            for claim_id in claim_ids:
+                question_id = (claim_by_id.get(claim_id) or {}).get("research_question_id")
+                if question_id is not None and self._store.get_research_question(question_id):
+                    return question_id
+        return None
+
+    def _load_evidence_claims(self, paper_id, *, analysis=None, research_question_id=None):
+        claims = self._store.list_evidence_claims(paper_id=paper_id)
+        if research_question_id is not None:
+            claims = [
+                claim for claim in claims
+                if claim.get("research_question_id") in (None, research_question_id)
+            ]
+
+        ordered_ids = []
+        if isinstance(analysis, dict):
+            ordered_ids = analysis.get("evidence_claim_ids") or []
+        if not ordered_ids:
+            return claims
+
+        by_id = {claim.get("id"): claim for claim in claims}
+        ordered = [by_id[claim_id] for claim_id in ordered_ids if claim_id in by_id]
+        remaining = [claim for claim in claims if claim.get("id") not in set(ordered_ids)]
+        return ordered + remaining
+
+    def _build_evidence_summary(self, claims):
+        by_type = {"factual": 0, "interpretive": 0, "caveat": 0, "gap": 0}
+        by_source = {}
+        for claim in claims:
+            claim_type = claim.get("claim_type") or "factual"
+            if claim_type not in by_type:
+                by_type[claim_type] = 0
+            by_type[claim_type] += 1
+            source = claim.get("evidence_source") or "other"
+            by_source[source] = by_source.get(source, 0) + 1
+        return {
+            "total": len(claims),
+            "by_type": by_type,
+            "by_source": by_source,
+            "has_claims": bool(claims),
+        }
 
     def _find_paper_data(self, paper_id: str) -> Optional[dict]:
         """Find paper data from any available source.

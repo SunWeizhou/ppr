@@ -152,7 +152,10 @@ def paper_detail(paper_id):
     from app.viewmodels.paper_viewmodel import PaperViewModel
     store = get_state_store()
     vm = PaperViewModel(store)
-    context = vm.to_detail_context(paper_id)
+    context = vm.to_detail_context(
+        paper_id,
+        research_question_id=_request_research_question_id(),
+    )
     if "error" in context:
         return render_template("paper_detail.html", **context), 404
     return render_template("paper_detail.html", **context)
