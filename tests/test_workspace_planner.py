@@ -7,6 +7,31 @@ from app.services.workspace_planner import PlannerBudget, WorkspacePlannerServic
 from state_store import StateStore
 
 
+def _fake_papers():
+    return [
+        {
+            "id": "2604.10001v1",
+            "title": "Conformal Prediction Under Shift",
+            "abstract": "This paper studies conformal prediction under distribution shift.",
+            "authors": ["Alice"],
+            "categories": ["stat.ML"],
+            "score": 8.0,
+            "summary": "Conformal prediction under shift.",
+            "link": "https://arxiv.org/abs/2604.10001",
+        },
+        {
+            "id": "2604.10002",
+            "title": "Unrelated Vision Benchmark",
+            "abstract": "This paper studies image classification.",
+            "authors": ["Bob"],
+            "categories": ["cs.CV"],
+            "score": 1.0,
+            "summary": "Image classification.",
+            "link": "https://arxiv.org/abs/2604.10002",
+        },
+    ]
+
+
 class WorkspacePlannerTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -52,7 +77,10 @@ class WorkspacePlannerTests(unittest.TestCase):
         )
 
     def test_start_run_records_job(self):
-        planner = WorkspacePlannerService(self.store)
+        def fake_search(keywords, *, max_results, days_back):
+            return []
+
+        planner = WorkspacePlannerService(self.store, search_fn=fake_search)
         result = planner.start_run(self.question["id"], trigger="manual")
 
         job = self.store.get_job(result["run_id"])
@@ -105,3 +133,64 @@ class WorkspacePlannerTests(unittest.TestCase):
         self.assertEqual(ranked[0]["id"], "2604.20001")
         self.assertEqual(len([paper["id"] for paper in ranked]), len({paper["id"] for paper in ranked}))
         self.assertGreaterEqual(ranked[0]["workspace_score"], ranked[1]["workspace_score"])
+
+    def test_start_run_executes_real_phases_without_skipped_results(self):
+        def fake_search(keywords, *, max_results, days_back):
+            self.assertLessEqual(max_results, 10)
+            self.assertEqual(days_back, 60)
+            return _fake_papers()
+
+        planner = WorkspacePlannerService(
+            self.store,
+            budget=PlannerBudget(max_candidates=2, max_analyses=1, days_back=60),
+            search_fn=fake_search,
+        )
+
+        result = planner.start_run(self.question["id"], trigger="manual")
+
+        self.assertEqual(result["status"], "succeeded")
+        self.assertEqual(
+            [phase["name"] for phase in result["phase_results"]],
+            ["plan", "discover", "rank", "analyze", "route"],
+        )
+        self.assertNotIn("skipped", [phase["status"] for phase in result["phase_results"]])
+        self.assertEqual(result["candidate_count"], 2)
+        self.assertEqual(result["queued_count"], 2)
+        self.assertEqual(result["analysis_count"], 1)
+
+    def test_start_run_routes_candidates_to_inbox_and_creates_evidence(self):
+        def fake_search(keywords, *, max_results, days_back):
+            return [
+                {
+                    "id": "2604.30001",
+                    "title": "Conformal Prediction Candidate",
+                    "abstract": "This paper studies conformal prediction under distribution shift.",
+                    "authors": ["Alice"],
+                    "categories": ["stat.ML"],
+                    "score": 8.0,
+                }
+            ]
+
+        planner = WorkspacePlannerService(
+            self.store,
+            budget=PlannerBudget(max_candidates=1, max_analyses=1),
+            search_fn=fake_search,
+        )
+
+        result = planner.start_run(self.question["id"], trigger="manual")
+
+        item = self.store.get_queue_item("2604.30001")
+        metadata = self.store.get_paper_metadata("2604.30001")
+        analysis = self.store.get_paper_ai_analysis("2604.30001")
+        claims = self.store.list_evidence_claims(paper_id="2604.30001")
+
+        self.assertEqual(result["status"], "succeeded")
+        self.assertEqual(item["status"], "Inbox")
+        self.assertEqual(item["source"], "workspace_planner")
+        self.assertEqual(item["research_question_id"], self.question["id"])
+        self.assertIn("conformal prediction", item["decision_context"])
+        self.assertEqual(metadata["title"], "Conformal Prediction Candidate")
+        self.assertIsNotNone(analysis)
+        self.assertGreaterEqual(len(claims), 1)
+        self.assertEqual(claims[0]["research_question_id"], self.question["id"])
+        self.assertTrue(result["recommendation_run_id"])
