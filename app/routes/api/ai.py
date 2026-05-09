@@ -7,10 +7,19 @@ from .helpers import _ai_analysis_service
 
 @bp.get("/api/papers/<paper_id>/analysis")
 def get_paper_analysis(paper_id):
-    analysis = _ai_analysis_service().get_analysis(paper_id)
+    from state_store import _canonical_paper_id
+
+    canonical_id = _canonical_paper_id(paper_id)
+    service = _ai_analysis_service()
+    store = service.state_store
+    analysis = service.get_analysis(canonical_id)
     if not analysis:
         return jsonify({"success": False, "error": "analysis_not_found"}), 404
-    return jsonify({"success": True, "analysis": analysis})
+    return jsonify({
+        "success": True,
+        "analysis": analysis,
+        "evidence_claims": _analysis_evidence_claims(store, canonical_id, analysis),
+    })
 
 
 @bp.post("/api/papers/<paper_id>/analysis/generate")
@@ -19,6 +28,7 @@ def generate_paper_analysis(paper_id):
 
     canonical_id = _canonical_paper_id(paper_id)
     service = _ai_analysis_service()
+    store = service.state_store
     data = request.get_json() or {}
 
     # Resolve full paper context from backend (SQLite / Markdown fallback)
@@ -53,13 +63,17 @@ def generate_paper_analysis(paper_id):
         analysis = service.get_or_create_analysis(
             paper,
             user_profile=user_profile,
-            recommendation_context=data.get("recommendation_context"),
+            recommendation_context=_recommendation_context_from_request(data, store),
             force=bool(data.get("force", False)),
         )
     except ValueError as exc:
         return jsonify({"success": False, "error": str(exc)}), 400
 
-    result = {"success": True, "analysis": analysis}
+    result = {
+        "success": True,
+        "analysis": analysis,
+        "evidence_claims": _analysis_evidence_claims(store, canonical_id, analysis),
+    }
     if recommendation_reason:
         result["recommendation_reason"] = recommendation_reason
     return jsonify(result)
@@ -105,6 +119,40 @@ def _resolve_paper_context(paper_id: str) -> dict | None:
                 continue
 
     return None
+
+
+def _analysis_evidence_claims(store, paper_id: str, analysis: dict | None) -> list[dict]:
+    claims = store.list_evidence_claims(paper_id=paper_id)
+    if not analysis:
+        return claims
+    ordered_ids = analysis.get("evidence_claim_ids") or []
+    if not ordered_ids:
+        return claims
+    by_id = {claim.get("id"): claim for claim in claims}
+    ordered = [by_id[claim_id] for claim_id in ordered_ids if claim_id in by_id]
+    remaining = [claim for claim in claims if claim.get("id") not in set(ordered_ids)]
+    return ordered + remaining
+
+
+def _recommendation_context_from_request(data: dict, store) -> dict | None:
+    context = dict(data.get("recommendation_context") or {})
+    raw_question_id = (
+        data.get("research_question_id")
+        or context.get("research_question_id")
+        or (context.get("research_question") or {}).get("id")
+    )
+    if raw_question_id in (None, ""):
+        return context or None
+    try:
+        question_id = int(raw_question_id)
+    except (TypeError, ValueError):
+        return context or None
+
+    question = store.get_research_question(question_id)
+    if question:
+        context["research_question_id"] = question_id
+        context["research_question"] = question
+    return context or None
 
 
 def _build_paper_dict(item: dict) -> dict:
