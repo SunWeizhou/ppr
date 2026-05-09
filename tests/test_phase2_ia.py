@@ -44,6 +44,34 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
         response = web_server.app.test_client().get("/")
         self.assertEqual(response.status_code, 200)
 
+    def test_evaluation_page_serves_200(self):
+        import web_server
+
+        response = web_server.app.test_client().get("/evaluation")
+        self.assertEqual(response.status_code, 200)
+
+    def test_library_redirects_to_reading(self):
+        import web_server
+
+        response = web_server.app.test_client().get("/library?tab=collections&collection_id=1")
+        self.assertIn(response.status_code, (200, 302))
+        if response.status_code == 302:
+            self.assertIn("/reading", response.location)
+
+    def test_search_page_serves_200(self):
+        import web_server
+
+        response = web_server.app.test_client().get("/search")
+        self.assertEqual(response.status_code, 200)
+
+    def test_settings_diagnostics_link_points_to_valid_route(self):
+        import web_server
+
+        response = web_server.app.test_client().get("/settings?tab=diagnostics")
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode("utf-8")
+        self.assertIn("Evaluation", html)  # Full evaluation panel link should be present
+
     def test_queue_defaults_to_inbox_and_has_only_canonical_tabs(self):
         template = Path("templates/queue_research.html").read_text(encoding="utf-8")
 

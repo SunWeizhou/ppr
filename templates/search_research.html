@@ -112,7 +112,7 @@
                 {% if all_collections %}
                     <div class="list-stack mt-3">
                         {% for collection in all_collections %}
-                            <a href="/library?tab=collections&collection_id={{ collection.id }}" class="list-item list-item-link">
+                            <a href="/reading?tab=collections&collection_id={{ collection.id }}" class="list-item list-item-link">
                                 <div>
                                     <span class="list-item-title">{{ collection.name }}</span>
                                     <span class="list-item-subtitle">{{ collection.description or collection.query_text or 'No description yet' }}</span>
@@ -187,7 +187,7 @@ async function createCollectionFromCurrentQuery() {
             description: 'Created from Explore'
         });
         if (collection) {
-            window.location.href = '/library?tab=collections&collection_id=' + collection.id;
+            window.location.href = '/reading?tab=collections&collection_id=' + collection.id;
         }
     } catch (error) {
         showToast('创建 Collection 失败: ' + error.message, 'error');
