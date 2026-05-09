@@ -194,3 +194,75 @@ class WorkspacePlannerTests(unittest.TestCase):
         self.assertGreaterEqual(len(claims), 1)
         self.assertEqual(claims[0]["research_question_id"], self.question["id"])
         self.assertTrue(result["recommendation_run_id"])
+
+    def test_start_run_degrades_when_discovery_fails(self):
+        def failing_search(keywords, *, max_results, days_back):
+            raise RuntimeError("arxiv unavailable")
+
+        planner = WorkspacePlannerService(
+            self.store,
+            budget=PlannerBudget(max_candidates=3, max_analyses=1),
+            search_fn=failing_search,
+        )
+
+        result = planner.start_run(self.question["id"], trigger="manual")
+        job = self.store.get_job(result["run_id"])
+
+        self.assertEqual(result["status"], "degraded")
+        self.assertEqual(job["status"], "degraded")
+        self.assertEqual(result["candidate_count"], 0)
+        self.assertEqual(result["queued_count"], 0)
+        discover = next(phase for phase in result["phase_results"] if phase["name"] == "discover")
+        route = next(phase for phase in result["phase_results"] if phase["name"] == "route")
+        self.assertEqual(discover["status"], "degraded")
+        self.assertIn("arxiv unavailable", discover["error"])
+        self.assertEqual(route["queued_count"], 0)
+
+
+class FailingAnalysisService:
+    def get_or_create_analysis(self, paper, user_profile=None, recommendation_context=None, *, force=False):
+        raise RuntimeError("analysis unavailable")
+
+
+class WorkspacePlannerDegradationTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.store = StateStore(str(Path(self.tmp.name) / "state.db"))
+        self.question = self.store.create_research_question(
+            "conformal prediction under distribution shift",
+            intent_statement="Find robust methods and finite-sample guarantees.",
+        )
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_start_run_routes_candidates_when_analysis_fails(self):
+        def fake_search(keywords, *, max_results, days_back):
+            return [
+                {
+                    "id": "2604.40001",
+                    "title": "Analysis Failure Candidate",
+                    "abstract": "Conformal prediction paper.",
+                    "authors": ["Alice"],
+                    "categories": ["stat.ML"],
+                    "score": 8.0,
+                }
+            ]
+
+        planner = WorkspacePlannerService(
+            self.store,
+            budget=PlannerBudget(max_candidates=1, max_analyses=1),
+            search_fn=fake_search,
+            analysis_service=FailingAnalysisService(),
+        )
+
+        result = planner.start_run(self.question["id"], trigger="manual")
+        item = self.store.get_queue_item("2604.40001")
+        analyze = next(phase for phase in result["phase_results"] if phase["name"] == "analyze")
+
+        self.assertEqual(result["status"], "degraded")
+        self.assertEqual(item["status"], "Inbox")
+        self.assertEqual(result["queued_count"], 1)
+        self.assertEqual(analyze["status"], "degraded")
+        self.assertEqual(analyze["analysis_count"], 0)
+        self.assertIn("analysis unavailable", analyze["errors"][0])
