@@ -1,5 +1,7 @@
 """Tests for rule-based evidence claim generation."""
+import tempfile
 import unittest
+from pathlib import Path
 
 from app.services.evidence_claim_service import EvidenceClaimService
 
@@ -41,3 +43,30 @@ class EvidenceClaimServiceTests(unittest.TestCase):
 
         self.assertTrue(any(claim["claim_type"] == "gap" for claim in claims))
         self.assertTrue(any("abstract" in claim["claim"].lower() for claim in claims))
+
+
+class EvidenceClaimAIAnalysisIntegrationTests(unittest.TestCase):
+    def test_ai_analysis_service_creates_rule_claims_without_provider(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            from app.services.ai_analysis_service import AIAnalysisService
+            from state_store import StateStore
+
+            store = StateStore(str(Path(tmp) / "state.db"))
+            question = store.create_research_question("conformal prediction")
+            service = AIAnalysisService(store)
+
+            analysis = service.get_or_create_analysis(
+                {
+                    "id": "2604.12345",
+                    "title": "Conformal Prediction Under Shift",
+                    "abstract": "We study conformal prediction under covariate shift.",
+                    "categories": ["stat.ML"],
+                },
+                recommendation_context={"research_question": question},
+                force=True,
+            )
+
+            claims = store.list_evidence_claims(paper_id="2604.12345")
+            self.assertGreaterEqual(len(claims), 2)
+            self.assertEqual(analysis["evidence_claim_ids"], [claim["id"] for claim in claims])
+            self.assertEqual(analysis["status"], "not_configured")

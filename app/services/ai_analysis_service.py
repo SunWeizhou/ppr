@@ -13,6 +13,7 @@ from app.services.ai_providers import (
     fallback_analysis,
     normalize_analysis_result,
 )
+from app.services.evidence_claim_service import EvidenceClaimService
 from state_store import _canonical_paper_id
 
 
@@ -63,6 +64,23 @@ class AIAnalysisService:
             status = "failed"
             error_text = str(exc)
 
+        # Build rule-based evidence claims for every analysis path
+        evidence_claim_ids = []
+        research_question = {}
+        if isinstance(recommendation_context, dict):
+            research_question = recommendation_context.get("research_question") or {}
+        claim_service = EvidenceClaimService()
+        try:
+            self.state_store.delete_evidence_claims(paper_id=paper_id)
+            for claim in claim_service.build_rule_claims(
+                paper,
+                research_question=research_question,
+            ):
+                stored = self.state_store.create_evidence_claim(**claim)
+                evidence_claim_ids.append(stored["id"])
+        except Exception:
+            evidence_claim_ids = []
+
         result = self.state_store.upsert_paper_ai_analysis(
             paper_id,
             analysis,
@@ -70,6 +88,8 @@ class AIAnalysisService:
             prompt_version=self.prompt_version,
             status=status,
             error_text=error_text,
+            evidence_claim_ids=evidence_claim_ids,
+            confidence=None,
         )
         # Record interaction event
         self.state_store.record_event(
