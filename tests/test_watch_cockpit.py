@@ -238,3 +238,45 @@ class WatchCockpitTests(unittest.TestCase):
         self.assertIn("async function ignoreSubscriptionHit", script)
         self.assertIn("sendHitToInbox: sendHitToInbox", script)
         self.assertIn("ignoreSubscriptionHit: ignoreSubscriptionHit", script)
+
+    def test_watch_route_renders_workspace_subscription_without_network(self):
+        from unittest.mock import patch
+
+        import app.routes.watch as watch_routes
+        import web_server
+
+        question = self._question()
+        sub = self.store.create_subscription(
+            "query",
+            "Conformal alerts",
+            "conformal prediction",
+            research_question_id=question["id"],
+        )
+        self.store.save_paper_metadata(
+            "2604.44444",
+            {
+                "title": "A Watch Cockpit Paper",
+                "abstract": "A paper discovered by a subscription.",
+                "authors": ["Ada Lovelace"],
+            },
+            source="watch-route-test",
+        )
+        self.store.upsert_subscription_hit(
+            sub["id"],
+            "2604.44444",
+            matched_reason="query",
+        )
+
+        with patch(
+            "app.routes.watch.get_state_store",
+            return_value=self.store,
+        ), patch("arxiv_recommender_v5.search_by_keywords") as mock_search:
+            response = web_server.app.test_client().get("/watch")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        self.assertIn("Watch Cockpit", body)
+        self.assertIn("Conformal alerts", body)
+        self.assertIn("A Watch Cockpit Paper", body)
+        self.assertIn("sendHitToInbox", body)
+        mock_search.assert_not_called()
