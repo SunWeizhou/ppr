@@ -1202,9 +1202,16 @@ class StateStore:
         query_text: str = "",
         payload_json: str = "{}",
         enabled: bool = True,
+        research_question_id: Optional[int] = None,
     ) -> Dict:
         if type not in ("query", "author", "venue"):
             raise ValueError(f"Invalid subscription type: {type}")
+        if research_question_id is not None:
+            research_question_id = int(research_question_id)
+            if self.get_research_question(research_question_id) is None:
+                raise ValueError(
+                    f"Unknown research question: {research_question_id}"
+                )
         if isinstance(payload_json, dict):
             payload_json = json.dumps(payload_json, ensure_ascii=False)
         now = _utc_now()
@@ -1213,10 +1220,19 @@ class StateStore:
                 """
                 INSERT INTO subscriptions(
                     type, name, query_text, payload_json, enabled,
-                    latest_hit_count, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, 0, ?, ?)
+                    latest_hit_count, research_question_id, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)
                 """,
-                (type, name.strip(), query_text.strip(), payload_json, 1 if enabled else 0, now, now),
+                (
+                    type,
+                    name.strip(),
+                    query_text.strip(),
+                    payload_json,
+                    1 if enabled else 0,
+                    research_question_id,
+                    now,
+                    now,
+                ),
             )
             row = conn.execute(
                 "SELECT * FROM subscriptions WHERE id = last_insert_rowid()"
@@ -1242,6 +1258,18 @@ class StateStore:
             updates.append("payload_json = ?")
             payload = kwargs["payload_json"]
             params.append(payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False))
+
+        if "research_question_id" in kwargs:
+            value = kwargs["research_question_id"]
+            if value in (None, ""):
+                updates.append("research_question_id = ?")
+                params.append(None)
+            else:
+                question_id = int(value)
+                if self.get_research_question(question_id) is None:
+                    raise ValueError(f"Unknown research question: {question_id}")
+                updates.append("research_question_id = ?")
+                params.append(question_id)
 
         if not updates:
             return self.get_subscription(subscription_id)
