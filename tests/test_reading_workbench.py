@@ -82,3 +82,30 @@ class ReadingWorkbenchTests(unittest.TestCase):
         body = response.data.decode("utf-8", errors="replace")
         self.assertIn("2604.60001", body)
         self.assertIn("Inbox", body)
+
+    def test_resolved_queue_papers_include_workspace_and_evidence_context(self):
+        self.store.create_evidence_claim(
+            paper_id="2604.60001",
+            research_question_id=self.question["id"],
+            claim="The abstract directly mentions conformal prediction under shift.",
+            evidence_text="conformal prediction under shift",
+            evidence_source="abstract",
+            claim_type="factual",
+            analyst="rule",
+        )
+
+        papers = QueueService(self.store).resolve_papers(status="Inbox")
+
+        paper = papers[0]
+        self.assertEqual(paper["research_question_id"], self.question["id"])
+        self.assertEqual(paper["active_research_question"]["query_text"], self.question["query_text"])
+        self.assertEqual(
+            paper["decision_context"],
+            "Candidate for research question: conformal prediction under shift",
+        )
+        self.assertEqual(paper["evidence_summary"]["total"], 1)
+        self.assertEqual(paper["evidence_claims"][0]["claim_type"], "factual")
+        self.assertEqual(
+            paper["detail_url"],
+            f"/papers/2604.60001?research_question_id={self.question['id']}",
+        )

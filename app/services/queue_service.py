@@ -257,6 +257,37 @@ class QueueService:
             decorated.append(item)
         return decorated
 
+    def _attach_workspace_context(self, paper: dict, queue_item: dict) -> dict:
+        research_question_id = queue_item.get("research_question_id")
+        question = None
+        if research_question_id is not None:
+            question = self.state_store.get_research_question(research_question_id)
+
+        claims = self.state_store.list_evidence_claims(
+            paper_id=paper.get("id"),
+            research_question_id=research_question_id,
+        )
+        by_type = {}
+        for claim in claims:
+            claim_type = claim.get("claim_type") or "factual"
+            by_type[claim_type] = by_type.get(claim_type, 0) + 1
+
+        paper["research_question_id"] = research_question_id
+        paper["active_research_question"] = question
+        paper["decision_context"] = queue_item.get("decision_context", "")
+        paper["evidence_claims"] = claims[:3]
+        paper["evidence_summary"] = {
+            "total": len(claims),
+            "by_type": by_type,
+            "has_claims": bool(claims),
+        }
+        paper["detail_url"] = (
+            f"/papers/{paper.get('id')}?research_question_id={research_question_id}"
+            if research_question_id is not None
+            else f"/papers/{paper.get('id')}"
+        )
+        return paper
+
     def get_todays_reading_plan(self) -> dict:
         """Return today's reading plan: top Deep Read and Skim Later papers.
 
@@ -332,6 +363,7 @@ class QueueService:
             paper["queue_tags"] = item.get("tags_json", [])
             paper["queue_source"] = item.get("source", "")
             paper["updated_at"] = item.get("updated_at", "")
+            self._attach_workspace_context(paper, item)
             resolved.append(paper)
         return self._decorate_papers(
             resolved,
