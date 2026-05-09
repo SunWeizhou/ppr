@@ -50,6 +50,18 @@ class StateStore:
         self._initialize()
         self._auto_migrate_once()
 
+    @staticmethod
+    def _add_column_if_missing(
+        conn: sqlite3.Connection,
+        table_name: str,
+        column_name: str,
+        column_sql: str,
+    ) -> None:
+        rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+        existing = {row["name"] for row in rows}
+        if column_name not in existing:
+            conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_sql}")
+
     @contextmanager
     def _connect(self) -> Iterable[sqlite3.Connection]:
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
@@ -232,6 +244,41 @@ class StateStore:
                     created_at TEXT
                 );
 
+                CREATE TABLE IF NOT EXISTS research_questions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    query_text TEXT NOT NULL,
+                    intent_statement TEXT NOT NULL DEFAULT '',
+                    status TEXT NOT NULL DEFAULT 'active'
+                        CHECK(status IN ('active', 'paused', 'archived')),
+                    source TEXT NOT NULL DEFAULT 'manual'
+                        CHECK(source IN ('manual', 'profile', 'subscription')),
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS evidence_claims (
+                    id TEXT PRIMARY KEY,
+                    research_question_id INTEGER,
+                    paper_id TEXT NOT NULL,
+                    claim TEXT NOT NULL,
+                    evidence_text TEXT NOT NULL DEFAULT '',
+                    evidence_source TEXT NOT NULL DEFAULT 'abstract'
+                        CHECK(evidence_source IN ('abstract', 'metadata', 'citation', 'user_note', 'other')),
+                    claim_type TEXT NOT NULL DEFAULT 'factual'
+                        CHECK(claim_type IN ('factual', 'interpretive', 'caveat', 'gap')),
+                    analyst TEXT NOT NULL DEFAULT 'rule'
+                        CHECK(analyst IN ('rule', 'llm', 'user')),
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (research_question_id) REFERENCES research_questions(id)
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_research_questions_status
+                    ON research_questions(status);
+                CREATE INDEX IF NOT EXISTS idx_evidence_claims_paper
+                    ON evidence_claims(paper_id);
+                CREATE INDEX IF NOT EXISTS idx_evidence_claims_question
+                    ON evidence_claims(research_question_id);
+
                 CREATE TABLE IF NOT EXISTS feedback_models (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     trained_at TEXT,
@@ -283,6 +330,44 @@ class StateStore:
                 conn.execute(
                     "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('arxiv_ids_migrated', '1')"
                 )
+
+            # Idempotent workspace column additions
+            self._add_column_if_missing(
+                conn, "paper_metadata", "source",
+                "source TEXT NOT NULL DEFAULT ''",
+            )
+            self._add_column_if_missing(
+                conn, "paper_metadata", "source_run_id",
+                "source_run_id TEXT NOT NULL DEFAULT ''",
+            )
+            self._add_column_if_missing(
+                conn, "paper_metadata", "first_seen_at",
+                "first_seen_at TEXT NOT NULL DEFAULT ''",
+            )
+            self._add_column_if_missing(
+                conn, "paper_metadata", "workspace_status",
+                "workspace_status TEXT NOT NULL DEFAULT 'active'",
+            )
+            self._add_column_if_missing(
+                conn, "reading_queue_items", "research_question_id",
+                "research_question_id INTEGER",
+            )
+            self._add_column_if_missing(
+                conn, "reading_queue_items", "decision_context",
+                "decision_context TEXT NOT NULL DEFAULT ''",
+            )
+            self._add_column_if_missing(
+                conn, "paper_ai_analyses", "evidence_claim_ids",
+                "evidence_claim_ids TEXT NOT NULL DEFAULT '[]'",
+            )
+            self._add_column_if_missing(
+                conn, "paper_ai_analyses", "confidence",
+                "confidence REAL",
+            )
+            self._add_column_if_missing(
+                conn, "subscriptions", "research_question_id",
+                "research_question_id INTEGER",
+            )
 
     def _migrate_arxiv_paper_ids(self, conn: sqlite3.Connection) -> None:
         queue_rows = conn.execute(
