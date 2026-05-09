@@ -233,13 +233,14 @@ def save_ai_settings():
 
         cm = get_config()
         cm._ai.provider = str(data.get("provider", cm._ai.provider)).strip() or "none"
-        # __keep__ sentinel means "preserve existing key" (masked display)
+        # __keep__ sentinel means "preserve existing key AND enabled state"
         raw_key = str(data.get("api_key", "")).strip()
         if raw_key and raw_key != "__keep__":
             cm._ai.api_key = raw_key
+            cm._ai.enabled = bool(data.get("enabled", cm._ai.enabled))
+        # When __keep__: preserve both api_key and current enabled state
         cm._ai.base_url = str(data.get("base_url", cm._ai.base_url)).strip() or "https://api.deepseek.com"
         cm._ai.model = str(data.get("model", cm._ai.model)).strip() or "deepseek-chat"
-        cm._ai.enabled = bool(data.get("enabled", cm._ai.enabled))
         cm.save()
         return jsonify({"success": True})
     except Exception as exc:

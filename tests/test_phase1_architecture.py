@@ -54,7 +54,10 @@ class Phase1ArchitectureTests(unittest.TestCase):
         import web_server
 
         client = web_server.app.test_client()
-        for path in ["/", "/queue", "/reading", "/watch", "/settings"]:
+        # / needs skip_onboarding to bypass CONFIG_FILE check in worktree
+        response = client.get("/?skip_onboarding=1")
+        self.assertEqual(response.status_code, 200, "/")
+        for path in ["/queue", "/reading", "/watch", "/settings"]:
             response = client.get(path)
             self.assertEqual(response.status_code, 200, path)
 

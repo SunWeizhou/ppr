@@ -15,6 +15,19 @@ python web_server.py
 
 Open http://localhost:5555.
 
+## Testing
+
+```bash
+python -m pytest tests/ -q
+```
+
+Individual test files can be run with pytest or unittest:
+
+```bash
+python -m pytest tests/test_repository_hygiene.py -v
+python -m unittest tests.test_repository_hygiene -v
+```
+
 ## How It Works
 
 - **Inbox** — today's paper triage with AI analysis and recommendation reasons.

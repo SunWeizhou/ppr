@@ -119,7 +119,8 @@ class RepositoryHygieneTests(unittest.TestCase):
         self.assertIn("local-first research triage desk", readme)
         self.assertIn("Inbox / Queue / Library / Monitor / Settings", readme)
         self.assertIn("cp user_profile.example.json user_profile.json", readme)
-        self.assertIn("python -m unittest discover -s tests -v", readme)
+        self.assertIn("pytest", readme)
+        self.assertIn("tests/", readme)
 
     def test_readme_links_point_to_existing_files(self):
         """Documentation Map entries in README.md must point to real files."""

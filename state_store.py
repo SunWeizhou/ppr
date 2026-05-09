@@ -1138,6 +1138,20 @@ class StateStore:
             raise ValueError(f"Invalid queue status: {status}")
         now = _utc_now()
         with self._lock, self._connect() as conn:
+            # Merge versioned duplicates: delete rows whose canonicalized
+            # paper_id matches the target but have a different string form
+            # (e.g. "2604.12345v1" vs canonical "2604.12345").
+            existing = conn.execute(
+                "SELECT paper_id FROM reading_queue_items"
+            ).fetchall()
+            for row in existing:
+                eid = row["paper_id"]
+                if eid != paper_id and _canonical_paper_id(eid) == paper_id:
+                    conn.execute(
+                        "DELETE FROM reading_queue_items WHERE paper_id = ?",
+                        (eid,),
+                    )
+
             conn.execute(
                 """
                 INSERT INTO reading_queue_items(
