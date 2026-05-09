@@ -1,8 +1,31 @@
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
+
+
+class ImportBudgetTests(unittest.TestCase):
+    """Startup import time budget."""
+
+    def test_web_server_import_is_not_slow(self):
+        """Importing web_server in a subprocess must finish within 10 seconds
+        on local hardware."""
+        code = "import time; t=time.time(); import web_server; print(f'OK {time.time()-t:.2f}s')"
+        proc = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True, text=True, timeout=30,
+        )
+        stdout = proc.stdout.strip()
+        self.assertEqual(proc.returncode, 0, msg=stdout + proc.stderr)
+        # Parse elapsed from "OK X.XXs"
+        parts = stdout.split()
+        if len(parts) >= 2:
+            elapsed = float(parts[1].rstrip("s"))
+            self.assertLessEqual(elapsed, 10.0,
+                                 f"web_server import took {elapsed:.2f}s (budget: 10s)")
 
 
 class WebProductizationTests(unittest.TestCase):
