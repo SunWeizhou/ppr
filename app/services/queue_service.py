@@ -70,6 +70,10 @@ class QueueService:
             note = existing.get("note", "")
         if tags is None and existing:
             tags = existing.get("tags_json")
+        if research_question_id is None and existing:
+            research_question_id = existing.get("research_question_id")
+        if not decision_context and existing:
+            decision_context = existing.get("decision_context", "")
         return self.state_store.upsert_queue_item(
             canonical_id,
             status,

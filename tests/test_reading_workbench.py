@@ -1,0 +1,84 @@
+"""Tests for Reading Workbench workspace context and queue landing."""
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+from app.services.queue_service import QueueService
+from app.viewmodels.queue_viewmodel import QueueViewModel
+from state_store import StateStore
+
+
+class ReadingWorkbenchTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.store = StateStore(str(Path(self.tmp.name) / "state.db"))
+        self.question = self.store.create_research_question(
+            "conformal prediction under shift",
+            intent_statement="Find papers worth reading deeply.",
+        )
+        self.store.save_paper_metadata(
+            "2604.60001",
+            {
+                "title": "Candidate Pack Paper",
+                "abstract": "This paper studies conformal prediction under shift.",
+                "authors": ["Alice"],
+                "categories": ["stat.ML"],
+            },
+        )
+        self.store.upsert_queue_item(
+            "2604.60001",
+            "Inbox",
+            source="workspace_planner",
+            note="Initial note",
+            research_question_id=self.question["id"],
+            decision_context="Candidate for research question: conformal prediction under shift",
+        )
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_queue_update_preserves_workspace_context_when_omitted(self):
+        service = QueueService(self.store)
+
+        item, _ = service.update_status(
+            "2604.60001",
+            "Skim Later",
+            source="queue_note",
+            note="Read the experiment section.",
+        )
+
+        self.assertEqual(item["status"], "Skim Later")
+        self.assertEqual(item["note"], "Read the experiment section.")
+        self.assertEqual(item["research_question_id"], self.question["id"])
+        self.assertEqual(
+            item["decision_context"],
+            "Candidate for research question: conformal prediction under shift",
+        )
+
+    def test_queue_viewmodel_supports_inbox_and_uses_canonical_statuses(self):
+        context = QueueViewModel(QueueService(self.store), self.store).to_template_context(
+            active_status="Inbox"
+        )
+
+        self.assertEqual(context["active_status"], "Inbox")
+        self.assertIn("Inbox", context["active_statuses"])
+        self.assertNotIn("In Progress", context["active_statuses"])
+        self.assertEqual(len(context["queue_items"]), 1)
+        self.assertEqual(context["queue_items"][0]["id"], "2604.60001")
+
+    def test_queue_route_renders_inbox_status(self):
+        import app.routes.queue as queue_routes
+        import web_server
+
+        old_store = queue_routes.STATE_STORE
+        queue_routes.STATE_STORE = self.store
+        try:
+            response = web_server.app.test_client().get("/queue?status=Inbox")
+        finally:
+            queue_routes.STATE_STORE = old_store
+
+        self.assertEqual(response.status_code, 200)
+        body = response.data.decode("utf-8", errors="replace")
+        self.assertIn("2604.60001", body)
+        self.assertIn("Inbox", body)

@@ -11,7 +11,7 @@ from app.viewmodels.shared import (
 )
 from state_store import QUEUE_STATUS_VALUES
 
-ACTIVE_READING_STATUSES = ("Skim Later", "Deep Read", "In Progress")
+ACTIVE_READING_STATUSES = ("Inbox", "Skim Later", "Deep Read", "Saved", "Archived")
 
 
 class QueueViewModel:
