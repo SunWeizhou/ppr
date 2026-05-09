@@ -3,6 +3,14 @@ import subprocess
 import unittest
 from pathlib import Path
 
+try:
+    from packaging.requirements import Requirement
+    from packaging.version import Version
+
+    HAS_PACKAGING = True
+except ImportError:
+    HAS_PACKAGING = False
+
 
 class RepositoryHygieneTests(unittest.TestCase):
     def test_user_profile_example_exists_and_matches_config_schema(self):
@@ -130,6 +138,109 @@ class RepositoryHygieneTests(unittest.TestCase):
         self.assertIn("DEEPSEEK_BASE_URL=https://api.deepseek.com", text)
         self.assertIn("DEEPSEEK_MODEL=deepseek-chat", text)
         self.assertNotIn("sk-", text)
+
+    # ------------------------------------------------------------------ #
+    #  Dependency consistency
+    # ------------------------------------------------------------------ #
+
+    def test_constraints_satisfy_requirements_txt(self):
+        """Every pinned version in constraints.txt must satisfy the range
+        declared in requirements.txt."""
+        if not HAS_PACKAGING:
+            self.skipTest("packaging library not available")
+
+        constraints = self._parse_constraints()
+        requirements = self._parse_requirements("requirements.txt")
+        failures = []
+        for name, pinned_version in sorted(constraints.items()):
+            if name not in requirements:
+                continue
+            req = requirements[name]
+            if pinned_version not in req.specifier:
+                failures.append(
+                    f"{name}=={pinned_version} does not satisfy "
+                    f"requirements.txt specifier {req.specifier}"
+                )
+        self.assertEqual(failures, [])
+
+    def test_constraints_satisfy_setup_py(self):
+        """Every pinned version in constraints.txt must satisfy the range
+        declared in setup.py install_requires."""
+        if not HAS_PACKAGING:
+            self.skipTest("packaging library not available")
+
+        constraints = self._parse_constraints()
+        requirements = self._parse_setup_py_requires()
+        failures = []
+        for name, pinned_version in sorted(constraints.items()):
+            if name not in requirements:
+                continue
+            req = requirements[name]
+            if pinned_version not in req.specifier:
+                failures.append(
+                    f"{name}=={pinned_version} does not satisfy "
+                    f"setup.py specifier {req.specifier}"
+                )
+        self.assertEqual(failures, [])
+
+    # ------------------------------------------------------------------ #
+    #  Helpers
+    # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _parse_constraints():
+        """Return dict {package_name: Version} from constraints.txt."""
+        text = Path("constraints.txt").read_text(encoding="utf-8")
+        result = {}
+        for line in text.splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "==" not in line:
+                continue
+            name, _, version = line.partition("==")
+            result[name.strip()] = Version(version.strip())
+        return result
+
+    @staticmethod
+    def _parse_requirements(path):
+        """Return dict {package_name: Requirement} from a pip requirements file."""
+        text = Path(path).read_text(encoding="utf-8")
+        result = {}
+        for line in text.splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            try:
+                req = Requirement(line)
+            except Exception:
+                continue
+            result[req.name] = req
+        return result
+
+    @staticmethod
+    def _parse_setup_py_requires():
+        """Parse install_requires from setup.py by evaluating it safely."""
+        import ast
+
+        source = Path("setup.py").read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        reqs = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "setup":
+                for kw in node.keywords:
+                    if kw.arg == "install_requires":
+                        reqs = [ast.literal_eval(el) for el in kw.value.elts]
+                        break
+                break
+        result = {}
+        for r in reqs:
+            try:
+                req = Requirement(r)
+            except Exception:
+                continue
+            result[req.name] = req
+        return result
 
 
 if __name__ == "__main__":

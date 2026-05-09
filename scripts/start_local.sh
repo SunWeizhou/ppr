@@ -10,7 +10,8 @@ fi
 
 source .venv/bin/activate
 echo "Installing dependencies..."
-pip install -r requirements.txt -c constraints.txt --quiet
+python -m pip install --upgrade pip setuptools wheel --quiet
+python -m pip install -r requirements.txt -c constraints.txt --quiet
 
 echo ""
 echo "Starting arXiv Recommender at http://localhost:5555"
