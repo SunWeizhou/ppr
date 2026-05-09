@@ -218,3 +218,23 @@ class WatchCockpitTests(unittest.TestCase):
         self.assertEqual(item["research_question_id"], question["id"])
         self.assertIn("Conformal alerts", item["decision_context"])
         self.assertIn("query: conformal prediction", item["decision_context"])
+
+    def test_watch_template_exposes_workspace_cockpit_contract(self):
+        template = Path("templates/watch.html").read_text(encoding="utf-8")
+
+        self.assertIn("Watch Cockpit", template)
+        self.assertIn("research_question", template)
+        self.assertIn("workspace_stats", template)
+        self.assertIn("data-hit-id", template)
+        self.assertIn("sendHitToInbox", template)
+        self.assertIn("ignoreSubscriptionHit", template)
+        self.assertIn("detail_url", template)
+
+    def test_subscription_js_exposes_hit_triage_functions(self):
+        script = Path("static/js/subscriptions.js").read_text(encoding="utf-8")
+
+        self.assertIn("async function sendHitToInbox", script)
+        self.assertIn("/api/subscription-hits/", script)
+        self.assertIn("async function ignoreSubscriptionHit", script)
+        self.assertIn("sendHitToInbox: sendHitToInbox", script)
+        self.assertIn("ignoreSubscriptionHit: ignoreSubscriptionHit", script)

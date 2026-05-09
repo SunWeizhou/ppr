@@ -199,6 +199,51 @@
     }
   }
 
+  function updateHitRow(button, statusLabel) {
+    var row = button && button.closest ? button.closest('[data-hit-id]') : null;
+    if (!row) return;
+    row.setAttribute('data-hit-status', statusLabel);
+    var chip = row.querySelector('.js-hit-status');
+    if (chip) chip.textContent = statusLabel;
+    row.querySelectorAll('button').forEach(function(btn) {
+      btn.disabled = true;
+    });
+  }
+
+  async function sendHitToInbox(hitId, button) {
+    try {
+      var resp = await fetch('/api/subscription-hits/' + hitId + '/send-to-inbox', {
+        method: 'POST'
+      });
+      var data = await resp.json();
+      if (data.success) {
+        updateHitRow(button, 'sent_to_inbox');
+        if (typeof window.showToast === 'function') window.showToast('已加入 Inbox');
+      } else if (typeof window.showToast === 'function') {
+        window.showToast('加入 Inbox 失败', 'error');
+      }
+    } catch(e) {
+      if (typeof window.showToast === 'function') window.showToast('加入 Inbox 失败', 'error');
+    }
+  }
+
+  async function ignoreSubscriptionHit(hitId, button) {
+    try {
+      var resp = await fetch('/api/subscription-hits/' + hitId + '/ignore', {
+        method: 'POST'
+      });
+      var data = await resp.json();
+      if (data.success) {
+        updateHitRow(button, 'ignored');
+        if (typeof window.showToast === 'function') window.showToast('已忽略');
+      } else if (typeof window.showToast === 'function') {
+        window.showToast('忽略失败', 'error');
+      }
+    } catch(e) {
+      if (typeof window.showToast === 'function') window.showToast('忽略失败', 'error');
+    }
+  }
+
   function editSubscription(subId) {
     window.location.href = '/settings?tab=subscriptions&edit=' + subId;
   }
@@ -216,6 +261,8 @@
     createVenueSubscription: openVenueSubscriptionModal,
     runSubscription: runSubscription,
     runAllSubscriptions: runAllSubscriptions,
-    editSubscription: editSubscription
+    editSubscription: editSubscription,
+    sendHitToInbox: sendHitToInbox,
+    ignoreSubscriptionHit: ignoreSubscriptionHit
   });
 })();
