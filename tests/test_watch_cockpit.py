@@ -192,3 +192,29 @@ class WatchCockpitTests(unittest.TestCase):
 
         self.assertEqual(context["recent_hits"], [])
         mock_search.assert_not_called()
+
+    def test_send_subscription_hit_to_inbox_preserves_workspace_context(self):
+        from app.services.subscription_runner import SubscriptionRunner
+
+        question = self._question()
+        sub = self.store.create_subscription(
+            "query",
+            "Conformal alerts",
+            "conformal prediction",
+            research_question_id=question["id"],
+        )
+        hit = self.store.upsert_subscription_hit(
+            sub["id"],
+            "2604.33333",
+            matched_reason="query: conformal prediction",
+        )
+
+        ok = SubscriptionRunner(self.store).send_hit_to_inbox(hit["id"])
+
+        self.assertTrue(ok)
+        queue = self.store.list_queue_items(status="Inbox")
+        item = next(q for q in queue if q["paper_id"] == "2604.33333")
+        self.assertEqual(item["source"], f"subscription:{sub['id']}")
+        self.assertEqual(item["research_question_id"], question["id"])
+        self.assertIn("Conformal alerts", item["decision_context"])
+        self.assertIn("query: conformal prediction", item["decision_context"])
