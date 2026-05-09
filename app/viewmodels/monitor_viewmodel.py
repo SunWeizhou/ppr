@@ -2,14 +2,15 @@
 
 Migrated from web_server.py — monitor_page, _render_track_research, _build_recent_hits.
 """
-
 from __future__ import annotations
 
 import json
 import os
+from urllib.parse import urlencode
 
 from app.services.feedback_service import FeedbackService
 from app.services.paper_utils import format_author_text, split_query_terms
+from app.services.workspace_service import WorkspaceService
 from app.viewmodels.shared import assemble_page_context
 from state_store import QUEUE_STATUS_VALUES
 
@@ -165,124 +166,155 @@ class MonitorViewModel:
             "latest_hit_count": sub.get("latest_hit_count", 0) or 0,
         }
 
-    # ── recent hits ───────────────────────────────────────────────────────
+    # ── workspace and metadata decoration ──────────────────────────────────
 
-    def _build_recent_hits(self, scholars, journals, saved_searches) -> list[dict]:
-        """Aggregate recent papers from unified subscription_hits and paper cache.
-        Replaces web_server._build_recent_hits."""
-        hits = []
-        paper_cache = self._safe_load_json(self._resolve_path("CACHE_FILE"))
-
-        # Backfill paper metadata from recommendation_items into papers table
-        # so that historical subscription hits can look up paper metadata there.
+    def _workspace_stats_for(self, research_question_id) -> dict:
+        if not research_question_id:
+            return {}
         try:
-            backfill = getattr(self._store, 'backfill_papers_from_recommendation_items', None)
-            if callable(backfill):
-                backfill()
+            return WorkspaceService(self._store).workspace_stats(
+                int(research_question_id)
+            )
         except Exception:
-            pass
+            return {}
 
-        # Safe accessor for get_paper (papers table)
-        _get_paper = getattr(self._store, 'get_paper', None)
-
-        # Read recent hits from the subscription_hits table (unified model)
+    def _research_question_for(self, research_question_id):
+        if not research_question_id:
+            return None
         try:
-            all_hits = self._store.list_subscription_hits(limit=50)
-            hit_paper_ids: set[str] = set()
-            for hit in all_hits:
-                paper_id = hit.get("paper_id", "")
-                if not paper_id or paper_id in hit_paper_ids:
-                    continue
-                hit_paper_ids.add(paper_id)
-
-                # Get subscription info for source_type
-                sub_id = hit.get("subscription_id")
-                sub = self._store.get_subscription(sub_id) if sub_id else None
-                source_type = sub.get("type", "hit") if sub else "hit"
-                source_name = sub.get("name", "") if sub else ""
-
-                # Look up paper details: papers table first, then paper_cache
-                paper_data = (
-                    paper_cache.get(paper_id, {})
-                    if isinstance(paper_cache, dict)
-                    else {}
-                )
-                # Enrich with papers table metadata (canonical source)
-                if callable(_get_paper):
-                    try:
-                        paper_row = _get_paper(paper_id)
-                        if paper_row:
-                            # papers table has canonical title/authors/abstract
-                            if paper_row.get('title'):
-                                paper_data['title'] = paper_row['title']
-                            authors_val = paper_row.get('authors_json') or paper_row.get('authors')
-                            if authors_val:
-                                paper_data['authors'] = authors_val
-                            if paper_row.get('abstract'):
-                                paper_data['abstract'] = paper_row['abstract']
-                                paper_data['summary'] = paper_row['abstract']
-                            if paper_row.get('source_url') and not paper_data.get('link'):
-                                paper_data['link'] = paper_row['source_url']
-                            if paper_row.get('published_at') and 'date' not in paper_data:
-                                paper_data['date'] = paper_row['published_at']
-                    except Exception:
-                        pass
-                paper_entry = {
-                    "id": paper_id,
-                    "title": paper_data.get("title", paper_id),
-                    "authors": paper_data.get("authors", ""),
-                    "author_text": (
-                        format_author_text(paper_data.get("authors", ""), paper_id)
-                        if paper_data.get("authors")
-                        else ""
-                    ),
-                    "summary": paper_data.get("abstract", "")
-                    or paper_data.get("summary", ""),
-                    "summary_short": (
-                        paper_data.get("abstract", "")
-                        or paper_data.get("summary", "")
-                    )[:200],
-                    "link": paper_data.get(
-                        "link", f"https://arxiv.org/abs/{paper_id}"
-                    ),
-                    "score": paper_data.get("score", 0),
-                    "source_type": source_type,
-                    "source_name": source_name,
-                    "hit_status": hit.get("status", "new"),
-                    "hit_date": hit.get("hit_date", ""),
-                }
-                if "date" in paper_data:
-                    paper_entry["date"] = paper_data["date"]
-                hits.append(paper_entry)
-
-                if len(hits) >= 30:
-                    break
+            return self._store.get_research_question(int(research_question_id))
         except Exception:
-            pass
+            return None
 
-        # Fallback: if no hits exist yet, try live search for saved_searches
-        if not hits:
+    def _paper_metadata_for_hit(self, paper_id: str) -> dict:
+        metadata = {}
+        get_metadata = getattr(self._store, "get_paper_metadata", None)
+        if callable(get_metadata):
             try:
-                from arxiv_recommender_v5 import search_by_keywords
+                metadata = get_metadata(paper_id) or {}
+            except Exception:
+                metadata = {}
 
-                for search in saved_searches[:3]:
-                    query_text = search.get("query_text", "")
-                    if not query_text:
-                        continue
-                    try:
-                        papers = search_by_keywords(
-                            split_query_terms(query_text),
-                            max_results=3,
-                            days_back=30,
-                        )
-                        for paper in papers:
-                            paper["source_type"] = "query"
-                            hits.append(paper)
-                    except Exception:
-                        pass
-            except ImportError:
-                pass
+        paper_cache = self._safe_load_json(self._resolve_path("CACHE_FILE"))
+        if isinstance(paper_cache, dict):
+            cached = paper_cache.get(paper_id, {}) or {}
+            metadata = {**cached, **metadata}
 
+        get_paper = getattr(self._store, "get_paper", None)
+        if callable(get_paper):
+            try:
+                paper_row = get_paper(paper_id)
+            except Exception:
+                paper_row = None
+            if paper_row:
+                if paper_row.get("title"):
+                    metadata.setdefault("title", paper_row["title"])
+                authors_val = (
+                    paper_row.get("authors_json") or paper_row.get("authors")
+                )
+                if authors_val:
+                    metadata.setdefault("authors", authors_val)
+                if paper_row.get("abstract"):
+                    metadata.setdefault("abstract", paper_row["abstract"])
+                if paper_row.get("source_url"):
+                    metadata.setdefault("link", paper_row["source_url"])
+                if paper_row.get("published_at"):
+                    metadata.setdefault("date", paper_row["published_at"])
+        return metadata
+
+    @staticmethod
+    def _detail_url(paper_id: str, research_question_id=None) -> str:
+        if not research_question_id:
+            return f"/papers/{paper_id}"
+        return f"/papers/{paper_id}?{urlencode({'research_question_id': research_question_id})}"
+
+    def _hit_card(self, hit: dict, subscription: dict | None = None) -> dict:
+        paper_id = hit.get("paper_id", "")
+        metadata = self._paper_metadata_for_hit(paper_id)
+        research_question_id = (
+            subscription or {}
+        ).get("research_question_id")
+        authors = metadata.get("authors", "")
+        return {
+            "id": hit.get("id"),
+            "paper_id": paper_id,
+            "title": metadata.get("title") or paper_id,
+            "authors": authors,
+            "author_text": format_author_text(authors) if authors else "",
+            "summary": metadata.get("abstract") or metadata.get("summary", ""),
+            "summary_short": (
+                metadata.get("abstract") or metadata.get("summary", "")
+            )[:200],
+            "link": metadata.get("link", f"https://arxiv.org/abs/{paper_id}"),
+            "score": metadata.get("score", 0),
+            "categories": metadata.get("categories", []),
+            "matched_reason": hit.get("matched_reason", ""),
+            "hit_status": hit.get("status", "new"),
+            "hit_date": hit.get("hit_date", ""),
+            "detail_url": self._detail_url(paper_id, research_question_id),
+        }
+
+    def _decorate_subscription(
+        self,
+        sub: dict,
+        hits_by_subscription: dict[int, list[dict]],
+    ) -> dict:
+        item = dict(sub)
+        payload = item.get("payload_json") or {}
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except (TypeError, json.JSONDecodeError):
+                payload = {}
+        item["_raw"] = dict(sub)
+        item["payload"] = payload
+        item["description"] = payload.get("description", "") or payload.get("focus", "")
+        item["affiliation"] = payload.get("affiliation", "")
+        item["focus"] = payload.get("focus", "")
+        item["venue_type"] = payload.get("venue_type", item.get("type", ""))
+        item["homepage_url"] = payload.get("homepage_url", "")
+        item["last_checked_at"] = item.get("last_checked_at") or ""
+        item["research_question"] = self._research_question_for(
+            item.get("research_question_id")
+        )
+        item["workspace_stats"] = self._workspace_stats_for(
+            item.get("research_question_id")
+        )
+        item["recent_hits"] = [
+            self._hit_card(hit, item)
+            for hit in hits_by_subscription.get(item["id"], [])[:5]
+        ]
+        return item
+
+    # ── recent hits (no-network) ───────────────────────────────────────────
+
+    def _subscription_hits_by_subscription(self, limit: int = 100) -> dict[int, list[dict]]:
+        grouped: dict[int, list[dict]] = {}
+        try:
+            for hit in self._store.list_subscription_hits(limit=limit):
+                sub_id = hit.get("subscription_id")
+                if sub_id is None:
+                    continue
+                grouped.setdefault(sub_id, []).append(hit)
+        except Exception:
+            return {}
+        return grouped
+
+    def _build_recent_hits(self, subscriptions: list[dict]) -> list[dict]:
+        hits = []
+        seen: set[str] = set()
+        for sub in subscriptions:
+            for hit in sub.get("recent_hits", []):
+                paper_id = hit.get("paper_id")
+                if not paper_id or paper_id in seen:
+                    continue
+                seen.add(paper_id)
+                entry = dict(hit)
+                entry["source_type"] = sub.get("type", "hit")
+                entry["source_name"] = sub.get("name", "")
+                hits.append(entry)
+                if len(hits) >= 30:
+                    return hits
         return hits
 
     # ── public entry-point ────────────────────────────────────────────────
@@ -293,15 +325,23 @@ class MonitorViewModel:
 
         page_context = self._build_page_context("monitor")
 
+        # ── unified subscription enrichment ──
+        unified_subs = self._store.list_subscriptions()
+        hits_by_subscription = self._subscription_hits_by_subscription()
+        decorated_subs = [
+            self._decorate_subscription(sub, hits_by_subscription)
+            for sub in unified_subs
+        ]
+
         # ── scholars from unified subscriptions ──
-        author_subs = self._store.list_subscriptions(type="author")
+        author_subs = [s for s in decorated_subs if s.get("type") == "author"]
         my_scholars = [
             self._subscription_to_scholar(s)
             for s in author_subs
         ]
 
         # ── venues from unified subscriptions ──
-        venue_subs = self._store.list_subscriptions(type="venue")
+        venue_subs = [s for s in decorated_subs if s.get("type") == "venue"]
         journal_cards = [
             self._subscription_to_venue(s)
             for s in venue_subs
@@ -310,14 +350,12 @@ class MonitorViewModel:
         # ── recent hits ──
         recent_hits = []
         if tab == "recent-hits":
-            recent_hits = self._build_recent_hits(
-                my_scholars, journal_cards, page_context["all_saved_searches"]
-            )
+            recent_hits = self._build_recent_hits(decorated_subs)
 
         # ── headline metrics ──
         headline_metrics = [
             {"label": "Followed Scholars", "value": len(my_scholars)},
-            {"label": "Tracked Venues", "value": sum(1 for s in self._store.list_subscriptions() if s.get("type") == "venue")},
+            {"label": "Tracked Venues", "value": len(venue_subs)},
             {
                 "label": "Collections",
                 "value": len(page_context["all_collections"]),
@@ -329,24 +367,21 @@ class MonitorViewModel:
         ]
 
         # ── unified subscription counts ──
-        unified_subs = self._store.list_subscriptions()
         unified_query_count = sum(
-            1 for s in unified_subs if s.get("type") == "query"
+            1 for s in decorated_subs if s.get("type") == "query"
         )
         unified_author_count = sum(
-            1 for s in unified_subs if s.get("type") == "author"
+            1 for s in decorated_subs if s.get("type") == "author"
         )
         unified_venue_count = sum(
-            1 for s in unified_subs if s.get("type") == "venue"
+            1 for s in decorated_subs if s.get("type") == "venue"
         )
         total_hits = sum(
-            s.get("latest_hit_count", 0) or 0 for s in unified_subs
+            s.get("latest_hit_count", 0) or 0 for s in decorated_subs
         )
 
         # Filtered lists for template section rendering
-        query_subs = [s for s in unified_subs if s.get("type") == "query"]
-        author_subs = [s for s in unified_subs if s.get("type") == "author"]
-        venue_subs = [s for s in unified_subs if s.get("type") == "venue"]
+        query_subs = [s for s in decorated_subs if s.get("type") == "query"]
 
         return {
             "title": "Monitor - arXiv Recommender",
@@ -355,7 +390,7 @@ class MonitorViewModel:
             "my_scholars": my_scholars,
             "journal_cards": journal_cards,
             "recent_hits": recent_hits,
-            "unified_subs": unified_subs,
+            "unified_subs": decorated_subs,
             "query_subs": query_subs,
             "author_subs": author_subs,
             "venue_subs": venue_subs,

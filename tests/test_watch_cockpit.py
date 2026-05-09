@@ -120,3 +120,75 @@ class WatchCockpitTests(unittest.TestCase):
             payload["subscription"]["research_question_id"],
             second["id"],
         )
+
+    def test_watch_context_enriches_subscription_with_workspace_hit_metadata(self):
+        from app.viewmodels.monitor_viewmodel import MonitorViewModel
+
+        question = self._question()
+        sub = self.store.create_subscription(
+            "query",
+            "Conformal alerts",
+            "conformal prediction",
+            research_question_id=question["id"],
+        )
+        self.store.save_paper_metadata(
+            "2604.11111",
+            {
+                "title": "Conformal Prediction Under Distribution Shift",
+                "abstract": "A paper about conformal prediction under shift.",
+                "authors": ["Alice Chen", "Bo Li"],
+                "categories": ["stat.ML"],
+                "score": 8.5,
+            },
+            source="watch-test",
+        )
+        self.store.upsert_subscription_hit(
+            sub["id"],
+            "2604.11111v2",
+            matched_reason="query",
+        )
+        self.store.upsert_queue_item(
+            "2604.22222",
+            "Inbox",
+            source="test",
+            research_question_id=question["id"],
+            decision_context="Existing undecided candidate",
+        )
+
+        context = MonitorViewModel(self.store).to_template_context()
+
+        decorated = context["query_subs"][0]
+        self.assertEqual(decorated["research_question"]["id"], question["id"])
+        self.assertEqual(
+            decorated["research_question"]["query_text"],
+            "conformal prediction",
+        )
+        self.assertEqual(decorated["workspace_stats"]["undecided_count"], 1)
+        self.assertEqual(len(decorated["recent_hits"]), 1)
+        hit = decorated["recent_hits"][0]
+        self.assertEqual(hit["paper_id"], "2604.11111")
+        self.assertEqual(
+            hit["title"],
+            "Conformal Prediction Under Distribution Shift",
+        )
+        self.assertIn(
+            f"research_question_id={question['id']}",
+            hit["detail_url"],
+        )
+
+    def test_watch_recent_hits_does_not_call_live_search_when_empty(self):
+        from unittest.mock import patch
+
+        from app.viewmodels.monitor_viewmodel import MonitorViewModel
+
+        self.store.create_subscription(
+            "query",
+            "No hits yet",
+            "conformal prediction",
+        )
+
+        with patch("arxiv_recommender_v5.search_by_keywords") as mock_search:
+            context = MonitorViewModel(self.store).to_template_context()
+
+        self.assertEqual(context["recent_hits"], [])
+        mock_search.assert_not_called()
