@@ -186,5 +186,16 @@ def search_keywords(keywords):
         )
 
     store = get_state_store()
+    # Save search-result metadata so /papers/<id> can find these papers
+    for paper in papers:
+        pid = paper.get("paper_id") or paper.get("id") or ""
+        if pid:
+            store.save_paper_metadata(pid, {
+                "title": paper.get("title", ""),
+                "abstract": paper.get("abstract") or paper.get("summary", ""),
+                "authors": paper.get("authors", []),
+                "categories": paper.get("categories", []),
+                "published_at": paper.get("published_at") or paper.get("date", ""),
+            })
     vm = SearchViewModel(store)
     return render_template("search_research.html", **vm.to_template_context(papers, keyword_list))

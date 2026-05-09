@@ -192,10 +192,18 @@ class PaperViewModel:
         return context
 
     def _find_paper_data(self, paper_id: str) -> Optional[dict]:
-        """Find paper data from any available source."""
+        """Find paper data from any available source.
+
+        Lookup order:
+        1. SQLite recommendation runs.
+        2. History markdown digest files.
+        3. SQLite paper_metadata table.
+        4. cache/paper_cache.json on disk.
+        5. Graceful detail shell with arXiv link (minimal fallback).
+        """
         from state_store import _canonical_paper_id
 
-        # Try recommendation runs in SQLite first
+        # 1. Try recommendation runs in SQLite first
         try:
             recent_runs = self._store.list_recommendation_runs(limit=5)
             for run in recent_runs:
@@ -207,8 +215,8 @@ class PaperViewModel:
         except Exception:
             pass
 
-        # Try reading from history markdown files
-        import os, re
+        # 2. Try reading from history markdown files
+        import os
         if os.path.exists(str(HISTORY_DIR)):
             for fname in sorted(os.listdir(str(HISTORY_DIR)), reverse=True):
                 if not fname.startswith("digest_") or not fname.endswith(".md"):
@@ -223,4 +231,31 @@ class PaperViewModel:
                 except Exception:
                     continue
 
-        return None
+        # 3. Try SQLite paper_metadata table
+        try:
+            meta = self._store.get_paper_metadata(paper_id)
+            if meta:
+                return meta
+        except Exception:
+            pass
+
+        # 4. Try cache/paper_cache.json
+        try:
+            cache_path = Path(str(CACHE_DIR)) / "paper_cache.json"
+            if cache_path.exists():
+                cache = json.loads(cache_path.read_text(encoding="utf-8"))
+                if paper_id in cache:
+                    return cache[paper_id]
+        except Exception:
+            pass
+
+        # 5. Graceful detail shell — show arXiv link even when data is sparse
+        return {
+            "paper_id": paper_id,
+            "id": paper_id,
+            "title": f"Paper {paper_id}",
+            "authors": [],
+            "abstract": "Details for this paper are not available in the local cache. "
+                         "You can view it directly on arXiv.",
+            "categories": [],
+        }
