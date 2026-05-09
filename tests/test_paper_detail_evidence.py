@@ -146,3 +146,54 @@ class PaperDetailEvidenceRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(captured["paper_id"], self.paper_id)
         self.assertEqual(captured["research_question_id"], self.question["id"])
+
+
+class PaperDetailEvidenceTemplateTests(unittest.TestCase):
+    def test_template_contains_evidence_center_contract(self):
+        template = Path("templates/paper_detail.html").read_text(encoding="utf-8")
+
+        self.assertIn("Evidence-Linked Claims", template)
+        self.assertIn("paper.get('evidence_claims'", template)
+        self.assertIn("active_research_question", template)
+        self.assertIn("data-research-question-id", template)
+        self.assertIn("createEvidenceClaimsDOM", template)
+        self.assertIn("decision_context", template)
+
+
+class PaperDetailEvidenceRenderingTests(unittest.TestCase):
+    def test_route_renders_question_and_evidence_claim(self):
+        import app.routes.inbox as inbox_routes
+        import web_server
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            paper_id = "2604.66666"
+            store.save_paper_metadata(
+                paper_id,
+                {
+                    "title": "Rendered Evidence Paper",
+                    "abstract": "Rendered evidence appears in the abstract.",
+                    "authors": ["Carol"],
+                    "categories": ["stat.ML"],
+                },
+            )
+            question = store.create_research_question("rendered evidence question")
+            store.create_evidence_claim(
+                paper_id=paper_id,
+                research_question_id=question["id"],
+                claim="Rendered evidence claim is visible.",
+                evidence_text="Rendered evidence appears in the abstract.",
+                evidence_source="abstract",
+                claim_type="factual",
+                analyst="rule",
+            )
+
+            with mock.patch.object(inbox_routes, "get_state_store", return_value=store):
+                response = web_server.app.test_client().get(
+                    f"/papers/{paper_id}?research_question_id={question['id']}"
+                )
+
+        body = response.data.decode("utf-8", errors="replace")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("rendered evidence question", body)
+        self.assertIn("Rendered evidence claim is visible.", body)

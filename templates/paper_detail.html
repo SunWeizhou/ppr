@@ -19,12 +19,27 @@
     </div>
 </div>
 {% else %}
-<div class="page-content">
+<div
+    class="page-content paper-evidence-page"
+    id="paperWorkspaceContext"
+    data-research-question-id="{{ paper.get('active_research_question_id') or '' }}"
+>
     <div class="split split--rail-right paper-detail-layout">
         <!-- ============================================================ -->
         <!-- Left: Primary content -->
         <!-- ============================================================ -->
         <div class="split-main">
+
+            {% if paper.get('active_research_question') %}
+            {% set rq = paper.get('active_research_question') %}
+            <div class="card card-spaced workspace-context-card">
+                <div class="workspace-context-eyebrow">Active research question</div>
+                <h2 class="workspace-context-title">{{ rq.get('query_text') }}</h2>
+                {% if rq.get('intent_statement') %}
+                <p class="muted-copy">{{ rq.get('intent_statement') }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
 
             <h1>{{ paper.get('title', 'Untitled') }}</h1>
             <div class="paper-meta">
@@ -95,6 +110,37 @@
                     <p class="empty-state" id="aiPlaceholder">Click the button below to generate an AI analysis of this paper.</p>
                 {% endif %}
                 </div>
+
+                <div class="evidence-center" id="evidenceClaimsContent">
+                    <div class="evidence-center-head">
+                        <h3 class="panel-title">Evidence-Linked Claims</h3>
+                        {% set evidence_summary = paper.get('evidence_summary') or {} %}
+                        <span class="chip">{{ evidence_summary.get('total', 0) }} claims</span>
+                    </div>
+                    {% if paper.get('evidence_claims') %}
+                    <div class="evidence-claim-list">
+                        {% for claim in paper.get('evidence_claims', []) %}
+                        <article class="evidence-claim-card">
+                            <div class="evidence-claim-meta">
+                                <span class="tag">{{ claim.get('claim_type', 'factual') }}</span>
+                                <span class="tag">{{ claim.get('evidence_source', 'other') }}</span>
+                                <span class="muted-copy">{{ claim.get('analyst', 'rule') }}</span>
+                            </div>
+                            <p class="evidence-claim-text">{{ claim.get('claim') }}</p>
+                            {% if claim.get('evidence_text') %}
+                            <details class="evidence-source">
+                                <summary>Evidence</summary>
+                                <p>{{ claim.get('evidence_text') }}</p>
+                            </details>
+                            {% endif %}
+                        </article>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="empty-state" id="evidenceClaimsPlaceholder">No evidence claims have been generated for this paper yet.</p>
+                    {% endif %}
+                </div>
+
                 <div id="aiSpinner" hidden>
                     <div class="spinner"></div>
                     <p class="t-muted" style="text-align:center;">Generating AI analysis...</p>
@@ -198,6 +244,13 @@
                 {% if paper.get('queue_status') %}
                 <p class="t-muted action-status">Queue status: <strong>{{ paper.get('queue_status') }}</strong></p>
                 {% endif %}
+                {% if paper.get('decision_context') %}
+                <p class="t-muted action-status" id="paperDecisionContext" data-decision-context="{{ paper.get('decision_context') }}">
+                    Decision context: <strong>{{ paper.get('decision_context') }}</strong>
+                </p>
+                {% else %}
+                <p class="t-muted action-status" id="paperDecisionContext" data-decision-context="" hidden></p>
+                {% endif %}
                 {% if paper.get('collections') %}
                 <h3 class="t-muted collection-heading">Collections</h3>
                 <ul class="collection-list">
@@ -272,6 +325,67 @@ function buildReadingLevelChip(level) {
         chip.textContent = level || 'Unknown';
     }
     return chip;
+}
+
+function createEvidenceClaimsDOM(claims) {
+    var wrapper = document.createElement('div');
+    wrapper.className = 'evidence-claim-list';
+    (claims || []).forEach(function(claim) {
+        var article = document.createElement('article');
+        article.className = 'evidence-claim-card';
+
+        var meta = document.createElement('div');
+        meta.className = 'evidence-claim-meta';
+        ['claim_type', 'evidence_source', 'analyst'].forEach(function(key) {
+            if (claim[key]) {
+                var chip = document.createElement('span');
+                chip.className = key === 'analyst' ? 'muted-copy' : 'tag';
+                chip.textContent = claim[key];
+                meta.appendChild(chip);
+            }
+        });
+        article.appendChild(meta);
+
+        var text = document.createElement('p');
+        text.className = 'evidence-claim-text';
+        text.textContent = claim.claim || '';
+        article.appendChild(text);
+
+        if (claim.evidence_text) {
+            var details = document.createElement('details');
+            details.className = 'evidence-source';
+            var summary = document.createElement('summary');
+            summary.textContent = 'Evidence';
+            var evidence = document.createElement('p');
+            evidence.textContent = claim.evidence_text;
+            details.appendChild(summary);
+            details.appendChild(evidence);
+            article.appendChild(details);
+        }
+
+        wrapper.appendChild(article);
+    });
+    return wrapper;
+}
+
+function refreshEvidenceClaims(claims) {
+    var content = document.getElementById('evidenceClaimsContent');
+    if (!content || !claims || claims.length === 0) return;
+    while (content.firstChild) {
+        content.removeChild(content.firstChild);
+    }
+    var head = document.createElement('div');
+    head.className = 'evidence-center-head';
+    var title = document.createElement('h3');
+    title.className = 'panel-title';
+    title.textContent = 'Evidence-Linked Claims';
+    var count = document.createElement('span');
+    count.className = 'chip';
+    count.textContent = claims.length + ' claims';
+    head.appendChild(title);
+    head.appendChild(count);
+    content.appendChild(head);
+    content.appendChild(createEvidenceClaimsDOM(claims));
 }
 
 function createAIAnalysisDOM(analysis) {
@@ -376,6 +490,7 @@ async function generateAIAnalysis(paperId) {
                 content.removeChild(content.firstChild);
             }
             content.appendChild(createAIAnalysisDOM(data.analysis));
+            refreshEvidenceClaims(data.evidence_claims || []);
             // Update button to "Regenerate"
             btn.textContent = 'Regenerate AI Analysis';
             btn.className = 'btn btn-secondary btn-sm';
