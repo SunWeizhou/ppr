@@ -343,6 +343,11 @@ class MonitorViewModel:
             s.get("latest_hit_count", 0) or 0 for s in unified_subs
         )
 
+        # Filtered lists for template section rendering
+        query_subs = [s for s in unified_subs if s.get("type") == "query"]
+        author_subs = [s for s in unified_subs if s.get("type") == "author"]
+        venue_subs = [s for s in unified_subs if s.get("type") == "venue"]
+
         return {
             "title": "Monitor - arXiv Recommender",
             "tab": tab,
@@ -351,6 +356,9 @@ class MonitorViewModel:
             "journal_cards": journal_cards,
             "recent_hits": recent_hits,
             "unified_subs": unified_subs,
+            "query_subs": query_subs,
+            "author_subs": author_subs,
+            "venue_subs": venue_subs,
             "unified_query_count": unified_query_count,
             "unified_author_count": unified_author_count,
             "unified_venue_count": unified_venue_count,

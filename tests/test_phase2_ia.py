@@ -93,6 +93,38 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
         self.assertIn("研究方向", template)
         self.assertNotIn('href="/search" class="btn', template)
 
+    def test_watch_empty_icons_render_as_characters_not_entity_text(self):
+        """Empty-state icons in watch.html must render as actual characters,
+        not literal HTML entity strings."""
+        template = Path("templates/_components.html").read_text(encoding="utf-8")
+        # The empty_state macro should use |safe filter for icons
+        self.assertIn("icon|safe", template)
+
+    def test_watch_monitor_viewmodel_returns_filtered_sub_lists(self):
+        """MonitorViewModel.to_template_context() should include
+        query_subs, author_subs, and venue_subs."""
+        import tempfile
+        from pathlib import Path
+        from state_store import StateStore
+        from app.viewmodels.monitor_viewmodel import MonitorViewModel
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "test.db"))
+            store.create_subscription("query", "Q1", "ml")
+            store.create_subscription("author", "A1", "Hinton")
+            store.create_subscription("venue", "V1", "NeurIPS")
+
+            vm = MonitorViewModel(store)
+            ctx = vm.to_template_context("recent-hits")
+
+            self.assertIn("query_subs", ctx)
+            self.assertIn("author_subs", ctx)
+            self.assertIn("venue_subs", ctx)
+            self.assertEqual(len(ctx["query_subs"]), 1)
+            self.assertEqual(len(ctx["author_subs"]), 1)
+            self.assertEqual(len(ctx["venue_subs"]), 1)
+            self.assertEqual(ctx["query_subs"][0]["name"], "Q1")
+
 
 if __name__ == "__main__":
     unittest.main()
