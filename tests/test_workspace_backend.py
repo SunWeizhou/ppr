@@ -169,3 +169,44 @@ class WorkspaceBackendSchemaTests(unittest.TestCase):
         self.assertEqual(row["source"], "search")
         self.assertEqual(row["source_run_id"], "run-1")
         self.assertEqual(row["workspace_status"], "active")
+
+    # ------------------------------------------------------------------
+    #  Evidence Claim CRUD
+    # ------------------------------------------------------------------
+
+    def test_evidence_claim_crud(self):
+        question = self.store.create_research_question("causal discovery")
+        claim = self.store.create_evidence_claim(
+            paper_id="2604.22222v1",
+            claim="The abstract states that the method targets causal discovery.",
+            evidence_text="We propose a method for causal discovery from observational data.",
+            evidence_source="abstract",
+            claim_type="factual",
+            analyst="rule",
+            research_question_id=question["id"],
+        )
+
+        self.assertEqual(claim["paper_id"], "2604.22222")
+        self.assertEqual(claim["research_question_id"], question["id"])
+        self.assertEqual(claim["evidence_source"], "abstract")
+
+        claims = self.store.list_evidence_claims(paper_id="2604.22222v2")
+        self.assertEqual([c["id"] for c in claims], [claim["id"]])
+
+        deleted = self.store.delete_evidence_claims(paper_id="2604.22222")
+        self.assertEqual(deleted, 1)
+        self.assertEqual(self.store.list_evidence_claims(paper_id="2604.22222"), [])
+
+    def test_evidence_claim_rejects_invalid_values(self):
+        with self.assertRaises(ValueError):
+            self.store.create_evidence_claim(
+                paper_id="2604.11111",
+                claim="Bad source.",
+                evidence_source="pdf",
+            )
+        with self.assertRaises(ValueError):
+            self.store.create_evidence_claim(
+                paper_id="2604.11111",
+                claim="Bad analyst.",
+                analyst="robot",
+            )

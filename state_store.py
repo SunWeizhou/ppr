@@ -645,6 +645,106 @@ class StateStore:
             created += 1
         return created
 
+    # ------------------------------------------------------------------
+    #  Evidence Claims
+    # ------------------------------------------------------------------
+
+    def create_evidence_claim(
+        self,
+        *,
+        paper_id: str,
+        claim: str,
+        evidence_text: str = "",
+        evidence_source: str = "abstract",
+        claim_type: str = "factual",
+        analyst: str = "rule",
+        research_question_id: Optional[int] = None,
+        claim_id: Optional[str] = None,
+    ) -> Dict:
+        paper_id = _canonical_paper_id(paper_id)
+        claim = str(claim or "").strip()
+        if not paper_id:
+            raise ValueError("paper_id is required")
+        if not claim:
+            raise ValueError("claim is required")
+        if evidence_source not in ("abstract", "metadata", "citation", "user_note", "other"):
+            raise ValueError(f"Invalid evidence source: {evidence_source}")
+        if claim_type not in ("factual", "interpretive", "caveat", "gap"):
+            raise ValueError(f"Invalid claim type: {claim_type}")
+        if analyst not in ("rule", "llm", "user"):
+            raise ValueError(f"Invalid analyst: {analyst}")
+
+        now = _utc_now()
+        claim_id = claim_id or uuid.uuid4().hex
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO evidence_claims(
+                    id, research_question_id, paper_id, claim, evidence_text,
+                    evidence_source, claim_type, analyst, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    claim_id,
+                    research_question_id,
+                    paper_id,
+                    claim,
+                    str(evidence_text or "").strip(),
+                    evidence_source,
+                    claim_type,
+                    analyst,
+                    now,
+                ),
+            )
+            row = conn.execute(
+                "SELECT * FROM evidence_claims WHERE id = ?",
+                (claim_id,),
+            ).fetchone()
+        return self._row_to_dict(row)
+
+    def list_evidence_claims(
+        self,
+        *,
+        paper_id: Optional[str] = None,
+        research_question_id: Optional[int] = None,
+        analyst: Optional[str] = None,
+    ) -> List[Dict]:
+        query = "SELECT * FROM evidence_claims WHERE 1 = 1"
+        params: List[object] = []
+        if paper_id:
+            query += " AND paper_id = ?"
+            params.append(_canonical_paper_id(paper_id))
+        if research_question_id is not None:
+            query += " AND research_question_id = ?"
+            params.append(research_question_id)
+        if analyst:
+            query += " AND analyst = ?"
+            params.append(analyst)
+        query += " ORDER BY created_at ASC"
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+    def delete_evidence_claims(
+        self,
+        *,
+        paper_id: Optional[str] = None,
+        research_question_id: Optional[int] = None,
+    ) -> int:
+        if not paper_id and research_question_id is None:
+            raise ValueError("paper_id or research_question_id is required")
+        query = "DELETE FROM evidence_claims WHERE 1 = 1"
+        params: List[object] = []
+        if paper_id:
+            query += " AND paper_id = ?"
+            params.append(_canonical_paper_id(paper_id))
+        if research_question_id is not None:
+            query += " AND research_question_id = ?"
+            params.append(research_question_id)
+        with self._lock, self._connect() as conn:
+            result = conn.execute(query, params)
+        return int(result.rowcount)
+
     def create_job(
         self,
         job_type: str,
