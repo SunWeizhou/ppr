@@ -9,6 +9,7 @@ from app.services.paper_utils import (
     format_author_text,
     status_class,
 )
+from app.services.workspace_service import WorkspaceService
 from app.viewmodels.shared import assemble_page_context
 from state_store import QUEUE_STATUS_VALUES
 from utils import CATEGORY_NAMES
@@ -20,15 +21,25 @@ class SearchViewModel:
     def __init__(self, state_store):
         self._store = state_store
 
-    def to_template_context(self, papers: list, keywords: list) -> dict:
-        """Build the full template context for ``search_research.html``.
-
-        Corresponds to the combined logic of ``_render_search_research()``
-        and ``_decorate_search_papers()`` in web_server.py.
-        """
+    def to_template_context(
+        self,
+        papers: list,
+        keywords: list,
+        *,
+        research_question_id: int | None = None,
+        planner_result: dict | None = None,
+    ) -> dict:
+        """Build the full template context for ``search_research.html``."""
         page_ctx = self._build_page_context()
         decorated = self._decorate_search_papers(papers)
         current_query = ", ".join(keywords)
+
+        workspace_context = self._build_workspace_context(
+            papers,
+            current_query,
+            research_question_id=research_question_id,
+            planner_result=planner_result,
+        )
 
         context = {
             "title": "Search - arXiv Recommender",
@@ -37,8 +48,98 @@ class SearchViewModel:
             "keywords": keywords,
             "papers": decorated,
         }
+        context.update(workspace_context)
         context.update(page_ctx)
         return context
+
+    # ==================================================================
+    # Workspace helpers
+    # ==================================================================
+
+    def _build_workspace_context(
+        self,
+        papers: list,
+        current_query: str,
+        *,
+        research_question_id: int | None,
+        planner_result: dict | None,
+    ) -> dict:
+        questions = self._store.list_research_questions(status="active")
+        active_question = None
+        if research_question_id is not None:
+            active_question = self._store.get_research_question(research_question_id)
+
+        if active_question is None and current_query:
+            active_question = {
+                "id": None,
+                "query_text": current_query,
+                "intent_statement": current_query,
+                "status": "draft",
+                "source": "search",
+            }
+
+        stats = None
+        if active_question and active_question.get("id"):
+            try:
+                stats = WorkspaceService(self._store).workspace_stats(active_question["id"])
+            except ValueError:
+                stats = None
+
+        intent_card = self._intent_card(active_question, current_query)
+        return {
+            "research_questions": questions,
+            "active_research_question": active_question,
+            "active_research_question_id": active_question.get("id") if active_question else None,
+            "intent_card": intent_card,
+            "workspace_stats": stats,
+            "workspace_brief": self._workspace_brief(papers),
+            "planner_result": planner_result,
+        }
+
+    def _intent_card(self, active_question: dict | None, current_query: str) -> dict:
+        query_text = ""
+        intent_statement = ""
+        status = "draft"
+        source = "search"
+        if active_question:
+            query_text = active_question.get("query_text", "")
+            intent_statement = active_question.get("intent_statement", "") or query_text
+            status = active_question.get("status", "draft")
+            source = active_question.get("source", "search")
+        elif current_query:
+            query_text = current_query
+            intent_statement = current_query
+        return {
+            "query_text": query_text,
+            "intent_statement": intent_statement,
+            "status": status,
+            "source": source,
+        }
+
+    def _workspace_brief(self, papers: list) -> dict:
+        if not papers:
+            return {
+                "mode": "empty",
+                "candidate_count": 0,
+                "top_categories": [],
+                "message": "Start with a research question to generate a candidate triage pack.",
+            }
+        category_counts = {}
+        for paper in papers:
+            for category in (paper.get("categories") or [])[:4]:
+                category_counts[category] = category_counts.get(category, 0) + 1
+        top_categories = [
+            category for category, _count in sorted(
+                category_counts.items(),
+                key=lambda item: (-item[1], item[0]),
+            )[:4]
+        ]
+        return {
+            "mode": "results",
+            "candidate_count": len(papers),
+            "top_categories": top_categories,
+            "message": f"{len(papers)} candidate papers are ready for triage.",
+        }
 
     # ==================================================================
     # Internal
