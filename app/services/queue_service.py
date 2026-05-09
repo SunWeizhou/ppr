@@ -203,6 +203,21 @@ class QueueService:
             item.setdefault("abstract", item.get("summary", ""))
             item.setdefault("relevance", item.get("relevance_reason", item.get("relevance", "")))
             return item
+        metadata = self.state_store.get_paper_metadata(paper_id)
+        if metadata:
+            return {
+                "id": paper_id,
+                "title": metadata.get("title", f"Paper {paper_id}"),
+                "link": metadata.get("link") or metadata.get("source_url") or f"https://arxiv.org/abs/{paper_id}",
+                "authors": metadata.get("authors", []),
+                "summary": metadata.get("summary") or metadata.get("abstract", ""),
+                "abstract": metadata.get("abstract", metadata.get("summary", "")),
+                "relevance": metadata.get("relevance_reason", metadata.get("relevance", "From workspace metadata")),
+                "score": metadata.get("workspace_score", metadata.get("score", 0)),
+                "date": (metadata.get("published_at") or metadata.get("published") or metadata.get("date") or "")[:10],
+                "categories": metadata.get("categories", []),
+                "source": "paper_metadata",
+            }
         if paper_id in paper_cache:
             cached = paper_cache[paper_id]
             return {

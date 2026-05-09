@@ -66,6 +66,7 @@ class ReadingWorkbenchTests(unittest.TestCase):
         self.assertNotIn("In Progress", context["active_statuses"])
         self.assertEqual(len(context["queue_items"]), 1)
         self.assertEqual(context["queue_items"][0]["id"], "2604.60001")
+        self.assertEqual(context["queue_items"][0]["title"], "Candidate Pack Paper")
 
     def test_queue_route_renders_inbox_status(self):
         import app.routes.queue as queue_routes
