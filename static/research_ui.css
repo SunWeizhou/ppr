@@ -2861,3 +2861,21 @@ select {
   margin: var(--s-2) 0 0;
   padding-left: var(--s-3);
 }
+
+.evidence-preview-list {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.evidence-preview-item {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xs);
+  padding: var(--s-2);
+}
+
+.evidence-preview-claim {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}

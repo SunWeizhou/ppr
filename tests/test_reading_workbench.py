@@ -109,3 +109,15 @@ class ReadingWorkbenchTests(unittest.TestCase):
             paper["detail_url"],
             f"/papers/2604.60001?research_question_id={self.question['id']}",
         )
+
+    def test_queue_template_renders_workspace_decision_contract(self):
+        template = Path("templates/queue_research.html").read_text(encoding="utf-8")
+
+        self.assertIn("Candidate Decision Workbench", template)
+        self.assertIn("data-research-question-id", template)
+        self.assertIn("data-decision-context", template)
+        self.assertIn("data-evidence-claims", template)
+        self.assertIn("detailResearchQuestion", template)
+        self.assertIn("detailEvidenceClaims", template)
+        self.assertIn("queueWorkspaceOptions", template)
+        self.assertNotIn("In Progress", template)
