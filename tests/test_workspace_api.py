@@ -83,3 +83,23 @@ class WorkspaceApiTests(unittest.TestCase):
         job = self.store.get_job(payload["result"]["run_id"])
         self.assertEqual(job["job_type"], "workspace_planner")
         self.assertEqual(job["payload_json"]["research_question_id"], question["id"])
+
+    def test_queue_api_records_workspace_decision_context(self):
+        question = self.store.create_research_question("graph rag evaluation")
+
+        response = self.client().post(
+            "/api/queue",
+            json={
+                "paper_id": "2604.22222v1",
+                "status": "Deep Read",
+                "source": "search_workspace",
+                "research_question_id": question["id"],
+                "decision_context": "Central benchmark paper for this question.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        item = response.get_json()["item"]
+        self.assertEqual(item["paper_id"], "2604.22222")
+        self.assertEqual(item["research_question_id"], question["id"])
+        self.assertEqual(item["decision_context"], "Central benchmark paper for this question.")

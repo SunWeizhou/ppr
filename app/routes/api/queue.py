@@ -32,9 +32,19 @@ def manage_queue():
         source=data.get("source", "queue_api"),
         note=data.get("note"),
         tags=data.get("tags"),
+        research_question_id=data.get("research_question_id"),
+        decision_context=data.get("decision_context", ""),
     )
     # Record queue status change interaction event
-    _current_state_store().record_event("queue_status_changed", paper_id, {"status": status})
+    _current_state_store().record_event(
+        "queue_status_changed",
+        paper_id,
+        {
+            "status": status,
+            "research_question_id": data.get("research_question_id"),
+            "decision_context": data.get("decision_context", ""),
+        },
+    )
     return jsonify({"success": True, "item": item, "event_id": event_id})
 
 

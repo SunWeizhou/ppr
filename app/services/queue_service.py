@@ -48,7 +48,17 @@ class QueueService:
             raise ValueError(f"Invalid queue status: {status}")
         return self.state_store.list_queue_items(status=status)
 
-    def update_item(self, paper_id: str, status: str, *, source: str = "queue_service", note=None, tags=None):
+    def update_item(
+        self,
+        paper_id: str,
+        status: str,
+        *,
+        source: str = "queue_service",
+        note=None,
+        tags=None,
+        research_question_id=None,
+        decision_context: str = "",
+    ):
         canonical_id = _canonical_paper_id(paper_id)
         if not canonical_id:
             raise ValueError("Missing paper_id")
@@ -66,14 +76,40 @@ class QueueService:
             source=source,
             note=note or "",
             tags=tags,
+            research_question_id=research_question_id,
+            decision_context=decision_context,
         )
 
-    def update_status(self, paper_id: str, status: str, *, source: str = "queue_api", note=None, tags=None):
-        item = self.update_item(paper_id, status, source=source, note=note, tags=tags)
+    def update_status(
+        self,
+        paper_id: str,
+        status: str,
+        *,
+        source: str = "queue_api",
+        note=None,
+        tags=None,
+        research_question_id=None,
+        decision_context: str = "",
+    ):
+        item = self.update_item(
+            paper_id,
+            status,
+            source=source,
+            note=note,
+            tags=tags,
+            research_question_id=research_question_id,
+            decision_context=decision_context,
+        )
         event_id = self.state_store.record_event(
             "queue_status_changed",
             item["paper_id"],
-            {"status": status, "source": source, "note": item.get("note", "")},
+            {
+                "status": status,
+                "source": source,
+                "note": item.get("note", ""),
+                "research_question_id": research_question_id,
+                "decision_context": decision_context,
+            },
         )
         return item, event_id
 
