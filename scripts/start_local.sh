@@ -14,7 +14,7 @@ python -m pip install --upgrade pip setuptools wheel --quiet
 python -m pip install -r requirements.txt -c constraints.txt --quiet
 
 echo ""
-echo "Starting arXiv Recommender at http://localhost:5555"
+echo "Starting Agent Literature Research Assistant at http://localhost:5555"
 echo "Press Ctrl+C to stop."
 echo ""
 
