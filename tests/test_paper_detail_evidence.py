@@ -160,6 +160,15 @@ class PaperDetailEvidenceTemplateTests(unittest.TestCase):
         self.assertIn("decision_context", template)
 
 
+    def test_template_posts_workspace_context_from_detail_actions(self):
+        template = Path("templates/paper_detail.html").read_text(encoding="utf-8")
+
+        self.assertIn("paperDetailWorkspaceOptions", template)
+        self.assertIn("research_question_id: questionId ? Number(questionId) : null", template)
+        self.assertIn("decision_context: decisionContext", template)
+        self.assertIn("recommendation_context", template)
+
+
 class PaperDetailEvidenceRenderingTests(unittest.TestCase):
     def test_route_renders_question_and_evidence_claim(self):
         import app.routes.inbox as inbox_routes

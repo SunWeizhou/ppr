@@ -428,6 +428,21 @@ function createAIAnalysisDOM(analysis) {
     return container;
 }
 
+function paperDetailWorkspaceOptions(source) {
+    var contextEl = document.getElementById('paperWorkspaceContext');
+    var decisionEl = document.getElementById('paperDecisionContext');
+    var questionId = contextEl ? contextEl.dataset.researchQuestionId : '';
+    var decisionContext = decisionEl ? decisionEl.dataset.decisionContext : '';
+    if (!decisionContext) {
+        decisionContext = 'Decision from Paper Detail';
+    }
+    return {
+        source: source || 'paper_detail',
+        research_question_id: questionId ? Number(questionId) : null,
+        decision_context: decisionContext
+    };
+}
+
 async function paperDetailAction(action, paperId, extra) {
     try {
         switch (action) {
@@ -448,13 +463,13 @@ async function paperDetailAction(action, paperId, extra) {
                 showToast('Ignored');
                 break;
             case 'skim':
-                await queuePaperStatus(paperId, 'Skim Later', {source: 'paper_detail'});
+                await queuePaperStatus(paperId, 'Skim Later', paperDetailWorkspaceOptions('paper_detail'));
                 break;
             case 'deepread':
-                await queuePaperStatus(paperId, 'Deep Read', {source: 'paper_detail'});
+                await queuePaperStatus(paperId, 'Deep Read', paperDetailWorkspaceOptions('paper_detail'));
                 break;
             case 'save':
-                await queuePaperStatus(paperId, 'Saved', {source: 'paper_detail'});
+                await queuePaperStatus(paperId, 'Saved', paperDetailWorkspaceOptions('paper_detail'));
                 break;
             case 'collect':
                 await addPaperToCollection(paperId, {source: 'paper_detail'});
@@ -482,7 +497,17 @@ async function generateAIAnalysis(paperId) {
     if (errorEl) errorEl.hidden = true;
 
     try {
-        var resp = await fetch('/api/papers/' + encodeURIComponent(paperId) + '/analysis/generate', {method: 'POST'});
+        var workspaceOptions = paperDetailWorkspaceOptions('paper_detail_analysis');
+        var resp = await fetch('/api/papers/' + encodeURIComponent(paperId) + '/analysis/generate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                research_question_id: workspaceOptions.research_question_id,
+                recommendation_context: {
+                    research_question_id: workspaceOptions.research_question_id
+                }
+            })
+        });
         var data = await resp.json();
         if (data.success && data.analysis) {
             // Clear placeholder/old content and render analysis using DOM API
