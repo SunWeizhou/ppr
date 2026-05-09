@@ -62,3 +62,60 @@ class WorkspaceBackendSchemaTests(unittest.TestCase):
 
         self.assertEqual(metadata["title"], "Workspace compatible paper")
         self.assertEqual(queue_item["status"], "Skim Later")
+
+    # ------------------------------------------------------------------
+    #  Research Question CRUD
+    # ------------------------------------------------------------------
+
+    def test_research_question_crud(self):
+        question = self.store.create_research_question(
+            query_text="conformal prediction under distribution shift",
+            intent_statement="Find reliable methods for conformal prediction under shift.",
+            source="manual",
+        )
+
+        self.assertIsInstance(question["id"], int)
+        self.assertEqual(question["status"], "active")
+
+        fetched = self.store.get_research_question(question["id"])
+        self.assertEqual(fetched["query_text"], "conformal prediction under distribution shift")
+
+        updated = self.store.update_research_question(
+            question["id"],
+            status="paused",
+            intent_statement="Updated intent.",
+        )
+        self.assertEqual(updated["status"], "paused")
+        self.assertEqual(updated["intent_statement"], "Updated intent.")
+
+        active = self.store.list_research_questions(status="active")
+        paused = self.store.list_research_questions(status="paused")
+        self.assertEqual(active, [])
+        self.assertEqual([q["id"] for q in paused], [question["id"]])
+
+    def test_create_research_question_rejects_invalid_status_and_source(self):
+        with self.assertRaises(ValueError):
+            self.store.create_research_question("x", status="later")
+        with self.assertRaises(ValueError):
+            self.store.create_research_question("x", source="email")
+
+    def test_seed_research_questions_from_keywords(self):
+        count = self.store.seed_research_questions_from_keywords(
+            {
+                "conformal prediction": {"weight": 3, "category": "core"},
+                "bandits": {"weight": 1, "category": "secondary"},
+                "survey": {"weight": -1, "category": "demote"},
+            }
+        )
+
+        questions = self.store.list_research_questions()
+        self.assertEqual(count, 2)
+        self.assertEqual(
+            {q["query_text"] for q in questions},
+            {"conformal prediction", "bandits"},
+        )
+
+        second_count = self.store.seed_research_questions_from_keywords(
+            {"conformal prediction": {"weight": 3, "category": "core"}}
+        )
+        self.assertEqual(second_count, 0)

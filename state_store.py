@@ -508,6 +508,143 @@ class StateStore:
                     data[key] = {}
         return data
 
+    # ------------------------------------------------------------------
+    #  Research Questions
+    # ------------------------------------------------------------------
+
+    def create_research_question(
+        self,
+        query_text: str,
+        intent_statement: str = "",
+        *,
+        status: str = "active",
+        source: str = "manual",
+    ) -> Dict:
+        query_text = str(query_text or "").strip()
+        intent_statement = str(intent_statement or "").strip()
+        if not query_text:
+            raise ValueError("query_text is required")
+        if status not in ("active", "paused", "archived"):
+            raise ValueError(f"Invalid research question status: {status}")
+        if source not in ("manual", "profile", "subscription"):
+            raise ValueError(f"Invalid research question source: {source}")
+
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO research_questions(
+                    query_text, intent_statement, status, source, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (query_text, intent_statement, status, source, now, now),
+            )
+            row = conn.execute(
+                "SELECT * FROM research_questions WHERE id = last_insert_rowid()"
+            ).fetchone()
+        return self._row_to_dict(row)
+
+    def get_research_question(self, question_id: int) -> Optional[Dict]:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM research_questions WHERE id = ?",
+                (question_id,),
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    def list_research_questions(
+        self,
+        status: Optional[str] = None,
+        limit: int = 100,
+    ) -> List[Dict]:
+        query = "SELECT * FROM research_questions"
+        params: List[object] = []
+        if status:
+            if status not in ("active", "paused", "archived"):
+                raise ValueError(f"Invalid research question status: {status}")
+            query += " WHERE status = ?"
+            params.append(status)
+        query += " ORDER BY updated_at DESC, id DESC LIMIT ?"
+        params.append(limit)
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+    def update_research_question(
+        self,
+        question_id: int,
+        *,
+        query_text: Optional[str] = None,
+        intent_statement: Optional[str] = None,
+        status: Optional[str] = None,
+        source: Optional[str] = None,
+    ) -> Optional[Dict]:
+        updates = []
+        params: List[object] = []
+
+        if query_text is not None:
+            query_text = str(query_text or "").strip()
+            if not query_text:
+                raise ValueError("query_text is required")
+            updates.append("query_text = ?")
+            params.append(query_text)
+        if intent_statement is not None:
+            updates.append("intent_statement = ?")
+            params.append(str(intent_statement or "").strip())
+        if status is not None:
+            if status not in ("active", "paused", "archived"):
+                raise ValueError(f"Invalid research question status: {status}")
+            updates.append("status = ?")
+            params.append(status)
+        if source is not None:
+            if source not in ("manual", "profile", "subscription"):
+                raise ValueError(f"Invalid research question source: {source}")
+            updates.append("source = ?")
+            params.append(source)
+
+        if not updates:
+            return self.get_research_question(question_id)
+
+        updates.append("updated_at = ?")
+        params.append(_utc_now())
+        params.append(question_id)
+
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                f"UPDATE research_questions SET {', '.join(updates)} WHERE id = ?",
+                params,
+            )
+        return self.get_research_question(question_id)
+
+    def seed_research_questions_from_keywords(self, keywords: Dict) -> int:
+        created = 0
+        for topic, config in (keywords or {}).items():
+            if not isinstance(config, dict):
+                continue
+            category = config.get("category")
+            weight = float(config.get("weight", 0) or 0)
+            query_text = str(topic or "").strip()
+            if not query_text or category not in ("core", "secondary") or weight <= 0:
+                continue
+            with self._connect() as conn:
+                existing = conn.execute(
+                    """
+                    SELECT id FROM research_questions
+                    WHERE lower(query_text) = lower(?) AND source = 'profile'
+                    LIMIT 1
+                    """,
+                    (query_text,),
+                ).fetchone()
+            if existing:
+                continue
+            self.create_research_question(
+                query_text=query_text,
+                intent_statement=f"Track literature related to {query_text}.",
+                source="profile",
+            )
+            created += 1
+        return created
+
     def create_job(
         self,
         job_type: str,
