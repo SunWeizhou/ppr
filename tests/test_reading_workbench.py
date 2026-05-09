@@ -121,3 +121,24 @@ class ReadingWorkbenchTests(unittest.TestCase):
         self.assertIn("detailEvidenceClaims", template)
         self.assertIn("queueWorkspaceOptions", template)
         self.assertNotIn("In Progress", template)
+
+    def test_reading_viewmodel_active_items_include_workspace_context(self):
+        QueueService(self.store).update_status("2604.60001", "Deep Read", source="test")
+
+        from app.viewmodels.reading_viewmodel import ReadingViewModel
+
+        context = ReadingViewModel(self.store).to_template_context(tab="active")
+
+        paper = context["deep_read_items"][0]
+        self.assertEqual(paper["research_question_id"], self.question["id"])
+        self.assertEqual(paper["active_research_question"]["query_text"], self.question["query_text"])
+        self.assertIn("research_question_id=", paper["detail_url"])
+
+    def test_reading_template_preserves_workspace_context(self):
+        template = Path("templates/reading.html").read_text(encoding="utf-8")
+
+        self.assertIn("data-research-question-id", template)
+        self.assertIn("data-decision-context", template)
+        self.assertIn("data-detail-url", template)
+        self.assertIn("queueReadingPaper", template)
+        self.assertIn("evidence_summary", template)
