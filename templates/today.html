@@ -113,10 +113,9 @@ document.addEventListener('DOMContentLoaded', function() {
       if (btn) {
         var action = btn.dataset.action;
         var paperId = btn.dataset.paper;
-        if (action === 'skim') queuePaper(paperId, 'Skim Later');
-        else if (action === 'deepread') queuePaper(paperId, 'Deep Read');
-        else if (action === 'save') queuePaper(paperId, 'Saved');
-        else if (action === 'pass') submitPaperFeedback(paperId, 'dislike');
+        var statusMap = {skim: 'Skim Later', deepread: 'Deep Read', save: 'Saved', pass: null};
+        var status = statusMap[action];
+        triageAction(paperId, action, status);
         return;
       }
       // Click outside buttons/links → navigate to paper detail

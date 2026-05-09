@@ -273,6 +273,22 @@ class WebProductizationTests(unittest.TestCase):
         self.assertIn("setuptools", setup_text)
         self.assertIn("arxiv-recommender=web_server:main", setup_text)
 
+    def test_today_template_does_not_require_detail_panel_elements(self):
+        """The today.html template is list-only (no #paperDetailPanel).
+        inbox.js must not crash when those elements are absent.
+        Verify inbox.js does not contain unguarded .textContent assignments
+        on these elements."""
+        source = Path("static/js/inbox.js").read_text(encoding="utf-8")
+        # The code should use a guard pattern (getElementById + existence check)
+        # rather than assigning .textContent directly on a getElementById result.
+        # Count occurrences that look guarded vs unguarded.
+        self.assertNotIn(
+            "document.getElementById('detailTitle').textContent",
+            source,
+            "inbox.js must not directly assign .textContent on detailTitle "
+            "without a guard",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
