@@ -522,7 +522,9 @@
         status,
         source: options.source || 'research_ui',
         note: options.note,
-        tags: options.tags
+        tags: options.tags,
+        research_question_id: options.research_question_id,
+        decision_context: options.decision_context
       })
     });
     syncPaperState(paperId, status, result.item?.note || '');

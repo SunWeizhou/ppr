@@ -139,3 +139,15 @@ class SearchWorkspaceRouteTests(unittest.TestCase):
 
         self.assertEqual(row["source"], "search_workspace")
         self.assertEqual(row["source_run_id"], f"research-question-{question['id']}")
+
+    def test_search_template_preserves_question_id_in_detail_links(self):
+        template = Path("templates/search_research.html").read_text(encoding="utf-8")
+
+        self.assertIn("research_question_id={{ active_research_question_id }}", template)
+        self.assertIn("查看详情", template)
+
+    def test_queue_paper_status_forwards_workspace_fields(self):
+        helper = Path("static/js/paper_actions.js").read_text(encoding="utf-8")
+
+        self.assertIn("research_question_id: options.research_question_id", helper)
+        self.assertIn("decision_context: options.decision_context", helper)
