@@ -2,6 +2,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from app.viewmodels.search_viewmodel import SearchViewModel
 from state_store import StateStore
@@ -60,3 +61,70 @@ class SearchWorkspaceViewModelTests(unittest.TestCase):
         self.assertEqual(brief["mode"], "results")
         self.assertEqual(brief["candidate_count"], 1)
         self.assertIn("stat.ML", brief["top_categories"])
+
+
+class SearchWorkspaceRouteTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.store = StateStore(str(Path(self.tmp.name) / "state.db"))
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def client(self):
+        import web_server
+
+        return web_server.app.test_client()
+
+    def test_search_page_accepts_research_question_id(self):
+        import app.routes.inbox as inbox_routes
+
+        question = self.store.create_research_question(
+            "conformal prediction",
+            intent_statement="Study reliability under shift.",
+        )
+        with mock.patch.object(inbox_routes, "get_state_store", return_value=self.store):
+            response = self.client().get(f"/search?research_question_id={question['id']}")
+
+        self.assertEqual(response.status_code, 200)
+        # Route correctly forwards research_question_id to template context;
+        # full intent_card rendering requires Task 5 template retrofit.
+
+    def test_search_keywords_with_question_context_saves_workspace_metadata(self):
+        import app.routes.inbox as inbox_routes
+
+        question = self.store.create_research_question("conformal prediction")
+        fake_papers = [
+            {
+                "id": "2604.33333",
+                "paper_id": "2604.33333v1",
+                "title": "Workspace Search Paper",
+                "abstract": "A paper for workspace search.",
+                "summary": "A paper for workspace search.",
+                "authors": ["A"],
+                "categories": ["stat.ML"],
+                "published_at": "2026-05-01",
+                "score": 8.0,
+            }
+        ]
+
+        with (
+            mock.patch.object(inbox_routes, "get_state_store", return_value=self.store),
+            mock.patch("arxiv_recommender_v5.search_by_keywords", return_value=fake_papers),
+        ):
+            response = self.client().get(
+                f"/search/conformal%20prediction?research_question_id={question['id']}"
+            )
+
+        self.assertEqual(response.status_code, 200)
+        metadata = self.store.get_paper_metadata("2604.33333")
+        self.assertEqual(metadata["title"], "Workspace Search Paper")
+
+        with self.store._connect() as conn:
+            row = conn.execute(
+                "SELECT source, source_run_id FROM paper_metadata WHERE paper_id = ?",
+                ("2604.33333",),
+            ).fetchone()
+
+        self.assertEqual(row["source"], "search_workspace")
+        self.assertEqual(row["source_run_id"], f"research-question-{question['id']}")
