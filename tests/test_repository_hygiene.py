@@ -140,6 +140,43 @@ class RepositoryHygieneTests(unittest.TestCase):
         self.assertNotIn("sk-", text)
 
     # ------------------------------------------------------------------ #
+    #  Runtime state cleanliness
+    # ------------------------------------------------------------------ #
+
+    def test_runtime_cache_does_not_contain_placeholder_titles(self):
+        """The runtime cache/app_state.db must not contain obvious placeholder
+        titles like 'Stable identity' or 'Test Paper Title'."""
+        cache_db = Path("cache/app_state.db")
+        if not cache_db.exists():
+            self.skipTest("runtime cache not present — cannot inspect")
+
+        import sqlite3
+        conn = sqlite3.connect(str(cache_db))
+        cursor = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        )
+        tables = [row[0] for row in cursor.fetchall()]
+        found_placeholders = []
+        for table in tables:
+            try:
+                for col in ("title", "paper_id", "name"):
+                    cursor = conn.execute(
+                        f"SELECT DISTINCT {col} FROM \"{table}\" "
+                        f"WHERE {col} LIKE '%Stable identity%' "
+                        f"OR {col} LIKE '%Test Paper Title%' "
+                        f"LIMIT 5"
+                    )
+                    for row in cursor.fetchall():
+                        found_placeholders.append(f"{table}.{col}={row[0]}")
+            except (sqlite3.OperationalError, sqlite3.DatabaseError):
+                continue
+        conn.close()
+        self.assertEqual(
+            found_placeholders, [],
+            f"Placeholder records found in runtime cache: {found_placeholders}"
+        )
+
+    # ------------------------------------------------------------------ #
     #  Dependency consistency
     # ------------------------------------------------------------------ #
 
