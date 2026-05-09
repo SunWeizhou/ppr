@@ -3,7 +3,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import app.routes.api as api_routes
 from state_store import StateStore
 
 
@@ -11,11 +10,21 @@ class WorkspaceApiTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.store = StateStore(str(Path(self.tmp.name) / "state.db"))
-        self.original_api_store = api_routes.STATE_STORE
-        api_routes.STATE_STORE = self.store
+        # Patch all store resolution paths that _current_state_store() may use
+        import app.routes.api.helpers as helpers
+        import web_server as ws_mod
+
+        self._orig_ws_store = getattr(ws_mod, "STATE_STORE", None)
+        self._orig_helpers_store = getattr(helpers, "STATE_STORE", None)
+        helpers.STATE_STORE = self.store
+        ws_mod.STATE_STORE = self.store
 
     def tearDown(self):
-        api_routes.STATE_STORE = self.original_api_store
+        import app.routes.api.helpers as helpers
+        import web_server as ws_mod
+
+        helpers.STATE_STORE = self._orig_helpers_store
+        ws_mod.STATE_STORE = self._orig_ws_store
         self.tmp.cleanup()
 
     def client(self):
