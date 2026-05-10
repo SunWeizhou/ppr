@@ -88,7 +88,7 @@ class PaperViewModel:
 
         paper_data = self._find_paper_data(paper_id)
         if not paper_data:
-            return {"title": "Paper Not Found - arXiv Recommender", "error": "Paper not found", "paper_id": paper_id, **page_ctx}
+            return {"title": "Paper Not Found - Agent Literature Research Assistant", "error": "Paper not found", "paper_id": paper_id, **page_ctx}
 
         paper = dict(paper_data)
         paper["id"] = paper_id
@@ -214,7 +214,7 @@ class PaperViewModel:
         paper["score_details"] = details
 
         context = {
-            "title": f"{paper.get('title', 'Paper Detail')[:60]} - arXiv Recommender",
+            "title": f"{paper.get('title', 'Paper Detail')[:60]} - Agent Literature Research Assistant",
             "paper": paper,
         }
         context.update(page_ctx)

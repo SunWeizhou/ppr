@@ -32,8 +32,8 @@
       'nav.workflow': '工作流',
       'nav.inbox': 'Inbox',
       'nav.queue': 'Queue',
-      'nav.library': 'Library',
-      'nav.monitor': 'Monitor',
+      'nav.reading': 'Reading',
+      'nav.watch': 'Watch',
       'nav.settings': 'Settings',
       'state.relevant': 'Relevant',
       'asset.collections': 'collections',
@@ -45,8 +45,8 @@
       'nav.workflow': 'Workflow',
       'nav.inbox': 'Inbox',
       'nav.queue': 'Queue',
-      'nav.library': 'Library',
-      'nav.monitor': 'Monitor',
+      'nav.reading': 'Reading',
+      'nav.watch': 'Watch',
       'nav.settings': 'Settings',
       'state.relevant': 'Relevant',
       'asset.collections': 'collections',
@@ -497,7 +497,7 @@
     const ok = await confirmDangerAction({
       title: '移除关注学者',
       objectName: target.name,
-      message: '这会停止在 Monitor 中追踪该学者，但不会删除已保存论文、Queue 状态或历史记录。',
+      message: '这会停止在 Watch 中追踪该学者，但不会删除已保存论文、Queue 状态或历史记录。',
       confirmLabel: 'Remove author'
     });
     if (!ok) return;
@@ -609,9 +609,9 @@
 
   async function confirmRefreshToday() {
     const ok = await confirmDangerAction({
-      title: '刷新今日推荐',
+      title: '刷新 Inbox 候选',
       objectName: 'Today scoring cache',
-      message: '这会重新运行今日推荐生成，可能覆盖当前今日排序快照。Queue、Collection 和反馈状态会保留。',
+      message: '这会重新运行候选生成，可能更新当前 Inbox 排序。Queue、Reading 和反馈状态会保留。',
       confirmLabel: 'Refresh today'
     });
     if (ok) {

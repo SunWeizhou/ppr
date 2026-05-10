@@ -377,7 +377,7 @@ class SubscriptionTests(unittest.TestCase):
         for key in required_keys:
             self.assertIn(key, context, f"Missing required key: {key}")
 
-        self.assertEqual(context["title"], "Queue - arXiv Recommender")
+        self.assertEqual(context["title"], "Queue - Agent Literature Research Assistant")
         self.assertEqual(context["active_tab"], "queue")
         self.assertEqual(context["active_status"], "Skim Later")
         self.assertIsInstance(context["queue_counts"], dict)

@@ -384,7 +384,7 @@ class MonitorViewModel:
         query_subs = [s for s in decorated_subs if s.get("type") == "query"]
 
         return {
-            "title": "Monitor - arXiv Recommender",
+            "title": "Monitor - Agent Literature Research Assistant",
             "tab": tab,
             "headline_metrics": headline_metrics,
             "my_scholars": my_scholars,

@@ -147,7 +147,7 @@
     const ok = await confirmDangerAction({
       title: '移除关注学者',
       objectName: target.name,
-      message: '这会停止在 Monitor 中追踪该学者，但不会删除已保存论文、Queue 状态或历史记录。',
+      message: '这会停止在 Watch 中追踪该学者，但不会删除已保存论文、Queue 状态或历史记录。',
       confirmLabel: 'Remove author'
     });
     if (!ok) return;

@@ -42,7 +42,7 @@ class SearchViewModel:
         )
 
         context = {
-            "title": "Search - arXiv Recommender",
+            "title": "Search - Agent Literature Research Assistant",
             "date": datetime.now().strftime("%Y-%m-%d"),
             "current_query": current_query,
             "keywords": keywords,

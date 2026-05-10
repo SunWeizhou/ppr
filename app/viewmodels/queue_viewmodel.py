@@ -25,7 +25,7 @@ class QueueViewModel:
         all_status_counts = self.queue_service.count_by_status()
         queue_counts = {k: v for k, v in all_status_counts.items() if k in ACTIVE_READING_STATUSES}
         context.update({
-            "title": "Queue - arXiv Recommender",
+            "title": "Queue - Agent Literature Research Assistant",
             "active_tab": "queue",
             "queue_counts": queue_counts,
             "all_status_counts": all_status_counts,
