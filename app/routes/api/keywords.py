@@ -230,19 +230,12 @@ def save_ai_settings():
     data = request.get_json() or {}
     try:
         from config_manager import get_config
+        from app.services.ai_settings_service import apply_ai_settings_payload
 
-        cm = get_config()
-        cm._ai.provider = str(data.get("provider", cm._ai.provider)).strip() or "none"
-        # __keep__ sentinel means "preserve existing key AND enabled state"
-        raw_key = str(data.get("api_key", "")).strip()
-        if raw_key and raw_key != "__keep__":
-            cm._ai.api_key = raw_key
-            cm._ai.enabled = bool(data.get("enabled", cm._ai.enabled))
-        # When __keep__: preserve both api_key and current enabled state
-        cm._ai.base_url = str(data.get("base_url", cm._ai.base_url)).strip() or "https://api.deepseek.com"
-        cm._ai.model = str(data.get("model", cm._ai.model)).strip() or "deepseek-chat"
-        cm.save()
-        return jsonify({"success": True})
+        context = apply_ai_settings_payload(get_config(), data)
+        return jsonify({"success": True, "ai": context})
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
     except Exception as exc:
         return jsonify({"success": False, "error": str(exc)}), 500
 
