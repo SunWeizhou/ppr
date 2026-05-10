@@ -255,8 +255,9 @@ class DeepSeekProvider:
 
 
 def build_ai_provider_from_env():
-    # 1) Check environment variables first (backward compatible)
-    api_key = os.getenv("DEEPSEEK_API_KEY")
+    # 1) Check environment variables first. STATDESK_AI_API_KEY is the
+    # product-level name; DEEPSEEK_API_KEY remains backward compatible.
+    api_key = os.getenv("STATDESK_AI_API_KEY") or os.getenv("DEEPSEEK_API_KEY")
     if api_key:
         return DeepSeekProvider(
             api_key=api_key,

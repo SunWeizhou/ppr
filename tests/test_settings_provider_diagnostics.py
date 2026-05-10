@@ -126,3 +126,51 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertFalse(response.get_json()["success"])
+
+    def test_build_ai_provider_uses_statdesk_env_var(self):
+        from app.services.ai_providers import DeepSeekProvider, build_ai_provider_from_env
+
+        with mock.patch.dict(
+            os.environ,
+            {
+                "STATDESK_AI_API_KEY": "sk-statdesk-env",
+                "DEEPSEEK_API_KEY": "",
+            },
+            clear=True,
+        ):
+            provider = build_ai_provider_from_env()
+
+        self.assertIsInstance(provider, DeepSeekProvider)
+        self.assertEqual(provider.api_key, "sk-statdesk-env")
+
+    def test_ai_connection_test_uses_env_sentinel_without_leaking_secret(self):
+        import web_server
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_config = Path(tmp) / "user_profile.json"
+            tmp_config.write_text(json.dumps({"version": 1, "keywords": {}}), encoding="utf-8")
+            self._swap_config(tmp_config)
+
+            fake_response = {
+                "choices": [{"message": {"content": "ok"}}],
+            }
+            with mock.patch.dict(os.environ, {"STATDESK_AI_API_KEY": "sk-env-secret"}, clear=True):
+                with mock.patch(
+                    "app.services.ai_providers.DeepSeekProvider._request",
+                    return_value=fake_response,
+                ) as mock_request:
+                    response = web_server.app.test_client().post(
+                        "/api/settings/ai/test",
+                        json={
+                            "provider": "deepseek",
+                            "api_key": "__env_var__",
+                            "base_url": "https://api.deepseek.com",
+                            "model": "deepseek-chat",
+                        },
+                    )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertTrue(payload["success"])
+        self.assertNotIn("sk-env-secret", json.dumps(payload))
+        mock_request.assert_called_once()

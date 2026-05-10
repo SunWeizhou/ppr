@@ -244,8 +244,19 @@ def save_ai_settings():
 def test_ai_connection():
     """Test the AI provider connection with submitted config."""
     data = request.get_json() or {}
-    provider_name = str(data.get("provider", "none")).strip().lower()
-    api_key = str(data.get("api_key", "")).strip()
+    try:
+        from config_manager import get_config
+        from app.services.ai_settings_service import (
+            normalize_provider,
+            resolve_test_api_key,
+        )
+
+        provider_name = normalize_provider(data.get("provider", "none"))
+        current_ai = get_config().get_ai_config()
+        api_key = resolve_test_api_key(data, current_ai)
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
+
     base_url = str(data.get("base_url", "https://api.deepseek.com")).strip()
     model = str(data.get("model", "deepseek-chat")).strip()
 
@@ -289,8 +300,10 @@ def test_ai_connection():
     except Exception as exc:
         import logging as _logging
 
-        _logging.getLogger(__name__).warning(f"AI connection test failed: {exc}")
-        return jsonify({"success": False, "error": str(exc)}), 502
+        api_key_safe = api_key or ""
+        error_text = str(exc).replace(api_key_safe, "[redacted]") if api_key_safe else str(exc)
+        _logging.getLogger(__name__).warning(f"AI connection test failed: {error_text}")
+        return jsonify({"success": False, "error": error_text}), 502
 
 
 # ---------------------------------------------------------------------------
