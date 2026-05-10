@@ -32,7 +32,8 @@ def mask_api_key(key: str) -> str:
 
 
 def resolve_ai_env(environ: Mapping[str, str] | None = None) -> dict:
-    environ = environ or os.environ
+    if environ is None:
+        environ = os.environ
     for name in ("STATDESK_AI_API_KEY", "DEEPSEEK_API_KEY"):
         value = str(environ.get(name, "") or "").strip()
         if value:

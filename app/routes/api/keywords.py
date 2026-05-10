@@ -444,7 +444,7 @@ def save_onboarding():
             cm._zotero.database_path = zotero_path
 
         # AI config
-        if ai_provider and ai_provider in ("deepseek", "openai_compat"):
+        if ai_provider == "deepseek":
             ai_enabled = bool(ai_api_key)
             cm._ai.provider = ai_provider
             cm._ai.api_key = ai_api_key

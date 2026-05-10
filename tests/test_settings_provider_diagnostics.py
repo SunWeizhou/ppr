@@ -171,6 +171,46 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
         self.assertNotIn("sk-env-secret", json.dumps(payload))
         mock_request.assert_called_once()
 
+    def test_resolve_ai_env_empty_dict_does_not_read_real_env(self):
+        from app.services.ai_settings_service import resolve_ai_env
+
+        with mock.patch.dict(os.environ, {"STATDESK_AI_API_KEY": "sk-real"}, clear=True):
+            result = resolve_ai_env({})
+
+        self.assertFalse(result["has_key"])
+        self.assertEqual(result["source"], "none")
+
+    def test_onboarding_rejects_unsupported_ai_provider(self):
+        import web_server
+        from config_manager import ConfigManager, get_config
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_config = Path(tmp) / "user_profile.json"
+            self._swap_config(tmp_config)
+            store = StateStore(str(Path(tmp) / "state.db"))
+            self._swap_store(store)
+
+            with mock.patch.dict(os.environ, {}, clear=True):
+                response = web_server.app.test_client().post(
+                    "/api/onboarding/save",
+                    json={
+                        "topics": ["test"],
+                        "areas": [],
+                        "papers_per_day": 20,
+                        "zotero_path": "",
+                        "ai_provider": "openai_compat",
+                        "ai_api_key": "sk-should-not-save",
+                        "first_query": "",
+                    },
+                )
+                ConfigManager._instance = None
+
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.get_json()["success"])
+            ai_cfg = get_config().get_ai_config()
+            self.assertEqual(ai_cfg["provider"], "none")
+            self.assertFalse(ai_cfg["enabled"])
+
     def test_settings_viewmodel_includes_system_diagnostics(self):
         from app.viewmodels.settings_viewmodel import SettingsViewModel
 

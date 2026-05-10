@@ -57,6 +57,17 @@ class Phase6ProductAcceptanceTests(unittest.TestCase):
             for needle in forbidden:
                 self.assertNotIn(needle, text, msg=f"{needle!r} in {path}")
 
+    def test_onboarding_does_not_reference_unsupported_providers(self):
+        files = [
+            Path("templates/onboarding.html"),
+            Path("static/js/subscriptions.js"),
+        ]
+        forbidden = ["openai_compat", "OpenAI-Compatible API"]
+        for path in files:
+            text = path.read_text(encoding="utf-8")
+            for needle in forbidden:
+                self.assertNotIn(needle, text, msg=f"{needle!r} in {path}")
+
     def test_today_generation_copy_uses_inbox_language(self):
         files = [
             Path("templates/generating.html"),
