@@ -44,6 +44,16 @@ Run before every release.
 - [ ] `/settings?tab=diagnostics` shows profile, AI, workspace, queue, and latest job readiness.
 - [ ] Onboarding first query creates a `ResearchQuestion` and a query subscription bound to it.
 
+## Phase 6 Product Acceptance
+
+- [ ] Active surfaces use Agent Literature Research Assistant / workspace-first copy.
+- [ ] Queue paper actions have one canonical frontend implementation.
+- [ ] Core routes load without external network calls in acceptance tests.
+- [ ] `/settings?tab=ai` does not render raw API keys.
+- [ ] `/watch` and `/queue?status=Inbox` preserve `research_question_id` context.
+- [ ] Browser smoke covers Inbox, Search, Queue, Paper Detail, Reading, Watch, Settings, and Evaluation.
+- [ ] Visual tests are either passing against committed goldens or explicitly skipped because no goldens are committed.
+
 ## 6. Data and Packaging
 
 - [ ] Data export produces valid JSON.
