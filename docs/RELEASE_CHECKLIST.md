@@ -35,7 +35,16 @@ Run before every release.
 - [ ] The app works with no AI provider configured.
 - [ ] API keys and secrets are never rendered in full, exported, or logged.
 
-## 5. Data and Packaging
+## 5. Settings, AI Provider, and Diagnostics
+
+- [ ] `/settings?tab=profile` edits research topics without breaking existing workspace state.
+- [ ] `/settings?tab=ai` never renders raw API keys in the HTML.
+- [ ] AI provider can be disabled; disabling clears stored keys and leaves rule-based evidence available.
+- [ ] AI provider can use `STATDESK_AI_API_KEY` or backward-compatible `DEEPSEEK_API_KEY`.
+- [ ] `/settings?tab=diagnostics` shows profile, AI, workspace, queue, and latest job readiness.
+- [ ] Onboarding first query creates a `ResearchQuestion` and a query subscription bound to it.
+
+## 6. Data and Packaging
 
 - [ ] Data export produces valid JSON.
 - [ ] Data import restores state.
