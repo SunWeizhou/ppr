@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <meta name="theme-color" content="#124c79">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23C96442'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='system-ui'>S</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23C96442'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='system-ui'>R</text></svg>">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/typography.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css', v=static_version) }}">
@@ -19,8 +19,8 @@
 <body class="{{ body_class or '' }}">
     <div class="app">
         <header class="topbar">
-            <a href="/queue?status=Inbox" class="topbar-wordmark" aria-label="StatDesk home">
-                <span class="brand-mark">StatDesk</span>
+            <a href="/queue?status=Inbox" class="topbar-wordmark" aria-label="Research Assistant home">
+                <span class="brand-mark">Research Assistant</span>
             </a>
             <nav class="topbar-nav" aria-label="Main navigation">
                 {% for item in nav_items %}

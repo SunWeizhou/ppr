@@ -187,40 +187,132 @@ class MonitorViewModel:
             return None
 
     def _paper_metadata_for_hit(self, paper_id: str) -> dict:
-        metadata = {}
+        """Resolve paper metadata from all available local sources.
+
+        Resolution order (canonicalises *paper_id* at the start):
+          1. SQLite paper_metadata table
+          2. paper_cache.json on disk (handles versioned-key aliases)
+          3. Recent recommendation runs
+          4. History markdown digest files
+          5. Graceful fallback
+
+        The method aligns with ``PaperViewModel._find_paper_data`` so that
+        Watch hit enrichment uses the same resolution chain as Paper Detail.
+        """
+        from state_store import _canonical_paper_id
+
+        canonical_id = _canonical_paper_id(paper_id)
+        result: dict = {}
+
+        # -- 1. paper_metadata table (already canonicalises internally) ------
         get_metadata = getattr(self._store, "get_paper_metadata", None)
         if callable(get_metadata):
             try:
-                metadata = get_metadata(paper_id) or {}
+                row = get_metadata(canonical_id) or {}
+                if row.get("title"):
+                    result = dict(row)
             except Exception:
-                metadata = {}
+                pass
 
-        paper_cache = self._safe_load_json(self._resolve_path("CACHE_FILE"))
-        if isinstance(paper_cache, dict):
-            cached = paper_cache.get(paper_id, {}) or {}
-            metadata = {**cached, **metadata}
-
-        get_paper = getattr(self._store, "get_paper", None)
-        if callable(get_paper):
+        # -- 2. paper_cache.json ----------------------------------------------
+        if not result.get("title"):
             try:
-                paper_row = get_paper(paper_id)
-            except Exception:
-                paper_row = None
-            if paper_row:
-                if paper_row.get("title"):
-                    metadata.setdefault("title", paper_row["title"])
-                authors_val = (
-                    paper_row.get("authors_json") or paper_row.get("authors")
+                cache = self._safe_load_json(
+                    self._resolve_path("CACHE_FILE")
                 )
-                if authors_val:
-                    metadata.setdefault("authors", authors_val)
-                if paper_row.get("abstract"):
-                    metadata.setdefault("abstract", paper_row["abstract"])
-                if paper_row.get("source_url"):
-                    metadata.setdefault("link", paper_row["source_url"])
-                if paper_row.get("published_at"):
-                    metadata.setdefault("date", paper_row["published_at"])
-        return metadata
+                if isinstance(cache, dict):
+                    entry: dict | None = None
+                    # 2a. Direct key lookup
+                    raw = cache.get(canonical_id)
+                    if isinstance(raw, dict) and raw.get("title"):
+                        entry = raw
+                    # 2b. Scan for versioned-key aliases
+                    if not entry:
+                        for k, v in cache.items():
+                            if (
+                                isinstance(v, dict)
+                                and v.get("title")
+                                and _canonical_paper_id(k) == canonical_id
+                            ):
+                                entry = v
+                                break
+                    if entry:
+                        # Merge with existing result — result keys win
+                        result = {**entry, **result}
+            except Exception:
+                pass
+
+        # -- 3. Recommendation runs -------------------------------------------
+        if not result.get("title"):
+            try:
+                rec = self._find_paper_in_recommendations(canonical_id)
+                if rec and rec.get("title"):
+                    result.setdefault("title", rec["title"])
+                    authors = rec.get("authors") or rec.get("authors_json")
+                    if authors:
+                        result.setdefault("authors", authors)
+                    if rec.get("abstract"):
+                        result.setdefault("abstract", rec.get("abstract"))
+                    link = rec.get("source_url") or rec.get("link")
+                    if link:
+                        result.setdefault("link", link)
+                    if rec.get("published_at") or rec.get("date"):
+                        result.setdefault("date", rec.get("published_at") or rec.get("date"))
+                    cats = rec.get("categories")
+                    if cats:
+                        result.setdefault("categories", cats)
+            except Exception:
+                pass
+
+        # -- 4. History markdown digest files ---------------------------------
+        if not result.get("title"):
+            try:
+                from pathlib import Path
+                from app_paths import HISTORY_DIR
+                import os
+                from app.viewmodels.inbox_viewmodel import InboxViewModel
+
+                if os.path.exists(str(HISTORY_DIR)):
+                    for fname in sorted(
+                        os.listdir(str(HISTORY_DIR)), reverse=True
+                    ):
+                        if not fname.startswith("digest_") or not fname.endswith(".md"):
+                            continue
+                        filepath = os.path.join(str(HISTORY_DIR), fname)
+                        papers, _ = InboxViewModel.parse_digest(
+                            filepath, use_cache=False
+                        )
+                        for p in papers:
+                            if _canonical_paper_id(p.get("id") or "") == canonical_id:
+                                if p.get("title"):
+                                    result.setdefault("title", p["title"])
+                                    result.setdefault("authors", p.get("authors"))
+                                    result.setdefault("abstract", p.get("abstract") or p.get("summary"))
+                                    result.setdefault("link", p.get("link") or p.get("source_url"))
+                                    result.setdefault("categories", p.get("categories"))
+                                    break
+                        if result.get("title"):
+                            break
+            except Exception:
+                pass
+
+        return result
+
+    def _find_paper_in_recommendations(self, paper_id: str) -> dict | None:
+        """Search recent recommendation runs for paper metadata."""
+        from state_store import _canonical_paper_id
+        canonical = _canonical_paper_id(paper_id)
+        try:
+            recent_runs = self._store.list_recommendation_runs(limit=10)
+            for run in recent_runs:
+                items = self._store.get_recommendation_items(run["run_id"])
+                for item in items:
+                    stored_id = _canonical_paper_id(item.get("paper_id") or item.get("id") or "")
+                    if stored_id == canonical:
+                        return item
+        except Exception:
+            pass
+        return None
 
     @staticmethod
     def _detail_url(paper_id: str, research_question_id=None) -> str:

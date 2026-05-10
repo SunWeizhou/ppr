@@ -72,7 +72,13 @@
                     <span class="watch-sub-hit-arrow">&#9656;</span>
                     <a href="{{ hit.detail_url }}" class="watch-sub-hit-title">{{ hit.title }}</a>
                     {% if hit.hit_status %}<span class="chip is-muted js-hit-status">{{ hit.hit_status }}</span>{% endif %}
+                    {% if hit.summary_short %}
+                    <div class="watch-sub-hit-summary">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
+                    {% endif %}
                     {% if hit.matched_reason %}<span class="watch-sub-hit-reason">{{ hit.matched_reason }}</span>{% endif %}
+                    {% if hit.author_text %}
+                    <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
+                    {% endif %}
                     <div class="watch-sub-hit-actions">
                         <button
                             type="button"
@@ -150,7 +156,13 @@
                     <span class="watch-sub-hit-arrow">&#9656;</span>
                     <a href="{{ hit.detail_url }}" class="watch-sub-hit-title">{{ hit.title }}</a>
                     {% if hit.hit_status %}<span class="chip is-muted js-hit-status">{{ hit.hit_status }}</span>{% endif %}
+                    {% if hit.summary_short %}
+                    <div class="watch-sub-hit-summary">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
+                    {% endif %}
                     {% if hit.matched_reason %}<span class="watch-sub-hit-reason">{{ hit.matched_reason }}</span>{% endif %}
+                    {% if hit.author_text %}
+                    <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
+                    {% endif %}
                     <div class="watch-sub-hit-actions">
                         <button
                             type="button"
@@ -232,7 +244,13 @@
                     <span class="watch-sub-hit-arrow">&#9656;</span>
                     <a href="{{ hit.detail_url }}" class="watch-sub-hit-title">{{ hit.title }}</a>
                     {% if hit.hit_status %}<span class="chip is-muted js-hit-status">{{ hit.hit_status }}</span>{% endif %}
+                    {% if hit.summary_short %}
+                    <div class="watch-sub-hit-summary">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
+                    {% endif %}
                     {% if hit.matched_reason %}<span class="watch-sub-hit-reason">{{ hit.matched_reason }}</span>{% endif %}
+                    {% if hit.author_text %}
+                    <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
+                    {% endif %}
                     <div class="watch-sub-hit-actions">
                         <button
                             type="button"

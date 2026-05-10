@@ -205,9 +205,27 @@
     row.setAttribute('data-hit-status', statusLabel);
     var chip = row.querySelector('.js-hit-status');
     if (chip) chip.textContent = statusLabel;
-    row.querySelectorAll('button').forEach(function(btn) {
-      btn.disabled = true;
+    // Disable the clicked button; for sent_to_inbox also disable Inbox
+    var inboxBtns = row.querySelectorAll('button');
+    inboxBtns.forEach(function(btn) {
+      if (statusLabel === 'sent_to_inbox' && btn.textContent.trim() === 'Inbox') {
+        btn.disabled = true;
+      } else if (btn === button) {
+        btn.disabled = true;
+      }
     });
+    // Update subscription card stats (search sibling cards)
+    var subCard = row.closest('.watch-sub-card');
+    if (subCard && statusLabel === 'sent_to_inbox') {
+      var undecidedChip = subCard.querySelector('.chip:first-child');
+      if (undecidedChip && undecidedChip.textContent.indexOf('Inbox') > -1) {
+        var match = undecidedChip.textContent.match(/(\d+)/);
+        if (match) {
+          var val = parseInt(match[1], 10);
+          if (val > 0) undecidedChip.textContent = (val - 1) + ' Inbox';
+        }
+      }
+    }
   }
 
   async function sendHitToInbox(hitId, button) {

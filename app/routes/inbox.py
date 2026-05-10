@@ -189,7 +189,13 @@ def search_page():
 @bp.get("/search/<path:keywords>")
 def search_keywords(keywords):
     """Search papers by custom keywords and render results."""
-    keyword_list = [k.strip() for k in keywords.replace("/", ",").split(",") if k.strip()]
+    raw = keywords.replace("/", ",")
+    keyword_list = []
+    for part in raw.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        keyword_list.extend(k.strip() for k in part.split() if k.strip())
 
     if not keyword_list:
         store = get_state_store()

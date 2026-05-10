@@ -121,6 +121,12 @@ class PaperViewModel:
             analysis=analysis,
             research_question_id=active_question_id,
         )
+        has_ai = self._has_ai_configured()
+        if not evidence_claims and active_question and not has_ai:
+            evidence_claims = self._generate_rule_evidence_claims(
+                paper=paper,
+                research_question=active_question,
+            )
         paper["ai_analysis"] = analysis
         paper["evidence_claims"] = evidence_claims
         paper["evidence_summary"] = self._build_evidence_summary(evidence_claims)
@@ -217,6 +223,7 @@ class PaperViewModel:
         context = {
             "title": f"{paper.get('title', 'Paper Detail')[:60]} - Agent Literature Research Assistant",
             "paper": paper,
+            "has_ai": has_ai,
         }
         context.update(page_ctx)
         return context
@@ -273,6 +280,129 @@ class PaperViewModel:
             "by_source": by_source,
             "has_claims": bool(claims),
         }
+
+    @staticmethod
+    def _has_ai_configured() -> bool:
+        """Check whether an AI provider is configured in the local config."""
+        try:
+            from config_manager import get_config
+            config = get_config()
+            provider = (config._ai.provider or "none").strip().lower()
+            return provider not in ("", "none")
+        except Exception:
+            return False
+
+    @staticmethod
+    def _generate_rule_evidence_claims(*, paper: dict, research_question: dict) -> list[dict]:
+        """Generate on-the-fly rule-based evidence claims from paper metadata.
+
+        Used when no AI provider is configured but there is an active research
+        question — gives the user keyword/category/relevance matching insights
+        without requiring an LLM call.
+        """
+        import re
+        import time
+
+        claims: list[dict] = []
+        title = (paper.get("title") or "").strip()
+        abstract = (paper.get("abstract") or paper.get("summary") or "").strip()
+        categories = paper.get("categories") or []
+        query_text = (research_question.get("query_text") or "").strip()
+        relevance_reason = paper.get("relevance_reason") or paper.get("relevance") or ""
+
+        if not title and not abstract:
+            return claims
+
+        # Tokenise the research question into meaningful search terms
+        query_terms = {
+            t.lower()
+            for t in re.split(r"[\s,;:()]+", query_text)
+            if len(t) > 2
+        }
+
+        # 1. Title match — high signal
+        if title and query_terms:
+            title_lower = title.lower()
+            matched_in_title = [t for t in query_terms if t in title_lower]
+            if matched_in_title:
+                claims.append({
+                    "id": f"rule-title-{paper.get('id', 'unknown')}",
+                    "research_question_id": research_question.get("id"),
+                    "paper_id": paper.get("id", ""),
+                    "claim": f"Title contains research question keywords: {', '.join(matched_in_title)}.",
+                    "evidence_text": title[:300],
+                    "evidence_source": "metadata",
+                    "claim_type": "factual",
+                    "analyst": "rule",
+                    "created_at": datetime.now().isoformat(),
+                })
+
+        # 2. Abstract match — medium signal
+        if abstract and query_terms:
+            abstract_lower = abstract.lower()
+            matched_in_abstract = [t for t in query_terms if t in abstract_lower]
+            if matched_in_abstract:
+                snippet = PaperViewModel._find_snippet(abstract, matched_in_abstract)
+                claims.append({
+                    "id": f"rule-abstract-{paper.get('id', 'unknown')}",
+                    "research_question_id": research_question.get("id"),
+                    "paper_id": paper.get("id", ""),
+                    "claim": f"Abstract references research question terms: {', '.join(matched_in_abstract)}.",
+                    "evidence_text": snippet or abstract[:300],
+                    "evidence_source": "abstract",
+                    "claim_type": "factual",
+                    "analyst": "rule",
+                    "created_at": datetime.now().isoformat(),
+                })
+
+        # 3. Category overlap — medium signal
+        if categories and query_terms:
+            cat_lower = {c.lower() for c in categories if c}
+            matched_cats = cat_lower & query_terms
+            if matched_cats:
+                claims.append({
+                    "id": f"rule-category-{paper.get('id', 'unknown')}",
+                    "research_question_id": research_question.get("id"),
+                    "paper_id": paper.get("id", ""),
+                    "claim": f"Paper categories overlap with research question: {', '.join(sorted(matched_cats))}.",
+                    "evidence_text": f"Categories: {', '.join(categories[:6])}",
+                    "evidence_source": "metadata",
+                    "claim_type": "factual",
+                    "analyst": "rule",
+                    "created_at": datetime.now().isoformat(),
+                })
+
+        # 4. Relevance reason — interpretive
+        if relevance_reason and len(relevance_reason) > 5:
+            claims.append({
+                "id": f"rule-relevance-{paper.get('id', 'unknown')}",
+                "research_question_id": research_question.get("id"),
+                "paper_id": paper.get("id", ""),
+                "claim": f"Scoring system indicates relevance: {relevance_reason[:200]}.",
+                "evidence_text": relevance_reason[:500],
+                "evidence_source": "other",
+                "claim_type": "interpretive",
+                "analyst": "rule",
+                "created_at": datetime.now().isoformat(),
+            })
+
+        return claims
+
+    @staticmethod
+    def _find_snippet(text: str, terms: list[str], context: int = 80) -> str:
+        """Return a short snippet around the first occurrence of any term."""
+        import re
+        lower = text.lower()
+        for term in terms:
+            idx = lower.find(term)
+            if idx == -1:
+                continue
+            start = max(0, idx - context)
+            end = min(len(text), idx + len(term) + context)
+            prefix = "..." if start > 0 else ""
+            suffix = "..." if end < len(text) else ""
+            return f"{prefix}{text[start:end]}{suffix}"
+        return ""
 
     def _find_paper_data(self, paper_id: str) -> Optional[dict]:
         """Find paper data from any available source.

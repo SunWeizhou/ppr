@@ -280,3 +280,148 @@ class WatchCockpitTests(unittest.TestCase):
         self.assertIn("A Watch Cockpit Paper", body)
         self.assertIn("sendHitToInbox", body)
         mock_search.assert_not_called()
+
+    def test_watch_hit_title_falls_back_to_recommendation_items(self):
+        """Hit title enriched from recommendation_items when paper_metadata is empty."""
+        from app.viewmodels.monitor_viewmodel import MonitorViewModel
+
+        question = self._question()
+        sub = self.store.create_subscription(
+            "query",
+            "Test subscription",
+            "test query",
+            research_question_id=question["id"],
+        )
+        # Create a recommendation run with this paper (no paper_metadata)
+        self.store.save_recommendation_run(
+            "2026-05-01",
+            trigger_source="test",
+            papers=[
+                {
+                    "id": "2604.99999",
+                    "title": "Title from Recommendation Run",
+                    "authors": ["Author One"],
+                    "abstract": "Abstract from recommendation run.",
+                    "categories": ["cs.LG"],
+                    "score": 7.5,
+                }
+            ],
+        )
+        self.store.upsert_subscription_hit(
+            sub["id"],
+            "2604.99999",
+            matched_reason="query match",
+        )
+
+        context = MonitorViewModel(self.store).to_template_context()
+        query_subs = [s for s in context["query_subs"] if s["id"] == sub["id"]]
+        self.assertEqual(len(query_subs), 1)
+
+        hits = query_subs[0].get("recent_hits", [])
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]["paper_id"], "2604.99999")
+        # Title should come from recommendation run, not paper_id
+        self.assertEqual(hits[0]["title"], "Title from Recommendation Run")
+
+    def test_watch_hit_title_shows_arxiv_id_when_no_metadata(self):
+        """When no metadata at all, hit title falls back to paper ID."""
+        from app.viewmodels.monitor_viewmodel import MonitorViewModel
+
+        sub = self.store.create_subscription("query", "No metadata sub", "no meta")
+        self.store.upsert_subscription_hit(
+            sub["id"],
+            "9999.88888",
+            matched_reason="no metadata",
+        )
+
+        context = MonitorViewModel(self.store).to_template_context()
+        query_subs = [s for s in context["query_subs"] if s["id"] == sub["id"]]
+        hits = query_subs[0].get("recent_hits", [])
+        self.assertGreater(len(hits), 0)
+        # Title falls back to paper_id
+        self.assertIn(hits[0]["title"], ("9999.88888", f"Paper 9999.88888"))
+
+    def test_watch_template_renders_sent_hit_inbox_disabled(self):
+        """Template renders disabled Inbox button for sent_to_inbox hits."""
+        template = Path("templates/watch.html").read_text(encoding="utf-8")
+        # The template should use hit.hit_status to disable Inbox button
+        self.assertIn("sent_to_inbox", template)
+        self.assertIn("disabled", template)
+
+    def test_watch_hit_title_uses_versioned_cache_key_when_canonical_cache_empty(self):
+        """When paper_cache.json has canonical key with empty title but versioned key has full data,
+        Watch resolves title from the versioned entry."""
+        import json
+        from unittest import mock
+        from app.viewmodels.monitor_viewmodel import MonitorViewModel
+
+        # Create a minimal paper_cache.json in the temp dir
+        cache_file = self.tmp_path / "paper_cache.json"
+        cache_file.write_text(json.dumps({
+            "2605.05770": {"title": "", "abstract": "", "authors": []},
+            "2605.05770v1": {
+                "title": "Confidence is the key: conformal prediction",
+                "abstract": "A paper about conformal prediction.",
+                "authors": ["Laura van Weesep", "Yuyao Wang"],
+            },
+        }), encoding="utf-8")
+
+        question = self._question()
+        sub = self.store.create_subscription(
+            "query", "Conformal alerts", "conformal",
+            research_question_id=question["id"],
+        )
+        self.store.upsert_subscription_hit(sub["id"], "2605.05770")
+
+        with mock.patch.object(
+            MonitorViewModel, "_resolve_path", return_value=str(cache_file)
+        ):
+            context = MonitorViewModel(self.store).to_template_context()
+
+        query_subs = [s for s in context["query_subs"] if s["id"] == sub["id"]]
+        hits = query_subs[0].get("recent_hits", [])
+        self.assertGreater(len(hits), 0)
+        self.assertEqual(hits[0]["title"], "Confidence is the key: conformal prediction")
+        self.assertIn("Laura van Weesep", hits[0].get("author_text", ""))
+
+    def test_watch_route_renders_title_not_arxiv_id_from_versioned_cache(self):
+        """The rendered /watch HTML contains the paper title, not just arXiv ID."""
+        import json
+        from unittest import mock
+        import app.routes.watch as watch_routes
+        import web_server
+
+        # Write cache file with versioned title
+        cache_file = self.tmp_path / "paper_cache.json"
+        cache_file.write_text(json.dumps({
+            "2605.05770": {"title": "", "abstract": "", "authors": []},
+            "2605.05770v1": {
+                "title": "Confidence is the key: conformal prediction",
+                "abstract": "A paper about conformal prediction.",
+                "authors": ["Laura van Weesep"],
+            },
+        }), encoding="utf-8")
+
+        from app.viewmodels.monitor_viewmodel import MonitorViewModel
+
+        question = self._question()
+        sub = self.store.create_subscription(
+            "query", "Conformal alerts", "conformal",
+            research_question_id=question["id"],
+        )
+        self.store.upsert_subscription_hit(sub["id"], "2605.05770")
+
+        with (
+            mock.patch("app.routes.watch.get_state_store", return_value=self.store),
+            mock.patch.object(MonitorViewModel, "_resolve_path", return_value=str(cache_file)),
+            mock.patch("arxiv_recommender_v5.search_by_keywords") as mock_search,
+        ):
+            response = web_server.app.test_client().get("/watch")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        # The rendered HTML must contain the title, not arXiv ID
+        self.assertIn("Confidence is the key: conformal prediction", body)
+        # The arXiv ID should NOT appear as the primary hit text
+        self.assertIn("2605.05770", body)  # may appear in data attributes
+        mock_search.assert_not_called()

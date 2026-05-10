@@ -155,6 +155,7 @@ class SearchWorkspaceRouteTests(unittest.TestCase):
     def test_search_template_uses_planner_result_counts(self):
         template = Path("templates/search_research.html").read_text(encoding="utf-8")
 
-        self.assertIn("Planner added", template)
-        self.assertIn("queued_count", template)
+        self.assertIn("plannerResult", template)
+        self.assertIn("queued", template)
+        self.assertIn("candidate_count", template)
         self.assertIn("/queue?status=Inbox", template)

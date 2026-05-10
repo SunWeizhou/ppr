@@ -14,7 +14,7 @@
     {
       label: '通用',
       items: [
-        { label: '前往今日', href: '/' },
+        { label: '前往 Inbox', href: '/queue?status=Inbox' },
         { label: '前往搜索', href: '/search' },
         { label: '前往阅读', href: '/reading' },
         { label: '前往关注', href: '/watch' },
@@ -26,8 +26,7 @@
         { label: '新建作者订阅', action: 'new-author-sub' },
         { label: '新建查询订阅', action: 'new-query-sub' },
         { label: '新建期刊订阅', action: 'new-venue-sub' },
-        { label: '完成今日', action: 'finish-today' },
-        { label: '重新生成推荐', action: 'regenerate' },
+        { label: '为当前 workspace 运行 planner', action: 'run-planner' },
         { label: '导出全部收藏 BibTeX', action: 'export-favs' },
       ]
     },
@@ -424,6 +423,24 @@
       else window.showToast('在今日页面使用此命令');
     } else if (cmd.action === 'export-favs') {
       window.location.href = '/api/export/bibtex/all';
+    } else if (cmd.action === 'run-planner') {
+      var questionIdEl = document.getElementById('researchQuestionId');
+      var questionId = questionIdEl ? questionIdEl.value : '';
+      if (!questionId) {
+        window.showToast('请先打开一个 Research Question workspace', 'error');
+        return;
+      }
+      fetch('/api/workspaces/questions/' + encodeURIComponent(questionId) + '/planner-runs', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({trigger: 'manual'})
+      }).then(function(r){return r.json();}).then(function(d){
+        var q = (d.result || {}).queued_count || 0;
+        window.showToast('Planner added ' + q + ' candidates to Inbox');
+        if (q > 0) window.location.href = '/queue?status=Inbox';
+      }).catch(function(e){
+        window.showToast('Planner run failed: ' + e.message, 'error');
+      });
     }
   }
 

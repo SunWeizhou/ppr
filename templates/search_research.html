@@ -1,6 +1,43 @@
 {% extends "base_research.html" %}
 {% import "_components.html" as ui %}
 
+{% block head %}
+{{ super() }}
+<style>
+/* Intent Card — each field full-width, label above input */
+.intent-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.intent-card .intent-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.intent-card .intent-field input,
+.intent-card .intent-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+.intent-card .intent-field textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+/* Responsive: collapse split to single column on narrow viewports */
+@media (max-width: 768px) {
+  .workspace-search-shell,
+  .split.section-gap {
+    grid-template-columns: 1fr !important;
+  }
+  .intent-card,
+  .search-side {
+    order: -1;
+  }
+}
+</style>
+{% endblock %}
+
 {% block hero %}
 <section class="page-header">
     <div class="lead">
@@ -45,11 +82,15 @@
         <aside class="card intent-card">
             <div class="section-kicker">Intent Card</div>
             <input type="hidden" id="researchQuestionId" value="{{ active_research_question_id or '' }}">
-            <label class="form-label" for="queryText">Searchable question</label>
-            <input type="text" id="queryText" class="input" value="{{ intent_card.query_text }}" placeholder="finite-sample conformal prediction under shift">
-            <label class="form-label" for="intentStatement">Intent statement</label>
-            <textarea id="intentStatement" class="input" rows="4" placeholder="What should the agent optimize for?">{{ intent_card.intent_statement }}</textarea>
-            <div class="list-stack mt-3">
+            <div class="intent-field">
+                <label for="queryText">Searchable question</label>
+                <input type="text" id="queryText" value="{{ intent_card.query_text }}" placeholder="finite-sample conformal prediction under shift">
+            </div>
+            <div class="intent-field">
+                <label for="intentStatement">Intent statement</label>
+                <textarea id="intentStatement" rows="4" placeholder="What should the agent optimize for?">{{ intent_card.intent_statement }}</textarea>
+            </div>
+            <div class="list-stack">
                 <div class="list-item">
                     <span class="list-item-title">Status</span>
                     <span class="list-item-trailing">{{ intent_card.status }}</span>
@@ -72,7 +113,7 @@
         <div>
             <div class="card workspace-brief">
                 <div class="section-kicker">Workspace Brief</div>
-                <h2 class="panel-title">{{ workspace_brief.message }}</h2>
+                <h2 class="panel-title" id="workspaceBriefMessage">{{ workspace_brief.message }}</h2>
                 {% if workspace_brief.mode == 'results' %}
                     <div class="row-tags">
                         <span class="chip brand">{{ workspace_brief.candidate_count }} candidates</span>
@@ -83,6 +124,17 @@
                 {% else %}
                     <p class="muted-copy">Create or select a research question, then search candidates for the workspace.</p>
                 {% endif %}
+                {% if papers and papers|length < 5 %}
+                <div class="info-note warn">
+                    <span>&#9888;</span>
+                    <span>Low-confidence results. Try broadening your query or using different terms.</span>
+                </div>
+                {% endif %}
+                <div id="plannerResult" class="planner-result" hidden>
+                    <div class="section-kicker">Planner Result</div>
+                    <div class="row-tags" id="plannerResultTags"></div>
+                    <p class="muted-copy" id="plannerResultDetail"></p>
+                </div>
             </div>
 
             {% if papers %}
@@ -192,10 +244,8 @@ function getSearchCard(element) {
 }
 
 function doSearch() {
-    const input = document.getElementById('keywordInput').value.trim();
-    if (!input) return;
-    const keywords = input.split(/[,，\s]+/).filter(Boolean);
-    if (!keywords.length) return;
+    const query = document.getElementById('keywordInput').value.trim();
+    if (!query) return;
 
     // Show loading feedback
     const btn = document.querySelector('.toolbar .btn-primary');
@@ -206,7 +256,7 @@ function doSearch() {
 
     // Navigate after a brief yield so the disabled state renders
     setTimeout(function () {
-        window.location.href = '/search/' + encodeURIComponent(keywords.join(','));
+        window.location.href = '/search/' + encodeURIComponent(query);
     }, 50);
 }
 
@@ -282,14 +332,16 @@ function workspaceKeywordsFromIntent() {
 }
 
 function confirmIntentAndSearch() {
-    const keywords = workspaceKeywordsFromIntent();
-    if (!keywords.length) {
+    const rawQuery = document.getElementById('queryText')?.value.trim()
+        || document.getElementById('workspacePrompt')?.value.trim()
+        || '';
+    if (!rawQuery) {
         showToast('先输入一个研究问题', 'error');
         return;
     }
     const questionId = document.getElementById('researchQuestionId')?.value || '';
     const suffix = questionId ? '?research_question_id=' + encodeURIComponent(questionId) : '';
-    window.location.href = '/search/' + encodeURIComponent(keywords.join(',')) + suffix;
+    window.location.href = '/search/' + encodeURIComponent(rawQuery) + suffix;
 }
 
 async function createWorkspaceQuestion() {
@@ -324,6 +376,8 @@ async function runWorkspacePlanner() {
         showToast('先创建或选择 Research Question', 'error');
         return;
     }
+    // Show loading
+    showToast('Running planner...');
     try {
         const payload = await requestJson('/api/workspaces/questions/' + encodeURIComponent(questionId) + '/planner-runs', {
             method: 'POST',
@@ -331,9 +385,48 @@ async function runWorkspacePlanner() {
             body: JSON.stringify({trigger: 'manual'})
         });
         const result = payload.result || {};
+        const candidate_count = result.candidate_count || 0;
         const queued = result.queued_count || 0;
-        showToast('Planner added ' + queued + ' candidates to Inbox');
-        window.location.href = '/queue?status=Inbox';
+        const analysis_count = result.analysis_count || 0;
+        const degraded = result.degraded_phase || null;
+        const failure_reason = result.failure_reason || null;
+
+        // Populate planner result section
+        var plannerDiv = document.getElementById('plannerResult');
+        if (plannerDiv) {
+            plannerDiv.hidden = false;
+            var tags = document.getElementById('plannerResultTags');
+            if (tags) {
+                tags.innerHTML =
+                    '<span class="chip brand">' + candidate_count + ' candidates</span>' +
+                    '<span class="chip">' + queued + ' queued</span>' +
+                    '<span class="chip">' + analysis_count + ' analyzed</span>' +
+                    (degraded ? '<span class="chip is-warn">degraded: ' + degraded + '</span>' : '') +
+                    (failure_reason ? '<span class="chip is-warn">' + failure_reason + '</span>' : '');
+            }
+            var detail = document.getElementById('plannerResultDetail');
+            if (detail) {
+                detail.textContent = failure_reason
+                    ? 'Planner completed with issues. ' + failure_reason
+                    : (queued > 0
+                        ? queued + ' papers routed to Inbox for triage.'
+                        : 'No candidates were queued. Try broadening your query or checking subscriptions.');
+            }
+        }
+
+        if (queued > 0) {
+            showToast('Planner: ' + queued + ' candidates added to Inbox');
+            setTimeout(function() { window.location.href = '/queue?status=Inbox'; }, 1500);
+        } else {
+            showToast('Planner: no candidates queued. ' + (failure_reason || 'Try broadening your query.'));
+            // Update workspace brief
+            var briefMsg = document.getElementById('workspaceBriefMessage');
+            if (briefMsg) {
+                briefMsg.textContent = failure_reason
+                    ? 'Planner encountered issues: ' + failure_reason
+                    : 'No candidates found. Try broadening your query with different terms.';
+            }
+        }
     } catch (error) {
         showToast('Planner run failed: ' + error.message, 'error');
     }

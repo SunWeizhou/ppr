@@ -6,7 +6,8 @@
 
 {% block hero %}
 <div class="page-header">
-    <a href="/queue?status=Inbox" class="back-link">&larr; 返回 Inbox</a>
+    {% set back_rq = paper.get('active_research_question_id') %}
+    <a href="{% if back_rq %}/search?research_question_id={{ back_rq }}{% else %}/queue?status=Inbox{% endif %}" class="back-link">&larr; {% if back_rq %}返回 Search 工作区{% else %}返回 Inbox{% endif %}</a>
 </div>
 {% endblock %}
 
@@ -115,11 +116,12 @@
                     <div class="evidence-center-head">
                         <h3 class="panel-title">Evidence-Linked Claims</h3>
                         {% set evidence_summary = paper.get('evidence_summary') or {} %}
-                        <span class="chip">{{ evidence_summary.get('total', 0) }} claims</span>
+                        {% set ec = paper.get('evidence_claims') %}
+                        <span class="chip">{{ evidence_summary.get('total', ec|length if ec else 0) }} claims</span>
                     </div>
-                    {% if paper.get('evidence_claims') %}
+                    {% if ec %}
                     <div class="evidence-claim-list">
-                        {% for claim in paper.get('evidence_claims', []) %}
+                        {% for claim in ec %}
                         <article class="evidence-claim-card">
                             <div class="evidence-claim-meta">
                                 <span class="tag">{{ claim.get('claim_type', 'factual') }}</span>
@@ -136,8 +138,17 @@
                         </article>
                         {% endfor %}
                     </div>
+                    {% elif not has_ai and paper.get('active_research_question') %}
+                    <p class="empty-state" id="evidenceClaimsPlaceholder">
+                        No evidence could be extracted from this abstract — the paper metadata may be too sparse for rule-based matching.
+                    </p>
+                    {% elif not has_ai %}
+                    <p class="empty-state" id="evidenceClaimsPlaceholder">
+                        Rule-based evidence claims are only generated when a research question context is active.
+                        <a href="/search">Create or select a research question</a>.
+                    </p>
                     {% else %}
-                    <p class="empty-state" id="evidenceClaimsPlaceholder">No evidence claims have been generated for this paper yet.</p>
+                    <p class="empty-state" id="evidenceClaimsPlaceholder">No evidence claims generated yet. Run AI analysis to generate claims.</p>
                     {% endif %}
                 </div>
 

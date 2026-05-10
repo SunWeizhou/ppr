@@ -16,10 +16,10 @@ class PaperDetailEvidenceViewModelTests(unittest.TestCase):
         self.store.save_paper_metadata(
             self.paper_id,
             {
-                "title": "Evidence Center Paper",
-                "abstract": "This paper studies conformal prediction under distribution shift.",
+                "title": "Evidence Center Paper on Conformal Prediction",
+                "abstract": "This paper studies conformal prediction under distribution shift with finite-sample guarantees.",
                 "authors": ["Alice"],
-                "categories": ["stat.ML"],
+                "categories": ["stat.ML", "math.ST"],
             },
         )
         self.question = self.store.create_research_question(
@@ -92,6 +92,45 @@ class PaperDetailEvidenceViewModelTests(unittest.TestCase):
         self.assertEqual(paper["active_research_question_id"], self.question["id"])
         self.assertEqual(paper["decision_context"], "Core paper for this workspace.")
         self.assertEqual(paper["workspace_context"]["source"], "queue")
+
+    def test_detail_generates_rule_evidence_without_ai_and_active_question(self):
+        """Without AI provider + with active question → rule-based claims appear."""
+        from app.viewmodels.paper_viewmodel import PaperViewModel
+
+        def fake_has_ai():
+            return False
+
+        with mock.patch.object(
+            PaperViewModel, "_has_ai_configured", return_value=False
+        ):
+            ctx = PaperViewModel(self.store).to_detail_context(
+                self.paper_id,
+                research_question_id=self.question["id"],
+            )
+
+        paper = ctx["paper"]
+        self.assertEqual(ctx["has_ai"], False)
+        self.assertEqual(paper["active_research_question_id"], self.question["id"])
+        # Should have generated rule-based claims
+        self.assertGreater(len(paper["evidence_claims"]), 0,
+                           "Expected rule-based evidence claims when no AI but active question exists")
+        # At least one claim should be analyst=rule
+        rule_claims = [c for c in paper["evidence_claims"] if c.get("analyst") == "rule"]
+        self.assertGreater(len(rule_claims), 0)
+        # evidence_summary should reflect the claims
+        self.assertGreater(paper["evidence_summary"]["total"], 0)
+
+    def test_detail_has_ai_false_when_no_provider_configured(self):
+        """has_ai context flag reflects AI provider status."""
+        from app.viewmodels.paper_viewmodel import PaperViewModel
+
+        with mock.patch.object(
+            PaperViewModel, "_has_ai_configured", return_value=False
+        ):
+            ctx = PaperViewModel(self.store).to_detail_context(self.paper_id)
+
+        self.assertEqual(ctx["has_ai"], False)
+        self.assertIn("paper", ctx)
 
 
 class PaperDetailEvidenceRouteTests(unittest.TestCase):
