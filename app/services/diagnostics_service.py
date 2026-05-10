@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 
@@ -92,3 +93,46 @@ def build_recommendation_health(
             "feedback_model_auc": None,
             "zotero": {"enabled": False, "configured_path": "", "path_exists": False},
         }
+
+
+def build_system_diagnostics(state_store: Any, *, ai_context: dict | None = None) -> dict[str, Any]:
+    from config_manager import CONFIG_FILE
+    from state_store import QUEUE_STATUS_VALUES
+
+    queue_counts = {status: 0 for status in QUEUE_STATUS_VALUES}
+    for item in state_store.list_queue_items():
+        status = item.get("status")
+        if status in queue_counts:
+            queue_counts[status] += 1
+
+    questions = state_store.list_research_questions(limit=1000)
+    subscriptions = state_store.list_subscriptions()
+    latest_job = None
+    for job_type in ("workspace_planner", "daily_recommendation"):
+        job = state_store.get_latest_job(job_type)
+        if job and (latest_job is None or str(job.get("updated_at", "")) > str(latest_job.get("updated_at", ""))):
+            latest_job = job
+
+    profile_path = Path(CONFIG_FILE)
+    return {
+        "product_name": "Agent Literature Research Assistant",
+        "profile": {
+            "path": str(profile_path),
+            "exists": profile_path.exists(),
+        },
+        "ai": ai_context or {},
+        "workspace": {
+            "research_question_count": len(questions),
+            "active_question_count": sum(1 for q in questions if q.get("status") == "active"),
+            "subscription_count": len(subscriptions),
+            "queue_counts": queue_counts,
+            "queue_total": sum(queue_counts.values()),
+        },
+        "jobs": {
+            "latest": latest_job,
+            "latest_status": latest_job.get("status") if latest_job else "idle",
+        },
+        "data": {
+            "state_store_type": state_store.__class__.__name__,
+        },
+    }

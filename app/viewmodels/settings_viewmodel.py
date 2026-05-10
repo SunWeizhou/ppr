@@ -7,25 +7,11 @@ from __future__ import annotations
 
 import os
 
+from app.services.ai_settings_service import build_ai_settings_context
+from app.services.diagnostics_service import build_system_diagnostics
 from app.services.feedback_service import FeedbackService
 from app.viewmodels.shared import assemble_page_context
 from state_store import QUEUE_STATUS_VALUES
-
-
-def _mask_api_key(key: str) -> str:
-    """Return a masked version of an API key — show only last 4 chars.
-
-    Examples:
-        "sk-test-abc-123456" → "sk-...3456"
-        "short" → "****"
-        "" → ""
-    """
-    if not key:
-        return ""
-    key = key.strip()
-    if len(key) <= 6:
-        return key[:2] + "****" if len(key) > 2 else "****"
-    return key[:3] + "..." + key[-4:]
 
 
 class SettingsViewModel:
@@ -142,17 +128,7 @@ class SettingsViewModel:
                 "auto_detect": config._zotero.auto_detect,
                 "database_path": config._zotero.database_path,
             }
-            ai_config = config.get_ai_config()
-            # Mask the API key so it never renders in full in the DOM
-            raw_key = ai_config.get("api_key", "") or ""
-            if raw_key:
-                ai_config["api_key"] = _mask_api_key(raw_key)
-                ai_config["api_key_mask"] = True
-            else:
-                ai_config["api_key_mask"] = False
-            # Check if env var provides the key
-            import os
-            ai_config["using_env_var"] = bool(os.environ.get("STATDESK_AI_API_KEY"))
+            ai_config = build_ai_settings_context(config.get_ai_config())
         except Exception:
             core_keywords = []
             papers_per_day = 20
@@ -163,23 +139,28 @@ class SettingsViewModel:
                 "lookback_days": 14,
             }
             zotero = {"enabled": True, "auto_detect": True, "database_path": ""}
-            ai_config = {
+            ai_config = build_ai_settings_context({
                 "provider": "none",
                 "api_key": "",
                 "base_url": "https://api.deepseek.com",
                 "model": "deepseek-chat",
                 "enabled": False,
-            }
+            })
 
         page_context = self._build_page_context("settings")
+        system_diagnostics = build_system_diagnostics(
+            self._store,
+            ai_context=ai_config,
+        )
 
         return {
-            "title": "Settings - arXiv Recommender",
+            "title": "Settings - Agent Literature Research Assistant",
             "tab": tab,
             "core_keywords": core_keywords,
             "papers_per_day": papers_per_day,
             "sources": sources,
             "zotero": zotero,
             "ai_config": ai_config,
+            "system_diagnostics": system_diagnostics,
             **page_context,
         }

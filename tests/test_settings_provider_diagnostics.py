@@ -174,3 +174,35 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
         self.assertTrue(payload["success"])
         self.assertNotIn("sk-env-secret", json.dumps(payload))
         mock_request.assert_called_once()
+
+    def test_settings_viewmodel_includes_system_diagnostics(self):
+        from app.viewmodels.settings_viewmodel import SettingsViewModel
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            question = store.create_research_question(
+                query_text="conformal prediction",
+                intent_statement="Track conformal prediction.",
+            )
+            store.create_subscription(
+                "query",
+                "Conformal alerts",
+                "conformal prediction",
+                research_question_id=question["id"],
+            )
+            store.upsert_queue_item(
+                "2604.55555",
+                "Inbox",
+                source="test",
+                research_question_id=question["id"],
+            )
+
+            context = SettingsViewModel(store).to_template_context(tab="diagnostics")
+
+        diagnostics = context["system_diagnostics"]
+        self.assertEqual(diagnostics["product_name"], "Agent Literature Research Assistant")
+        self.assertEqual(diagnostics["workspace"]["research_question_count"], 1)
+        self.assertEqual(diagnostics["workspace"]["subscription_count"], 1)
+        self.assertEqual(diagnostics["workspace"]["queue_counts"]["Inbox"], 1)
+        self.assertIn("ai", diagnostics)
+        self.assertIn("data", diagnostics)
