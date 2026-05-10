@@ -230,15 +230,12 @@ def save_ai_settings():
     data = request.get_json() or {}
     try:
         from config_manager import get_config
+        from app.services.ai_settings_service import apply_ai_settings_payload
 
-        cm = get_config()
-        cm._ai.provider = str(data.get("provider", cm._ai.provider)).strip() or "none"
-        cm._ai.api_key = str(data.get("api_key", "")).strip()
-        cm._ai.base_url = str(data.get("base_url", cm._ai.base_url)).strip() or "https://api.deepseek.com"
-        cm._ai.model = str(data.get("model", cm._ai.model)).strip() or "deepseek-chat"
-        cm._ai.enabled = bool(data.get("enabled", cm._ai.enabled))
-        cm.save()
-        return jsonify({"success": True})
+        context = apply_ai_settings_payload(get_config(), data)
+        return jsonify({"success": True, "ai": context})
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
     except Exception as exc:
         return jsonify({"success": False, "error": str(exc)}), 500
 
@@ -247,8 +244,19 @@ def save_ai_settings():
 def test_ai_connection():
     """Test the AI provider connection with submitted config."""
     data = request.get_json() or {}
-    provider_name = str(data.get("provider", "none")).strip().lower()
-    api_key = str(data.get("api_key", "")).strip()
+    try:
+        from config_manager import get_config
+        from app.services.ai_settings_service import (
+            normalize_provider,
+            resolve_test_api_key,
+        )
+
+        provider_name = normalize_provider(data.get("provider", "none"))
+        current_ai = get_config().get_ai_config()
+        api_key = resolve_test_api_key(data, current_ai)
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
+
     base_url = str(data.get("base_url", "https://api.deepseek.com")).strip()
     model = str(data.get("model", "deepseek-chat")).strip()
 
@@ -292,8 +300,10 @@ def test_ai_connection():
     except Exception as exc:
         import logging as _logging
 
-        _logging.getLogger(__name__).warning(f"AI connection test failed: {exc}")
-        return jsonify({"success": False, "error": str(exc)}), 502
+        api_key_safe = api_key or ""
+        error_text = str(exc).replace(api_key_safe, "[redacted]") if api_key_safe else str(exc)
+        _logging.getLogger(__name__).warning(f"AI connection test failed: {error_text}")
+        return jsonify({"success": False, "error": error_text}), 502
 
 
 # ---------------------------------------------------------------------------
@@ -434,7 +444,7 @@ def save_onboarding():
             cm._zotero.database_path = zotero_path
 
         # AI config
-        if ai_provider and ai_provider in ("deepseek", "openai_compat"):
+        if ai_provider == "deepseek":
             ai_enabled = bool(ai_api_key)
             cm._ai.provider = ai_provider
             cm._ai.api_key = ai_api_key
@@ -456,22 +466,34 @@ def save_onboarding():
 
         # Create the first saved search / query subscription for the research question
         saved_search_id = None
+        research_question_id = None
         if first_query:
             try:
+                question = _current_state_store().create_research_question(
+                    query_text=first_query,
+                    intent_statement=f"Track literature related to: {first_query}",
+                    source="manual",
+                )
+                research_question_id = question.get("id") if question else None
+
                 ss = _current_state_store().create_saved_search(
                     first_query,
                     first_query,
                     filters={"description": "Created during onboarding"},
                 )
                 saved_search_id = ss.get("id") if ss else None
-                # Also create a subscription for unified model
-                if saved_search_id:
-                    _current_state_store().create_subscription(
-                        type="query",
-                        name=first_query,
-                        query_text=first_query,
-                        payload_json={"filters": {}, "description": "Created during onboarding", "legacy_id": saved_search_id},
-                    )
+
+                _current_state_store().create_subscription(
+                    type="query",
+                    name=first_query,
+                    query_text=first_query,
+                    payload_json={
+                        "filters": {},
+                        "description": "Created during onboarding",
+                        "legacy_id": saved_search_id,
+                    },
+                    research_question_id=research_question_id,
+                )
             except Exception:
                 pass  # Non-critical; the profile is already saved
 
@@ -479,6 +501,7 @@ def save_onboarding():
             "success": True,
             "message": "Profile saved successfully",
             "saved_search_id": saved_search_id,
+            "research_question_id": research_question_id,
         })
 
     except Exception as exc:

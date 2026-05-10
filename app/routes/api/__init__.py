@@ -26,6 +26,7 @@ from . import keywords  # noqa: F401
 from . import inbox  # noqa: F401
 from . import evaluation  # noqa: F401
 from . import paper  # noqa: F401
+from . import workspaces  # noqa: F401
 
 # Re-export selected route functions for test backward compat
 # (tests and inspector reference api_routes.manage_queue etc.)

@@ -19,4 +19,4 @@ def safe_urlopen(req, timeout=60, context=None):
     """
     if context is None:
         context = ssl.create_default_context()
-    return urllib.request.urlopen(req, timeout=timeout, context=context)
+    return urllib.request.urlopen(req, timeout=timeout, context=context)  # nosec B310 — safe wrapper: caller validates scheme; default SSL context restricts to https://

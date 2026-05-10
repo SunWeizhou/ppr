@@ -41,7 +41,7 @@ jobs:
           echo "count=$count" >> "$GITHUB_OUTPUT"
           if [ "$count" -eq 0 ]; then
             echo "::warning::No goldens in tests/visual/golden/. Skipping visual tests."
-            echo "::warning::Generate them with: git checkout ui-v1.0 && python tests/visual/regenerate_goldens.py"
+            echo "::warning::Generate them from the approved visual baseline with: python tests/visual/regenerate_goldens.py"
           else
             echo "Found $count golden(s)."
           fi

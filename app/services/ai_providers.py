@@ -215,7 +215,7 @@ class DeepSeekProvider:
         data = json.dumps(payload).encode("utf-8")
         request = urllib.request.Request(url, data=data, headers=headers, method="POST")
         try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
+            with urllib.request.urlopen(request, timeout=timeout) as response:  # nosec B310 — DeepSeek API, fixed URL with https://
                 return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
@@ -255,8 +255,9 @@ class DeepSeekProvider:
 
 
 def build_ai_provider_from_env():
-    # 1) Check environment variables first (backward compatible)
-    api_key = os.getenv("DEEPSEEK_API_KEY")
+    # 1) Check environment variables first. STATDESK_AI_API_KEY is the
+    # product-level name; DEEPSEEK_API_KEY remains backward compatible.
+    api_key = os.getenv("STATDESK_AI_API_KEY") or os.getenv("DEEPSEEK_API_KEY")
     if api_key:
         return DeepSeekProvider(
             api_key=api_key,

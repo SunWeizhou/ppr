@@ -95,7 +95,7 @@
         {% if is_today %}
         {{ empty_state('No Recommendations Yet', 'Generate your first set of paper recommendations.', '📄', '<a href="/settings?tab=profile" class="btn btn-primary">Configure Keywords</a>') }}
         {% else %}
-        {{ empty_state('No Papers on This Date', 'No recommendations were found for this date.', '📄', '<a href="/" class="btn btn-primary">Go to Today</a>') }}
+        {{ empty_state('No Papers on This Date', 'No recommendations were found for this date.', '📄', '<a href="/queue?status=Inbox" class="btn btn-primary">Go to Inbox</a>') }}
         {% endif %}
     {% endif %}
 
@@ -113,10 +113,9 @@ document.addEventListener('DOMContentLoaded', function() {
       if (btn) {
         var action = btn.dataset.action;
         var paperId = btn.dataset.paper;
-        if (action === 'skim') queuePaper(paperId, 'Skim Later');
-        else if (action === 'deepread') queuePaper(paperId, 'Deep Read');
-        else if (action === 'save') queuePaper(paperId, 'Saved');
-        else if (action === 'pass') submitPaperFeedback(paperId, 'dislike');
+        var statusMap = {skim: 'Skim Later', deepread: 'Deep Read', save: 'Saved', pass: null};
+        var status = statusMap[action];
+        triageAction(paperId, action, status);
         return;
       }
       // Click outside buttons/links → navigate to paper detail

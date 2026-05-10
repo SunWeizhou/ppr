@@ -1,32 +1,23 @@
 # Deployment Guide
 
-arXiv Recommender is a local-first application. Three deployment options:
+Agent Literature Research Assistant is a local-first application. Three
+deployment options are supported.
 
-## Option 1: Source Run (recommended for daily use)
+## Option 1: Source Run
 
-### Install & Start
+Recommended for daily local use.
+
 ```bash
 git clone <repo-url> && cd arxiv_recommender
 bash scripts/start_local.sh
 ```
 
-### Usage
-- Open http://localhost:5555
-- Complete onboarding wizard
-- Generate your first recommendations
+Open http://localhost:5555, complete onboarding, then run a search or generate
+recommendations.
 
-### Stop
-Press `Ctrl+C` in the terminal.
+Stop with `Ctrl+C`.
 
-### Backup
-Settings → System tab → Backup Now
-
-### Restore
-Settings → System tab → Restore from Backup
-
----
-
-## Option 2: pip install
+## Option 2: pip Install
 
 ```bash
 pip install .
@@ -34,8 +25,6 @@ arxiv-recommender
 ```
 
 Open http://localhost:5555.
-
----
 
 ## Option 3: Docker
 
@@ -45,46 +34,66 @@ docker compose up
 
 Open http://localhost:5555.
 
-### Stop
+Stop with:
+
 ```bash
 docker compose down
 ```
 
----
-
 ## Configuration
 
-### DeepSeek AI Analysis
-1. Go to Settings → System tab → AI Analysis section
-2. Select "DeepSeek" as provider
-3. Enter your API key, base URL (`https://api.deepseek.com`), and model (`deepseek-chat`)
-4. Click "Save" then "Test Connection"
+### AI Analysis
 
-The app works fully without AI analysis — this feature is optional.
+AI analysis is optional. The core workflow should function without an API key.
+
+1. Go to Settings.
+2. Open the AI provider or diagnostics section.
+3. Select the provider, base URL, and model.
+4. Enter the API key.
+5. Save and test the connection.
+
+### Backup and Restore
+
+- Backup: Settings -> diagnostics or system tools -> Backup.
+- Restore: Settings -> diagnostics or system tools -> Restore.
+- Database maintenance: Settings -> diagnostics or system tools -> Vacuum
+  Database.
 
 ### Data Locations
+
 | File / Directory | Purpose |
-|-----------------|---------|
-| `user_profile.json` | Keywords and preferences |
-| `user_config.json` | App configuration |
-| `keywords_config.json` | Keyword weights |
-| `cache/app_state.db` | SQLite primary state (recommendations, queue, collections, subscriptions) |
+| --- | --- |
+| `user_profile.json` | Keywords, preferences, and local profile |
+| `user_config.json` | Compatibility app configuration |
+| `keywords_config.json` | Compatibility keyword weights |
+| `cache/app_state.db` | SQLite primary state |
 | `reports/` | Evaluation reports |
 | `history/` | Digest markdown history |
 
 ## Troubleshooting
 
-### "No recommendations generated"
-1. Check Settings → Profile tab — ensure core keywords are configured
-2. Verify your network can reach arxiv.org
-3. Try: Settings → Profile → Save and Regenerate
+### No recommendations generated
 
-### "AI Analysis not working"
-1. Verify API key in Settings → System → AI Analysis
-2. Use the "Test Connection" button to verify
-3. The app works fine without AI — this is optional
+1. Check Settings -> Profile and confirm core keywords exist.
+2. Verify the machine can reach arxiv.org.
+3. Use Settings -> Profile to save changes and regenerate recommendations.
+
+### Search returns no candidates
+
+1. Try a shorter query with concrete method or task keywords.
+2. Check network access to arxiv.org.
+3. Inspect logs for arXiv API errors.
+
+### AI analysis not working
+
+1. Verify the provider, base URL, model, and API key in Settings.
+2. Use the connection test.
+3. Continue without AI if needed; the app should fall back to abstracts and
+   rule-based explanations.
 
 ### Database errors
-1. Go to Settings → System
-2. Click "Vacuum Database"
-3. If still broken, delete `cache/app_state.db` (it will be recreated — you'll lose recommendation history but keep keyword profiles)
+
+1. Use Settings -> diagnostics or system tools -> Vacuum Database.
+2. Back up local files before manual repair.
+3. If needed, remove `cache/app_state.db`; it will be recreated, but local
+   workflow history in that database will be lost.

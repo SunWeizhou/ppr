@@ -63,9 +63,9 @@
 
   async function confirmRefreshToday() {
     const ok = await confirmDangerAction({
-      title: '刷新今日推荐',
+      title: '刷新 Inbox 候选',
       objectName: 'Today scoring cache',
-      message: '这会重新运行今日推荐生成，可能覆盖当前今日排序快照。Queue、Collection 和反馈状态会保留。',
+      message: '这会重新运行候选生成，可能更新当前 Inbox 排序。Queue、Reading 和反馈状态会保留。',
       confirmLabel: 'Refresh today'
     });
     if (ok) {

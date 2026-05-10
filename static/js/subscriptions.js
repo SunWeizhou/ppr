@@ -147,7 +147,7 @@
     const ok = await confirmDangerAction({
       title: '移除关注学者',
       objectName: target.name,
-      message: '这会停止在 Monitor 中追踪该学者，但不会删除已保存论文、Queue 状态或历史记录。',
+      message: '这会停止在 Watch 中追踪该学者，但不会删除已保存论文、Queue 状态或历史记录。',
       confirmLabel: 'Remove author'
     });
     if (!ok) return;
@@ -199,6 +199,69 @@
     }
   }
 
+  function updateHitRow(button, statusLabel) {
+    var row = button && button.closest ? button.closest('[data-hit-id]') : null;
+    if (!row) return;
+    row.setAttribute('data-hit-status', statusLabel);
+    var chip = row.querySelector('.js-hit-status');
+    if (chip) chip.textContent = statusLabel;
+    // Disable the clicked button; for sent_to_inbox also disable Inbox
+    var inboxBtns = row.querySelectorAll('button');
+    inboxBtns.forEach(function(btn) {
+      if (statusLabel === 'sent_to_inbox' && btn.textContent.trim() === 'Inbox') {
+        btn.disabled = true;
+      } else if (btn === button) {
+        btn.disabled = true;
+      }
+    });
+    // Update subscription card stats (search sibling cards)
+    var subCard = row.closest('.watch-sub-card');
+    if (subCard && statusLabel === 'sent_to_inbox') {
+      var undecidedChip = subCard.querySelector('.chip:first-child');
+      if (undecidedChip && undecidedChip.textContent.indexOf('Inbox') > -1) {
+        var match = undecidedChip.textContent.match(/(\d+)/);
+        if (match) {
+          var val = parseInt(match[1], 10);
+          if (val > 0) undecidedChip.textContent = (val - 1) + ' Inbox';
+        }
+      }
+    }
+  }
+
+  async function sendHitToInbox(hitId, button) {
+    try {
+      var resp = await fetch('/api/subscription-hits/' + hitId + '/send-to-inbox', {
+        method: 'POST'
+      });
+      var data = await resp.json();
+      if (data.success) {
+        updateHitRow(button, 'sent_to_inbox');
+        if (typeof window.showToast === 'function') window.showToast('已加入 Inbox');
+      } else if (typeof window.showToast === 'function') {
+        window.showToast('加入 Inbox 失败', 'error');
+      }
+    } catch(e) {
+      if (typeof window.showToast === 'function') window.showToast('加入 Inbox 失败', 'error');
+    }
+  }
+
+  async function ignoreSubscriptionHit(hitId, button) {
+    try {
+      var resp = await fetch('/api/subscription-hits/' + hitId + '/ignore', {
+        method: 'POST'
+      });
+      var data = await resp.json();
+      if (data.success) {
+        updateHitRow(button, 'ignored');
+        if (typeof window.showToast === 'function') window.showToast('已忽略');
+      } else if (typeof window.showToast === 'function') {
+        window.showToast('忽略失败', 'error');
+      }
+    } catch(e) {
+      if (typeof window.showToast === 'function') window.showToast('忽略失败', 'error');
+    }
+  }
+
   function editSubscription(subId) {
     window.location.href = '/settings?tab=subscriptions&edit=' + subId;
   }
@@ -216,6 +279,8 @@
     createVenueSubscription: openVenueSubscriptionModal,
     runSubscription: runSubscription,
     runAllSubscriptions: runAllSubscriptions,
-    editSubscription: editSubscription
+    editSubscription: editSubscription,
+    sendHitToInbox: sendHitToInbox,
+    ignoreSubscriptionHit: ignoreSubscriptionHit
   });
 })();

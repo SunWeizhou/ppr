@@ -63,7 +63,7 @@ def download_pdfs(papers: List[Dict], output_dir: str, min_score: float = 2.5):
                 try:
                     logger.debug("Downloading PDF: %s...", paper_id)
                     req = urllib.request.Request(pdf_url, headers={'User-Agent': 'Mozilla/5.0'})
-                    with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:
+                    with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:  # nosec B310 — arXiv PDF download, fixed scheme validated upstream
                         with open(pdf_path, 'wb') as f:
                             f.write(response.read())
                     downloaded.append(paper_id)

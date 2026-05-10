@@ -18,6 +18,17 @@ logger = get_logger(__name__)
 bp = Blueprint("inbox", __name__)
 
 
+def _request_research_question_id() -> int | None:
+    raw = request.args.get("research_question_id") or request.args.get("question_id")
+    if not raw:
+        return None
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return value if value > 0 else None
+
+
 # ---------------------------------------------------------------------------
 # Inbox / home page
 # ---------------------------------------------------------------------------
@@ -25,16 +36,21 @@ bp = Blueprint("inbox", __name__)
 
 @bp.get("/")
 def index():
-    """Render the inbox home page, auto-generating if today has no data."""
-    store = get_state_store()
-    vm = InboxViewModel(store)
-
-    # Onboarding guard
+    """Redirect to the workspace Inbox."""
+    # Onboarding guard (must run before redirect)
     if not request.args.get("skip_onboarding"):
         from config_manager import CONFIG_FILE
 
         if not CONFIG_FILE.exists():
             return redirect("/onboarding")
+    return redirect("/queue?status=Inbox")
+
+
+@bp.get("/daily")
+def daily_page():
+    """Legacy daily triage page (moved from / for workspace-first nav)."""
+    store = get_state_store()
+    vm = InboxViewModel(store)
 
     dates = InboxViewModel.get_available_dates()
     today = datetime.now().strftime("%Y-%m-%d")
@@ -141,7 +157,10 @@ def paper_detail(paper_id):
     from app.viewmodels.paper_viewmodel import PaperViewModel
     store = get_state_store()
     vm = PaperViewModel(store)
-    context = vm.to_detail_context(paper_id)
+    context = vm.to_detail_context(
+        paper_id,
+        research_question_id=_request_research_question_id(),
+    )
     if "error" in context:
         return render_template("paper_detail.html", **context), 404
     return render_template("paper_detail.html", **context)
@@ -157,18 +176,38 @@ def search_page():
     """Render an empty search page."""
     store = get_state_store()
     vm = SearchViewModel(store)
-    return render_template("search_research.html", **vm.to_template_context([], []))
+    return render_template(
+        "search_research.html",
+        **vm.to_template_context(
+            [],
+            [],
+            research_question_id=_request_research_question_id(),
+        ),
+    )
 
 
 @bp.get("/search/<path:keywords>")
 def search_keywords(keywords):
     """Search papers by custom keywords and render results."""
-    keyword_list = [k.strip() for k in keywords.replace("/", ",").split(",") if k.strip()]
+    raw = keywords.replace("/", ",")
+    keyword_list = []
+    for part in raw.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        keyword_list.extend(k.strip() for k in part.split() if k.strip())
 
     if not keyword_list:
         store = get_state_store()
         vm = SearchViewModel(store)
-        return render_template("search_research.html", **vm.to_template_context([], []))
+        return render_template(
+            "search_research.html",
+            **vm.to_template_context(
+                [],
+                [],
+                research_question_id=_request_research_question_id(),
+            ),
+        )
 
     try:
         from arxiv_recommender_v5 import search_by_keywords
@@ -186,5 +225,38 @@ def search_keywords(keywords):
         )
 
     store = get_state_store()
+    research_question_id = _request_research_question_id()
+    source_run_id = (
+        f"research-question-{research_question_id}"
+        if research_question_id
+        else "ad-hoc-search"
+    )
+    # Save search-result metadata so /papers/<id> can find these papers
+    for paper in papers:
+        pid = paper.get("paper_id") or paper.get("id") or ""
+        if pid:
+            store.save_paper_metadata(
+                pid,
+                {
+                    "title": paper.get("title", ""),
+                    "abstract": paper.get("abstract") or paper.get("summary", ""),
+                    "authors": paper.get("authors", []),
+                    "categories": paper.get("categories", []),
+                    "published_at": paper.get("published_at") or paper.get("date", ""),
+                    "link": paper.get("link") or paper.get("source_url", ""),
+                    "score": paper.get("score", 0),
+                    "relevance_reason": paper.get("relevance_reason", paper.get("relevance", "")),
+                },
+                source="search_workspace" if research_question_id else "search",
+                source_run_id=source_run_id,
+            )
     vm = SearchViewModel(store)
-    return render_template("search_research.html", **vm.to_template_context(papers, keyword_list))
+    return render_template(
+        "search_research.html",
+        **vm.to_template_context(
+            papers,
+            keyword_list,
+            research_question_id=research_question_id,
+            raw_query=keywords,
+        ),
+    )

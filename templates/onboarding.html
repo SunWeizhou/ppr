@@ -229,7 +229,7 @@
   <div class="lead">
     <span class="section-kicker">Welcome</span>
     <h1 class="page-title">Set Up Your Research Desk</h1>
-    <p class="muted-copy">Tell StatDesk what you care about so it can find the right papers for you. This takes about 2 minutes.</p>
+    <p class="muted-copy">Tell Research Assistant what you care about so it can find the right papers for you. This takes about 2 minutes.</p>
   </div>
 </section>
 {% endblock %}
@@ -315,7 +315,7 @@
         <div>
           <div class="section-kicker">Step 2 of 5</div>
           <h2 class="panel-title">Daily Paper Count</h2>
-          <p class="muted-copy">How many new papers would you like StatDesk to surface each day?</p>
+          <p class="muted-copy">How many new papers would you like Research Assistant to surface each day?</p>
         </div>
       </div>
 
@@ -353,7 +353,7 @@
         <label class="field-label" for="zoteroPath">Zotero Database Path</label>
         <input class="form-input" id="zoteroPath" type="text"
           placeholder="e.g., /Users/you/Zotero/zotero.sqlite or leave blank for auto-detection">
-        <p class="wizard-field-help">Find this in Zotero: Preferences &rarr; Advanced &rarr; Files and Folders &rarr; Data Directory Location. StatDesk reads your library to learn what papers you already care about.</p>
+        <p class="wizard-field-help">Find this in Zotero: Preferences &rarr; Advanced &rarr; Files and Folders &rarr; Data Directory Location. Research Assistant reads your library to learn what papers you already care about.</p>
       </div>
 
       <div class="wizard-nav">
@@ -380,7 +380,6 @@
         <select class="form-input" id="aiProvider" onchange="toggleAiFields()">
           <option value="">None (skip AI analysis)</option>
           <option value="deepseek">DeepSeek</option>
-          <option value="openai_compat">OpenAI-Compatible API</option>
         </select>
         <p class="wizard-field-help">AI analysis explains why a paper matters for your research and can summarize key findings. This is optional and can be configured later.</p>
       </div>
@@ -425,7 +424,7 @@
         <label class="field-label" for="firstQuery">Research Question Query</label>
         <input class="form-input" id="firstQuery" type="text"
           placeholder="e.g., GraphRAG compression, conformal prediction under distribution shift, transformer in-context learning theory">
-        <p class="wizard-field-help">This creates a Monitor subscription. StatDesk will track new arXiv papers matching this query and surface them in your daily digest. You can add more queries later.</p>
+        <p class="wizard-field-help">This creates a Research Question and a Watch subscription. New matching papers will appear in your workspace Inbox for triage.</p>
       </div>
 
       <!-- Review summary -->
@@ -639,10 +638,13 @@
         card.innerHTML = '<div class="wizard-success">' +
           '<div class="wizard-success-icon">&#10003;</div>' +
           '<h2 class="panel-title">Setup Complete</h2>' +
-          '<p class="muted-copy" style="margin-top:8px;">Your research desk is ready. Redirecting to your inbox...</p>' +
+          '<p class="muted-copy" style="margin-top:8px;">Your research desk is ready. Redirecting to your workspace...</p>' +
           '</div>';
         setTimeout(function() {
-          window.location.href = '/';
+          var dest = data.research_question_id
+            ? '/search?research_question_id=' + data.research_question_id
+            : '/queue?status=Inbox';
+          window.location.href = dest;
         }, 1500);
       } else {
         finishBtn.disabled = false;

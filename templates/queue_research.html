@@ -4,8 +4,8 @@
 {% block hero %}
 <section class="page-header">
     <div class="lead">
-        <span class="section-kicker">Reading Flow</span>
-        <h1 class="page-title">Queue</h1>
+        <span class="section-kicker">Candidate Decision Workbench</span>
+        <h1 class="page-title">Reading Queue</h1>
         <div class="page-context">
             <span>{{ queue_counts.values() | list | sum }} papers in queue</span>
             <span class="dot"></span>
@@ -13,7 +13,7 @@
         </div>
     </div>
     <div class="actions">
-        <a href="/" class="btn btn-primary">Back to Inbox</a>
+        <a href="/queue?status=Inbox" class="btn btn-primary">返回 Inbox</a>
     </div>
 </section>
 {% endblock %}
@@ -23,11 +23,11 @@
     <span class="section-kicker" style="margin: 0;">Reading Workbench</span>
     <span class="chip">Deep Read: {{ all_status_counts.get('Deep Read', 0) }}</span>
     <span class="chip">Skim Later: {{ all_status_counts.get('Skim Later', 0) }}</span>
-    <span class="chip">In Progress: {{ all_status_counts.get('In Progress', 0) }}</span>
+    <span class="chip">Inbox: {{ all_status_counts.get('Inbox', 0) }}</span>
     <span class="chip" style="opacity:0.6;">Saved: {{ all_status_counts.get('Saved', 0) }}</span>
     <span class="chip" style="opacity:0.6;">Archived: {{ all_status_counts.get('Archived', 0) }}</span>
     <span class="spacer"></span>
-    <a href="/library?tab=saved" class="btn btn-tertiary btn-sm">View Saved in Library</a>
+    <a href="/reading?tab=saved" class="btn btn-tertiary btn-sm">View Saved in Reading</a>
 </div>
 
 
@@ -36,7 +36,7 @@
     <div class="empty-state-icon">&#128214;</div>
     <h2 class="empty-state-title">Queue is Empty</h2>
     <p class="empty-state-desc">Papers queued from Inbox for Skim Later or Deep Read will appear here.</p>
-    <a href="/" class="btn btn-primary">Go to Inbox</a>
+    <a href="/queue?status=Inbox" class="btn btn-primary">Go to Inbox</a>
 </div>
 {% endif %}
 
@@ -70,6 +70,12 @@
                         data-paper-note="{{ paper.queue_note or '' }}"
                         data-paper-score="{{ paper.score or 0 }}"
                         data-queue-status="{{ paper.queue_status or '' }}"
+                        data-research-question-id="{{ paper.research_question_id or '' }}"
+                        data-research-question="{{ (paper.active_research_question.query_text if paper.active_research_question else '') }}"
+                        data-decision-context="{{ paper.decision_context or '' }}"
+                        data-detail-url="{{ paper.detail_url or ('/papers/' ~ paper.id) }}"
+                        data-evidence-claims='{{ paper.evidence_claims|tojson }}'
+                        data-evidence-count="{{ paper.evidence_summary.total if paper.evidence_summary else 0 }}"
                         onclick="selectQueuePaper(this)"
                     >
                         <div class="row-lead">
@@ -82,6 +88,12 @@
                             <div class="row-tags">
                                 <span class="state-chip {{ paper.queue_status_class }}" data-queue-state>{{ paper.queue_status }}</span>
                                 {% if paper.date %}<span class="tag tag--mono">{{ paper.date }}</span>{% endif %}
+                                {% if paper.active_research_question %}
+                                    <span class="tag">{{ paper.active_research_question.query_text }}</span>
+                                {% endif %}
+                                {% if paper.evidence_summary and paper.evidence_summary.total %}
+                                    <span class="tag">{{ paper.evidence_summary.total }} evidence</span>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="row-trail">
@@ -104,6 +116,7 @@
             <div class="detail-meta-row">
                 <span class="score-chip" id="detailScore">Score 0.0</span>
                 <span class="state-chip" id="detailQueueState" hidden></span>
+                <span class="tag" id="detailResearchQuestion" hidden></span>
             </div>
             <div class="detail-section">
                 <div class="detail-label">Abstract</div>
@@ -112,6 +125,14 @@
             <div class="detail-section">
                 <div class="detail-label">Why This Paper</div>
                 <div id="detailRelevance" class="reason-panel"></div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Decision Context</div>
+                <p id="detailDecisionContext" class="detail-copy"></p>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Evidence Preview</div>
+                <div id="detailEvidenceClaims" class="evidence-preview-list"></div>
             </div>
             <label class="field-label" for="detailQueueNote">Note</label>
             <textarea id="detailQueueNote" class="form-textarea" rows="4" placeholder="记录你为什么要读它，或下一步要看什么。"></textarea>
@@ -129,10 +150,10 @@
                 <div class="detail-disclosure-body">
                     <div class="detail-actions detail-actions-grid">
                         {% for status in active_statuses %}
-                            <button type="button" class="btn {% if status == 'Skim Later' %}btn-warm{% elif status == 'Deep Read' %}btn-sage{% elif status == 'In Progress' %}btn-primary{% endif %}" onclick="moveQueuePaper('{{ status }}')">{{ status }}</button>
+                            <button type="button" class="btn {% if status == 'Skim Later' %}btn-warm{% elif status == 'Deep Read' %}btn-sage{% elif status == 'Inbox' %}btn-primary{% endif %}" onclick="moveQueuePaper('{{ status }}')">{{ status }}</button>
                         {% endfor %}
                         <div style="flex-basis: 100%; height: 1px; background: var(--line); margin: 4px 0;"></div>
-                        <button type="button" class="btn btn-secondary" onclick="moveQueuePaper('Saved')">Save to Library</button>
+                        <button type="button" class="btn btn-secondary" onclick="moveQueuePaper('Saved')">Save to Reading</button>
                         <button type="button" class="btn btn-tertiary" onclick="moveQueuePaper('Archived')">Archive</button>
                     </div>
                 </div>
@@ -155,7 +176,7 @@ function selectQueuePaper(card) {
     document.getElementById('detailAuthors').textContent = card.dataset.paperAuthors;
     document.getElementById('detailSummary').textContent = card.dataset.paperSummary;
     document.getElementById('detailQueueNote').value = card.dataset.paperNote || '';
-    document.getElementById('detailQueueLink').href = card.dataset.paperLink || '#';
+    document.getElementById('detailQueueLink').href = card.dataset.paperLink || card.dataset.detailUrl || '#';
     document.getElementById('detailScore').textContent = 'Score ' + Number(card.dataset.paperScore || '0').toFixed(1);
 
     const queueState = document.getElementById('detailQueueState');
@@ -163,6 +184,12 @@ function selectQueuePaper(card) {
     queueState.textContent = status;
     queueState.hidden = !status;
     queueState.className = status ? 'state-chip status-' + status.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'state-chip';
+
+    const question = document.getElementById('detailResearchQuestion');
+    question.textContent = card.dataset.researchQuestion || '';
+    question.hidden = !card.dataset.researchQuestion;
+    document.getElementById('detailDecisionContext').textContent = card.dataset.decisionContext || 'No decision context recorded.';
+    renderEvidencePreview(card);
 
     const relevance = card.dataset.paperRelevance;
     const detailRelevance = document.getElementById('detailRelevance');
@@ -184,13 +211,52 @@ function selectQueuePaper(card) {
     card.classList.add('is-selected');
 }
 
+function queueWorkspaceOptions(source) {
+    if (!selectedQueuePaper) return {source: source || 'queue_page'};
+    const questionId = selectedQueuePaper.dataset.researchQuestionId || '';
+    const decisionContext = selectedQueuePaper.dataset.decisionContext || '';
+    return {
+        source: source || 'queue_page',
+        note: document.getElementById('detailQueueNote').value,
+        research_question_id: questionId ? Number(questionId) : null,
+        decision_context: decisionContext
+    };
+}
+
+function renderEvidencePreview(card) {
+    const target = document.getElementById('detailEvidenceClaims');
+    target.replaceChildren();
+    let claims = [];
+    try {
+        claims = JSON.parse(card.dataset.evidenceClaims || '[]');
+    } catch (error) {
+        claims = [];
+    }
+    if (!claims.length) {
+        const empty = document.createElement('p');
+        empty.className = 'muted-copy';
+        empty.textContent = 'No evidence claims yet.';
+        target.appendChild(empty);
+        return;
+    }
+    claims.forEach(function(claim) {
+        const item = document.createElement('div');
+        item.className = 'evidence-preview-item';
+        const text = document.createElement('div');
+        text.className = 'evidence-preview-claim';
+        text.textContent = claim.claim || '';
+        const meta = document.createElement('div');
+        meta.className = 'muted-copy';
+        meta.textContent = [claim.claim_type, claim.evidence_source, claim.analyst].filter(Boolean).join(' · ');
+        item.append(text, meta);
+        target.appendChild(item);
+    });
+}
+
 async function moveQueuePaper(status) {
     if (!selectedQueuePaper) return;
     const paperId = selectedQueuePaper.dataset.paperId;
-    await queuePaperStatus(paperId, status, {
-        source: 'queue_page',
-        note: document.getElementById('detailQueueNote').value
-    });
+    await queuePaperStatus(paperId, status, queueWorkspaceOptions('queue_page'));
     selectedQueuePaper.remove();
     selectedQueuePaper = null;
     document.getElementById('detailTitle').textContent = '选择一篇论文查看详情';
@@ -202,10 +268,11 @@ async function saveQueueNote() {
     if (!selectedQueuePaper) return;
     const note = document.getElementById('detailQueueNote').value;
     try {
-        const item = await queuePaperStatus(selectedQueuePaper.dataset.paperId, selectedQueuePaper.dataset.queueStatus || 'Inbox', {
-            source: 'queue_note',
-            note: note
-        });
+        const item = await queuePaperStatus(
+            selectedQueuePaper.dataset.paperId,
+            selectedQueuePaper.dataset.queueStatus || 'Inbox',
+            queueWorkspaceOptions('queue_note')
+        );
         selectedQueuePaper.dataset.paperNote = item.note || note;
         showToast('笔记已保存');
     } catch (error) {

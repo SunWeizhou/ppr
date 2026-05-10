@@ -13,7 +13,7 @@ import sqlite3
 import threading
 import uuid
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Iterable, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -26,6 +26,17 @@ QUEUE_STATUS_VALUES = ("Inbox", "Skim Later", "Deep Read", "Saved", "Archived")
 
 def _utc_now() -> str:
     return datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat() + "Z"
+
+
+def _utc_bounds_for_local_date(date_str: str) -> tuple[str, str]:
+    """Return UTC timestamp bounds for a YYYY-MM-DD date in system local time."""
+    day = datetime.strptime(date_str, "%Y-%m-%d").date()
+    local_tz = datetime.now().astimezone().tzinfo
+    start_local = datetime.combine(day, datetime.min.time()).replace(tzinfo=local_tz)
+    end_local = start_local + timedelta(days=1)
+    start_utc = start_local.astimezone(timezone.utc).replace(microsecond=0)
+    end_utc = end_local.astimezone(timezone.utc).replace(microsecond=0)
+    return start_utc.isoformat() + "Z", end_utc.isoformat() + "Z"
 
 
 def _to_json(value: Optional[object], default: object) -> str:
@@ -49,6 +60,18 @@ class StateStore:
         self._lock = threading.Lock()
         self._initialize()
         self._auto_migrate_once()
+
+    @staticmethod
+    def _add_column_if_missing(
+        conn: sqlite3.Connection,
+        table_name: str,
+        column_name: str,
+        column_sql: str,
+    ) -> None:
+        rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+        existing = {row["name"] for row in rows}
+        if column_name not in existing:
+            conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_sql}")
 
     @contextmanager
     def _connect(self) -> Iterable[sqlite3.Connection]:
@@ -232,6 +255,41 @@ class StateStore:
                     created_at TEXT
                 );
 
+                CREATE TABLE IF NOT EXISTS research_questions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    query_text TEXT NOT NULL,
+                    intent_statement TEXT NOT NULL DEFAULT '',
+                    status TEXT NOT NULL DEFAULT 'active'
+                        CHECK(status IN ('active', 'paused', 'archived')),
+                    source TEXT NOT NULL DEFAULT 'manual'
+                        CHECK(source IN ('manual', 'profile', 'subscription')),
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS evidence_claims (
+                    id TEXT PRIMARY KEY,
+                    research_question_id INTEGER,
+                    paper_id TEXT NOT NULL,
+                    claim TEXT NOT NULL,
+                    evidence_text TEXT NOT NULL DEFAULT '',
+                    evidence_source TEXT NOT NULL DEFAULT 'abstract'
+                        CHECK(evidence_source IN ('abstract', 'metadata', 'citation', 'user_note', 'other')),
+                    claim_type TEXT NOT NULL DEFAULT 'factual'
+                        CHECK(claim_type IN ('factual', 'interpretive', 'caveat', 'gap')),
+                    analyst TEXT NOT NULL DEFAULT 'rule'
+                        CHECK(analyst IN ('rule', 'llm', 'user')),
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (research_question_id) REFERENCES research_questions(id)
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_research_questions_status
+                    ON research_questions(status);
+                CREATE INDEX IF NOT EXISTS idx_evidence_claims_paper
+                    ON evidence_claims(paper_id);
+                CREATE INDEX IF NOT EXISTS idx_evidence_claims_question
+                    ON evidence_claims(research_question_id);
+
                 CREATE TABLE IF NOT EXISTS feedback_models (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     trained_at TEXT,
@@ -283,6 +341,44 @@ class StateStore:
                 conn.execute(
                     "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('arxiv_ids_migrated', '1')"
                 )
+
+            # Idempotent workspace column additions
+            self._add_column_if_missing(
+                conn, "paper_metadata", "source",
+                "source TEXT NOT NULL DEFAULT ''",
+            )
+            self._add_column_if_missing(
+                conn, "paper_metadata", "source_run_id",
+                "source_run_id TEXT NOT NULL DEFAULT ''",
+            )
+            self._add_column_if_missing(
+                conn, "paper_metadata", "first_seen_at",
+                "first_seen_at TEXT NOT NULL DEFAULT ''",
+            )
+            self._add_column_if_missing(
+                conn, "paper_metadata", "workspace_status",
+                "workspace_status TEXT NOT NULL DEFAULT 'active'",
+            )
+            self._add_column_if_missing(
+                conn, "reading_queue_items", "research_question_id",
+                "research_question_id INTEGER",
+            )
+            self._add_column_if_missing(
+                conn, "reading_queue_items", "decision_context",
+                "decision_context TEXT NOT NULL DEFAULT ''",
+            )
+            self._add_column_if_missing(
+                conn, "paper_ai_analyses", "evidence_claim_ids",
+                "evidence_claim_ids TEXT NOT NULL DEFAULT '[]'",
+            )
+            self._add_column_if_missing(
+                conn, "paper_ai_analyses", "confidence",
+                "confidence REAL",
+            )
+            self._add_column_if_missing(
+                conn, "subscriptions", "research_question_id",
+                "research_question_id INTEGER",
+            )
 
     def _migrate_arxiv_paper_ids(self, conn: sqlite3.Connection) -> None:
         queue_rows = conn.execute(
@@ -415,13 +511,250 @@ class StateStore:
     @staticmethod
     def _row_to_dict(row: sqlite3.Row) -> Dict:
         data = dict(row)
-        for key in ("payload_json", "result_json", "filters_json", "tags_json"):
+        for key in ("payload_json", "result_json", "filters_json", "tags_json", "evidence_claim_ids"):
             if key in data:
                 try:
                     data[key] = json.loads(data[key])
                 except (TypeError, json.JSONDecodeError):
-                    data[key] = {}
+                    data[key] = [] if key == "evidence_claim_ids" else {}
         return data
+
+    # ------------------------------------------------------------------
+    #  Research Questions
+    # ------------------------------------------------------------------
+
+    def create_research_question(
+        self,
+        query_text: str,
+        intent_statement: str = "",
+        *,
+        status: str = "active",
+        source: str = "manual",
+    ) -> Dict:
+        query_text = str(query_text or "").strip()
+        intent_statement = str(intent_statement or "").strip()
+        if not query_text:
+            raise ValueError("query_text is required")
+        if status not in ("active", "paused", "archived"):
+            raise ValueError(f"Invalid research question status: {status}")
+        if source not in ("manual", "profile", "subscription"):
+            raise ValueError(f"Invalid research question source: {source}")
+
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO research_questions(
+                    query_text, intent_statement, status, source, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (query_text, intent_statement, status, source, now, now),
+            )
+            row = conn.execute(
+                "SELECT * FROM research_questions WHERE id = last_insert_rowid()"
+            ).fetchone()
+        return self._row_to_dict(row)
+
+    def get_research_question(self, question_id: int) -> Optional[Dict]:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM research_questions WHERE id = ?",
+                (question_id,),
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    def list_research_questions(
+        self,
+        status: Optional[str] = None,
+        limit: int = 100,
+    ) -> List[Dict]:
+        query = "SELECT * FROM research_questions"
+        params: List[object] = []
+        if status:
+            if status not in ("active", "paused", "archived"):
+                raise ValueError(f"Invalid research question status: {status}")
+            query += " WHERE status = ?"
+            params.append(status)
+        query += " ORDER BY updated_at DESC, id DESC LIMIT ?"
+        params.append(limit)
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+    def update_research_question(
+        self,
+        question_id: int,
+        *,
+        query_text: Optional[str] = None,
+        intent_statement: Optional[str] = None,
+        status: Optional[str] = None,
+        source: Optional[str] = None,
+    ) -> Optional[Dict]:
+        updates = []
+        params: List[object] = []
+
+        if query_text is not None:
+            query_text = str(query_text or "").strip()
+            if not query_text:
+                raise ValueError("query_text is required")
+            updates.append("query_text = ?")
+            params.append(query_text)
+        if intent_statement is not None:
+            updates.append("intent_statement = ?")
+            params.append(str(intent_statement or "").strip())
+        if status is not None:
+            if status not in ("active", "paused", "archived"):
+                raise ValueError(f"Invalid research question status: {status}")
+            updates.append("status = ?")
+            params.append(status)
+        if source is not None:
+            if source not in ("manual", "profile", "subscription"):
+                raise ValueError(f"Invalid research question source: {source}")
+            updates.append("source = ?")
+            params.append(source)
+
+        if not updates:
+            return self.get_research_question(question_id)
+
+        updates.append("updated_at = ?")
+        params.append(_utc_now())
+        params.append(question_id)
+
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                f"UPDATE research_questions SET {', '.join(updates)} WHERE id = ?",
+                params,
+            )
+        return self.get_research_question(question_id)
+
+    def seed_research_questions_from_keywords(self, keywords: Dict) -> int:
+        created = 0
+        for topic, config in (keywords or {}).items():
+            if not isinstance(config, dict):
+                continue
+            category = config.get("category")
+            weight = float(config.get("weight", 0) or 0)
+            query_text = str(topic or "").strip()
+            if not query_text or category not in ("core", "secondary") or weight <= 0:
+                continue
+            with self._connect() as conn:
+                existing = conn.execute(
+                    """
+                    SELECT id FROM research_questions
+                    WHERE lower(query_text) = lower(?) AND source = 'profile'
+                    LIMIT 1
+                    """,
+                    (query_text,),
+                ).fetchone()
+            if existing:
+                continue
+            self.create_research_question(
+                query_text=query_text,
+                intent_statement=f"Track literature related to {query_text}.",
+                source="profile",
+            )
+            created += 1
+        return created
+
+    # ------------------------------------------------------------------
+    #  Evidence Claims
+    # ------------------------------------------------------------------
+
+    def create_evidence_claim(
+        self,
+        *,
+        paper_id: str,
+        claim: str,
+        evidence_text: str = "",
+        evidence_source: str = "abstract",
+        claim_type: str = "factual",
+        analyst: str = "rule",
+        research_question_id: Optional[int] = None,
+        claim_id: Optional[str] = None,
+    ) -> Dict:
+        paper_id = _canonical_paper_id(paper_id)
+        claim = str(claim or "").strip()
+        if not paper_id:
+            raise ValueError("paper_id is required")
+        if not claim:
+            raise ValueError("claim is required")
+        if evidence_source not in ("abstract", "metadata", "citation", "user_note", "other"):
+            raise ValueError(f"Invalid evidence source: {evidence_source}")
+        if claim_type not in ("factual", "interpretive", "caveat", "gap"):
+            raise ValueError(f"Invalid claim type: {claim_type}")
+        if analyst not in ("rule", "llm", "user"):
+            raise ValueError(f"Invalid analyst: {analyst}")
+
+        now = _utc_now()
+        claim_id = claim_id or uuid.uuid4().hex
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO evidence_claims(
+                    id, research_question_id, paper_id, claim, evidence_text,
+                    evidence_source, claim_type, analyst, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    claim_id,
+                    research_question_id,
+                    paper_id,
+                    claim,
+                    str(evidence_text or "").strip(),
+                    evidence_source,
+                    claim_type,
+                    analyst,
+                    now,
+                ),
+            )
+            row = conn.execute(
+                "SELECT * FROM evidence_claims WHERE id = ?",
+                (claim_id,),
+            ).fetchone()
+        return self._row_to_dict(row)
+
+    def list_evidence_claims(
+        self,
+        *,
+        paper_id: Optional[str] = None,
+        research_question_id: Optional[int] = None,
+        analyst: Optional[str] = None,
+    ) -> List[Dict]:
+        query = "SELECT * FROM evidence_claims WHERE 1 = 1"
+        params: List[object] = []
+        if paper_id:
+            query += " AND paper_id = ?"
+            params.append(_canonical_paper_id(paper_id))
+        if research_question_id is not None:
+            query += " AND research_question_id = ?"
+            params.append(research_question_id)
+        if analyst:
+            query += " AND analyst = ?"
+            params.append(analyst)
+        query += " ORDER BY created_at ASC"
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+    def delete_evidence_claims(
+        self,
+        *,
+        paper_id: Optional[str] = None,
+        research_question_id: Optional[int] = None,
+    ) -> int:
+        if not paper_id and research_question_id is None:
+            raise ValueError("paper_id or research_question_id is required")
+        query = "DELETE FROM evidence_claims WHERE 1 = 1"
+        params: List[object] = []
+        if paper_id:
+            query += " AND paper_id = ?"
+            params.append(_canonical_paper_id(paper_id))
+        if research_question_id is not None:
+            query += " AND research_question_id = ?"
+            params.append(research_question_id)
+        with self._lock, self._connect() as conn:
+            result = conn.execute(query, params)
+        return int(result.rowcount)
 
     def create_job(
         self,
@@ -869,9 +1202,16 @@ class StateStore:
         query_text: str = "",
         payload_json: str = "{}",
         enabled: bool = True,
+        research_question_id: Optional[int] = None,
     ) -> Dict:
         if type not in ("query", "author", "venue"):
             raise ValueError(f"Invalid subscription type: {type}")
+        if research_question_id is not None:
+            research_question_id = int(research_question_id)
+            if self.get_research_question(research_question_id) is None:
+                raise ValueError(
+                    f"Unknown research question: {research_question_id}"
+                )
         if isinstance(payload_json, dict):
             payload_json = json.dumps(payload_json, ensure_ascii=False)
         now = _utc_now()
@@ -880,10 +1220,19 @@ class StateStore:
                 """
                 INSERT INTO subscriptions(
                     type, name, query_text, payload_json, enabled,
-                    latest_hit_count, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, 0, ?, ?)
+                    latest_hit_count, research_question_id, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)
                 """,
-                (type, name.strip(), query_text.strip(), payload_json, 1 if enabled else 0, now, now),
+                (
+                    type,
+                    name.strip(),
+                    query_text.strip(),
+                    payload_json,
+                    1 if enabled else 0,
+                    research_question_id,
+                    now,
+                    now,
+                ),
             )
             row = conn.execute(
                 "SELECT * FROM subscriptions WHERE id = last_insert_rowid()"
@@ -909,6 +1258,18 @@ class StateStore:
             updates.append("payload_json = ?")
             payload = kwargs["payload_json"]
             params.append(payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False))
+
+        if "research_question_id" in kwargs:
+            value = kwargs["research_question_id"]
+            if value in (None, ""):
+                updates.append("research_question_id = ?")
+                params.append(None)
+            else:
+                question_id = int(value)
+                if self.get_research_question(question_id) is None:
+                    raise ValueError(f"Unknown research question: {question_id}")
+                updates.append("research_question_id = ?")
+                params.append(question_id)
 
         if not updates:
             return self.get_subscription(subscription_id)
@@ -1132,23 +1493,42 @@ class StateStore:
         source: str = "",
         note: str = "",
         tags: Optional[List[str]] = None,
+        research_question_id: Optional[int] = None,
+        decision_context: str = "",
     ) -> Dict:
         paper_id = _canonical_paper_id(paper_id)
         if status not in QUEUE_STATUS_VALUES:
             raise ValueError(f"Invalid queue status: {status}")
         now = _utc_now()
         with self._lock, self._connect() as conn:
+            # Merge versioned duplicates: delete rows whose canonicalized
+            # paper_id matches the target but have a different string form
+            # (e.g. "2604.12345v1" vs canonical "2604.12345").
+            existing = conn.execute(
+                "SELECT paper_id FROM reading_queue_items"
+            ).fetchall()
+            for row in existing:
+                eid = row["paper_id"]
+                if eid != paper_id and _canonical_paper_id(eid) == paper_id:
+                    conn.execute(
+                        "DELETE FROM reading_queue_items WHERE paper_id = ?",
+                        (eid,),
+                    )
+
             conn.execute(
                 """
                 INSERT INTO reading_queue_items(
-                    paper_id, status, source, note, tags_json, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                    paper_id, status, source, note, tags_json, updated_at,
+                    research_question_id, decision_context
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(paper_id) DO UPDATE SET
                     status = excluded.status,
                     source = excluded.source,
                     note = excluded.note,
                     tags_json = excluded.tags_json,
-                    updated_at = excluded.updated_at
+                    updated_at = excluded.updated_at,
+                    research_question_id = excluded.research_question_id,
+                    decision_context = excluded.decision_context
                 """,
                 (
                     paper_id,
@@ -1157,6 +1537,8 @@ class StateStore:
                     note,
                     _to_json(tags, []),
                     now,
+                    research_question_id,
+                    str(decision_context or "").strip(),
                 ),
             )
             row = conn.execute(
@@ -1192,17 +1574,15 @@ class StateStore:
         deep_read, queued.  ``total`` is set to handled so the caller can
         override it when the page knows how many papers were shown.
         """
+        start_utc, end_utc = _utc_bounds_for_local_date(date_str)
         with self._lock, self._connect() as conn:
-            # _utc_now() produces timestamps like "2026-04-26T10:15:37+00:00Z".
-            # SQLite DATE() cannot parse the +00:00Z suffix, so we use
-            # substr(..., 1, 10) to extract the YYYY-MM-DD prefix.
             handled_row = conn.execute(
                 """
                 SELECT COUNT(DISTINCT paper_id) AS cnt
                 FROM interaction_events
-                WHERE substr(created_at, 1, 10) = ? AND paper_id != ''
+                WHERE created_at >= ? AND created_at < ? AND paper_id != ''
                 """,
-                (date_str,),
+                (start_utc, end_utc),
             ).fetchone()
             handled = handled_row["cnt"] if handled_row else 0
 
@@ -1210,20 +1590,20 @@ class StateStore:
                 """
                 SELECT event_type, COUNT(*) AS cnt
                 FROM interaction_events
-                WHERE substr(created_at, 1, 10) = ? AND paper_id != ''
+                WHERE created_at >= ? AND created_at < ? AND paper_id != ''
                 GROUP BY event_type
                 """,
-                (date_str,),
+                (start_utc, end_utc),
             ).fetchall()
 
             queue_rows = conn.execute(
                 """
                 SELECT status, COUNT(*) AS cnt
                 FROM reading_queue_items
-                WHERE substr(updated_at, 1, 10) = ?
+                WHERE updated_at >= ? AND updated_at < ?
                 GROUP BY status
                 """,
-                (date_str,),
+                (start_utc, end_utc),
             ).fetchall()
 
         event_counts: Dict[str, int] = {row["event_type"]: row["cnt"] for row in event_rows}
@@ -1552,6 +1932,8 @@ class StateStore:
         prompt_version: str,
         status: str = "ok",
         error_text: str = "",
+        evidence_claim_ids: Optional[List[str]] = None,
+        confidence: Optional[float] = None,
     ) -> Dict:
         paper_id = _canonical_paper_id(paper_id)
         if not paper_id:
@@ -1567,6 +1949,7 @@ class StateStore:
             "recommended_reading_level": "skim",
         }
         values.update({key: analysis.get(key, values[key]) or values[key] for key in values})
+        evidence_claim_ids_json = _to_json(evidence_claim_ids, [])
         with self._lock, self._connect() as conn:
             existing = conn.execute(
                 "SELECT created_at FROM paper_ai_analyses WHERE paper_id = ?",
@@ -1578,8 +1961,9 @@ class StateStore:
                 INSERT INTO paper_ai_analyses(
                     paper_id, one_sentence_summary, problem, method, contribution,
                     limitations, why_it_matters, recommended_reading_level,
-                    model_name, prompt_version, status, error_text, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    model_name, prompt_version, status, error_text, created_at, updated_at,
+                    evidence_claim_ids, confidence
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(paper_id) DO UPDATE SET
                     one_sentence_summary = excluded.one_sentence_summary,
                     problem = excluded.problem,
@@ -1592,7 +1976,9 @@ class StateStore:
                     prompt_version = excluded.prompt_version,
                     status = excluded.status,
                     error_text = excluded.error_text,
-                    updated_at = excluded.updated_at
+                    updated_at = excluded.updated_at,
+                    evidence_claim_ids = excluded.evidence_claim_ids,
+                    confidence = excluded.confidence
                 """,
                 (
                     paper_id,
@@ -1609,6 +1995,8 @@ class StateStore:
                     error_text,
                     created_at,
                     now,
+                    evidence_claim_ids_json,
+                    confidence,
                 ),
             )
             row = conn.execute(
@@ -1647,16 +2035,46 @@ class StateStore:
     # Paper Metadata Cache
     # ------------------------------------------------------------------
 
-    def save_paper_metadata(self, paper_id: str, metadata: dict) -> None:
+    def save_paper_metadata(
+        self,
+        paper_id: str,
+        metadata: dict,
+        *,
+        source: str = "",
+        source_run_id: str = "",
+        first_seen_at: Optional[str] = None,
+        workspace_status: str = "active",
+    ) -> None:
         """Cache paper metadata (title, abstract, authors, etc.) in the metadata table."""
         paper_id = _canonical_paper_id(paper_id)
         now = _utc_now()
         metadata_json = json.dumps(metadata)
         with self._lock, self._connect() as conn:
             conn.execute(
-                """INSERT OR REPLACE INTO paper_metadata(paper_id, metadata_json, created_at)
-                   VALUES (?, ?, ?)""",
-                (paper_id, metadata_json, now),
+                """
+                INSERT INTO paper_metadata(
+                    paper_id, metadata_json, created_at,
+                    source, source_run_id, first_seen_at, workspace_status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(paper_id) DO UPDATE SET
+                    metadata_json = excluded.metadata_json,
+                    source = excluded.source,
+                    source_run_id = excluded.source_run_id,
+                    first_seen_at = CASE
+                        WHEN paper_metadata.first_seen_at = '' THEN excluded.first_seen_at
+                        ELSE paper_metadata.first_seen_at
+                    END,
+                    workspace_status = excluded.workspace_status
+                """,
+                (
+                    paper_id,
+                    metadata_json,
+                    now,
+                    str(source or ""),
+                    str(source_run_id or ""),
+                    first_seen_at or now,
+                    workspace_status,
+                ),
             )
 
     def get_paper_metadata(self, paper_id: str) -> Optional[dict]:

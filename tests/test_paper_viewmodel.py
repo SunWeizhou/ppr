@@ -22,14 +22,16 @@ class PaperViewModelTests(unittest.TestCase):
         self.tmp.cleanup()
 
     # ------------------------------------------------------------------
-    # 1. to_detail_context error handling
+    # 1. to_detail_context graceful fallback
     # ------------------------------------------------------------------
 
-    def test_to_detail_context_returns_error_for_missing_paper(self):
-        """Error returned when the paper is not in any recommendation run."""
+    def test_to_detail_context_returns_shell_for_missing_paper(self):
+        """A detail shell (not error) is returned when the paper is in no
+        recommendation run — shows arXiv link instead of Paper not found."""
         ctx = self.vm.to_detail_context("nonexistent.12345")
-        self.assertIn("error", ctx)
-        self.assertEqual(ctx["paper_id"], "nonexistent.12345")
+        self.assertNotIn("error", ctx)
+        self.assertEqual(ctx["paper"]["id"], "nonexistent.12345")
+        self.assertIn("arXiv", str(ctx["paper"].get("abstract", "")))
         # Base template context fields should also be present
         self.assertIn("queue_counts", ctx)
 
@@ -69,6 +71,50 @@ class PaperViewModelTests(unittest.TestCase):
         self.assertEqual(_canonical_paper_id("2604.12345"), "2604.12345")
         self.assertEqual(_canonical_paper_id(""), "")
         self.assertEqual(_canonical_paper_id("2604.12345v10"), "2604.12345")
+
+    # ------------------------------------------------------------------
+    # 4. Fallback to SQLite paper_metadata table
+    # ------------------------------------------------------------------
+
+    def test_fallback_to_paper_metadata_table(self):
+        """PaperViewModel should find papers saved via save_paper_metadata."""
+        self.store.save_paper_metadata("2604.22787", {
+            "title": "Conformal Prediction Survey",
+            "abstract": "A comprehensive survey of conformal prediction methods.",
+            "authors": ["Author A", "Author B"],
+        })
+        ctx = self.vm.to_detail_context("2604.22787")
+        self.assertNotIn("error", ctx)
+        self.assertEqual(ctx["paper"]["title"], "Conformal Prediction Survey")
+
+    # ------------------------------------------------------------------
+    # 5. Graceful shell shows arXiv link for absolutely unknown paper
+    # ------------------------------------------------------------------
+
+    def test_graceful_shell_links_to_arxiv(self):
+        """When no data source has the paper, render a detail shell
+        with arXiv link in the abstract text."""
+        ctx = self.vm.to_detail_context("9999.00001")
+        self.assertNotIn("error", ctx)
+        self.assertIn("arXiv", str(ctx["paper"].get("abstract", "")))
+        self.assertEqual(ctx["paper"]["id"], "9999.00001")
+
+    # ------------------------------------------------------------------
+    # 6. Search context: store paper metadata during search so detail
+    #    route can find it
+    # ------------------------------------------------------------------
+
+    def test_save_paper_metadata_during_search_makes_detail_findable(self):
+        """Simulate what the search route should do: save metadata for each
+        result so subsequent /papers/<id> can find it."""
+        self.store.save_paper_metadata("2604.22787", {
+            "title": "Conformal Prediction",
+            "abstract": "Methods for conformal prediction.",
+            "authors": ["Author X"],
+            "categories": ["stat.ML"],
+        })
+        ctx = self.vm.to_detail_context("2604.22787")
+        self.assertEqual(ctx["paper"]["title"], "Conformal Prediction")
 
 
 if __name__ == "__main__":

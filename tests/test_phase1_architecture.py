@@ -54,7 +54,10 @@ class Phase1ArchitectureTests(unittest.TestCase):
         import web_server
 
         client = web_server.app.test_client()
-        for path in ["/", "/queue", "/reading", "/watch", "/settings"]:
+        # / now redirects to /queue?status=Inbox; /daily serves legacy page
+        response = client.get("/daily")
+        self.assertIn(response.status_code, (200, 302), "/daily")
+        for path in ["/queue", "/reading", "/watch", "/settings"]:
             response = client.get(path)
             self.assertEqual(response.status_code, 200, path)
 

@@ -170,6 +170,38 @@ class QueueVerticalSliceTests(unittest.TestCase):
         self.assertEqual(list_response.get_json()["items"][0]["paper_id"], "2604.77777")
         self.assertEqual(invalid_response.status_code, 400)
 
+    def test_queue_service_resolves_paper_metadata_before_placeholder(self):
+        from app.services.queue_service import QueueService
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            store.save_paper_metadata(
+                "2604.81818",
+                {
+                    "title": "Planner Metadata Paper",
+                    "abstract": "Metadata abstract from planner.",
+                    "authors": ["Ada"],
+                    "categories": ["stat.ML"],
+                    "published_at": "2026-05-09T00:00:00Z",
+                    "link": "https://arxiv.org/abs/2604.81818",
+                    "workspace_score": 0.82,
+                    "relevance_reason": "Matched research question.",
+                },
+                source="workspace_planner",
+                source_run_id="run-1",
+            )
+            store.upsert_queue_item("2604.81818", "Inbox", source="workspace_planner")
+
+            papers = QueueService(store, cache_dir=Path(tmp), history_dir=Path(tmp)).resolve_papers(status="Inbox")
+
+        self.assertEqual(papers[0]["title"], "Planner Metadata Paper")
+        self.assertEqual(papers[0]["abstract"], "Metadata abstract from planner.")
+        self.assertEqual(papers[0]["authors"], ["Ada"])
+        self.assertEqual(papers[0]["categories"], ["stat.ML"])
+        self.assertEqual(papers[0]["source"], "paper_metadata")
+        self.assertEqual(papers[0]["score"], 0.82)
+        self.assertEqual(papers[0]["relevance"], "Matched research question.")
+
 
 if __name__ == "__main__":
     unittest.main()

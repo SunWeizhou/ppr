@@ -1,4 +1,4 @@
-"""Visual regression tests anchored to ui-v1.0.
+"""Visual regression tests anchored to committed golden screenshots.
 
 Each test renders one (route, viewport, color_scheme) combination, screenshots
 it, and compares pixel-by-pixel to the golden in tests/visual/golden/.

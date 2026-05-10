@@ -208,7 +208,7 @@ class MultiSourceFetcher:
                 url = f"https://export.arxiv.org/api/query?{urllib.parse.urlencode(params)}"
 
                 req = urllib.request.Request(url, headers={'User-Agent': 'arxiv-recommender/2.4'})
-                with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:
+                with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:  # nosec B310 — arXiv API, fixed https:///
                     xml_data = response.read().decode('utf-8')
                     topic_papers = self._parse_arxiv_xml(xml_data)
 
@@ -261,7 +261,7 @@ class MultiSourceFetcher:
                 req = urllib.request.Request(url, headers={
                     'User-Agent': 'arxiv-recommender/2.3'
                 })
-                with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:
+                with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:  # nosec B310 — arXiv API, fixed https:///
                     xml_data = response.read().decode('utf-8')
                     all_papers = self._parse_arxiv_xml(xml_data)
 
@@ -302,7 +302,7 @@ class MultiSourceFetcher:
             for attempt in range(max_retries):
                 try:
                     req = urllib.request.Request(url, headers={'User-Agent': 'arxiv-recommender/2.3'})
-                    with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:
+                    with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:  # nosec B310 — arXiv API, fixed https:///
                         return response.read().decode('utf-8')
                 except urllib.error.HTTPError as e:
                     if e.code == 429:
@@ -454,7 +454,7 @@ def search_by_keywords(keywords: List[str], max_results: int = 20, days_back: in
 
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:
+        with urllib.request.urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:  # nosec B310 — arXiv API, fixed https:///
             xml_data = response.read().decode('utf-8')
             logger.debug("Received %s bytes from arXiv", len(xml_data))
 
@@ -595,7 +595,7 @@ def fetch_arxiv_metadata(paper_id: str) -> dict | None:
     normalized_id = paper_id.replace("v1", "").replace("v2", "")
     url = f"https://export.arxiv.org/api/query?id_list={normalized_id}"
     req = urllib.request.Request(url, headers={"User-Agent": "arXiv-Recommender/1.0"})
-    with urllib.request.urlopen(req, timeout=15) as response:
+    with urllib.request.urlopen(req, timeout=15) as response:  # nosec B310 — arXiv API, fixed https://
         xml_data = response.read().decode("utf-8")
 
     root = ET.fromstring(xml_data)

@@ -173,12 +173,15 @@ def system_health():
     db_size = os.path.getsize(db_path) if os.path.exists(db_path) else 0
 
     counts = {}
+    _ALLOWED_TABLES = frozenset({
+        'recommendation_runs', 'recommendation_items', 'reading_queue_items',
+        'research_collections', 'subscriptions', 'interaction_events',
+        'paper_ai_analyses',
+    })
     with store._lock, store._connect() as conn:
-        for table in ['recommendation_runs', 'recommendation_items', 'reading_queue_items',
-                       'research_collections', 'subscriptions', 'interaction_events',
-                       'paper_ai_analyses']:
+        for table in _ALLOWED_TABLES:
             try:
-                row = conn.execute(f"SELECT COUNT(*) as cnt FROM {table}").fetchone()
+                row = conn.execute(f"SELECT COUNT(*) as cnt FROM {table}").fetchone()  # nosec B608 — table is from hardcoded _ALLOWED_TABLES frozenset, not user input
                 counts[table] = row['cnt'] if row else 0
             except Exception:
                 counts[table] = -1

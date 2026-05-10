@@ -42,7 +42,6 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
     def test_onboarding_save_creates_profile(self):
         """POST /api/onboarding/save writes a valid user_profile.json."""
         import web_server
-        from app.routes import api as api_routes
         import config_manager as cm_mod
         from config_manager import ConfigManager
 
@@ -52,13 +51,11 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
             # --- Swap globals ---
             original_cf = cm_mod.CONFIG_FILE
             original_store = web_server.STATE_STORE
-            original_api_store = api_routes.STATE_STORE
             original_instance = ConfigManager._instance
 
             cm_mod.CONFIG_FILE = tmp_config
             ConfigManager._instance = None
             web_server.STATE_STORE = self._temp_state_store(tmp)
-            api_routes.STATE_STORE = web_server.STATE_STORE
 
             try:
                 client = web_server.app.test_client()
@@ -97,13 +94,11 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
             finally:
                 cm_mod.CONFIG_FILE = original_cf
                 web_server.STATE_STORE = original_store
-                api_routes.STATE_STORE = original_api_store
                 ConfigManager._instance = original_instance
 
     def test_onboarding_save_creates_keywords(self):
         """Core keywords in ConfigManager match the submitted topics after save."""
         import web_server
-        from app.routes import api as api_routes
         import config_manager as cm_mod
         from config_manager import ConfigManager, get_config
 
@@ -112,13 +107,11 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
 
             original_cf = cm_mod.CONFIG_FILE
             original_store = web_server.STATE_STORE
-            original_api_store = api_routes.STATE_STORE
             original_instance = ConfigManager._instance
 
             cm_mod.CONFIG_FILE = tmp_config
             ConfigManager._instance = None
             web_server.STATE_STORE = self._temp_state_store(tmp)
-            api_routes.STATE_STORE = web_server.STATE_STORE
 
             try:
                 client = web_server.app.test_client()
@@ -144,7 +137,6 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
             finally:
                 cm_mod.CONFIG_FILE = original_cf
                 web_server.STATE_STORE = original_store
-                api_routes.STATE_STORE = original_api_store
                 ConfigManager._instance = original_instance
 
         self.assertEqual(response.status_code, 200)
@@ -160,7 +152,6 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
     def test_onboarding_save_creates_first_query_subscription(self):
         """The first research question creates both a saved_search and a subscription."""
         import web_server
-        from app.routes import api as api_routes
         import config_manager as cm_mod
         from config_manager import ConfigManager
 
@@ -169,14 +160,12 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
 
             original_cf = cm_mod.CONFIG_FILE
             original_store = web_server.STATE_STORE
-            original_api_store = api_routes.STATE_STORE
             original_instance = ConfigManager._instance
 
             cm_mod.CONFIG_FILE = tmp_config
             ConfigManager._instance = None
             temp_store = self._temp_state_store(tmp)
             web_server.STATE_STORE = temp_store
-            api_routes.STATE_STORE = temp_store
 
             try:
                 client = web_server.app.test_client()
@@ -204,7 +193,6 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
             finally:
                 cm_mod.CONFIG_FILE = original_cf
                 web_server.STATE_STORE = original_store
-                api_routes.STATE_STORE = original_api_store
                 ConfigManager._instance = original_instance
 
         self.assertEqual(response.status_code, 200)
@@ -252,7 +240,9 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
             finally:
                 cm_mod.CONFIG_FILE = original_cf
 
-        self.assertEqual(response.status_code, 200)
+        self.assertIn(response.status_code, (200, 302))
+        if response.status_code == 302:
+            self.assertIn("/queue?status=Inbox", response.location)
 
     # ------------------------------------------------------------------
     # AI Settings

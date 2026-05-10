@@ -32,8 +32,8 @@
       'nav.workflow': '工作流',
       'nav.inbox': 'Inbox',
       'nav.queue': 'Queue',
-      'nav.library': 'Library',
-      'nav.monitor': 'Monitor',
+      'nav.reading': 'Reading',
+      'nav.watch': 'Watch',
       'nav.settings': 'Settings',
       'state.relevant': 'Relevant',
       'asset.collections': 'collections',
@@ -45,8 +45,8 @@
       'nav.workflow': 'Workflow',
       'nav.inbox': 'Inbox',
       'nav.queue': 'Queue',
-      'nav.library': 'Library',
-      'nav.monitor': 'Monitor',
+      'nav.reading': 'Reading',
+      'nav.watch': 'Watch',
       'nav.settings': 'Settings',
       'state.relevant': 'Relevant',
       'asset.collections': 'collections',
@@ -497,7 +497,7 @@
     const ok = await confirmDangerAction({
       title: '移除关注学者',
       objectName: target.name,
-      message: '这会停止在 Monitor 中追踪该学者，但不会删除已保存论文、Queue 状态或历史记录。',
+      message: '这会停止在 Watch 中追踪该学者，但不会删除已保存论文、Queue 状态或历史记录。',
       confirmLabel: 'Remove author'
     });
     if (!ok) return;
@@ -511,23 +511,6 @@
     state.authorSubscriptionResolver = null;
     hideModal('authorSubscriptionModal');
     if (typeof resolver === 'function') resolver({deleted: true, name: target.name});
-  }
-
-  async function queuePaperStatus(paperId, status, options = {}) {
-    const result = await requestJson('/api/queue', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        paper_id: paperId,
-        status,
-        source: options.source || 'research_ui',
-        note: options.note,
-        tags: options.tags
-      })
-    });
-    syncPaperState(paperId, status, result.item?.note || '');
-    showToast('已加入队列: ' + status);
-    return result.item;
   }
 
   function syncPaperState(paperId, status, note = null) {
@@ -607,9 +590,9 @@
 
   async function confirmRefreshToday() {
     const ok = await confirmDangerAction({
-      title: '刷新今日推荐',
+      title: '刷新 Inbox 候选',
       objectName: 'Today scoring cache',
-      message: '这会重新运行今日推荐生成，可能覆盖当前今日排序快照。Queue、Collection 和反馈状态会保留。',
+      message: '这会重新运行候选生成，可能更新当前 Inbox 排序。Queue、Reading 和反馈状态会保留。',
       confirmLabel: 'Refresh today'
     });
     if (ok) {
@@ -659,7 +642,7 @@
     const target = window.AppState.modalState.paperActionTarget;
     if (!target) return;
     try {
-      await queuePaperStatus(target.paperId, status, {source: target.source || 'paper_actions'});
+      await window.queuePaperStatus(target.paperId, status, {source: target.source || 'paper_actions'});
     } catch (error) {
       showToast('队列更新失败: ' + error.message, 'error');
     }
@@ -804,7 +787,6 @@
     openAuthorSubscriptionModal,
     submitAuthorSubscription,
     deleteAuthorSubscriptionFromEditor,
-    queuePaperStatus,
     syncPaperState,
     followAuthor,
     downloadBibtex,

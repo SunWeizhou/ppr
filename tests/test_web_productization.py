@@ -1,8 +1,31 @@
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
+
+
+class ImportBudgetTests(unittest.TestCase):
+    """Startup import time budget."""
+
+    def test_web_server_import_is_not_slow(self):
+        """Importing web_server in a subprocess must finish within 10 seconds
+        on local hardware."""
+        code = "import time; t=time.time(); import web_server; print(f'OK {time.time()-t:.2f}s')"
+        proc = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True, text=True, timeout=30,
+        )
+        stdout = proc.stdout.strip()
+        self.assertEqual(proc.returncode, 0, msg=stdout + proc.stderr)
+        # Parse elapsed from "OK X.XXs"
+        parts = stdout.split()
+        if len(parts) >= 2:
+            elapsed = float(parts[1].rstrip("s"))
+            self.assertLessEqual(elapsed, 10.0,
+                                 f"web_server import took {elapsed:.2f}s (budget: 10s)")
 
 
 class WebProductizationTests(unittest.TestCase):
@@ -249,6 +272,94 @@ class WebProductizationTests(unittest.TestCase):
         self.assertNotIn("@echo off", setup_text.lower())
         self.assertIn("setuptools", setup_text)
         self.assertIn("arxiv-recommender=web_server:main", setup_text)
+
+    def test_search_route_returns_page_with_results(self):
+        import web_server
+        from state_store import StateStore
+
+        fake_papers = [
+            {
+                "id": "2604.22787",
+                "paper_id": "2604.22787v1",
+                "title": "Mock Conformal Prediction Paper",
+                "summary": "A mocked result for conformal prediction search.",
+                "abstract": "A mocked result for conformal prediction search.",
+                "authors": ["Ada Lovelace", "Grace Hopper"],
+                "categories": ["stat.ML"],
+                "published_at": "2026-04-30",
+                "link": "https://arxiv.org/abs/2604.22787",
+                "score": 7.5,
+            }
+        ]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            client = web_server.app.test_client()
+            with (
+                mock.patch("app.routes.inbox.get_state_store", return_value=store),
+                mock.patch(
+                    "arxiv_recommender_v5.search_by_keywords",
+                    return_value=fake_papers,
+                ),
+            ):
+                response = client.get("/search/conformal%20prediction")
+                self.assertEqual(response.status_code, 200)
+                html = response.data.decode("utf-8")
+                self.assertIn("Mock Conformal Prediction Paper", html)
+
+                detail = client.get("/papers/2604.22787")
+                self.assertEqual(detail.status_code, 200)
+                self.assertIn(
+                    "Mock Conformal Prediction Paper",
+                    detail.data.decode("utf-8"),
+                )
+
+    def test_search_route_returns_empty_state_for_no_keywords(self):
+        import web_server
+
+        response = web_server.app.test_client().get("/search")
+        self.assertEqual(response.status_code, 200)
+
+    def test_settings_page_does_not_render_full_api_key(self):
+        """The settings page must not contain a full API key in the HTML
+        response body."""
+        import web_server
+
+        response = web_server.app.test_client().get("/settings")
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode("utf-8")
+        # An unredacted key would look like "sk-..." with 20+ chars after
+        # Masked form is "sk-...XYZ" (short). Check we don't leak full keys.
+        import re
+        long_key_pattern = re.compile(r'sk-[a-zA-Z0-9_\-]{10,}')
+        matches = long_key_pattern.findall(html)
+        for m in matches:
+            # Allow masked form like "sk-...XXXX"
+            if "..." not in m and m.count("-") <= 2:
+                self.fail(f"Potential API key leak in settings HTML: {m}")
+
+    def test_search_route_has_loading_feedback(self):
+        """Verify the search template includes a loading feedback mechanism."""
+        template = Path("templates/search_research.html").read_text(encoding="utf-8")
+        # Should disable the search button during submit
+        self.assertIn("disabled", template)
+        self.assertIn("Searching", template)
+
+    def test_today_template_does_not_require_detail_panel_elements(self):
+        """The today.html template is list-only (no #paperDetailPanel).
+        inbox.js must not crash when those elements are absent.
+        Verify inbox.js does not contain unguarded .textContent assignments
+        on these elements."""
+        source = Path("static/js/inbox.js").read_text(encoding="utf-8")
+        # The code should use a guard pattern (getElementById + existence check)
+        # rather than assigning .textContent directly on a getElementById result.
+        # Count occurrences that look guarded vs unguarded.
+        self.assertNotIn(
+            "document.getElementById('detailTitle').textContent",
+            source,
+            "inbox.js must not directly assign .textContent on detailTitle "
+            "without a guard",
+        )
 
 
 if __name__ == "__main__":

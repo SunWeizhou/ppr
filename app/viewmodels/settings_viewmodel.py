@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import os
 
+from app.services.ai_settings_service import build_ai_settings_context
+from app.services.diagnostics_service import build_system_diagnostics
 from app.services.feedback_service import FeedbackService
 from app.viewmodels.shared import assemble_page_context
 from state_store import QUEUE_STATUS_VALUES
@@ -126,7 +128,7 @@ class SettingsViewModel:
                 "auto_detect": config._zotero.auto_detect,
                 "database_path": config._zotero.database_path,
             }
-            ai_config = config.get_ai_config()
+            ai_config = build_ai_settings_context(config.get_ai_config())
         except Exception:
             core_keywords = []
             papers_per_day = 20
@@ -137,23 +139,28 @@ class SettingsViewModel:
                 "lookback_days": 14,
             }
             zotero = {"enabled": True, "auto_detect": True, "database_path": ""}
-            ai_config = {
+            ai_config = build_ai_settings_context({
                 "provider": "none",
                 "api_key": "",
                 "base_url": "https://api.deepseek.com",
                 "model": "deepseek-chat",
                 "enabled": False,
-            }
+            })
 
         page_context = self._build_page_context("settings")
+        system_diagnostics = build_system_diagnostics(
+            self._store,
+            ai_context=ai_config,
+        )
 
         return {
-            "title": "Settings - arXiv Recommender",
+            "title": "Settings - Agent Literature Research Assistant",
             "tab": tab,
             "core_keywords": core_keywords,
             "papers_per_day": papers_per_day,
             "sources": sources,
             "zotero": zotero,
             "ai_config": ai_config,
+            "system_diagnostics": system_diagnostics,
             **page_context,
         }

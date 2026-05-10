@@ -15,7 +15,7 @@
             {% endfor %}
         </div>
         <div class="hero-actions">
-            <a href="/" class="action-button btn-brand">返回今日收件箱</a>
+            <a href="/queue?status=Inbox" class="action-button btn-brand">返回 Inbox</a>
             <a href="/search" class="action-button btn-ghost">围绕问题继续找</a>
         </div>
     </div>
@@ -141,7 +141,7 @@
                 <h2 class="panel-title">{{ empty_title }}</h2>
                 <p class="muted-copy">{{ empty_copy }}</p>
                 <div class="hero-actions" style="margin-top: 14px;">
-                    <a href="/" class="action-button btn-brand">去看今日收件箱</a>
+                    <a href="/queue?status=Inbox" class="action-button btn-brand">去 Inbox</a>
                 </div>
             </div>
         {% endif %}

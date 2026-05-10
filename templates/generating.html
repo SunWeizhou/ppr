@@ -4,8 +4,8 @@
 {% block hero %}
 <section class="page-header">
     <div class="lead">
-        <span class="section-kicker">Daily Triage</span>
-        <h1 class="page-title">正在生成今日推荐</h1>
+        <span class="section-kicker">Inbox Refresh</span>
+        <h1 class="page-title">正在生成候选论文</h1>
         <div class="page-context">
             <span>预计需要 30-60 秒，完成后自动刷新页面</span>
         </div>
@@ -17,10 +17,10 @@
 <section class="generating-container">
     <div class="generating-spinner" aria-label="Loading"></div>
     <p class="generating-status">后端正在抓取并分析 arXiv 当日论文<span class="progress-dots"></span></p>
-    <p class="generating-elapsed">已等待: <span id="elapsed">0</span> 秒</p>
+    <p class="generating-elapsed">已等待: <span id="elapsed">0</span></p>
     <div class="generating-steps">
         <div class="generating-step active" data-step="0">获取 arXiv 论文</div>
-        <div class="generating-step" data-step="1">计算推荐分数</div>
+        <div class="generating-step" data-step="1">计算候选分数</div>
         <div class="generating-step" data-step="2">生成摘要</div>
         <div class="generating-step" data-step="3">保存结果</div>
     </div>

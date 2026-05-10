@@ -48,7 +48,17 @@ class QueueService:
             raise ValueError(f"Invalid queue status: {status}")
         return self.state_store.list_queue_items(status=status)
 
-    def update_item(self, paper_id: str, status: str, *, source: str = "queue_service", note=None, tags=None):
+    def update_item(
+        self,
+        paper_id: str,
+        status: str,
+        *,
+        source: str = "queue_service",
+        note=None,
+        tags=None,
+        research_question_id=None,
+        decision_context: str = "",
+    ):
         canonical_id = _canonical_paper_id(paper_id)
         if not canonical_id:
             raise ValueError("Missing paper_id")
@@ -60,20 +70,50 @@ class QueueService:
             note = existing.get("note", "")
         if tags is None and existing:
             tags = existing.get("tags_json")
+        if research_question_id is None and existing:
+            research_question_id = existing.get("research_question_id")
+        if not decision_context and existing:
+            decision_context = existing.get("decision_context", "")
         return self.state_store.upsert_queue_item(
             canonical_id,
             status,
             source=source,
             note=note or "",
             tags=tags,
+            research_question_id=research_question_id,
+            decision_context=decision_context,
         )
 
-    def update_status(self, paper_id: str, status: str, *, source: str = "queue_api", note=None, tags=None):
-        item = self.update_item(paper_id, status, source=source, note=note, tags=tags)
+    def update_status(
+        self,
+        paper_id: str,
+        status: str,
+        *,
+        source: str = "queue_api",
+        note=None,
+        tags=None,
+        research_question_id=None,
+        decision_context: str = "",
+    ):
+        item = self.update_item(
+            paper_id,
+            status,
+            source=source,
+            note=note,
+            tags=tags,
+            research_question_id=research_question_id,
+            decision_context=decision_context,
+        )
         event_id = self.state_store.record_event(
             "queue_status_changed",
             item["paper_id"],
-            {"status": status, "source": source, "note": item.get("note", "")},
+            {
+                "status": status,
+                "source": source,
+                "note": item.get("note", ""),
+                "research_question_id": research_question_id,
+                "decision_context": decision_context,
+            },
         )
         return item, event_id
 
@@ -163,6 +203,21 @@ class QueueService:
             item.setdefault("abstract", item.get("summary", ""))
             item.setdefault("relevance", item.get("relevance_reason", item.get("relevance", "")))
             return item
+        metadata = self.state_store.get_paper_metadata(paper_id)
+        if metadata:
+            return {
+                "id": paper_id,
+                "title": metadata.get("title", f"Paper {paper_id}"),
+                "link": metadata.get("link") or metadata.get("source_url") or f"https://arxiv.org/abs/{paper_id}",
+                "authors": metadata.get("authors", []),
+                "summary": metadata.get("summary") or metadata.get("abstract", ""),
+                "abstract": metadata.get("abstract", metadata.get("summary", "")),
+                "relevance": metadata.get("relevance_reason", metadata.get("relevance", "From workspace metadata")),
+                "score": metadata.get("workspace_score", metadata.get("score", 0)),
+                "date": (metadata.get("published_at") or metadata.get("published") or metadata.get("date") or "")[:10],
+                "categories": metadata.get("categories", []),
+                "source": "paper_metadata",
+            }
         if paper_id in paper_cache:
             cached = paper_cache[paper_id]
             return {
@@ -216,6 +271,37 @@ class QueueService:
             item["summary_short"] = (item.get("summary") or item.get("abstract") or "")[:220]
             decorated.append(item)
         return decorated
+
+    def _attach_workspace_context(self, paper: dict, queue_item: dict) -> dict:
+        research_question_id = queue_item.get("research_question_id")
+        question = None
+        if research_question_id is not None:
+            question = self.state_store.get_research_question(research_question_id)
+
+        claims = self.state_store.list_evidence_claims(
+            paper_id=paper.get("id"),
+            research_question_id=research_question_id,
+        )
+        by_type = {}
+        for claim in claims:
+            claim_type = claim.get("claim_type") or "factual"
+            by_type[claim_type] = by_type.get(claim_type, 0) + 1
+
+        paper["research_question_id"] = research_question_id
+        paper["active_research_question"] = question
+        paper["decision_context"] = queue_item.get("decision_context", "")
+        paper["evidence_claims"] = claims[:3]
+        paper["evidence_summary"] = {
+            "total": len(claims),
+            "by_type": by_type,
+            "has_claims": bool(claims),
+        }
+        paper["detail_url"] = (
+            f"/papers/{paper.get('id')}?research_question_id={research_question_id}"
+            if research_question_id is not None
+            else f"/papers/{paper.get('id')}"
+        )
+        return paper
 
     def get_todays_reading_plan(self) -> dict:
         """Return today's reading plan: top Deep Read and Skim Later papers.
@@ -292,6 +378,7 @@ class QueueService:
             paper["queue_tags"] = item.get("tags_json", [])
             paper["queue_source"] = item.get("source", "")
             paper["updated_at"] = item.get("updated_at", "")
+            self._attach_workspace_context(paper, item)
             resolved.append(paper)
         return self._decorate_papers(
             resolved,

@@ -2779,3 +2779,120 @@ select {
     left: 0;
     margin-bottom: 4px;
 }
+
+/* ------------------------------------------------------------------ */
+/*  Evidence Center — Paper Detail workspace context and claims       */
+/* ------------------------------------------------------------------ */
+
+.paper-evidence-page .workspace-context-card {
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+}
+
+.workspace-context-eyebrow {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  font-weight: 650;
+  letter-spacing: 0;
+  margin-bottom: var(--s-1);
+  text-transform: uppercase;
+}
+
+.workspace-context-title {
+  color: var(--ink);
+  font-family: var(--ff-display);
+  font-size: var(--text-lg);
+  line-height: 1.35;
+  margin: 0 0 var(--s-2);
+}
+
+.evidence-center {
+  border-top: 1px solid var(--line);
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+}
+
+.evidence-center-head {
+  align-items: center;
+  display: flex;
+  gap: var(--s-2);
+  justify-content: space-between;
+  margin-bottom: var(--s-3);
+}
+
+.evidence-claim-list {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.evidence-claim-card {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: var(--s-3);
+}
+
+.evidence-claim-meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+}
+
+.evidence-claim-text {
+  color: var(--ink);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.evidence-source {
+  color: var(--ink-2);
+  margin-top: var(--s-2);
+}
+
+.evidence-source summary {
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+
+.evidence-source p {
+  border-left: 2px solid var(--line);
+  margin: var(--s-2) 0 0;
+  padding-left: var(--s-3);
+}
+
+.evidence-preview-list {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.evidence-preview-item {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xs);
+  padding: var(--s-2);
+}
+
+.evidence-preview-claim {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.watch-sub-hit {
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.watch-sub-hit-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-left: auto;
+}
+
+.watch-sub-hit-reason {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}

@@ -151,5 +151,57 @@ class AIAnalysisApiTests(unittest.TestCase):
         self.assertEqual(cached.get_json()["analysis"]["one_sentence_summary"], "API summary 2")
 
 
+    def test_generate_analysis_returns_evidence_claims_with_question_context(self):
+        import web_server
+        from app.routes import api as api_routes
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            question = store.create_research_question(
+                "conformal prediction under shift",
+                intent_statement="Find reliability guarantees.",
+            )
+            original_store = web_server.STATE_STORE
+            original_api_store = api_routes.STATE_STORE
+            original_provider = api_routes.AI_ANALYSIS_PROVIDER
+            web_server.STATE_STORE = store
+            api_routes.STATE_STORE = store
+            api_routes.AI_ANALYSIS_PROVIDER = None
+            try:
+                client = web_server.app.test_client()
+                with mock.patch.dict("os.environ", {}, clear=True):
+                    response = client.post(
+                        "/api/papers/2604.77777/analysis/generate",
+                        json={
+                            "paper": {
+                                "id": "2604.77777",
+                                "title": "Conformal Shift Paper",
+                                "abstract": "This paper studies conformal prediction under shift.",
+                                "categories": ["stat.ML"],
+                            },
+                            "research_question_id": question["id"],
+                        },
+                    )
+                    cached = client.get("/api/papers/2604.77777/analysis")
+            finally:
+                web_server.STATE_STORE = original_store
+                api_routes.STATE_STORE = original_api_store
+                api_routes.AI_ANALYSIS_PROVIDER = original_provider
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertTrue(payload["success"])
+        self.assertGreaterEqual(len(payload["evidence_claims"]), 2)
+        self.assertTrue(
+            any(claim["research_question_id"] == question["id"] for claim in payload["evidence_claims"])
+        )
+        self.assertEqual(
+            payload["analysis"]["evidence_claim_ids"],
+            [claim["id"] for claim in payload["evidence_claims"]],
+        )
+        self.assertEqual(cached.status_code, 200)
+        self.assertIn("evidence_claims", cached.get_json())
+
+
 if __name__ == "__main__":
     unittest.main()

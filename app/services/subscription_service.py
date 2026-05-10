@@ -49,11 +49,24 @@ class SubscriptionService:
             status="sent_to_inbox",
         )
 
+        sub = self._store.get_subscription(sub_id) if sub_id else None
+        matched_reason = target.get("matched_reason", "")
+        subscription_name = (sub or {}).get("name", "")
+        research_question_id = (sub or {}).get("research_question_id")
+        decision_context_parts = []
+        if subscription_name:
+            decision_context_parts.append(f"Watch subscription: {subscription_name}")
+        if matched_reason:
+            decision_context_parts.append(f"Match: {matched_reason}")
+        decision_context = " | ".join(decision_context_parts)
+
         self._store.upsert_queue_item(
             paper_id=paper_id,
             status="Inbox",
             source=f"subscription:{sub_id}",
-            note=target.get("matched_reason", ""),
+            note=matched_reason,
+            research_question_id=research_question_id,
+            decision_context=decision_context,
         )
         return True
 

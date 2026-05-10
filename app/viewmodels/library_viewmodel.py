@@ -628,7 +628,7 @@ class LibraryViewModel:
                 history_papers = self._decorate_papers(papers, feedback)
 
         context = {
-            "title": "Library - arXiv Recommender",
+            "title": "Library - Agent Literature Research Assistant",
             "tab": tab,
             "selected_collection": selected_collection,
             "selected_collection_papers": selected_collection_papers,
@@ -676,7 +676,7 @@ class LibraryViewModel:
         ]
 
         context = {
-            "title": f"{hero_title} - arXiv Recommender",
+            "title": f"{hero_title} - Agent Literature Research Assistant",
             "hero_kicker": (
                 "Research Assets" if feedback_type == "liked" else "Feedback Memory"
             ),
@@ -731,7 +731,7 @@ class LibraryViewModel:
         ]
 
         context = {
-            "title": "阅读统计 - arXiv Recommender",
+            "title": "阅读统计 - Agent Literature Research Assistant",
             "headline_metrics": headline_metrics,
             "rhythm_cards": rhythm_cards,
         }

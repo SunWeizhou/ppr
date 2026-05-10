@@ -7,8 +7,11 @@
 <section class="page-header">
     <div class="lead">
         <span class="section-kicker" data-i18n="nav.watch">Watch</span>
-        <h1 class="page-title" data-i18n="nav.watch">Watch</h1>
-        <div class="page-context">你正在追踪 {{ unified_query_count }} 个研究方向、{{ unified_author_count }} 位作者、{{ unified_venue_count }} 本期刊。</div>
+        <h1 class="page-title">Watch Cockpit</h1>
+        <div class="page-context">
+            追踪 {{ unified_query_count }} 个研究方向、{{ unified_author_count }} 位作者、{{ unified_venue_count }} 个来源；
+            新命中可以直接进入对应 Research Question 的 Inbox。
+        </div>
     </div>
     <div class="actions">
         <button type="button" class="btn btn-ghost btn-sm" onclick="runAllSubscriptions()">
@@ -45,20 +48,51 @@
                             <code>{{ sub.query_text[:80] }}{% if sub.query_text|length > 80 %}&hellip;{% endif %}</code>
                         </span>
                         {% endif %}
-                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at }}</time></span>
+                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "尚未刷新" }}</time></span>
                         {% if not sub.enabled %}<span class="chip is-warn">已禁用</span>{% endif %}
                     </div>
                 </div>
                 <span class="chip">{{ sub.latest_hit_count }} 篇命中</span>
             </div>
 
+            {% if sub.research_question %}
+            <div class="watch-sub-card-meta" style="padding: 0 var(--s-4) var(--s-2);">
+                <span class="chip is-muted">RQ: {{ sub.research_question.query_text[:48] }}{% if sub.research_question.query_text|length > 48 %}&hellip;{% endif %}</span>
+                {% if sub.workspace_stats %}
+                <span class="chip">{{ sub.workspace_stats.undecided_count }} Inbox</span>
+                <span class="chip is-muted">{{ sub.workspace_stats.active_reading_count }} Reading</span>
+                {% endif %}
+            </div>
+            {% endif %}
+
             {% if sub.recent_hits %}
             <div class="watch-sub-hits">
                 {% for hit in sub.recent_hits %}
-                <div class="watch-sub-hit">
+                <div class="watch-sub-hit" data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}">
                     <span class="watch-sub-hit-arrow">&#9656;</span>
-                    <a href="/papers/{{ hit.paper_id }}" class="watch-sub-hit-title">{{ hit.title }}</a>
-                    {% if hit.hit_date_rel %}<span class="chip is-muted"><time datetime="{{ hit.hit_date }}">{{ hit.hit_date_rel }}</time></span>{% endif %}
+                    <a href="{{ hit.detail_url }}" class="watch-sub-hit-title">{{ hit.title }}</a>
+                    {% if hit.hit_status %}<span class="chip is-muted js-hit-status">{{ hit.hit_status }}</span>{% endif %}
+                    {% if hit.summary_short %}
+                    <div class="watch-sub-hit-summary">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
+                    {% endif %}
+                    {% if hit.matched_reason %}<span class="watch-sub-hit-reason">{{ hit.matched_reason }}</span>{% endif %}
+                    {% if hit.author_text %}
+                    <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
+                    {% endif %}
+                    <div class="watch-sub-hit-actions">
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs"
+                            onclick="sendHitToInbox({{ hit.id }}, this)"
+                            {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}
+                        >Inbox</button>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs"
+                            onclick="ignoreSubscriptionHit({{ hit.id }}, this)"
+                            {% if hit.hit_status == 'ignored' %}disabled{% endif %}
+                        >Ignore</button>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
@@ -98,20 +132,51 @@
                     <div class="watch-sub-card-meta">
                         {% if sub.affiliation %}<span class="watch-sub-meta-item">{{ sub.affiliation }}</span>{% endif %}
                         {% if sub.focus %}<span class="watch-sub-meta-item">{{ sub.focus }}</span>{% endif %}
-                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at }}</time></span>
+                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "尚未刷新" }}</time></span>
                         {% if not sub.enabled %}<span class="chip is-warn">已禁用</span>{% endif %}
                     </div>
                 </div>
                 <span class="chip">{{ sub.latest_hit_count }} 篇命中</span>
             </div>
 
+            {% if sub.research_question %}
+            <div class="watch-sub-card-meta" style="padding: 0 var(--s-4) var(--s-2);">
+                <span class="chip is-muted">RQ: {{ sub.research_question.query_text[:48] }}{% if sub.research_question.query_text|length > 48 %}&hellip;{% endif %}</span>
+                {% if sub.workspace_stats %}
+                <span class="chip">{{ sub.workspace_stats.undecided_count }} Inbox</span>
+                <span class="chip is-muted">{{ sub.workspace_stats.active_reading_count }} Reading</span>
+                {% endif %}
+            </div>
+            {% endif %}
+
             {% if sub.recent_hits %}
             <div class="watch-sub-hits">
                 {% for hit in sub.recent_hits %}
-                <div class="watch-sub-hit">
+                <div class="watch-sub-hit" data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}">
                     <span class="watch-sub-hit-arrow">&#9656;</span>
-                    <a href="/papers/{{ hit.paper_id }}" class="watch-sub-hit-title">{{ hit.title }}</a>
-                    {% if hit.hit_date_rel %}<span class="chip is-muted"><time datetime="{{ hit.hit_date }}">{{ hit.hit_date_rel }}</time></span>{% endif %}
+                    <a href="{{ hit.detail_url }}" class="watch-sub-hit-title">{{ hit.title }}</a>
+                    {% if hit.hit_status %}<span class="chip is-muted js-hit-status">{{ hit.hit_status }}</span>{% endif %}
+                    {% if hit.summary_short %}
+                    <div class="watch-sub-hit-summary">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
+                    {% endif %}
+                    {% if hit.matched_reason %}<span class="watch-sub-hit-reason">{{ hit.matched_reason }}</span>{% endif %}
+                    {% if hit.author_text %}
+                    <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
+                    {% endif %}
+                    <div class="watch-sub-hit-actions">
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs"
+                            onclick="sendHitToInbox({{ hit.id }}, this)"
+                            {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}
+                        >Inbox</button>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs"
+                            onclick="ignoreSubscriptionHit({{ hit.id }}, this)"
+                            {% if hit.hit_status == 'ignored' %}disabled{% endif %}
+                        >Ignore</button>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
@@ -155,20 +220,51 @@
                     <h3 class="watch-sub-card-name">{{ sub.name }}</h3>
                     <div class="watch-sub-card-meta">
                         <span class="watch-sub-meta-item chip is-muted">{{ sub.venue_type }}</span>
-                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at }}</time></span>
+                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "尚未刷新" }}</time></span>
                         {% if not sub.enabled %}<span class="chip is-warn">已禁用</span>{% endif %}
                     </div>
                 </div>
                 <span class="chip">{{ sub.latest_hit_count }} 篇命中</span>
             </div>
 
+            {% if sub.research_question %}
+            <div class="watch-sub-card-meta" style="padding: 0 var(--s-4) var(--s-2);">
+                <span class="chip is-muted">RQ: {{ sub.research_question.query_text[:48] }}{% if sub.research_question.query_text|length > 48 %}&hellip;{% endif %}</span>
+                {% if sub.workspace_stats %}
+                <span class="chip">{{ sub.workspace_stats.undecided_count }} Inbox</span>
+                <span class="chip is-muted">{{ sub.workspace_stats.active_reading_count }} Reading</span>
+                {% endif %}
+            </div>
+            {% endif %}
+
             {% if sub.recent_hits %}
             <div class="watch-sub-hits">
                 {% for hit in sub.recent_hits %}
-                <div class="watch-sub-hit">
+                <div class="watch-sub-hit" data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}">
                     <span class="watch-sub-hit-arrow">&#9656;</span>
-                    <a href="/papers/{{ hit.paper_id }}" class="watch-sub-hit-title">{{ hit.title }}</a>
-                    {% if hit.hit_date_rel %}<span class="chip is-muted"><time datetime="{{ hit.hit_date }}">{{ hit.hit_date_rel }}</time></span>{% endif %}
+                    <a href="{{ hit.detail_url }}" class="watch-sub-hit-title">{{ hit.title }}</a>
+                    {% if hit.hit_status %}<span class="chip is-muted js-hit-status">{{ hit.hit_status }}</span>{% endif %}
+                    {% if hit.summary_short %}
+                    <div class="watch-sub-hit-summary">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
+                    {% endif %}
+                    {% if hit.matched_reason %}<span class="watch-sub-hit-reason">{{ hit.matched_reason }}</span>{% endif %}
+                    {% if hit.author_text %}
+                    <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
+                    {% endif %}
+                    <div class="watch-sub-hit-actions">
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs"
+                            onclick="sendHitToInbox({{ hit.id }}, this)"
+                            {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}
+                        >Inbox</button>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs"
+                            onclick="ignoreSubscriptionHit({{ hit.id }}, this)"
+                            {% if hit.hit_status == 'ignored' %}disabled{% endif %}
+                        >Ignore</button>
+                    </div>
                 </div>
                 {% endfor %}
             </div>

@@ -1,0 +1,131 @@
+"""Tests for workspace API endpoints."""
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+from state_store import StateStore
+
+
+class WorkspaceApiTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.store = StateStore(str(Path(self.tmp.name) / "state.db"))
+        # Patch all store resolution paths that _current_state_store() may use
+        import app.routes.api.helpers as helpers
+        import web_server as ws_mod
+
+        self._orig_ws_store = getattr(ws_mod, "STATE_STORE", None)
+        self._orig_helpers_store = getattr(helpers, "STATE_STORE", None)
+        helpers.STATE_STORE = self.store
+        ws_mod.STATE_STORE = self.store
+
+    def tearDown(self):
+        import app.routes.api.helpers as helpers
+        import web_server as ws_mod
+
+        helpers.STATE_STORE = self._orig_helpers_store
+        ws_mod.STATE_STORE = self._orig_ws_store
+        self.tmp.cleanup()
+
+    def client(self):
+        import web_server
+
+        return web_server.app.test_client()
+
+    def test_create_and_list_research_questions(self):
+        response = self.client().post(
+            "/api/workspaces/questions",
+            json={
+                "query_text": "conformal prediction under shift",
+                "intent_statement": "Find reliable finite-sample methods.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["question"]["query_text"], "conformal prediction under shift")
+        self.assertEqual(payload["question"]["source"], "manual")
+
+        list_response = self.client().get("/api/workspaces/questions")
+        self.assertEqual(list_response.status_code, 200)
+        questions = list_response.get_json()["questions"]
+        self.assertEqual([q["id"] for q in questions], [payload["question"]["id"]])
+
+    def test_create_research_question_rejects_empty_query(self):
+        response = self.client().post(
+            "/api/workspaces/questions",
+            json={"query_text": "   "},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.get_json()["success"])
+
+    def test_workspace_stats_endpoint(self):
+        question = self.store.create_research_question("causal inference")
+        self.store.upsert_queue_item(
+            "2604.11111",
+            "Deep Read",
+            research_question_id=question["id"],
+        )
+
+        response = self.client().get(f"/api/workspaces/questions/{question['id']}/stats")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["stats"]["active_reading_count"], 1)
+
+    def test_start_planner_run_endpoint_records_job(self):
+        question = self.store.create_research_question("causal inference")
+
+        fake_papers = [
+            {
+                "id": "2604.50001",
+                "title": "Causal Inference Candidate",
+                "abstract": "A paper about causal inference.",
+                "authors": ["D"],
+                "categories": ["stat.ML"],
+                "score": 8.0,
+            }
+        ]
+
+        with mock.patch(
+            "app.services.workspace_planner._default_search_fn",
+            return_value=fake_papers,
+        ):
+            response = self.client().post(
+                f"/api/workspaces/questions/{question['id']}/planner-runs",
+                json={"trigger": "manual"},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["result"]["status"], "succeeded")
+        self.assertEqual(payload["result"]["queued_count"], 1)
+
+        job = self.store.get_job(payload["result"]["run_id"])
+        self.assertEqual(job["job_type"], "workspace_planner")
+        self.assertEqual(job["payload_json"]["research_question_id"], question["id"])
+
+    def test_queue_api_records_workspace_decision_context(self):
+        question = self.store.create_research_question("graph rag evaluation")
+
+        response = self.client().post(
+            "/api/queue",
+            json={
+                "paper_id": "2604.22222v1",
+                "status": "Deep Read",
+                "source": "search_workspace",
+                "research_question_id": question["id"],
+                "decision_context": "Central benchmark paper for this question.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        item = response.get_json()["item"]
+        self.assertEqual(item["paper_id"], "2604.22222")
+        self.assertEqual(item["research_question_id"], question["id"])
+        self.assertEqual(item["decision_context"], "Central benchmark paper for this question.")

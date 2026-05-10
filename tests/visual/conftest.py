@@ -1,6 +1,6 @@
 """Visual regression test fixtures.
 
-Boots the StatDesk Flask app in a subprocess on a dedicated test port,
+Boots the Flask app in a subprocess on a dedicated test port,
 waits for it to be reachable, and provides a Playwright `page` fixture
 pre-pointed at it.
 
@@ -68,7 +68,7 @@ def _wait_until_ready(url: str, timeout_s: float = 30.0) -> None:
 @pytest.fixture(scope="session")
 def app_url() -> Iterator[str]:
     """
-    Boot StatDesk on a dedicated test port for the test session.
+    Boot the app on a dedicated test port for the test session.
 
     NOTE: Currently uses the live cache/ directory (no DB isolation).
     Goldens are tied to whatever data is in that DB at capture time. When

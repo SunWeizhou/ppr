@@ -28,64 +28,94 @@
         {% if active_items or deep_read_items %}
             <div class="paper-list" id="readingPaperList">
             {% for paper in active_items %}
-                <article class="paper-list-item" data-href="/papers/{{ paper.id }}" data-paper-id="{{ paper.id }}" data-queue-status="{{ paper.queue_status or 'Skim Later' }}">
+                <article class="paper-list-item" data-href="{{ paper.detail_url or ('/papers/' ~ paper.id) }}" data-paper-id="{{ paper.id }}" data-queue-status="{{ paper.queue_status or 'Skim Later' }}" data-research-question-id="{{ paper.research_question_id or '' }}" data-decision-context="{{ paper.decision_context or '' }}" data-detail-url="{{ paper.detail_url or ('/papers/' ~ paper.id) }}">
                     <div class="reading-item-header">
                         <div class="chip-row">
                             <span class="chip is-muted">{{ paper.queue_status or 'Skim Later' }}</span>
                             {% for label in paper.category_labels[:2] %}
                                 <span class="chip">{{ label }}</span>
                             {% endfor %}
+                            {% if paper.active_research_question %}
+                                <span class="chip">{{ paper.active_research_question.query_text }}</span>
+                            {% endif %}
+                            {% if paper.evidence_summary and paper.evidence_summary.total %}
+                                <span class="chip">{{ paper.evidence_summary.total }} evidence</span>
+                            {% endif %}
                         </div>
                         <div class="reading-item-actions">
-                            <button type="button" class="btn btn-ghost btn-xs" onclick="queuePaper('{{ paper.id }}', 'Deep Read')">Deep Read</button>
-                            <button type="button" class="btn btn-ghost btn-xs" onclick="queuePaper('{{ paper.id }}', 'Saved')">Save</button>
+                            <button type="button" class="btn btn-ghost btn-xs" onclick="queueReadingPaper(this, '{{ paper.id }}', 'Deep Read')">Deep Read</button>
+                            <button type="button" class="btn btn-ghost btn-xs" onclick="queueReadingPaper(this, '{{ paper.id }}', 'Saved')">Save</button>
                         </div>
                     </div>
-                    <h3 class="paper-list-title">{{ paper.title or 'Details unavailable' }}</h3>
+                    <h3 class="paper-list-title">{{ paper.title }}</h3>
                     <div class="paper-authors">{{ paper.author_text }}</div>
+                    {% if paper.decision_context %}
+                    <p class="muted-copy">{{ paper.decision_context }}</p>
+                    {% endif %}
                 </article>
             {% endfor %}
             {% for paper in deep_read_items %}
-                <article class="paper-list-item" data-href="/papers/{{ paper.id }}" data-paper-id="{{ paper.id }}" data-queue-status="Deep Read">
+                <article class="paper-list-item" data-href="{{ paper.detail_url or ('/papers/' ~ paper.id) }}" data-paper-id="{{ paper.id }}" data-queue-status="Deep Read" data-research-question-id="{{ paper.research_question_id or '' }}" data-decision-context="{{ paper.decision_context or '' }}" data-detail-url="{{ paper.detail_url or ('/papers/' ~ paper.id) }}">
                     <div class="reading-item-header">
                         <div class="chip-row">
                             <span class="chip is-muted">Deep Read</span>
                             {% for label in paper.category_labels[:2] %}
                                 <span class="chip">{{ label }}</span>
                             {% endfor %}
+                            {% if paper.active_research_question %}
+                                <span class="chip">{{ paper.active_research_question.query_text }}</span>
+                            {% endif %}
+                            {% if paper.evidence_summary and paper.evidence_summary.total %}
+                                <span class="chip">{{ paper.evidence_summary.total }} evidence</span>
+                            {% endif %}
                         </div>
-                        <button type="button" class="btn btn-ghost btn-xs" onclick="queuePaper('{{ paper.id }}', 'Saved')">Save</button>
+                        <div class="reading-item-actions">
+                            <button type="button" class="btn btn-ghost btn-xs" onclick="queueReadingPaper(this, '{{ paper.id }}', 'Deep Read')">Deep Read</button>
+                            <button type="button" class="btn btn-ghost btn-xs" onclick="queueReadingPaper(this, '{{ paper.id }}', 'Saved')">Save</button>
+                        </div>
                     </div>
-                    <h3 class="paper-list-title">{{ paper.title or 'Details unavailable' }}</h3>
+                    <h3 class="paper-list-title">{{ paper.title }}</h3>
                     <div class="paper-authors">{{ paper.author_text }}</div>
+                    {% if paper.decision_context %}
+                    <p class="muted-copy">{{ paper.decision_context }}</p>
+                    {% endif %}
                 </article>
             {% endfor %}
             </div>
         {% else %}
-            {{ ui.empty_state('All done', 'Reading queue is empty.', '', '<a href="/" class="btn btn-primary">Today</a>') }}
+            {{ ui.empty_state('All done', 'Reading queue is empty.', '', '<a href="/queue?status=Inbox" class="btn btn-primary">Inbox</a>') }}
         {% endif %}
 
     {% elif tab == 'saved' %}
         {% if saved_items %}
             <div class="paper-list">
             {% for paper in saved_items %}
-                <article class="paper-list-item" data-href="/papers/{{ paper.id }}" data-paper-id="{{ paper.id }}">
+                <article class="paper-list-item" data-href="{{ paper.detail_url or ('/papers/' ~ paper.id) }}" data-paper-id="{{ paper.id }}" data-research-question-id="{{ paper.research_question_id or '' }}" data-decision-context="{{ paper.decision_context or '' }}" data-detail-url="{{ paper.detail_url or ('/papers/' ~ paper.id) }}">
                     <div class="reading-item-header">
                         <div class="chip-row">
                             <span class="chip is-muted">Saved</span>
                             {% for label in paper.category_labels[:2] %}
                                 <span class="chip">{{ label }}</span>
                             {% endfor %}
+                            {% if paper.active_research_question %}
+                                <span class="chip">{{ paper.active_research_question.query_text }}</span>
+                            {% endif %}
+                            {% if paper.evidence_summary and paper.evidence_summary.total %}
+                                <span class="chip">{{ paper.evidence_summary.total }} evidence</span>
+                            {% endif %}
                         </div>
-                        <button type="button" class="btn btn-ghost btn-xs" onclick="queuePaper('{{ paper.id }}', 'Skim Later')">Read Later</button>
+                        <button type="button" class="btn btn-ghost btn-xs" onclick="queueReadingPaper(this, '{{ paper.id }}', 'Skim Later')">Read Later</button>
                     </div>
-                    <h3 class="paper-list-title">{{ paper.title or 'Details unavailable' }}</h3>
+                    <h3 class="paper-list-title">{{ paper.title }}</h3>
                     <div class="paper-authors">{{ paper.author_text }}</div>
+                    {% if paper.decision_context %}
+                    <p class="muted-copy">{{ paper.decision_context }}</p>
+                    {% endif %}
                 </article>
             {% endfor %}
             </div>
         {% else %}
-            {{ ui.empty_state('No saved items', '', '', '<a href="/" class="btn btn-primary">Today</a>') }}
+            {{ ui.empty_state('No saved items', '', '', '<a href="/queue?status=Inbox" class="btn btn-primary">Inbox</a>') }}
         {% endif %}
 
     {% elif tab == 'collections' %}
@@ -114,6 +144,22 @@
 {% block scripts %}
 {{ super() }}
 <script>
+function queueReadingPaper(button, paperId, status) {
+  const item = button.closest('.paper-list-item');
+  const questionId = item?.dataset.researchQuestionId || '';
+  const decisionContext = item?.dataset.decisionContext || '';
+  return queuePaperStatus(paperId, status, {
+    source: 'reading_page',
+    research_question_id: questionId ? Number(questionId) : null,
+    decision_context: decisionContext
+  }).then(function() {
+    if (item) item.dataset.queueStatus = status;
+    showToast('Updated: ' + status);
+  }).catch(function(error) {
+    showToast('更新失败: ' + error.message, 'error');
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   var filterToolbar = document.querySelector('.toolbar[role="group"][aria-label="Filter reading type"]');
   if (!filterToolbar) return;

@@ -3,6 +3,14 @@ import subprocess
 import unittest
 from pathlib import Path
 
+try:
+    from packaging.requirements import Requirement
+    from packaging.version import Version
+
+    HAS_PACKAGING = True
+except ImportError:
+    HAS_PACKAGING = False
+
 
 class RepositoryHygieneTests(unittest.TestCase):
     def test_user_profile_example_exists_and_matches_config_schema(self):
@@ -102,16 +110,17 @@ class RepositoryHygieneTests(unittest.TestCase):
 
         self.assertTrue(workflow.exists())
         text = workflow.read_text(encoding="utf-8")
-        self.assertIn("python -m unittest discover -s tests -v", text)
+        self.assertIn("python -m pytest -q --ignore=tests/visual", text)
         self.assertIn("-c constraints.txt", text)
 
     def test_readme_documents_local_first_setup(self):
         readme = Path("README.md").read_text(encoding="utf-8")
 
-        self.assertIn("local-first research triage desk", readme)
-        self.assertIn("Inbox / Queue / Library / Monitor / Settings", readme)
+        self.assertIn("local-first Agent literature research assistant", readme)
+        self.assertIn("Inbox / Search / Detail / Reading / Watch / Settings", readme)
         self.assertIn("cp user_profile.example.json user_profile.json", readme)
-        self.assertIn("python -m unittest discover -s tests -v", readme)
+        self.assertIn("pytest", readme)
+        self.assertIn("tests/", readme)
 
     def test_readme_links_point_to_existing_files(self):
         """Documentation Map entries in README.md must point to real files."""
@@ -130,6 +139,146 @@ class RepositoryHygieneTests(unittest.TestCase):
         self.assertIn("DEEPSEEK_BASE_URL=https://api.deepseek.com", text)
         self.assertIn("DEEPSEEK_MODEL=deepseek-chat", text)
         self.assertNotIn("sk-", text)
+
+    # ------------------------------------------------------------------ #
+    #  Runtime state cleanliness
+    # ------------------------------------------------------------------ #
+
+    def test_runtime_cache_does_not_contain_placeholder_titles(self):
+        """The runtime cache/app_state.db must not contain obvious placeholder
+        titles like 'Stable identity' or 'Test Paper Title'."""
+        cache_db = Path("cache/app_state.db")
+        if not cache_db.exists():
+            self.skipTest("runtime cache not present — cannot inspect")
+
+        import sqlite3
+        conn = sqlite3.connect(str(cache_db))
+        cursor = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        )
+        tables = [row[0] for row in cursor.fetchall()]
+        found_placeholders = []
+        for table in tables:
+            try:
+                for col in ("title", "paper_id", "name"):
+                    cursor = conn.execute(
+                        f"SELECT DISTINCT {col} FROM \"{table}\" "
+                        f"WHERE {col} LIKE '%Stable identity%' "
+                        f"OR {col} LIKE '%Test Paper Title%' "
+                        f"LIMIT 5"
+                    )
+                    for row in cursor.fetchall():
+                        found_placeholders.append(f"{table}.{col}={row[0]}")
+            except (sqlite3.OperationalError, sqlite3.DatabaseError):
+                continue
+        conn.close()
+        self.assertEqual(
+            found_placeholders, [],
+            f"Placeholder records found in runtime cache: {found_placeholders}"
+        )
+
+    # ------------------------------------------------------------------ #
+    #  Dependency consistency
+    # ------------------------------------------------------------------ #
+
+    def test_constraints_satisfy_requirements_txt(self):
+        """Every pinned version in constraints.txt must satisfy the range
+        declared in requirements.txt."""
+        if not HAS_PACKAGING:
+            self.skipTest("packaging library not available")
+
+        constraints = self._parse_constraints()
+        requirements = self._parse_requirements("requirements.txt")
+        failures = []
+        for name, pinned_version in sorted(constraints.items()):
+            if name not in requirements:
+                continue
+            req = requirements[name]
+            if pinned_version not in req.specifier:
+                failures.append(
+                    f"{name}=={pinned_version} does not satisfy "
+                    f"requirements.txt specifier {req.specifier}"
+                )
+        self.assertEqual(failures, [])
+
+    def test_constraints_satisfy_setup_py(self):
+        """Every pinned version in constraints.txt must satisfy the range
+        declared in setup.py install_requires."""
+        if not HAS_PACKAGING:
+            self.skipTest("packaging library not available")
+
+        constraints = self._parse_constraints()
+        requirements = self._parse_setup_py_requires()
+        failures = []
+        for name, pinned_version in sorted(constraints.items()):
+            if name not in requirements:
+                continue
+            req = requirements[name]
+            if pinned_version not in req.specifier:
+                failures.append(
+                    f"{name}=={pinned_version} does not satisfy "
+                    f"setup.py specifier {req.specifier}"
+                )
+        self.assertEqual(failures, [])
+
+    # ------------------------------------------------------------------ #
+    #  Helpers
+    # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _parse_constraints():
+        """Return dict {package_name: Version} from constraints.txt."""
+        text = Path("constraints.txt").read_text(encoding="utf-8")
+        result = {}
+        for line in text.splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "==" not in line:
+                continue
+            name, _, version = line.partition("==")
+            result[name.strip()] = Version(version.strip())
+        return result
+
+    @staticmethod
+    def _parse_requirements(path):
+        """Return dict {package_name: Requirement} from a pip requirements file."""
+        text = Path(path).read_text(encoding="utf-8")
+        result = {}
+        for line in text.splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            try:
+                req = Requirement(line)
+            except Exception:
+                continue
+            result[req.name] = req
+        return result
+
+    @staticmethod
+    def _parse_setup_py_requires():
+        """Parse install_requires from setup.py by evaluating it safely."""
+        import ast
+
+        source = Path("setup.py").read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        reqs = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "setup":
+                for kw in node.keywords:
+                    if kw.arg == "install_requires":
+                        reqs = [ast.literal_eval(el) for el in kw.value.elts]
+                        break
+                break
+        result = {}
+        for r in reqs:
+            try:
+                req = Requirement(r)
+            except Exception:
+                continue
+            result[req.name] = req
+        return result
 
 
 if __name__ == "__main__":

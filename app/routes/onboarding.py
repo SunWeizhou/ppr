@@ -88,7 +88,7 @@ def onboarding_page():
 
     return render_template(
         "onboarding.html",
-        title="Setup - StatDesk",
+        title="Setup - Research Assistant",
         body_class="",
         nav_items=build_nav_items(),
         active_tab="",

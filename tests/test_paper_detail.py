@@ -121,14 +121,17 @@ class TestPaperViewModel(unittest.TestCase):
     # 3. Paper not found returns error context (no crash)
     # ------------------------------------------------------------------
 
-    def test_paper_not_found_returns_404_context(self):
+    def test_paper_not_found_returns_graceful_shell(self):
+        """Paper not in any data source returns a detail shell with arXiv link
+        instead of an error context."""
         from app.viewmodels.paper_viewmodel import PaperViewModel
 
         vm = PaperViewModel(self.store)
         ctx = vm.to_detail_context("9999.99999")
 
-        self.assertIn("error", ctx)
-        self.assertEqual(ctx["paper_id"], "9999.99999")
+        self.assertNotIn("error", ctx)
+        self.assertEqual(ctx["paper"]["id"], "9999.99999")
+        self.assertIn("arXiv", str(ctx["paper"].get("abstract", "")))
 
     # ------------------------------------------------------------------
     # 4. Score details include affinity field
@@ -267,7 +270,8 @@ class TestPaperDetailRoute(unittest.TestCase):
         shutil.rmtree(self.tmpdir, ignore_errors=True)
 
     def test_paper_detail_404_does_not_crash(self):
-        """Requesting a non-existent paper should not crash."""
+        """Requesting a non-existent paper should not crash and should
+        return a graceful detail shell instead of error."""
         import web_server
 
         # The paper_detail route calls get_state_store() — patch it to use
@@ -276,16 +280,10 @@ class TestPaperDetailRoute(unittest.TestCase):
             client = web_server.app.test_client()
             resp = client.get("/papers/9999.99999")
 
-        # The route returns 404 for missing papers via render_template.
-        # Even if the template is missing, the test should not crash.
-        # Flask renders the template with the error context.
-        self.assertIn(resp.status_code, (200, 404))
-        if resp.status_code == 200:
-            data = resp.data.decode("utf-8", errors="replace").lower()
-            self.assertTrue(
-                "not found" in data or "404" in data or resp.status_code == 404,
-                "Response should indicate paper not found"
-            )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.data.decode("utf-8", errors="replace").lower()
+        # Should render a page (not crash) with the paper id visible
+        self.assertIn("9999.99999", data)
 
 
 if __name__ == "__main__":

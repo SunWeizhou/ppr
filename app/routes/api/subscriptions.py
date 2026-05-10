@@ -21,6 +21,12 @@ def _serialize_subscription(sub):
     return item
 
 
+def _optional_int(value):
+    if value in (None, ""):
+        return None
+    return int(value)
+
+
 @bp.route("/api/subscriptions", methods=["GET", "POST"])
 def manage_subscriptions():
     if request.method == "GET":
@@ -41,13 +47,18 @@ def manage_subscriptions():
     if isinstance(payload, dict):
         payload = json.dumps(payload, ensure_ascii=False)
 
-    sub = _current_state_store().create_subscription(
-        type=sub_type,
-        name=name,
-        query_text=query_text,
-        payload_json=payload,
-        enabled=data.get("enabled", True),
-    )
+    try:
+        research_question_id = _optional_int(data.get("research_question_id"))
+        sub = _current_state_store().create_subscription(
+            type=sub_type,
+            name=name,
+            query_text=query_text,
+            payload_json=payload,
+            enabled=data.get("enabled", True),
+            research_question_id=research_question_id,
+        )
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
     _current_state_store().record_event(
         "subscription_created",
         payload={"subscription_id": sub["id"], "type": sub_type, "name": name},
@@ -71,7 +82,20 @@ def manage_subscription_item(sub_id):
     if "payload_json" in data or "payload" in data:
         payload_val = data.get("payload_json", data.get("payload", {}))
         kwargs["payload_json"] = payload_val
-    sub = _current_state_store().update_subscription(sub_id, **kwargs)
+    if "research_question_id" in data:
+        try:
+            kwargs["research_question_id"] = _optional_int(
+                data.get("research_question_id")
+            )
+        except ValueError:
+            return jsonify({
+                "success": False,
+                "error": "Invalid research_question_id",
+            }), 400
+    try:
+        sub = _current_state_store().update_subscription(sub_id, **kwargs)
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
     if not sub:
         return jsonify({"success": False, "error": "Subscription not found"}), 404
     _current_state_store().record_event("update_subscription", payload={"subscription_id": sub_id})
@@ -89,6 +113,7 @@ def list_subscription_hits(sub_id):
 
 
 @bp.post("/api/subscriptions/run/<int:sub_id>")
+@bp.post("/api/subscriptions/<int:sub_id>/run")
 def run_subscription(sub_id):
     from app.services.subscription_runner import SubscriptionRunner
 
