@@ -68,3 +68,20 @@ class Phase6ProductAcceptanceTests(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
             for needle in forbidden:
                 self.assertNotIn(needle, text, msg=f"{needle!r} in {path}")
+
+    def test_queue_paper_status_has_single_canonical_definition(self):
+        action_files = [
+            Path("static/js/paper_actions.js"),
+            Path("static/research_ui.js"),
+        ]
+        definitions = []
+        for path in action_files:
+            text = path.read_text(encoding="utf-8")
+            if "function queuePaperStatus" in text or "async function queuePaperStatus" in text:
+                definitions.append(str(path))
+
+        self.assertEqual(
+            definitions,
+            ["static/js/paper_actions.js"],
+            msg=f"queuePaperStatus should only be defined in paper_actions.js, found {definitions}",
+        )

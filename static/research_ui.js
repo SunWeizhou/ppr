@@ -513,25 +513,6 @@
     if (typeof resolver === 'function') resolver({deleted: true, name: target.name});
   }
 
-  async function queuePaperStatus(paperId, status, options = {}) {
-    const result = await requestJson('/api/queue', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        paper_id: paperId,
-        status,
-        source: options.source || 'research_ui',
-        note: options.note,
-        tags: options.tags,
-        research_question_id: options.research_question_id,
-        decision_context: options.decision_context
-      })
-    });
-    syncPaperState(paperId, status, result.item?.note || '');
-    showToast('已加入队列: ' + status);
-    return result.item;
-  }
-
   function syncPaperState(paperId, status, note = null) {
     const selector = '[data-paper-id="' + escapeAttrValue(paperId) + '"]';
     document.querySelectorAll(selector).forEach((node) => {
@@ -661,7 +642,7 @@
     const target = window.AppState.modalState.paperActionTarget;
     if (!target) return;
     try {
-      await queuePaperStatus(target.paperId, status, {source: target.source || 'paper_actions'});
+      await window.queuePaperStatus(target.paperId, status, {source: target.source || 'paper_actions'});
     } catch (error) {
       showToast('队列更新失败: ' + error.message, 'error');
     }
@@ -806,7 +787,6 @@
     openAuthorSubscriptionModal,
     submitAuthorSubscription,
     deleteAuthorSubscriptionFromEditor,
-    queuePaperStatus,
     syncPaperState,
     followAuthor,
     downloadBibtex,
