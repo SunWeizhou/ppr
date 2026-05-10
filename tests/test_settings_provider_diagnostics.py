@@ -26,14 +26,10 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
 
     def _swap_store(self, store: StateStore):
         import web_server
-        from app.routes import api as api_routes
 
         original_web_store = web_server.STATE_STORE
-        original_api_store = api_routes.STATE_STORE
         web_server.STATE_STORE = store
-        api_routes.STATE_STORE = store
         self.addCleanup(setattr, web_server, "STATE_STORE", original_web_store)
-        self.addCleanup(setattr, api_routes, "STATE_STORE", original_api_store)
 
     def test_ai_settings_provider_none_clears_stored_key_and_disables(self):
         import web_server
@@ -228,7 +224,8 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
                 encoding="utf-8",
             )
             self._swap_config(tmp_config)
-            response = web_server.app.test_client().get("/settings?tab=ai")
+            with mock.patch.dict(os.environ, {}, clear=True):
+                response = web_server.app.test_client().get("/settings?tab=ai")
             ConfigManager._instance = None
 
         self.assertEqual(response.status_code, 200)
