@@ -95,7 +95,7 @@
         {% if is_today %}
         {{ empty_state('No Recommendations Yet', 'Generate your first set of paper recommendations.', '📄', '<a href="/settings?tab=profile" class="btn btn-primary">Configure Keywords</a>') }}
         {% else %}
-        {{ empty_state('No Papers on This Date', 'No recommendations were found for this date.', '📄', '<a href="/" class="btn btn-primary">Go to Today</a>') }}
+        {{ empty_state('No Papers on This Date', 'No recommendations were found for this date.', '📄', '<a href="/queue?status=Inbox" class="btn btn-primary">Go to Inbox</a>') }}
         {% endif %}
     {% endif %}
 

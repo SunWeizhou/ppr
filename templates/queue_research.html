@@ -13,7 +13,7 @@
         </div>
     </div>
     <div class="actions">
-        <a href="/" class="btn btn-primary">返回 Inbox</a>
+        <a href="/queue?status=Inbox" class="btn btn-primary">返回 Inbox</a>
     </div>
 </section>
 {% endblock %}
@@ -36,7 +36,7 @@
     <div class="empty-state-icon">&#128214;</div>
     <h2 class="empty-state-title">Queue is Empty</h2>
     <p class="empty-state-desc">Papers queued from Inbox for Skim Later or Deep Read will appear here.</p>
-    <a href="/" class="btn btn-primary">Go to Inbox</a>
+    <a href="/queue?status=Inbox" class="btn btn-primary">Go to Inbox</a>
 </div>
 {% endif %}
 

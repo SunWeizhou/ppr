@@ -47,7 +47,7 @@
                             <button type="button" class="btn btn-ghost btn-xs" onclick="queueReadingPaper(this, '{{ paper.id }}', 'Saved')">Save</button>
                         </div>
                     </div>
-                    <h3 class="paper-list-title">{{ paper.title or 'Details unavailable' }}</h3>
+                    <h3 class="paper-list-title">{{ paper.title }}</h3>
                     <div class="paper-authors">{{ paper.author_text }}</div>
                     {% if paper.decision_context %}
                     <p class="muted-copy">{{ paper.decision_context }}</p>
@@ -74,7 +74,7 @@
                             <button type="button" class="btn btn-ghost btn-xs" onclick="queueReadingPaper(this, '{{ paper.id }}', 'Saved')">Save</button>
                         </div>
                     </div>
-                    <h3 class="paper-list-title">{{ paper.title or 'Details unavailable' }}</h3>
+                    <h3 class="paper-list-title">{{ paper.title }}</h3>
                     <div class="paper-authors">{{ paper.author_text }}</div>
                     {% if paper.decision_context %}
                     <p class="muted-copy">{{ paper.decision_context }}</p>
@@ -83,7 +83,7 @@
             {% endfor %}
             </div>
         {% else %}
-            {{ ui.empty_state('All done', 'Reading queue is empty.', '', '<a href="/" class="btn btn-primary">Today</a>') }}
+            {{ ui.empty_state('All done', 'Reading queue is empty.', '', '<a href="/queue?status=Inbox" class="btn btn-primary">Inbox</a>') }}
         {% endif %}
 
     {% elif tab == 'saved' %}
@@ -106,7 +106,7 @@
                         </div>
                         <button type="button" class="btn btn-ghost btn-xs" onclick="queueReadingPaper(this, '{{ paper.id }}', 'Skim Later')">Read Later</button>
                     </div>
-                    <h3 class="paper-list-title">{{ paper.title or 'Details unavailable' }}</h3>
+                    <h3 class="paper-list-title">{{ paper.title }}</h3>
                     <div class="paper-authors">{{ paper.author_text }}</div>
                     {% if paper.decision_context %}
                     <p class="muted-copy">{{ paper.decision_context }}</p>
@@ -115,7 +115,7 @@
             {% endfor %}
             </div>
         {% else %}
-            {{ ui.empty_state('No saved items', '', '', '<a href="/" class="btn btn-primary">Today</a>') }}
+            {{ ui.empty_state('No saved items', '', '', '<a href="/queue?status=Inbox" class="btn btn-primary">Inbox</a>') }}
         {% endif %}
 
     {% elif tab == 'collections' %}

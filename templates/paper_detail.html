@@ -6,7 +6,7 @@
 
 {% block hero %}
 <div class="page-header">
-    <a href="/" class="back-link">&larr; 返回 Inbox</a>
+    <a href="/queue?status=Inbox" class="back-link"><a href="/" class="back-link">&larr; 返回 Inbox</a>larr; 返回 Inbox</a>
 </div>
 {% endblock %}
 
@@ -15,7 +15,7 @@
 <div class="page-content">
     <div class="card card-spaced">
         <p>{{ error }}</p>
-        <a href="/" class="btn btn-secondary">返回 Inbox</a>
+        <a href="/queue?status=Inbox" class="btn btn-secondary">返回 Inbox</a>
     </div>
 </div>
 {% else %}
@@ -102,7 +102,7 @@
                         {% endif %}
                     </div>
                 {% elif not has_ai %}
-                    <p class="empty-state">AI analysis not configured. Add an API key in <a href="/settings?tab=diagnostics">Settings</a>.</p>
+                    <p class="empty-state">AI analysis not configured. Add an API key in <a href="/settings?tab=ai">Settings</a>.</p>
                 {% elif analysis and analysis.get('status') == 'failed' %}
                     <p class="empty-state">AI analysis generation failed: {{ analysis.get('error_text', 'Unknown error') }}</p>
                     <button class="btn btn-primary btn-sm" id="aiGenerateBtn" onclick="generateAIAnalysis('{{ paper.get('id') }}')">Retry AI Analysis</button>
@@ -151,14 +151,18 @@
             <!-- Score & Recommendation -->
             <div class="card card-spaced">
                 <h2 class="panel-title">Recommendation Score</h2>
-                {% set score = paper.get('score', 0) or 0 %}
-                {% set pct = "%.0f"|format(score * 100) %}
+                {% set raw_score = paper.get('workspace_score') or paper.get('score', 0) or 0 %}
+                {% if raw_score > 0 %}
+                {% set pct = "%.0f"|format(raw_score * 100) %}
                 <div class="score-simple">
                     <div class="score-simple-value">{{ pct }}%</div>
                     <div class="score-simple-track">
                         <div class="score-simple-fill" style="width: {{ pct }}%;"></div>
                     </div>
                 </div>
+                {% else %}
+                <p class="t-muted">Not scored</p>
+                {% endif %}
                 {% if paper.get('relevance_reason') %}
                 <p class="t-muted" style="margin-top: 12px;">{{ paper.get('relevance_reason') }}</p>
                 {% endif %}

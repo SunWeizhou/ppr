@@ -638,10 +638,13 @@
         card.innerHTML = '<div class="wizard-success">' +
           '<div class="wizard-success-icon">&#10003;</div>' +
           '<h2 class="panel-title">Setup Complete</h2>' +
-          '<p class="muted-copy" style="margin-top:8px;">Your research desk is ready. Redirecting to your inbox...</p>' +
+          '<p class="muted-copy" style="margin-top:8px;">Your research desk is ready. Redirecting to your workspace...</p>' +
           '</div>';
         setTimeout(function() {
-          window.location.href = '/';
+          var dest = data.research_question_id
+            ? '/search?research_question_id=' + data.research_question_id
+            : '/queue?status=Inbox';
+          window.location.href = dest;
         }, 1500);
       } else {
         finishBtn.disabled = false;

@@ -48,7 +48,7 @@
                             <code>{{ sub.query_text[:80] }}{% if sub.query_text|length > 80 %}&hellip;{% endif %}</code>
                         </span>
                         {% endif %}
-                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at }}</time></span>
+                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "尚未刷新" }}</time></span>
                         {% if not sub.enabled %}<span class="chip is-warn">已禁用</span>{% endif %}
                     </div>
                 </div>
@@ -126,7 +126,7 @@
                     <div class="watch-sub-card-meta">
                         {% if sub.affiliation %}<span class="watch-sub-meta-item">{{ sub.affiliation }}</span>{% endif %}
                         {% if sub.focus %}<span class="watch-sub-meta-item">{{ sub.focus }}</span>{% endif %}
-                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at }}</time></span>
+                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "尚未刷新" }}</time></span>
                         {% if not sub.enabled %}<span class="chip is-warn">已禁用</span>{% endif %}
                     </div>
                 </div>
@@ -208,7 +208,7 @@
                     <h3 class="watch-sub-card-name">{{ sub.name }}</h3>
                     <div class="watch-sub-card-meta">
                         <span class="watch-sub-meta-item chip is-muted">{{ sub.venue_type }}</span>
-                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at }}</time></span>
+                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "尚未刷新" }}</time></span>
                         {% if not sub.enabled %}<span class="chip is-warn">已禁用</span>{% endif %}
                     </div>
                 </div>

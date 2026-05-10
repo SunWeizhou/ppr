@@ -28,11 +28,12 @@ class SearchViewModel:
         *,
         research_question_id: int | None = None,
         planner_result: dict | None = None,
+        raw_query: str | None = None,
     ) -> dict:
         """Build the full template context for ``search_research.html``."""
         page_ctx = self._build_page_context()
         decorated = self._decorate_search_papers(papers)
-        current_query = ", ".join(keywords)
+        current_query = raw_query or ", ".join(keywords)
 
         workspace_context = self._build_workspace_context(
             papers,

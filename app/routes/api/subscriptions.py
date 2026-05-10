@@ -113,6 +113,7 @@ def list_subscription_hits(sub_id):
 
 
 @bp.post("/api/subscriptions/run/<int:sub_id>")
+@bp.post("/api/subscriptions/<int:sub_id>/run")
 def run_subscription(sub_id):
     from app.services.subscription_runner import SubscriptionRunner
 

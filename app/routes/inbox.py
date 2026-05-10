@@ -243,5 +243,6 @@ def search_keywords(keywords):
             papers,
             keyword_list,
             research_question_id=research_question_id,
+            raw_query=keywords,
         ),
     )

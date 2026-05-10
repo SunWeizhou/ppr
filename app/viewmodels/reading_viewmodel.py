@@ -23,15 +23,19 @@ class ReadingViewModel:
             if k in ACTIVE_READING_STATUSES
         }
 
-        active_items = queue_service.resolve_papers(status="Skim Later")
-        deep_read_items = queue_service.resolve_papers(status="Deep Read")
-        saved_items = queue_service.resolve_papers(status="Saved")
+        def _valid(paper: dict) -> bool:
+            """Exclude unresolvable placeholder items."""
+            return paper.get("source") != "placeholder"
+
+        active_items = [p for p in queue_service.resolve_papers(status="Skim Later") if _valid(p)]
+        deep_read_items = [p for p in queue_service.resolve_papers(status="Deep Read") if _valid(p)]
+        saved_items = [p for p in queue_service.resolve_papers(status="Saved") if _valid(p)]
 
         library_vm = LibraryViewModel(self._store)
         library_ctx = library_vm.to_template_context(tab="collections")
 
         context = {
-            "title": "Reading - StatDesk",
+            "title": "Reading - Agent Literature Research Assistant",
             "active_tab": "reading",
             "tab": tab,
             "queue_counts": queue_counts,

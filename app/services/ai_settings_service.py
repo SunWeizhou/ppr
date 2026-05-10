@@ -59,7 +59,7 @@ def build_ai_settings_context(ai_config: dict, environ: Mapping[str, str] | None
         "enabled": bool(ai_config.get("enabled")) and provider != "none",
         "effective_enabled": effective_enabled,
         "has_key": effective_has_key,
-        "key_source": env["source"] if env["has_key"] else ("stored" if stored_key else "none"),
+        "key_source": "none" if provider == "none" else (env["source"] if env["has_key"] else ("stored" if stored_key else "none")),
         "env_var": env["env_var"],
         "api_key": "" if env["has_key"] else mask_api_key(stored_key),
         "api_key_mask": bool(stored_key) and not env["has_key"],
