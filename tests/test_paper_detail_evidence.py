@@ -132,6 +132,60 @@ class PaperDetailEvidenceViewModelTests(unittest.TestCase):
         self.assertEqual(ctx["has_ai"], False)
         self.assertIn("paper", ctx)
 
+    def test_has_ai_configured_false_when_provider_deepseek_no_key_disabled(self):
+        """Provider deepseek with no API key and enabled=false → not usable."""
+        from app.viewmodels.paper_viewmodel import PaperViewModel
+
+        fake_config = mock.Mock()
+        fake_config._ai.provider = "deepseek"
+        fake_config._ai.enabled = False
+        fake_config._ai.api_key = ""
+
+        with mock.patch(
+            "config_manager.get_config",
+            return_value=fake_config,
+        ):
+            self.assertFalse(PaperViewModel._has_ai_configured())
+
+    def test_has_ai_configured_false_when_provider_deepseek_no_key_enabled(self):
+        """Provider deepseek, enabled=true but no API key → not usable."""
+        from app.viewmodels.paper_viewmodel import PaperViewModel
+
+        fake_config = mock.Mock()
+        fake_config._ai.provider = "deepseek"
+        fake_config._ai.enabled = True
+        fake_config._ai.api_key = ""
+
+        with mock.patch(
+            "config_manager.get_config",
+            return_value=fake_config,
+        ), mock.patch.dict("os.environ", {}, clear=True):
+            self.assertFalse(PaperViewModel._has_ai_configured())
+
+    def test_deepseek_without_key_still_generates_rule_evidence(self):
+        """Provider deepseek with no API key should still generate rule-based evidence fallback."""
+        from app.viewmodels.paper_viewmodel import PaperViewModel
+
+        fake_config = mock.Mock()
+        fake_config._ai.provider = "deepseek"
+        fake_config._ai.enabled = True
+        fake_config._ai.api_key = ""
+
+        with mock.patch(
+            "config_manager.get_config",
+            return_value=fake_config,
+        ), mock.patch.dict("os.environ", {}, clear=True):
+            ctx = PaperViewModel(self.store).to_detail_context(
+                self.paper_id,
+                research_question_id=self.question["id"],
+            )
+
+        self.assertEqual(ctx["has_ai"], False)
+        paper = ctx["paper"]
+        rule_claims = [c for c in paper.get("evidence_claims", []) if c.get("analyst") == "rule"]
+        self.assertGreater(len(rule_claims), 0,
+                           "Rule-based evidence must be generated even when AI provider lacks a key")
+
 
 class PaperDetailEvidenceRouteTests(unittest.TestCase):
     def setUp(self):

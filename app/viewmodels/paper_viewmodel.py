@@ -283,12 +283,24 @@ class PaperViewModel:
 
     @staticmethod
     def _has_ai_configured() -> bool:
-        """Check whether an AI provider is configured in the local config."""
+        """Check whether an AI provider is actually usable.
+
+        Returns True only when a non-none provider is configured, it is
+        enabled in settings, AND there is a usable API key (env var or stored).
+        This is consistent with ``build_ai_settings_context().effective_enabled``.
+        """
         try:
+            from app.services.ai_settings_service import resolve_ai_env
             from config_manager import get_config
             config = get_config()
             provider = (config._ai.provider or "none").strip().lower()
-            return provider not in ("", "none")
+            if provider in ("", "none"):
+                return False
+            if not bool(config._ai.enabled):
+                return False
+            stored_key = str(getattr(config._ai, "api_key", "") or "").strip()
+            env = resolve_ai_env()
+            return bool(env["has_key"]) or bool(stored_key)
         except Exception:
             return False
 

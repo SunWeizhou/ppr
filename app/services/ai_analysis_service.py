@@ -71,7 +71,13 @@ class AIAnalysisService:
             research_question = recommendation_context.get("research_question") or {}
         claim_service = EvidenceClaimService()
         try:
-            self.state_store.delete_evidence_claims(paper_id=paper_id)
+            rq_id = research_question.get("id") if isinstance(research_question, dict) else None
+            if rq_id is not None:
+                self.state_store.delete_evidence_claims(
+                    paper_id=paper_id, research_question_id=rq_id
+                )
+            else:
+                self.state_store.delete_evidence_claims(paper_id=paper_id)
             for claim in claim_service.build_rule_claims(
                 paper,
                 research_question=research_question,

@@ -134,6 +134,41 @@ class AIAnalysisServiceTests(unittest.TestCase):
         self.assertIn("provider unavailable", analysis["error_text"])
         self.assertEqual(cached["status"], "failed")
 
+    def test_analysis_preserves_evidence_claims_for_other_questions(self):
+        """Generating analysis for q1 must NOT delete evidence claims for q2."""
+        from app.services.ai_analysis_service import AIAnalysisService, FakeProvider
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            paper_id = "2604.66666"
+            store.save_paper_metadata(paper_id, {"title": "Shared paper", "abstract": "Abstract text"})
+
+            q1 = store.create_research_question("question one")
+            q2 = store.create_research_question("question two")
+            q2_claim = store.create_evidence_claim(
+                paper_id=paper_id,
+                research_question_id=q2["id"],
+                claim="Q2 evidence must survive",
+                evidence_text="Q2-specific extraction",
+                evidence_source="abstract",
+                claim_type="factual",
+                analyst="rule",
+            )
+
+            service = AIAnalysisService(store, provider=FakeProvider())
+            service.get_or_create_analysis(
+                {"id": paper_id, "title": "Shared paper", "abstract": "Abstract text"},
+                recommendation_context={"research_question": {"id": q1["id"], "query_text": "question one"}},
+            )
+
+            surviving = store.list_evidence_claims(
+                paper_id=paper_id,
+                research_question_id=q2["id"],
+            )
+            self.assertEqual(len(surviving), 1,
+                             "q2 evidence claims should survive after q1 analysis generation")
+            self.assertEqual(surviving[0]["id"], q2_claim["id"])
+
     def test_build_ai_provider_from_env_defaults_to_no_provider(self):
         from app.services.ai_providers import NoProvider, build_ai_provider_from_env
 
