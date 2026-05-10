@@ -209,7 +209,7 @@ def get_related_papers(paper_id):
 def save_paper_note(paper_id):
     data = request.get_json() or {}
     note = str(data.get("note", "") or "")[:5000]
-    store = get_state_store()
+    store = _current_state_store()
     try:
         existing = store.get_queue_item(paper_id)
         from app.services.queue_service import QueueService

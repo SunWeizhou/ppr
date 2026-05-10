@@ -2,6 +2,7 @@
 from __future__ import annotations
 import json
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
 from logger_config import get_logger
 from app_paths import CACHE_DIR, HISTORY_DIR

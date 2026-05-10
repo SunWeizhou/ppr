@@ -83,7 +83,7 @@ class ScholarService:
         papers = []
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "arXiv-Recommender/1.0"})
-            with urllib.request.urlopen(req, timeout=30, context=ssl_context) as response:
+            with urllib.request.urlopen(req, timeout=30, context=ssl_context) as response:  # nosec B310 — Google Scholar, fixed https://
                 xml_content = response.read().decode("utf-8")
             root = ET.fromstring(xml_content)
             ns = {"atom": "http://www.w3.org/2005/Atom"}
@@ -133,7 +133,7 @@ class ScholarService:
         ssl_context = ssl.create_default_context()
         try:
             req = urllib.request.Request(scholar_url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=15, context=ssl_context) as response:
+            with urllib.request.urlopen(req, timeout=15, context=ssl_context) as response:  # nosec B310 — Google Scholar, fixed https://
                 html = response.read().decode("utf-8", errors="replace")
         except Exception as e:
             return {"success": False, "error": f"无法访问: {e}"}

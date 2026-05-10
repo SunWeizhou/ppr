@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-import ssl, urllib.error, urllib.parse, urllib.request
+import ssl
+import urllib.error
+import urllib.parse
+import urllib.request
 from datetime import datetime, timedelta
 from defusedxml import ElementTree as ET
 from logger_config import get_logger

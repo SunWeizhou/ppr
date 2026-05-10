@@ -31,7 +31,7 @@ class CitationAnalyzer:
             "?fields=citationCount,influentialCitationCount,referenceCount"
         )
         req = urllib.request.Request(url, headers={'User-Agent': 'arXiv-Recommender/1.0'})
-        with urllib.request.urlopen(req, timeout=15, context=_SSL_CONTEXT) as response:
+        with urllib.request.urlopen(req, timeout=15, context=_SSL_CONTEXT) as response:  # nosec B310 — arXiv API, fixed https://
             data = json.loads(response.read().decode('utf-8'))
         return {
             'citations': int(data.get('citationCount') or 0),

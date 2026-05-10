@@ -110,7 +110,7 @@ class RepositoryHygieneTests(unittest.TestCase):
 
         self.assertTrue(workflow.exists())
         text = workflow.read_text(encoding="utf-8")
-        self.assertIn("python -m unittest discover -s tests -v", text)
+        self.assertIn("python -m pytest -q", text)
         self.assertIn("-c constraints.txt", text)
 
     def test_readme_documents_local_first_setup(self):
