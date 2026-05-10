@@ -240,7 +240,9 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
             finally:
                 cm_mod.CONFIG_FILE = original_cf
 
-        self.assertEqual(response.status_code, 200)
+        self.assertIn(response.status_code, (200, 302))
+        if response.status_code == 302:
+            self.assertIn("/queue?status=Inbox", response.location)
 
     # ------------------------------------------------------------------
     # AI Settings

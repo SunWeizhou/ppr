@@ -273,7 +273,11 @@ class MonitorViewModel:
         item["focus"] = payload.get("focus", "")
         item["venue_type"] = payload.get("venue_type", item.get("type", ""))
         item["homepage_url"] = payload.get("homepage_url", "")
-        item["last_checked_at"] = item.get("last_checked_at") or ""
+        raw = item.get("last_checked_at")
+        if raw is None or str(raw).strip().lower() in ("none", ""):
+            item["last_checked_at"] = ""
+        else:
+            item["last_checked_at"] = str(raw)
         item["research_question"] = self._research_question_for(
             item.get("research_question_id")
         )

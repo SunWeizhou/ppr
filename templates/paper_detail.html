@@ -6,7 +6,7 @@
 
 {% block hero %}
 <div class="page-header">
-    <a href="/queue?status=Inbox" class="back-link"><a href="/" class="back-link">&larr; 返回 Inbox</a>larr; 返回 Inbox</a>
+    <a href="/queue?status=Inbox" class="back-link">&larr; 返回 Inbox</a>
 </div>
 {% endblock %}
 
@@ -153,6 +153,11 @@
                 <h2 class="panel-title">Recommendation Score</h2>
                 {% set raw_score = paper.get('workspace_score') or paper.get('score', 0) or 0 %}
                 {% if raw_score > 0 %}
+                {% if raw_score > 1.0 %}
+                <div class="score-simple">
+                    <div class="score-simple-value">Score {{ '%.1f'|format(raw_score) }}</div>
+                </div>
+                {% else %}
                 {% set pct = "%.0f"|format(raw_score * 100) %}
                 <div class="score-simple">
                     <div class="score-simple-value">{{ pct }}%</div>
@@ -160,6 +165,7 @@
                         <div class="score-simple-fill" style="width: {{ pct }}%;"></div>
                     </div>
                 </div>
+                {% endif %}
                 {% else %}
                 <p class="t-muted">Not scored</p>
                 {% endif %}

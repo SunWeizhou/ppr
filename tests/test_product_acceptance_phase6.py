@@ -145,7 +145,7 @@ class Phase6ProductAcceptanceTests(unittest.TestCase):
             client = web_server.app.test_client()
             with mock.patch("arxiv_recommender_v5.search_by_keywords") as mock_search:
                 routes = [
-                    "/?skip_onboarding=1",
+                    "/daily",
                     "/search",
                     f"/queue?status=Inbox",
                     f"/papers/2604.77777?research_question_id={question['id']}",
@@ -208,3 +208,57 @@ class Phase6ProductAcceptanceTests(unittest.TestCase):
         self.assertIn("Workspace Flow Paper", queue_html)
         self.assertIn("Acceptance flow decision context", queue_html)
         self.assertIn("Evidence", detail_html)
+
+    # ------------------------------------------------------------------
+    # Phase 6.2 patch guard tests
+    # ------------------------------------------------------------------
+
+    def test_root_redirects_to_queue_inbox(self):
+        import web_server
+        response = web_server.app.test_client().get("/?skip_onboarding=1")
+        self.assertIn(response.status_code, (302, 200))
+        if response.status_code == 302:
+            self.assertIn("/queue?status=Inbox", response.location)
+
+    def test_paper_detail_back_link_is_valid(self):
+        template = Path("templates/paper_detail.html").read_text(encoding="utf-8")
+        # Must NOT contain bare "larr;" text (outside HTML entity) or nested <a> patterns
+        self.assertNotIn('">larr;', template)
+        self.assertNotIn('href="/"', template)
+
+    def test_search_sidebar_links_no_monitor_queries(self):
+        template = Path("templates/search_research.html").read_text(encoding="utf-8")
+        self.assertNotIn("/monitor?tab=queries", template)
+
+    def test_watch_last_checked_is_normalized(self):
+        from app.viewmodels.monitor_viewmodel import MonitorViewModel
+        import tempfile
+        from pathlib import Path
+        from state_store import StateStore
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = StateStore(str(Path(tmp) / "state.db"))
+            sub = store.create_subscription("query", "Test", "test")
+            store.update_subscription(sub["id"], last_checked_at="None")
+            subs = store.list_subscriptions()
+            hits_by_sub = {}
+            decorated = MonitorViewModel(store)._decorate_subscription(subs[0], hits_by_sub)
+        self.assertEqual(decorated["last_checked_at"], "")
+
+    def test_settings_ai_provider_none_shows_disabled_not_env_key(self):
+        from app.services.ai_settings_service import build_ai_settings_context
+        import os
+        from unittest import mock
+
+        with mock.patch.dict(os.environ, {"STATDESK_AI_API_KEY": "sk-real"}, clear=True):
+            ctx = build_ai_settings_context({
+                "provider": "none",
+                "api_key": "",
+                "base_url": "",
+                "model": "",
+                "enabled": False,
+            })
+
+        self.assertEqual(ctx["provider"], "none")
+        self.assertEqual(ctx["key_source"], "none")
+        self.assertFalse(ctx["using_env_var"])

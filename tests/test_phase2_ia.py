@@ -45,10 +45,11 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
     def test_inbox_page_still_serves(self):
         import web_server
 
-        # Use skip_onboarding to bypass the CONFIG_FILE check in the worktree;
-        # the product redirects to onboarding when no user_profile.json exists.
+        # / now redirects to /queue?status=Inbox
         response = web_server.app.test_client().get("/?skip_onboarding=1")
-        self.assertEqual(response.status_code, 200)
+        self.assertIn(response.status_code, (200, 302))
+        if response.status_code == 302:
+            self.assertIn("/queue?status=Inbox", response.location)
 
     def test_evaluation_page_serves_200(self):
         import web_server

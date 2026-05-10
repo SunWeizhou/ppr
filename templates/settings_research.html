@@ -72,7 +72,9 @@
                             <div>
                                 <span class="list-item-title">Effective status</span>
                                 <span class="list-item-subtitle">
-                                    {% if ai_config.using_env_var %}
+                                    {% if ai_config.provider == 'none' %}
+                                        No provider selected
+                                    {% elif ai_config.using_env_var %}
                                         Key source: {{ ai_config.env_var }}
                                     {% elif ai_config.has_key %}
                                         Key source: stored profile
