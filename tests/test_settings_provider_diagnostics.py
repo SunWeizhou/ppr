@@ -245,3 +245,42 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
         self.assertIn("system_diagnostics", template)
         self.assertIn("AI Provider", template)
         self.assertIn("effective_enabled", template)
+
+    def test_onboarding_first_query_creates_bound_research_question_and_subscription(self):
+        import web_server
+        from config_manager import ConfigManager
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_config = Path(tmp) / "user_profile.json"
+            self._swap_config(tmp_config)
+            store = StateStore(str(Path(tmp) / "state.db"))
+            self._swap_store(store)
+
+            response = web_server.app.test_client().post(
+                "/api/onboarding/save",
+                json={
+                    "topics": ["conformal prediction"],
+                    "areas": ["statistics"],
+                    "papers_per_day": 20,
+                    "zotero_path": "",
+                    "ai_provider": "none",
+                    "ai_api_key": "",
+                    "first_query": "Conformal prediction under distribution shift",
+                },
+            )
+            ConfigManager._instance = None
+
+            self.assertEqual(response.status_code, 200)
+            payload = response.get_json()
+            self.assertTrue(payload["success"])
+            self.assertIsNotNone(payload.get("research_question_id"))
+            question = store.get_research_question(payload["research_question_id"])
+            self.assertIsNotNone(question)
+            self.assertEqual(question["query_text"], "Conformal prediction under distribution shift")
+
+            subscriptions = store.list_subscriptions(type="query")
+            self.assertEqual(len(subscriptions), 1)
+            self.assertEqual(
+                subscriptions[0]["research_question_id"],
+                payload["research_question_id"],
+            )

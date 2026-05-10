@@ -466,22 +466,34 @@ def save_onboarding():
 
         # Create the first saved search / query subscription for the research question
         saved_search_id = None
+        research_question_id = None
         if first_query:
             try:
+                question = _current_state_store().create_research_question(
+                    query_text=first_query,
+                    intent_statement=f"Track literature related to: {first_query}",
+                    source="manual",
+                )
+                research_question_id = question.get("id") if question else None
+
                 ss = _current_state_store().create_saved_search(
                     first_query,
                     first_query,
                     filters={"description": "Created during onboarding"},
                 )
                 saved_search_id = ss.get("id") if ss else None
-                # Also create a subscription for unified model
-                if saved_search_id:
-                    _current_state_store().create_subscription(
-                        type="query",
-                        name=first_query,
-                        query_text=first_query,
-                        payload_json={"filters": {}, "description": "Created during onboarding", "legacy_id": saved_search_id},
-                    )
+
+                _current_state_store().create_subscription(
+                    type="query",
+                    name=first_query,
+                    query_text=first_query,
+                    payload_json={
+                        "filters": {},
+                        "description": "Created during onboarding",
+                        "legacy_id": saved_search_id,
+                    },
+                    research_question_id=research_question_id,
+                )
             except Exception:
                 pass  # Non-critical; the profile is already saved
 
@@ -489,6 +501,7 @@ def save_onboarding():
             "success": True,
             "message": "Profile saved successfully",
             "saved_search_id": saved_search_id,
+            "research_question_id": research_question_id,
         })
 
     except Exception as exc:
