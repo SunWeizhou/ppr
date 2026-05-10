@@ -206,3 +206,42 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
         self.assertEqual(diagnostics["workspace"]["queue_counts"]["Inbox"], 1)
         self.assertIn("ai", diagnostics)
         self.assertIn("data", diagnostics)
+
+    def test_settings_ai_tab_renders_without_raw_secret(self):
+        import web_server
+        from config_manager import ConfigManager
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_config = Path(tmp) / "user_profile.json"
+            tmp_config.write_text(
+                json.dumps({
+                    "version": 1,
+                    "keywords": {"conformal prediction": {"weight": 5.0, "category": "core"}},
+                    "ai": {
+                        "provider": "deepseek",
+                        "api_key": "sk-raw-secret",
+                        "base_url": "https://api.deepseek.com",
+                        "model": "deepseek-chat",
+                        "enabled": True,
+                    },
+                }),
+                encoding="utf-8",
+            )
+            self._swap_config(tmp_config)
+            response = web_server.app.test_client().get("/settings?tab=ai")
+            ConfigManager._instance = None
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("AI Provider", html)
+        self.assertIn("sk-...cret", html)
+        self.assertNotIn("sk-raw-secret", html)
+        self.assertIn("settings-nav-link", html)
+
+    def test_settings_template_has_ai_tab_and_diagnostics_contract(self):
+        template = Path("templates/settings_research.html").read_text(encoding="utf-8")
+
+        self.assertIn("tab=ai", template)
+        self.assertIn("system_diagnostics", template)
+        self.assertIn("AI Provider", template)
+        self.assertIn("effective_enabled", template)

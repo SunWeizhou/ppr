@@ -26,6 +26,7 @@
         <a href="/settings?tab=profile" class="settings-nav-link {% if tab == 'profile' %}is-active{% endif %}"><span>Profile</span></a>
         <a href="/settings?tab=sources" class="settings-nav-link {% if tab == 'sources' %}is-active{% endif %}"><span>Sources</span></a>
         <a href="/settings?tab=ranking" class="settings-nav-link {% if tab == 'ranking' %}is-active{% endif %}"><span>Ranking</span></a>
+        <a href="/settings?tab=ai" class="settings-nav-link {% if tab == 'ai' %}is-active{% endif %}"><span>AI Provider</span></a>
         <a href="/settings?tab=diagnostics" class="settings-nav-link {% if tab == 'diagnostics' %}is-active{% endif %}"><span>Diagnostics</span></a>
     </nav>
 
@@ -35,22 +36,19 @@
                 <section class="form-card">
                     <div class="section-kicker">Keyword Profile</div>
                     <h2 class="panel-title">研究关键词</h2>
-                    <p class="field-help">通过不同层级的关键词，告诉系统什么是你的主问题、外围问题，以及什么样的论文更像“理论工作”。</p>
+                    <p class="field-help">通过不同层级的关键词，告诉系统什么是你的主问题、外围问题，以及什么样的论文更像"理论工作"。</p>
 
                     <div class="keyword-section-label">Core Topics</div>
-                    <div class="keyword-tags-container" id="coreKeywords">
+                    <div id="coreKeywords" class="keyword-list">
                         {% for kw in core_keywords %}
-                            <span class="keyword-tag-item" data-keyword="{{ kw.keyword }}" data-type="core" data-weight="{{ kw.weight }}">
-                                {{ kw.keyword }}
-                                <input type="range" min="0.5" max="5.0" step="0.5" value="{{ kw.weight }}"
-                                       class="keyword-weight-slider" onchange="updateKeywordWeight(this)"
-                                       title="Weight: {{ kw.weight }}">
-                                <span class="keyword-tag-delete" onclick="deleteKeyword(this)">&times;</span>
-                            </span>
+                        <div class="keyword-chip" data-keyword="{{ kw.keyword }}">
+                            <span class="keyword-label">{{ kw.keyword }}</span>
+                            <span class="keyword-weight">w={{ '%.1f'|format(kw.weight) }}</span>
+                            <span class="keyword-remove" onclick="removeKeyword('{{ kw.keyword }}', 'core')">×</span>
+                        </div>
                         {% endfor %}
                     </div>
-
-                    <div class="keyword-add-form mt-4">
+                    <div class="keyword-add-row">
                         <div>
                             <label for="newKeyword" class="field-label">新关键词</label>
                             <input type="text" id="newKeyword" placeholder="输入新关键词..." onkeypress="if(event.key==='Enter'){event.preventDefault();addKeyword();}">
@@ -60,11 +58,34 @@
                 </section>
             </form>
 
+        {% elif tab == 'ai' %}
             <div class="form-grid">
-                <section class="form-card">
-                    <div class="section-kicker">AI Analysis</div>
-                    <h2 class="panel-title">AI 分析配置</h2>
-                    <p class="field-help">配置 AI 提供商用于自动分析论文，生成一句话总结和阅读建议。</p>
+                <section class="form-card full-span">
+                    <div class="section-kicker">AI Provider</div>
+                    <h2 class="panel-title">Agent analysis provider</h2>
+                    <p class="field-help">
+                        AI is optional. Without a provider, the system still works with rule-based evidence and local workflow state.
+                    </p>
+
+                    <div class="list-stack mb-4">
+                        <div class="list-item">
+                            <div>
+                                <span class="list-item-title">Effective status</span>
+                                <span class="list-item-subtitle">
+                                    {% if ai_config.using_env_var %}
+                                        Key source: {{ ai_config.env_var }}
+                                    {% elif ai_config.has_key %}
+                                        Key source: stored profile
+                                    {% else %}
+                                        No API key configured
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <span class="state-chip {% if ai_config.effective_enabled %}status-saved{% else %}job-degraded{% endif %}">
+                                {% if ai_config.effective_enabled %}ready{% else %}optional{% endif %}
+                            </span>
+                        </div>
+                    </div>
 
                     <label class="field-label" for="aiProvider">Provider</label>
                     <select class="form-input" id="aiProvider" onchange="onAIProviderChanged()">
@@ -75,13 +96,13 @@
                     <div id="aiProviderFields" {% if ai_config.provider == 'none' %}style="display: none;"{% endif %}>
                         <label class="field-label" for="aiApiKey">API Key</label>
                         {% if ai_config.using_env_var %}
-                        <div class="field-help" style="margin-bottom:8px;">Using environment variable <code>STATDESK_AI_API_KEY</code></div>
-                        <input type="password" class="form-input" id="aiApiKey" value="__env_var__" placeholder="sk-..." style="flex:1; opacity:0.6;" readonly>
+                            <div class="field-help" style="margin-bottom:8px;">Using environment variable <code>{{ ai_config.env_var }}</code></div>
+                            <input type="password" class="form-input" id="aiApiKey" value="__env_var__" placeholder="sk-..." readonly>
                         {% else %}
-                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <input type="password" class="form-input" id="aiApiKey" value="{{ ai_config.api_key or '' }}" placeholder="sk-..." style="flex:1;">
-                            <button type="button" class="btn btn-tertiary btn-sm" id="aiApiKeyToggle" onclick="toggleAIApiKeyVisibility()">Show</button>
-                        </div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <input type="password" class="form-input" id="aiApiKey" value="{{ ai_config.api_key or '' }}" placeholder="sk-..." style="flex:1;">
+                                <button type="button" class="btn btn-tertiary btn-sm" id="aiApiKeyToggle" onclick="toggleAIApiKeyVisibility()">Show</button>
+                            </div>
                         {% endif %}
 
                         <label class="field-label" for="aiBaseUrl">Base URL</label>
@@ -136,68 +157,101 @@
         {% elif tab == 'diagnostics' %}
             <div class="form-grid">
                 <section class="form-card full-span">
-                    <div class="section-kicker">Job Status</div>
-                    <h2 class="panel-title">系统状态</h2>
+                    <div class="section-kicker">System Health</div>
+                    <h2 class="panel-title">{{ system_diagnostics.product_name }}</h2>
                     <div class="list-stack">
+                        <div class="list-item">
+                            <div>
+                                <span class="list-item-title">{{ system_diagnostics.product_name }}</span>
+                                <span class="list-item-subtitle">
+                                    Profile: {% if system_diagnostics.profile.exists %}configured{% else %}missing{% endif %}
+                                </span>
+                            </div>
+                            <span class="state-chip {% if system_diagnostics.profile.exists %}status-saved{% else %}job-degraded{% endif %}">
+                                local-first
+                            </span>
+                        </div>
+                        <div class="list-item">
+                            <div>
+                                <span class="list-item-title">AI Provider</span>
+                                <span class="list-item-subtitle">
+                                    {{ system_diagnostics.ai.provider }} · {{ system_diagnostics.ai.key_source }}
+                                </span>
+                            </div>
+                            <span class="state-chip {% if system_diagnostics.ai.effective_enabled %}status-saved{% else %}job-degraded{% endif %}">
+                                {% if system_diagnostics.ai.effective_enabled %}ready{% else %}optional{% endif %}
+                            </span>
+                        </div>
+                        <div class="list-item">
+                            <div>
+                                <span class="list-item-title">Workspace</span>
+                                <span class="list-item-subtitle">
+                                    {{ system_diagnostics.workspace.research_question_count }} questions ·
+                                    {{ system_diagnostics.workspace.subscription_count }} subscriptions
+                                </span>
+                            </div>
+                            <span class="list-item-trailing">{{ system_diagnostics.workspace.queue_total }}</span>
+                        </div>
                         <div class="list-item">
                             <div>
                                 <span class="list-item-title">Latest Job</span>
                                 <span class="list-item-subtitle">
-                                    {% if latest_job %}
-                                        {{ latest_job.trigger_source }} · {{ latest_job.updated_at or latest_job.created_at }}
+                                    {% if system_diagnostics.jobs.latest %}
+                                        {{ system_diagnostics.jobs.latest.trigger_source }} · {{ system_diagnostics.jobs.latest.updated_at or system_diagnostics.jobs.latest.created_at }}
                                     {% else %}
                                         No job records
                                     {% endif %}
                                 </span>
                             </div>
-                            <span class="state-chip {% if latest_job %}{{ latest_job_tone }}{% endif %}">
-                                {% if latest_job %}{{ latest_job.status }}{% else %}idle{% endif %}
+                            <span class="state-chip">
+                                {% if system_diagnostics.jobs.latest %}{{ system_diagnostics.jobs.latest.status }}{% else %}idle{% endif %}
                             </span>
                         </div>
                         <div class="list-item">
                             <div><span class="list-item-title">Queue Total</span></div>
                             <span class="list-item-trailing">{{ queue_counts.values() | list | sum }}</span>
                         </div>
-	                        <div class="list-item">
-	                            <div><span class="list-item-title">Collections</span></div>
-	                            <span class="list-item-trailing">{{ all_collections|length }}</span>
-	                        </div>
-	                        <div class="list-item">
-	                            <div>
-	                                <span class="list-item-title">Recommendation Profile</span>
-	                                <span class="list-item-subtitle">
-	                                    {{ recommendation_health.core_keyword_count }} core · {{ recommendation_health.secondary_keyword_count }} secondary
-	                                </span>
-	                            </div>
-	                            <span class="state-chip {% if recommendation_health.has_positive_profile %}status-saved{% else %}job-failed{% endif %}">
-	                                {% if recommendation_health.has_positive_profile %}healthy{% else %}needs topics{% endif %}
-	                            </span>
-	                        </div>
-	                        <div class="list-item">
-	                            <div>
-	                                <span class="list-item-title">Zotero</span>
-	                                <span class="list-item-subtitle">
-	                                    {% if recommendation_health.zotero.configured_path %}
-	                                        {{ recommendation_health.zotero.configured_path }}
-	                                    {% else %}
-	                                        Auto-detect enabled; no explicit path configured
-	                                    {% endif %}
-	                                </span>
-	                            </div>
-	                            <span class="state-chip {% if recommendation_health.zotero.path_exists %}status-saved{% else %}job-degraded{% endif %}">
-	                                {% if recommendation_health.zotero.path_exists %}connected{% else %}keyword mode{% endif %}
-	                            </span>
-	                        </div>
-	                    </div>
-	                </section>
+                        <div class="list-item">
+                            <div><span class="list-item-title">Collections</span></div>
+                            <span class="list-item-trailing">{{ all_collections|length }}</span>
+                        </div>
+                        <div class="list-item">
+                            <div>
+                                <span class="list-item-title">Recommendation Profile</span>
+                                <span class="list-item-subtitle">
+                                    {{ recommendation_health.core_keyword_count }} core · {{ recommendation_health.secondary_keyword_count }} secondary
+                                </span>
+                            </div>
+                            <span class="state-chip {% if recommendation_health.has_positive_profile %}status-saved{% else %}job-failed{% endif %}">
+                                {% if recommendation_health.has_positive_profile %}healthy{% else %}needs topics{% endif %}
+                            </span>
+                        </div>
+                        <div class="list-item">
+                            <div>
+                                <span class="list-item-title">Zotero</span>
+                                <span class="list-item-subtitle">
+                                    {% if recommendation_health.zotero.configured_path %}
+                                        {{ recommendation_health.zotero.configured_path }}
+                                    {% else %}
+                                        Auto-detect enabled; no explicit path configured
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <span class="state-chip {% if recommendation_health.zotero.path_exists %}status-saved{% else %}job-degraded{% endif %}">
+                                {% if recommendation_health.zotero.path_exists %}connected{% else %}keyword mode{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </section>
 
-<section class="form-card full-span">
+                <section class="form-card full-span">
                     <div class="section-kicker">Evaluation</div>
                     <h2 class="panel-title">Recommendation Quality</h2>
                     <p class="field-help">Evaluate the quality of your recommendation pipeline against labeled datasets.</p>
                     <a href="/evaluation" class="btn btn-primary">Full evaluation panel →</a>
                 </section>
             </div>
+
         {% endif %}
     </div>
 </section>
@@ -205,154 +259,6 @@
 
 {% block scripts %}
 <script>
-const currentSettingsDefaults = {
-    coreTopics: {{ core_keywords | tojson }},
-    papersPerDay: {{ papers_per_day | tojson }},
-    arxivEnabled: {{ sources.arxiv_enabled | tojson }},
-    journalEnabled: {{ sources.journal_enabled | tojson }},
-    scholarEnabled: {{ sources.scholar_enabled | tojson }},
-    lookbackDays: {{ sources.lookback_days | tojson }}
-};
-
-async function addKeyword() {
-    const input = document.getElementById('newKeyword');
-    if (!input) return;
-    const keyword = input.value.trim();
-    if (!keyword) {
-        showToast('请输入关键词', 'error');
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/keywords', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({keyword: keyword, type: 'core'})
-        });
-        const result = await response.json();
-        if (!response.ok || !result.success) {
-            throw new Error(result.error || 'keyword add failed');
-        }
-
-        const container = document.getElementById('coreKeywords');
-        const tag = document.createElement('span');
-        tag.className = 'keyword-tag-item';
-        tag.dataset.keyword = keyword.toLowerCase();
-        tag.dataset.type = 'core';
-
-        // Use textContent for keyword text (XSS-safe)
-        tag.textContent = keyword.toLowerCase();
-
-        // Build delete button via DOM API
-        const deleteBtn = document.createElement('span');
-        deleteBtn.className = 'keyword-tag-delete';
-        deleteBtn.textContent = '×';
-        deleteBtn.addEventListener('click', function(e) {
-            deleteKeyword(e.currentTarget);
-        });
-        tag.appendChild(deleteBtn);
-
-        container.appendChild(tag);
-        input.value = '';
-        showToast('关键词已添加');
-    } catch (error) {
-        showToast('添加失败: ' + error.message, 'error');
-    }
-}
-
-async function deleteKeyword(element) {
-    const tag = element.parentElement;
-    const keyword = tag.dataset.keyword;
-    const type = tag.dataset.type;
-
-    try {
-        const response = await fetch('/api/keywords', {
-            method: 'DELETE',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({keyword: keyword, type: type})
-        });
-        const result = await response.json();
-        if (!response.ok || !result.success) {
-            throw new Error(result.error || 'keyword delete failed');
-        }
-        tag.remove();
-        showToast('关键词已删除');
-    } catch (error) {
-        showToast('删除失败: ' + error.message, 'error');
-    }
-}
-
-async function updateKeywordWeight(slider) {
-    const tag = slider.parentElement;
-    const keyword = tag.dataset.keyword;
-    const weight = parseFloat(slider.value);
-    const label = tag.querySelector('.keyword-weight-label');
-    if (label) label.textContent = weight.toFixed(1);
-    try {
-        const response = await fetch('/api/keywords', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({keyword: keyword, type: 'core', weight: weight})
-        });
-        const result = await response.json();
-        if (!response.ok || !result.success) {
-            throw new Error(result.error || 'weight update failed');
-        }
-        tag.dataset.weight = weight;
-        showToast('权重已更新: ' + weight.toFixed(1));
-    } catch (error) {
-        showToast('权重更新失败: ' + error.message, 'error');
-        slider.value = tag.dataset.weight || '1.0';
-    }
-}
-
-const settingsForm = document.getElementById('settingsForm');
-if (settingsForm) {
-    settingsForm.addEventListener('submit', async function(event) {
-        event.preventDefault();
-        await saveSettings(false);
-    });
-}
-
-async function saveSettings(regenerate = false) {
-    const coreContainer = document.getElementById('coreKeywords');
-    const coreKws = coreContainer
-        ? Array.from(coreContainer.querySelectorAll('.keyword-tag-item')).map(el => el.dataset.keyword)
-        : currentSettingsDefaults.coreTopics;
-
-    const data = {
-        coreTopics: coreKws,
-        papersPerDay: document.getElementById('papersPerDay') ? parseInt(document.getElementById('papersPerDay').value, 10) : currentSettingsDefaults.papersPerDay,
-        arxivEnabled: document.getElementById('arxivEnabled') ? document.getElementById('arxivEnabled').checked : currentSettingsDefaults.arxivEnabled,
-        journalEnabled: document.getElementById('journalEnabled') ? document.getElementById('journalEnabled').checked : currentSettingsDefaults.journalEnabled,
-        scholarEnabled: document.getElementById('scholarEnabled') ? document.getElementById('scholarEnabled').checked : currentSettingsDefaults.scholarEnabled,
-        lookbackDays: document.getElementById('lookbackDays') ? parseInt(document.getElementById('lookbackDays').value, 10) : currentSettingsDefaults.lookbackDays,
-        regenerate: regenerate
-    };
-
-    try {
-        const response = await fetch('/api/settings', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-        });
-        const result = await response.json();
-        if (!response.ok || !result.success) {
-            throw new Error(result.error || 'save failed');
-        }
-        showToast(regenerate ? '设置已保存，正在重生成' : '设置已保存');
-        if (regenerate) {
-            setTimeout(() => window.location.href = '/', 1100);
-        }
-    } catch (error) {
-        showToast('保存失败: ' + error.message, 'error');
-    }
-}
-
-function saveAndRegenerate() {
-    saveSettings(true);
-}
-
 // ---- AI Analysis Settings ----
 
 function onAIProviderChanged() {
@@ -380,8 +286,8 @@ function _getAIConfigPayload() {
     const provider = document.getElementById('aiProvider') ? document.getElementById('aiProvider').value : 'none';
     const raw = document.getElementById('aiApiKey') ? document.getElementById('aiApiKey').value.trim() : '';
     // Detect masked or env-var placeholder — send sentinel to keep existing key
-    const api_key = (raw === '__env_var__' || raw.indexOf('...') !== -1) ? '__keep__' : raw;
-    const enabled = provider !== 'none' && api_key !== '' && api_key !== '__keep__';
+    const api_key = (raw === '__env_var__' || raw.indexOf('...') !== -1) ? (raw === '__env_var__' ? '__env_var__' : '__keep__') : raw;
+    const enabled = provider !== 'none' && api_key !== '';
     return {
         provider: provider,
         api_key: api_key,
@@ -439,38 +345,22 @@ async function testAIConnection() {
 }
 
 async function saveAISettings() {
-    const statusEl = document.getElementById('aiStatusMsg');
-    const btn = document.getElementById('aiSaveBtn');
     const payload = _getAIConfigPayload();
-
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-    statusEl.textContent = '';
-    statusEl.style.color = '';
-
     try {
         const response = await fetch('/api/settings/ai', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
         });
         const result = await response.json();
         if (result.success) {
-            statusEl.textContent = 'AI settings saved.';
-            statusEl.style.color = 'var(--color-success, #16a34a)';
             showToast('AI settings saved');
+            setTimeout(function() { location.reload(); }, 300);
         } else {
-            statusEl.textContent = 'Failed: ' + (result.error || 'unknown error');
-            statusEl.style.color = 'var(--color-warn)';
-            showToast('Failed to save AI settings', 'error');
+            showToast('Save failed: ' + (result.error || 'unknown error'), 'error');
         }
     } catch (error) {
-        statusEl.textContent = 'Save error: ' + error.message;
-        statusEl.style.color = 'var(--color-warn)';
-        showToast('Save error', 'error');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Save';
+        showToast('Save error: ' + error.message, 'error');
     }
 }
 </script>
