@@ -1,5 +1,9 @@
 # Plan: Optimization Batch 1-5
 
+> **Status**: Superseded by `2026-05-improvement-roadmap.md`. Remaining items
+> have been triaged into P1/P2 priorities in the new roadmap. This file is kept
+> for historical reference only.
+
 ## Batch 1: A1 + A4 + E1-E3 (backend + tests, low risk)
 
 - A1: Consolidate digest parsing — keep only utils.py version

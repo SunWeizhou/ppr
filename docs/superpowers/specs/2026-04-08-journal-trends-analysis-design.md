@@ -1,5 +1,10 @@
 # Journal Trends Analysis Feature Design
 
+> **Status**: Not implemented. This spec predates the Paper Agent workspace-first
+> redesign (May 2026) and targets a product shape that no longer exists (journal
+> tracking page). The underlying ideas (keyword/author trend analysis) may inform
+> future Watch/subscription analytics. See `2026-05-improvement-roadmap.md` P3.
+
 ## Overview
 
 Add trend analysis functionality to the journal tracking page, showing:

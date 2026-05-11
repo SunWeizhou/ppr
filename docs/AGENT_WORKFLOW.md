@@ -1,5 +1,10 @@
 # Multi-Agent Product Development Workflow
 
+> **Note**: This document describes the *development* workflow (how AI coding
+> agents collaborate on building this project). It does NOT describe the
+> in-product Paper Agent assistant that users interact with via the Agent drawer.
+> For the product Agent specification, see `PRD.md` Section 8.
+
 This document is a reusable workflow for agent-assisted product development
 projects. It is intentionally product-agnostic: each project should provide its
 own PRD, architecture notes, and acceptance criteria.

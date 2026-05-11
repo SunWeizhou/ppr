@@ -1,5 +1,9 @@
 # Plan: Audit Fixes — 2026-05-01
 
+> **Status**: Mostly complete. P0 and core P1 items are done. Remaining P2 items
+> (pickle→json, import_state hardening, digest consolidation) are carried forward
+> to `2026-05-improvement-roadmap.md`.
+
 **Goal**: Fix remaining issues from audit0501.md following priority order.
 
 ## Already Fixed (verified)
