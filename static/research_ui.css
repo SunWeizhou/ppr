@@ -1,46 +1,131 @@
+/* ============================================================
+   Layer 1 — Primitive tokens (raw values, never used directly)
+   ============================================================ */
 :root {
-  --app-bg: #f7f7f5;
-  --surface: #ffffff;
-  --surface-soft: #f2f1ee;
-  --surface-muted: #eceae6;
-  --text-primary: #1f2328;
-  --text-secondary: #5f6368;
-  --text-muted: #8a8f98;
-  --border-subtle: rgba(31, 35, 40, 0.11);
-  --accent-soft: #6f6258;
-  --accent-strong: #2d2a26;
-  --radius-card: 12px;
-  --shadow-soft: 0 1px 2px rgba(31, 35, 40, 0.04), 0 12px 30px rgba(31, 35, 40, 0.06);
-  --paper: var(--app-bg);
-  --paper-2: var(--surface-soft);
-  --paper-3: var(--surface);
+  /* Neutrals */
+  --color-warm-black: #1a1a1a;
+  --color-charcoal: #2a2a2a;
+  --color-graphite: #3a3a3a;
+  --color-slate: #6b6b6b;
+  --color-silver: #999999;
+  --color-fog: #e8e8e5;
+  --color-cloud: #f5f5f3;
+  --color-off-white: #fafaf8;
+  --color-pure-white: #ffffff;
+
+  /* Brand */
+  --color-claude-orange: #d97757;
+  --color-claude-orange-soft: #f0c8b4;
+  --color-apple-blue: #007aff;
+  --color-apple-blue-soft: #b3d7ff;
+  --color-success: #34a853;
+  --color-warning: #f9ab00;
+  --color-error: #ea4335;
+
+  /* Layer 2 — Semantic tokens (light mode default) */
+  --bg-primary: var(--color-off-white);
+  --bg-surface: var(--color-pure-white);
+  --bg-surface-hover: var(--color-cloud);
+  --bg-surface-active: var(--color-fog);
+  --bg-sidebar: var(--color-cloud);
+  --bg-input: var(--color-pure-white);
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+
+  --ink-primary: var(--color-warm-black);
+  --ink-secondary: var(--color-slate);
+  --ink-muted: var(--color-silver);
+  --ink-on-accent: var(--color-pure-white);
+
+  --accent-primary: var(--color-claude-orange);
+  --accent-soft: var(--color-claude-orange-soft);
+  --accent-link: var(--color-apple-blue);
+
+  --border-default: var(--color-fog);
+  --border-strong: #d0d0cd;
+  --border-focus: var(--color-apple-blue);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, monospace;
+
+  --transition-fast: 120ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 350ms ease;
+
+  /* Layer 3 — Component tokens */
+  --card-bg: var(--bg-surface);
+  --card-border: var(--border-default);
+  --card-shadow: var(--shadow-sm);
+  --card-shadow-hover: var(--shadow-md);
+
+  --nav-bg: var(--bg-sidebar);
+  --nav-ink: var(--ink-primary);
+  --nav-ink-muted: var(--ink-secondary);
+  --nav-active-bg: var(--bg-surface);
+  --nav-hover-bg: var(--bg-surface-hover);
+  --nav-width: 240px;
+  --nav-collapsed-width: 48px;
+
+  --input-bg: var(--bg-input);
+  --input-border: var(--border-default);
+  --input-focus-border: var(--border-focus);
+
+  --agent-panel-bg: var(--bg-surface);
+  --agent-panel-width: 360px;
+
+  /* Breathing grid */
+  --grid-color: rgba(0, 0, 0, 0.04);
+  --grid-size: 32px;
+
+  /* Legacy aliases — keep for backward compatibility with existing component styles */
+  --app-bg: var(--bg-primary);
+  --surface: var(--bg-surface);
+  --surface-soft: var(--bg-surface-hover);
+  --surface-muted: var(--bg-surface-active);
+  --text-primary: var(--ink-primary);
+  --text-secondary: var(--ink-secondary);
+  --text-muted: var(--ink-muted);
+  --border-subtle: var(--border-default);
+  --accent-strong: var(--color-warm-black);
+  --radius-card: var(--radius-lg);
+  --shadow-soft: var(--shadow-md);
+  --paper: var(--bg-primary);
+  --paper-2: var(--bg-surface-hover);
+  --paper-3: var(--bg-surface);
   --surface-2: #faf9f7;
-  --surface-raised: #ffffff;
-  --ink: var(--text-primary);
-  --ink-2: var(--text-secondary);
-  --ink-3: #6f7680;
-  --ink-muted: var(--text-muted);
-  --line: var(--border-subtle);
-  --line-2: rgba(31, 35, 40, 0.16);
+  --surface-raised: var(--bg-surface);
+  --ink: var(--ink-primary);
+  --ink-2: var(--ink-secondary);
+  --ink-3: var(--ink-secondary);
+  --line: var(--border-default);
+  --line-2: var(--border-strong);
   --line-strong: rgba(31, 35, 40, 0.24);
-  --brand: var(--accent-strong);
+  --brand: var(--color-warm-black);
   --brand-2: #111111;
   --brand-tint: #eeeae5;
-  --accent: var(--accent-soft);
-  --accent-tint: #eee9e2;
+  --accent: var(--accent-primary);
+  --accent-tint: var(--accent-soft);
   --sage: #607368;
   --sage-tint: #e8ede9;
   --gold: #8a6b2c;
   --gold-tint: #f0e7cf;
   --danger: #8e3a31;
   --danger-tint: #f0dcd6;
-  --shadow-1: 0 1px 2px rgba(31, 35, 40, 0.04);
-  --shadow-2: var(--shadow-soft);
-  --scrim: rgba(20, 36, 58, 0.32);
-  --r-xs: 4px;
+  --shadow-1: var(--shadow-sm);
+  --shadow-2: var(--shadow-md);
+  --scrim: var(--bg-overlay);
+  --r-xs: var(--radius-sm);
   --r-sm: 6px;
-  --r-md: 12px;
-  --r-lg: 12px;
+  --r-md: var(--radius-lg);
+  --r-lg: var(--radius-lg);
   --s-1: 4px;
   --s-2: 8px;
   --s-3: 12px;
@@ -49,23 +134,59 @@
   --s-6: 24px;
   --s-7: 32px;
   --s-8: 40px;
-  --ff-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", system-ui, sans-serif;
-  --ff-serif: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
-  --ff-mono: "SF Mono", ui-monospace, monospace;
+  --ff-sans: var(--font-sans);
+  --ff-serif: var(--font-sans);
+  --ff-mono: var(--font-mono);
+
+  /* Paper-agent legacy aliases — mapped to new tokens */
+  --paper-agent-bg: var(--bg-primary);
+  --paper-agent-ink: var(--ink-primary);
+  --paper-agent-muted: var(--ink-secondary);
+  --paper-agent-line: var(--border-default);
+  --paper-agent-accent: var(--ink-primary);
+  --paper-agent-soft: var(--bg-surface);
 }
 
+/* ============================================================
+   Dark mode — override Layer 2 semantic tokens
+   ============================================================ */
 [data-theme="dark"] {
-  --paper: #15181c;
+  --bg-primary: var(--color-warm-black);
+  --bg-surface: var(--color-charcoal);
+  --bg-surface-hover: var(--color-graphite);
+  --bg-surface-active: #444444;
+  --bg-sidebar: #222222;
+  --bg-input: var(--color-graphite);
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+
+  --ink-primary: #ededec;
+  --ink-secondary: var(--color-silver);
+  --ink-muted: #777777;
+
+  --accent-soft: #5c3a2a;
+
+  --border-default: var(--color-graphite);
+  --border-strong: #555555;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+  --grid-color: rgba(255, 255, 255, 0.03);
+
+  /* Legacy aliases for dark mode */
+  --app-bg: var(--bg-primary);
+  --surface: var(--bg-surface);
+  --surface-soft: var(--bg-surface-hover);
+  --paper: var(--bg-primary);
   --paper-2: #1b2027;
-  --paper-3: #20262f;
-  --surface: #1b2027;
+  --paper-3: var(--bg-surface);
   --surface-2: #222933;
   --surface-raised: #252d38;
-  --ink: #edf1f5;
+  --ink: var(--ink-primary);
   --ink-2: #d2dbe5;
   --ink-3: #a8b5c4;
-  --ink-muted: #8795a5;
-  --line: #313946;
+  --line: var(--border-default);
   --line-2: #3d4654;
   --line-strong: #566171;
   --brand: #7fb7e6;
@@ -82,6 +203,32 @@
   --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.28);
   --shadow-2: 0 1px 0 rgba(0, 0, 0, 0.18), 0 18px 36px -22px rgba(0, 0, 0, 0.72);
   --scrim: rgba(4, 8, 13, 0.62);
+}
+
+/* ============================================================
+   Breathing Grid Background
+   ============================================================ */
+@keyframes breathe-grid {
+  0%, 100% { opacity: 0.03; }
+  50% { opacity: 0.08; }
+}
+
+.breathing-grid {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg, var(--grid-color) 0 1px, transparent 1px var(--grid-size)),
+    repeating-linear-gradient(90deg, var(--grid-color) 0 1px, transparent 1px var(--grid-size));
+  animation: breathe-grid 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breathing-grid {
+    animation: none;
+    opacity: 0.05;
+  }
 }
 
 * {
@@ -149,9 +296,10 @@ select {
   outline-offset: 2px;
 }
 
+/* .app — legacy wrapper; layout now handled by .app-layout + .sidebar + .main-content */
 .app {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: row;
   min-height: 100vh;
 }
 
@@ -3274,15 +3422,7 @@ select {
   }
 }
 
-/* Paper Agent redesign */
-:root {
-  --paper-agent-bg: linear-gradient(110deg, #f4f4f8 0%, #eef6f4 52%, #fbf2ee 100%);
-  --paper-agent-ink: #1f1f1f;
-  --paper-agent-muted: #6f7279;
-  --paper-agent-line: rgba(31, 31, 31, 0.11);
-  --paper-agent-accent: #24211f;
-  --paper-agent-soft: rgba(255, 255, 255, 0.78);
-}
+/* Paper Agent redesign — legacy variables mapped to new tokens */
 
 body {
   background: var(--paper-agent-bg);
@@ -4025,3 +4165,367 @@ body {
     font-size: 30px;
   }
 }
+
+/* ============================================================
+   Sidebar Navigation (Task 3)
+   ============================================================ */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--nav-width);
+  background: var(--nav-bg);
+  border-right: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+  transition: width var(--transition-normal);
+  overflow-x: hidden;
+}
+
+.sidebar[data-collapsed="true"] {
+  width: var(--nav-collapsed-width);
+}
+
+.sidebar[data-collapsed="true"] .sidebar-label,
+.sidebar[data-collapsed="true"] .sidebar-brand-text,
+.sidebar[data-collapsed="true"] .sidebar-section-title,
+.sidebar[data-collapsed="true"] .sidebar-badge {
+  display: none;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: var(--nav-width);
+  transition: margin-left var(--transition-normal);
+  position: relative;
+  min-height: 100vh;
+}
+
+.sidebar[data-collapsed="true"] ~ .main-content {
+  margin-left: var(--nav-collapsed-width);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-brand-text {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink-primary);
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.sidebar-toggle:hover {
+  background: var(--nav-hover-bg);
+}
+
+.sidebar-section {
+  padding: 8px;
+  flex: 1;
+}
+
+.sidebar-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+  padding: 8px 12px 4px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  color: var(--nav-ink-muted);
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-item:hover {
+  background: var(--nav-hover-bg);
+  color: var(--nav-ink);
+}
+
+.sidebar-item.is-active {
+  background: var(--nav-active-bg);
+  color: var(--nav-ink);
+  font-weight: 500;
+}
+
+.sidebar-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-badge {
+  margin-left: auto;
+  font-size: 11px;
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.sidebar-footer {
+  padding: 8px;
+  border-top: 1px solid var(--border-default);
+}
+
+/* Mobile sidebar */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+  }
+
+  .sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .mobile-nav-toggle {
+    display: block;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 99;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    cursor: pointer;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-nav-toggle {
+    display: none;
+  }
+}
+
+/* ============================================================
+   Notion-Style Components (Task 4)
+   ============================================================ */
+
+/* Page Header */
+.notion-page-header {
+  padding: 40px 0 24px;
+  max-width: 900px;
+}
+
+.notion-page-header-icon {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.notion-page-header-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.notion-page-header-desc {
+  color: var(--ink-secondary);
+  font-size: 14px;
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+/* Notion Card */
+.notion-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.notion-card:hover {
+  box-shadow: var(--card-shadow-hover);
+}
+
+/* Notion Buttons */
+.btn-notion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  border: none;
+  line-height: 1;
+}
+
+.btn-notion-sm { padding: 5px 10px; font-size: 12px; }
+.btn-notion-md { padding: 7px 14px; }
+.btn-notion-lg { padding: 10px 20px; font-size: 14px; }
+
+.btn-notion-ghost {
+  background: transparent;
+  color: var(--ink-secondary);
+}
+
+.btn-notion-ghost:hover {
+  background: var(--bg-surface-hover);
+  color: var(--ink-primary);
+}
+
+.btn-notion-primary {
+  background: var(--accent-primary);
+  color: var(--ink-on-accent);
+}
+
+.btn-notion-primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn-notion:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Notion Chips */
+.notion-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 20px;
+  background: var(--bg-surface-hover);
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.notion-chip-active {
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+}
+
+.notion-chip[role="button"] {
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.notion-chip[role="button"]:hover {
+  background: var(--bg-surface-active);
+}
+
+/* Notion Empty State */
+.notion-empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--ink-secondary);
+}
+
+.notion-empty-state-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin: 0 0 8px;
+}
+
+.notion-empty-state-desc {
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+
+/* Notion Toast */
+.notion-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--bg-surface);
+  color: var(--ink-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  font-size: 13px;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(120%);
+  transition: transform var(--transition-normal);
+  z-index: 1000;
+}
+
+.notion-toast.visible {
+  transform: translateY(0);
+}
+
+.notion-toast.error {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+/* Filter Chips Bar (Task 7) */
+.filter-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  flex-wrap: wrap;
+}
+
+.filter-chips-label {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-right: 4px;
+}
+
+.filter-chips-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border-default);
+  margin: 0 4px;
+}
+

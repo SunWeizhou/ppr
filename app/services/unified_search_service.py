@@ -1,9 +1,11 @@
-"""Unified paper search across arXiv and Semantic Scholar."""
+"""Unified paper search across arXiv, Semantic Scholar, and OpenAlex."""
 
 from __future__ import annotations
 
 import json
+import os
 import re
+import time
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -23,6 +25,14 @@ SEMANTIC_FIELDS = ",".join([
     "openAccessPdf",
 ])
 
+# OpenAlex config
+OPENALEX_BASE = "https://api.openalex.org/works"
+OPENALEX_MAILTO = os.environ.get("OPENALEX_MAILTO", "")
+
+# Semantic Scholar failure cache
+_s2_failure_cache: dict[str, float] = {}
+S2_FAILURE_CACHE_TTL = 60  # seconds
+
 
 def _clean_arxiv_id(value: str) -> str:
     value = str(value or "").strip()
@@ -35,16 +45,28 @@ def _normalize_title(value: str) -> str:
 
 
 def _paper_key(paper: dict) -> str:
+    """Generate a deduplication key for a paper."""
     external = paper.get("external_ids") or {}
-    doi = str(external.get("DOI") or external.get("doi") or "").strip().lower()
+
+    doi = str(external.get("doi") or external.get("DOI") or "").strip().lower()
     if doi:
         return f"doi:{doi}"
+
     arxiv_id = _clean_arxiv_id(external.get("ArXiv") or external.get("arxiv") or "")
     if arxiv_id:
         return f"arxiv:{arxiv_id.lower()}"
+
+    openalex = str(external.get("openalex") or "").strip()
+    if openalex:
+        return f"openalex:{openalex.lower()}"
+
     title = _normalize_title(paper.get("title", ""))
     return f"title:{title}" if title else f"id:{paper.get('paper_id', '')}"
 
+
+# ─────────────────────────────────────────
+# arXiv
+# ─────────────────────────────────────────
 
 def normalize_arxiv_paper(paper: dict) -> dict:
     paper_id = _clean_arxiv_id(paper.get("paper_id") or paper.get("id") or "")
@@ -84,6 +106,21 @@ def normalize_arxiv_paper(paper: dict) -> dict:
     }
 
 
+def search_arxiv(query: str, *, max_results: int = 25, search_fn: Callable | None = None) -> list[dict]:
+    terms = [part for part in re.split(r"[\s,]+", query.strip()) if part]
+    if not terms:
+        return []
+    if search_fn is None:
+        from arxiv_recommender_v5 import search_by_keywords
+
+        search_fn = search_by_keywords
+    return [normalize_arxiv_paper(paper) for paper in search_fn(terms, max_results=max_results, days_back=365)]
+
+
+# ─────────────────────────────────────────
+# Semantic Scholar (hardened)
+# ─────────────────────────────────────────
+
 def normalize_semantic_paper(paper: dict) -> dict:
     external = paper.get("externalIds") or {}
     arxiv_id = _clean_arxiv_id(external.get("ArXiv") or "")
@@ -95,6 +132,12 @@ def normalize_semantic_paper(paper: dict) -> dict:
     ]
     pdf = paper.get("openAccessPdf") or {}
     paper_id = f"arxiv:{arxiv_id}" if arxiv_id else f"s2:{semantic_id}"
+    doi_raw = str(external.get("DOI") or "").strip()
+    ext_ids: dict[str, str] = {}
+    if doi_raw:
+        ext_ids["doi"] = doi_raw.lower()
+    if arxiv_id:
+        ext_ids["ArXiv"] = arxiv_id
     return {
         "paper_id": paper_id,
         "id": paper_id,
@@ -110,41 +153,142 @@ def normalize_semantic_paper(paper: dict) -> dict:
         "pdf_url": pdf.get("url") if isinstance(pdf, dict) else "",
         "citation_count": paper.get("citationCount"),
         "reference_count": paper.get("referenceCount"),
-        "external_ids": external,
+        "external_ids": ext_ids or external,
         "categories": [],
         "score": 0,
         "relevance_reason": "Semantic Scholar match",
     }
 
 
-def search_arxiv(query: str, *, max_results: int = 25, search_fn: Callable | None = None) -> list[dict]:
-    terms = [part for part in re.split(r"[\s,]+", query.strip()) if part]
-    if not terms:
-        return []
-    if search_fn is None:
-        from arxiv_recommender_v5 import search_by_keywords
-
-        search_fn = search_by_keywords
-    return [normalize_arxiv_paper(paper) for paper in search_fn(terms, max_results=max_results, days_back=365)]
-
-
 def search_semantic_scholar(query: str, *, max_results: int = 25, opener=None) -> list[dict]:
-    if opener is None:
-        opener = urllib.request.urlopen
-    params = urllib.parse.urlencode({
-        "query": query,
-        "limit": max_results,
-        "fields": SEMANTIC_FIELDS,
-    })
-    request = urllib.request.Request(
-        f"https://api.semanticscholar.org/graph/v1/paper/search?{params}",
-        headers={"User-Agent": "PaperAgent/1.0"},
-        method="GET",
-    )
-    with opener(request, timeout=20) as response:  # nosec B310 - fixed HTTPS Semantic Scholar API endpoint
-        payload = json.loads(response.read().decode("utf-8"))
-    return [normalize_semantic_paper(paper) for paper in payload.get("data", [])]
+    """Search Semantic Scholar with timeout, retry, and failure caching."""
+    # Check failure cache
+    last_fail = _s2_failure_cache.get("last_failure", 0)
+    if time.time() - last_fail < S2_FAILURE_CACHE_TTL:
+        return []
 
+    url = (
+        f"https://api.semanticscholar.org/graph/v1/paper/search"
+        f"?query={urllib.parse.quote(query)}"
+        f"&limit={min(max_results, 100)}"
+        f"&fields={SEMANTIC_FIELDS}"
+    )
+
+    max_retries = 2
+    for attempt in range(max_retries + 1):
+        try:
+            if opener:
+                resp_text = opener(url)
+            else:
+                req = urllib.request.Request(url, headers={"User-Agent": "PaperAgent/2.0"})
+                with urllib.request.urlopen(req, timeout=10) as resp:  # nosec B310
+                    resp_text = resp.read().decode("utf-8")
+
+            data = json.loads(resp_text) if isinstance(resp_text, str) else resp_text
+            papers = data.get("data") or []
+            return [normalize_semantic_paper(p) for p in papers if p.get("title")]
+
+        except Exception:
+            if attempt < max_retries:
+                time.sleep(1.5 * (attempt + 1))  # Exponential backoff: 1.5s, 3s
+                continue
+            _s2_failure_cache["last_failure"] = time.time()
+            return []
+
+    return []
+
+
+# ─────────────────────────────────────────
+# OpenAlex (new)
+# ─────────────────────────────────────────
+
+def _openalex_request(url: str, *, timeout: int = 10) -> dict:
+    """Make a request to OpenAlex API."""
+    req = urllib.request.Request(url, headers={"User-Agent": "PaperAgent/2.0"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def normalize_openalex_paper(paper: dict) -> dict:
+    """Normalize an OpenAlex work to the common paper format."""
+    oa_id = str(paper.get("id") or "")
+    short_id = oa_id.replace("https://openalex.org/", "") if oa_id else ""
+
+    authorships = paper.get("authorships") or []
+    authors = [
+        a.get("author", {}).get("display_name", "")
+        for a in authorships
+        if a.get("author", {}).get("display_name")
+    ]
+
+    primary = paper.get("primary_location") or {}
+    source_info = primary.get("source") or {}
+    venue = source_info.get("display_name", "")
+
+    doi_raw = str(paper.get("doi") or "")
+    doi = doi_raw.replace("https://doi.org/", "") if doi_raw else ""
+
+    external_ids: dict[str, str] = {}
+    if doi:
+        external_ids["doi"] = doi
+    if short_id:
+        external_ids["openalex"] = short_id
+
+    abstract = ""
+    inverted = paper.get("abstract_inverted_index")
+    if inverted and isinstance(inverted, dict):
+        # Reconstruct abstract from inverted index
+        word_positions: list[tuple[int, str]] = []
+        for word, positions in inverted.items():
+            for pos in positions:
+                word_positions.append((pos, word))
+        word_positions.sort()
+        abstract = " ".join(w for _, w in word_positions)
+
+    return {
+        "paper_id": f"openalex:{short_id}" if short_id else "",
+        "source": "openalex",
+        "title": str(paper.get("title") or ""),
+        "authors": authors,
+        "author_text": ", ".join(authors),
+        "year": paper.get("publication_year"),
+        "venue": venue,
+        "abstract": abstract,
+        "summary": abstract[:600] if abstract else "",
+        "url": doi_raw if doi_raw.startswith("http") else (
+            f"https://doi.org/{doi}" if doi else oa_id
+        ),
+        "pdf_url": "",
+        "citation_count": paper.get("cited_by_count"),
+        "reference_count": paper.get("referenced_works_count"),
+        "external_ids": external_ids,
+        "categories": [],
+        "score": 0.0,
+        "relevance_reason": "",
+    }
+
+
+def search_openalex(query: str, *, max_results: int = 25) -> list[dict]:
+    """Search OpenAlex for papers matching query."""
+    try:
+        params: dict[str, object] = {
+            "search": query,
+            "per_page": min(max_results, 50),
+            "sort": "relevance_score:desc",
+        }
+        if OPENALEX_MAILTO:
+            params["mailto"] = OPENALEX_MAILTO
+        url = f"{OPENALEX_BASE}?{urllib.parse.urlencode(params)}"
+        data = _openalex_request(url)
+        results = data.get("results") or []
+        return [normalize_openalex_paper(r) for r in results if r.get("title")]
+    except Exception:
+        return []
+
+
+# ─────────────────────────────────────────
+# Deduplication
+# ─────────────────────────────────────────
 
 def merge_and_dedupe_papers(papers: list[dict]) -> list[dict]:
     merged: dict[str, dict] = {}
@@ -183,6 +327,10 @@ def merge_and_dedupe_papers(papers: list[dict]) -> list[dict]:
     return [merged[key] for key in order]
 
 
+# ─────────────────────────────────────────
+# Main entry point
+# ─────────────────────────────────────────
+
 def search_papers(
     query: str,
     *,
@@ -193,36 +341,53 @@ def search_papers(
     query = str(query or "").strip()
     if not query:
         return {"papers": [], "warnings": [], "errors": [], "sources": {}}
-    semantic_fn = semantic_fn or search_semantic_scholar
-    source_jobs = {
-        "arxiv": lambda: search_arxiv(query, max_results=max_results, search_fn=arxiv_fn),
-        "semantic_scholar": lambda: semantic_fn(query, max_results=max_results),
-    }
+
     papers: list[dict] = []
     warnings: list[str] = []
     errors: list[str] = []
     sources: dict[str, str] = {}
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        futures = {executor.submit(job): name for name, job in source_jobs.items()}
-        for future in as_completed(futures):
-            source = futures[future]
-            try:
-                source_papers = future.result()
-                sources[source] = "ok"
-                papers.extend(source_papers)
-            except Exception as exc:
-                sources[source] = "failed"
-                if source == "semantic_scholar":
-                    text = "Semantic Scholar is temporarily unavailable. Showing arXiv results."
-                elif source == "arxiv":
-                    text = "arXiv is temporarily unavailable. Showing Semantic Scholar results."
-                else:
-                    text = f"{source} unavailable: {exc}"
-                warnings.append(text)
-                errors.append(f"{source} unavailable: {exc}")
+
+    _arxiv_fn = arxiv_fn
+    _s2_fn = semantic_fn or search_semantic_scholar
+
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        arxiv_future = pool.submit(search_arxiv, query, max_results=max_results, search_fn=_arxiv_fn)
+        scholar_future = pool.submit(_s2_fn, query, max_results=max_results)
+        openalex_future = pool.submit(search_openalex, query, max_results=max_results)
+
+        # Collect arXiv results
+        try:
+            arxiv_papers = arxiv_future.result(timeout=20)
+            papers.extend(arxiv_papers)
+            sources["arxiv"] = "ok" if arxiv_papers else "empty"
+        except Exception as exc:
+            sources["arxiv"] = "failed"
+            errors.append(f"arXiv: {exc}")
+
+        # Collect Semantic Scholar results
+        try:
+            scholar_papers = scholar_future.result(timeout=20)
+            papers.extend(scholar_papers)
+            sources["semantic_scholar"] = "ok" if scholar_papers else "empty"
+        except Exception as exc:
+            sources["semantic_scholar"] = "failed"
+            warnings.append(f"Semantic Scholar: {exc}")
+
+        # Collect OpenAlex results
+        try:
+            oa_papers = openalex_future.result(timeout=15)
+            papers.extend(oa_papers)
+            sources["openalex"] = "ok" if oa_papers else "empty"
+        except Exception as exc:
+            sources["openalex"] = "failed"
+            warnings.append(f"OpenAlex: {exc}")
+
+    merged = merge_and_dedupe_papers(papers)
     return {
-        "papers": merge_and_dedupe_papers(papers)[:max_results],
+        "papers": merged[:max_results],
         "warnings": warnings,
         "errors": errors if not papers else [],
         "sources": sources,
     }
+
+

@@ -30,3 +30,47 @@
     {% if caller is defined %}{{ caller() }}{% endif %}
 </aside>
 {%- endmacro %}
+
+{# ── Notion-style Page Header ── #}
+{% macro page_header_notion(title, description='', icon='') %}
+<div class="notion-page-header">
+  {% if icon %}<span class="notion-page-header-icon">{{ icon }}</span>{% endif %}
+  <h1 class="notion-page-header-title">{{ title }}</h1>
+  {% if description %}<p class="notion-page-header-desc">{{ description }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{# ── Notion Card ── #}
+{% macro notion_card(class='', id='') %}
+<div class="notion-card {{ class }}" {% if id %}id="{{ id }}"{% endif %}>
+  {{ caller() }}
+</div>
+{% endmacro %}
+
+{# ── Button ── #}
+{% macro btn(label, variant='ghost', size='md', onclick='', type='button', disabled=false) %}
+<button class="btn-notion btn-notion-{{ variant }} btn-notion-{{ size }}" type="{{ type }}"
+  {% if onclick %}onclick="{{ onclick }}"{% endif %}
+  {% if disabled %}disabled{% endif %}>
+  {{ label }}
+</button>
+{% endmacro %}
+
+{# ── Tag Chip ── #}
+{% macro notion_chip(label, variant='default', onclick='') %}
+<span class="notion-chip notion-chip-{{ variant }}" {% if onclick %}onclick="{{ onclick }}" role="button" tabindex="0"{% endif %}>
+  {{ label }}
+</span>
+{% endmacro %}
+
+{# ── Empty State (Notion-style) ── #}
+{% macro empty_state_notion(title, description='', action_label='', action_onclick='') %}
+<div class="notion-empty-state">
+  <h3 class="notion-empty-state-title">{{ title }}</h3>
+  {% if description %}<p class="notion-empty-state-desc">{{ description }}</p>{% endif %}
+  {% if action_label %}
+  <button class="btn-notion btn-notion-primary btn-notion-sm" onclick="{{ action_onclick }}">{{ action_label }}</button>
+  {% endif %}
+</div>
+{% endmacro %}
+

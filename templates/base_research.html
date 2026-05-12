@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
-    <meta name="theme-color" content="#f7f7f5">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2323211f'/><path d='M10 7h8l5 5v13H10z' fill='none' stroke='white' stroke-width='2'/><path d='M18 7v6h5' fill='none' stroke='white' stroke-width='2'/><circle cx='22' cy='22' r='2' fill='%23d98f6a'/></svg>">
+    <meta name="theme-color" content="#fafaf8">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231a1a1a'/><path d='M9 5.5h9.25L24 11.25V26.5H9z' fill='none' stroke='white' stroke-width='2.2' stroke-linejoin='round'/><path d='M18.25 5.5v6h5.75' fill='none' stroke='white' stroke-width='2.2' stroke-linejoin='round'/><circle cx='22.5' cy='22.5' r='2.6' fill='%23d97757'/></svg>">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/typography.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css', v=static_version) }}">
@@ -17,43 +17,95 @@
     {% block head %}{% endblock %}
 </head>
 <body class="{{ body_class or '' }}">
-    <div class="app">
-        <header class="topbar">
-            <a href="/" class="topbar-wordmark" aria-label="Paper Agent home">
-                <span class="paper-agent-logo" aria-hidden="true">
-                    <svg viewBox="0 0 32 32" role="img" focusable="false">
+    <!-- Breathing grid background -->
+    <div class="breathing-grid" aria-hidden="true"></div>
+
+    <!-- Mobile hamburger button -->
+    <button class="mobile-nav-toggle" onclick="toggleMobileSidebar()" aria-label="Open navigation">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="2" y1="4.5" x2="16" y2="4.5"/>
+            <line x1="2" y1="9" x2="16" y2="9"/>
+            <line x1="2" y1="13.5" x2="16" y2="13.5"/>
+        </svg>
+    </button>
+
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar" data-collapsed="false" aria-label="Main navigation">
+            <div class="sidebar-header">
+                <a href="/" class="sidebar-brand" aria-label="Paper Agent home">
+                    <svg class="sidebar-logo" width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
                         <path d="M9 5.5h9.25L24 11.25V26.5H9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
                         <path d="M18.25 5.5v6h5.75" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-                        <circle cx="22.5" cy="22.5" r="2.6" fill="currentColor"/>
+                        <circle cx="22.5" cy="22.5" r="2.6" fill="#d97757"/>
                     </svg>
-                </span>
-                <span class="brand-mark">Paper Agent</span>
-            </a>
-            <nav class="topbar-nav" aria-label="Main navigation">
-                {% for item in nav_items %}
-                    <a
-                        href="{{ item.href }}"
-                        class="topbar-nav-item {% if item.key == active_tab %}is-active{% endif %}"
-                        {% if item.key == active_tab %}aria-current="page"{% endif %}
-                        data-i18n="nav.{{ item.key }}"
-                    >{{ item.label }}</a>
-                {% endfor %}
-            </nav>
-            <span class="spacer"></span>
-            <div class="topbar-actions">
-                <button type="button" class="btn btn-ghost btn-sm" data-action="toggle-language" data-lang="en" aria-label="Current language: English">EN</button>
-                <button type="button" class="btn btn-ghost btn-sm" data-action="toggle-theme" aria-label="Toggle dark mode" title="Toggle dark mode">Dark</button>
-                <button type="button" class="btn btn-ghost btn-sm" data-action="command-palette" aria-label="Open command palette" title="Command palette (Cmd+K)">⌘K</button>
-                <a href="/settings" class="btn btn-ghost btn-sm" aria-label="Open Settings" title="Settings">Settings</a>
+                    <span class="sidebar-brand-text">Paper Agent</span>
+                </a>
+                <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <line x1="2" y1="4" x2="14" y2="4"/>
+                        <line x1="2" y1="8" x2="14" y2="8"/>
+                        <line x1="2" y1="12" x2="14" y2="12"/>
+                    </svg>
+                </button>
             </div>
-        </header>
 
-        <main class="main">
-            <div class="main-inner">
-                {% block hero %}{% endblock %}
-                {% block content %}{% endblock %}
-                <footer class="footer-note" data-i18n-quote="footer.quote">“The art of doing research is the art of making hard choices visible.”</footer>
+            <!-- Main section -->
+            <div class="sidebar-section">
+                {% for item in nav_items if item.section == 'main' %}
+                <a class="sidebar-item {% if item.active %}is-active{% endif %}"
+                   href="{{ item.href }}"
+                   {% if item.active %}aria-current="page"{% endif %}>
+                    <span class="sidebar-icon">{{ item.icon_svg|safe }}</span>
+                    <span class="sidebar-label">{{ item.label }}</span>
+                    {% if item.count %}<span class="sidebar-badge">{{ item.count }}</span>{% endif %}
+                </a>
+                {% endfor %}
             </div>
+
+            <!-- Subscriptions section -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Subscriptions</div>
+                {% for item in nav_items if item.section == 'subscriptions' %}
+                <a class="sidebar-item {% if item.active %}is-active{% endif %}"
+                   href="{{ item.href }}"
+                   {% if item.active %}aria-current="page"{% endif %}>
+                    <span class="sidebar-icon">{{ item.icon_svg|safe }}</span>
+                    <span class="sidebar-label">{{ item.label }}</span>
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- Footer section -->
+            <div class="sidebar-footer">
+                {% for item in nav_items if item.section == 'footer' %}
+                <a class="sidebar-item {% if item.active %}is-active{% endif %}"
+                   href="{{ item.href }}"
+                   {% if item.active %}aria-current="page"{% endif %}>
+                    <span class="sidebar-icon">{{ item.icon_svg|safe }}</span>
+                    <span class="sidebar-label">{{ item.label }}</span>
+                </a>
+                {% endfor %}
+                <button class="sidebar-item" id="themeToggleBtn" onclick="toggleTheme()" type="button" aria-label="Toggle dark mode">
+                    <span class="sidebar-icon" id="themeIcon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="8" cy="8" r="3"/>
+                            <line x1="8" y1="1" x2="8" y2="3"/>
+                            <line x1="8" y1="13" x2="8" y2="15"/>
+                            <line x1="1" y1="8" x2="3" y2="8"/>
+                            <line x1="13" y1="8" x2="15" y2="8"/>
+                        </svg>
+                    </span>
+                    <span class="sidebar-label" id="themeLabel">Dark Mode</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main content area -->
+        <main class="main-content">
+            {% block hero %}{% endblock %}
+            {% block content %}{% endblock %}
+            <footer class="footer-note" aria-label="Footer quote">"The art of doing research is the art of making hard choices visible."</footer>
         </main>
     </div>
 
@@ -74,13 +126,13 @@
                 <table class="shortcuts-table">
                     <tr><td><kbd>j</kbd> / <kbd>↓</kbd></td><td>Select next paper</td></tr>
                     <tr><td><kbd>k</kbd> / <kbd>↑</kbd></td><td>Select previous paper</td></tr>
-                <tr><td><kbd>r</kbd></td><td>Mark relevant</td></tr>
-                <tr><td><kbd>i</kbd></td><td>Ignore</td></tr>
-                <tr><td><kbd>s</kbd></td><td>Skim later</td></tr>
-                <tr><td><kbd>d</kbd></td><td>Deep read</td></tr>
-                <tr><td><kbd>o</kbd></td><td>Open paper detail</td></tr>
-                <tr><td><kbd>⌘K</kbd></td><td>Command palette</td></tr>
-                <tr><td><kbd>?</kbd></td><td>Show help</td></tr>
+                    <tr><td><kbd>r</kbd></td><td>Mark relevant</td></tr>
+                    <tr><td><kbd>i</kbd></td><td>Ignore</td></tr>
+                    <tr><td><kbd>s</kbd></td><td>Skim later</td></tr>
+                    <tr><td><kbd>d</kbd></td><td>Deep read</td></tr>
+                    <tr><td><kbd>o</kbd></td><td>Open paper detail</td></tr>
+                    <tr><td><kbd>⌘K</kbd></td><td>Command palette</td></tr>
+                    <tr><td><kbd>?</kbd></td><td>Show help</td></tr>
                 </table>
             </div>
         </div>
@@ -92,6 +144,7 @@
         'queueStatuses': queue_status_values or [],
         'latestJob': latest_job or {}
     } | tojson }}</script>
+    <script src="{{ url_for('static', filename='js/sidebar.js', v=static_version) }}"></script>
     <script src="{{ url_for('static', filename='js/core.js', v=static_version) }}"></script>
     <script src="{{ url_for('static', filename='js/modals.js', v=static_version) }}"></script>
     <script src="{{ url_for('static', filename='js/collections.js', v=static_version) }}"></script>
@@ -109,6 +162,25 @@
         var scrim = document.getElementById('detailScrim');
         if (scrim) scrim.hidden = true;
     }
+
+    function toggleTheme() {
+        var html = document.documentElement;
+        var isDark = html.getAttribute('data-theme') === 'dark';
+        html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        localStorage.setItem('statdesk.theme', isDark ? 'light' : 'dark');
+        var label = document.getElementById('themeLabel');
+        if (label) label.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+    }
+
+    // Restore saved theme on load
+    (function() {
+        var saved = localStorage.getItem('statdesk.theme');
+        if (saved) {
+            document.documentElement.setAttribute('data-theme', saved);
+            var label = document.getElementById('themeLabel');
+            if (label) label.textContent = saved === 'dark' ? 'Light Mode' : 'Dark Mode';
+        }
+    })();
     </script>
 </body>
 </html>

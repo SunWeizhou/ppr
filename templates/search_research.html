@@ -47,6 +47,18 @@
 
     <div class="paper-agent-workspace">
         <div class="paper-results-pane">
+            <!-- Filter chips bar -->
+            <div class="filter-chips" id="searchFilterChips" hidden>
+              <span class="filter-chips-label">Filter:</span>
+              <button class="chip" data-filter="all" onclick="applySearchFilter('all')">All</button>
+              <button class="chip" data-filter="arxiv" onclick="applySearchFilter('arxiv')">arXiv</button>
+              <button class="chip" data-filter="semantic_scholar" onclick="applySearchFilter('semantic_scholar')">Semantic Scholar</button>
+              <button class="chip" data-filter="openalex" onclick="applySearchFilter('openalex')">OpenAlex</button>
+              <span class="filter-chips-divider"></span>
+              <button class="chip" data-filter="conference" onclick="applySearchFilter('conference')">Conference</button>
+              <button class="chip" data-filter="journal" onclick="applySearchFilter('journal')">Journal</button>
+              <button class="chip" data-filter="preprint" onclick="applySearchFilter('preprint')">Preprint</button>
+            </div>
             {% if papers %}
                 <div class="paper-result-count">{{ papers|length }} articles</div>
                 <div class="paper-result-list" id="paperResultList">
@@ -157,6 +169,9 @@ async function fetchPaperAgentResults(query) {
         });
         renderPaperAgentSourceStatus(payload.sources || {}, payload.warnings || [], payload.errors || []);
         renderPaperAgentResults(payload.papers || []);
+        // Show filter chips
+        var filterBar = document.getElementById('searchFilterChips');
+        if (filterBar) filterBar.hidden = !(payload.papers && payload.papers.length);
     } catch (error) {
         renderPaperAgentSourceStatus({arxiv: 'failed', semantic_scholar: 'failed'}, [], [error.message]);
         if (list) list.innerHTML = '<div class="paper-agent-empty"><h2>Search failed</h2><p>' + escapeHtml(error.message) + '</p></div>';
@@ -357,6 +372,43 @@ document.addEventListener('DOMContentLoaded', function() {
         var ws = document.querySelector('.paper-agent-workspace');
         if (ws) ws.classList.add('has-selection');
     }
+    // Show filter chips on page load if there are results
+    var chips = document.getElementById('searchFilterChips');
+    if (chips && document.querySelectorAll('.paper-result-row').length > 0) {
+        chips.hidden = false;
+    }
 });
+
+function applySearchFilter(filter) {
+  var chips = document.querySelectorAll('#searchFilterChips .chip');
+  chips.forEach(function (chip) {
+    chip.classList.toggle('chip-active', chip.dataset.filter === filter);
+  });
+
+  var rows = document.querySelectorAll('.paper-result-row');
+  rows.forEach(function (row) {
+    if (filter === 'all') {
+      row.hidden = false;
+      return;
+    }
+    var source = (row.dataset.paperSource || '').toLowerCase();
+    var venue = (row.dataset.paperVenue || '').toLowerCase();
+
+    if (['arxiv', 'semantic_scholar', 'openalex'].indexOf(filter) !== -1) {
+      row.hidden = source.indexOf(filter) === -1;
+      return;
+    }
+
+    if (filter === 'preprint') {
+      row.hidden = source.indexOf('arxiv') === -1 && venue.indexOf('arxiv') === -1;
+    } else if (filter === 'conference') {
+      row.hidden = !(/neurips|icml|iclr|aaai|cvpr|eccv|acl|emnlp|naacl|sigir|kdd|www|chi/i.test(venue));
+    } else if (filter === 'journal') {
+      row.hidden = !(/nature|science|ieee|acm trans|journal|review/i.test(venue));
+    }
+  });
+}
+
+window.applySearchFilter = applySearchFilter;
 </script>
 {% endblock %}
