@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -383,11 +384,40 @@ def search_papers(
             warnings.append(f"OpenAlex: {exc}")
 
     merged = merge_and_dedupe_papers(papers)
+
+    # Non-blocking entity extraction from search results
+    _async_extract_entities(merged)
+
     return {
         "papers": merged[:max_results],
         "warnings": warnings,
         "errors": errors if not papers else [],
         "sources": sources,
     }
+
+
+def _async_extract_entities(papers: list) -> None:
+    """Non-blocking entity extraction from search results.
+
+    Runs in a daemon thread so it never blocks the search response.
+    """
+    if not papers:
+        return
+
+    def _run():
+        try:
+            from state_store import get_state_store
+            from app.services.entity_service import EntityService
+            store = get_state_store()
+            svc = EntityService(store)
+            svc.extract_entities_from_results(papers)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).debug(
+                "Async entity extraction failed", exc_info=True
+            )
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
 
 
