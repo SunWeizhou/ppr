@@ -14,7 +14,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
   },
-  "include": ["frontend/agent/**/*.ts", "frontend/agent/**/*.tsx"]
+  "include": ["frontend/agent-panel/**/*.ts", "frontend/agent-panel/**/*.tsx"]
 }

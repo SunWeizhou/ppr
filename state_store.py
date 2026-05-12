@@ -334,6 +334,45 @@ class StateStore:
                     reading_pace      TEXT DEFAULT '{}',
                     updated_at        TEXT DEFAULT (datetime('now'))
                 );
+
+                CREATE TABLE IF NOT EXISTS agent_sessions (
+                    id            TEXT PRIMARY KEY,
+                    title         TEXT DEFAULT 'New Session',
+                    summary       TEXT DEFAULT '',
+                    is_pinned     INTEGER DEFAULT 0,
+                    is_archived   INTEGER DEFAULT 0,
+                    message_count INTEGER DEFAULT 0,
+                    last_active   TEXT DEFAULT (datetime('now')),
+                    created_at    TEXT DEFAULT (datetime('now')),
+                    updated_at    TEXT DEFAULT (datetime('now'))
+                );
+
+                CREATE TABLE IF NOT EXISTS agent_messages (
+                    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_id    TEXT NOT NULL REFERENCES agent_sessions(id) ON DELETE CASCADE,
+                    role          TEXT NOT NULL CHECK(role IN ('user','assistant','system','tool')),
+                    content       TEXT NOT NULL,
+                    metadata_json TEXT DEFAULT '{}',
+                    created_at    TEXT DEFAULT (datetime('now'))
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_agent_messages_session
+                    ON agent_messages(session_id, created_at);
+
+                CREATE TABLE IF NOT EXISTS search_history (
+                    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                    query          TEXT NOT NULL,
+                    rewritten      TEXT,
+                    result_count   INTEGER DEFAULT 0,
+                    sources        TEXT DEFAULT '[]',
+                    clicked_papers TEXT DEFAULT '[]',
+                    created_at     TEXT DEFAULT (datetime('now'))
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_search_history_query
+                    ON search_history(query);
+                CREATE INDEX IF NOT EXISTS idx_search_history_created
+                    ON search_history(created_at);
                 """
             )
             # Check current schema version and migrate if needed
@@ -620,9 +659,17 @@ class StateStore:
                     ) else {}
         return data
 
-    # ------------------------------------------------------------------
-    #  Research Questions
-    # ------------------------------------------------------------------
+    @staticmethod
+    def _search_history_to_dict(row: sqlite3.Row) -> Dict:
+        data = dict(row)
+        for key in ("sources", "clicked_papers"):
+            if key in data:
+                try:
+                    data[key] = json.loads(data[key])
+                except (TypeError, json.JSONDecodeError):
+                    data[key] = []
+        return data
+
 
     def create_research_question(
         self,
@@ -2588,6 +2635,287 @@ class StateStore:
             conn.execute("PRAGMA foreign_keys = ON")
             self._migrate_arxiv_paper_ids(conn)
 
+    # ------------------------------------------------------------------
+    # Agent Sessions
+    # ------------------------------------------------------------------
+
+    def create_agent_session(self, title: str = "New Session") -> Dict:
+        """Create a new agent conversation session."""
+        now = _utc_now()
+        session_id = uuid.uuid4().hex
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO agent_sessions(
+                    id, title, summary, is_pinned, is_archived,
+                    message_count, last_active, created_at, updated_at
+                ) VALUES (?, ?, '', 0, 0, 0, ?, ?, ?)
+                """,
+                (session_id, title.strip(), now, now, now),
+            )
+            row = conn.execute(
+                "SELECT * FROM agent_sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+        return self._row_to_dict(row)
+
+    def get_agent_session(self, session_id: str) -> Optional[Dict]:
+        """Get an agent session by ID."""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM agent_sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    def list_agent_sessions(
+        self,
+        archived: Optional[bool] = None,
+        limit: int = 50,
+    ) -> List[Dict]:
+        """List sessions, pinned first then by last_active descending."""
+        query = "SELECT * FROM agent_sessions"
+        params: List[object] = []
+        if archived is not None:
+            query += " WHERE is_archived = ?"
+            params.append(1 if archived else 0)
+        query += " ORDER BY is_pinned DESC, last_active DESC LIMIT ?"
+        params.append(limit)
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+    def update_agent_session(
+        self,
+        session_id: str,
+        *,
+        title: Optional[str] = None,
+        summary: Optional[str] = None,
+        is_pinned: Optional[bool] = None,
+        is_archived: Optional[bool] = None,
+    ) -> Optional[Dict]:
+        """Update mutable fields of an agent session."""
+        updates: List[str] = []
+        params: List[object] = []
+
+        if title is not None:
+            updates.append("title = ?")
+            params.append(title.strip())
+        if summary is not None:
+            updates.append("summary = ?")
+            params.append(summary.strip())
+        if is_pinned is not None:
+            updates.append("is_pinned = ?")
+            params.append(1 if is_pinned else 0)
+        if is_archived is not None:
+            updates.append("is_archived = ?")
+            params.append(1 if is_archived else 0)
+
+        if not updates:
+            return self.get_agent_session(session_id)
+
+        updates.append("updated_at = ?")
+        params.append(_utc_now())
+        params.append(session_id)
+
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                f"UPDATE agent_sessions SET {', '.join(updates)} WHERE id = ?",
+                params,
+            )
+        return self.get_agent_session(session_id)
+
+    def delete_agent_session(self, session_id: str) -> bool:
+        """Delete a session and cascade-delete its messages."""
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                "DELETE FROM agent_messages WHERE session_id = ?",
+                (session_id,),
+            )
+            result = conn.execute(
+                "DELETE FROM agent_sessions WHERE id = ?",
+                (session_id,),
+            )
+        return result.rowcount > 0
+
+    # ------------------------------------------------------------------
+    # Agent Messages
+    # ------------------------------------------------------------------
+
+    def add_agent_message(
+        self,
+        session_id: str,
+        role: str,
+        content: str,
+        metadata: Optional[Dict] = None,
+    ) -> Dict:
+        """Add a message to an agent session.
+
+        Raises ValueError for invalid role or nonexistent session.
+        """
+        if role not in ("user", "assistant", "system", "tool"):
+            raise ValueError(f"Invalid message role: {role}")
+
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            session = conn.execute(
+                "SELECT id FROM agent_sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+            if session is None:
+                raise ValueError(f"Agent session not found: {session_id}")
+
+            conn.execute(
+                """
+                INSERT INTO agent_messages(
+                    session_id, role, content, metadata_json, created_at
+                ) VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    session_id,
+                    role,
+                    content,
+                    _to_json(metadata, {}),
+                    now,
+                ),
+            )
+            row = conn.execute(
+                "SELECT * FROM agent_messages WHERE id = last_insert_rowid()"
+            ).fetchone()
+
+            conn.execute(
+                """
+                UPDATE agent_sessions
+                SET message_count = (
+                    SELECT COUNT(*) FROM agent_messages WHERE session_id = ?
+                ),
+                last_active = ?,
+                updated_at = ?
+                WHERE id = ?
+                """,
+                (session_id, now, now, session_id),
+            )
+        return self._row_to_dict(row)
+
+    def get_session_messages(
+        self,
+        session_id: str,
+        limit: int = 50,
+    ) -> List[Dict]:
+        """Get messages for a session, ordered by creation time ascending."""
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT * FROM (
+                    SELECT * FROM agent_messages
+                    WHERE session_id = ?
+                    ORDER BY created_at DESC, id DESC
+                    LIMIT ?
+                ) sub ORDER BY created_at ASC, id ASC
+                """,
+                (session_id, limit),
+            ).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+    # ------------------------------------------------------------------
+    # Search History
+    # ------------------------------------------------------------------
+
+    def record_search(
+        self,
+        query: str,
+        *,
+        rewritten: Optional[str] = None,
+        result_count: int = 0,
+        sources: Optional[List[str]] = None,
+    ) -> Dict:
+        """Record a search query in history."""
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO search_history(
+                    query, rewritten, result_count, sources, clicked_papers, created_at
+                ) VALUES (?, ?, ?, ?, '[]', ?)
+                """,
+                (
+                    query.strip(),
+                    rewritten,
+                    result_count,
+                    _to_json(sources, []),
+                    now,
+                ),
+            )
+            row = conn.execute(
+                "SELECT * FROM search_history WHERE id = last_insert_rowid()"
+            ).fetchone()
+        return self._search_history_to_dict(row)
+
+    def list_recent_searches(self, limit: int = 10) -> List[Dict]:
+        """List recent searches, deduplicated by query text, most recent first."""
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT sh.* FROM search_history sh
+                INNER JOIN (
+                    SELECT query, MAX(id) AS max_id
+                    FROM search_history
+                    GROUP BY lower(query)
+                ) latest ON sh.id = latest.max_id
+                ORDER BY sh.created_at DESC, sh.id DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        return [self._search_history_to_dict(row) for row in rows]
+
+    def record_search_click(self, search_id: int, paper_id: str) -> Dict:
+        """Record that the user clicked a paper from a search result."""
+        paper_id = _canonical_paper_id(paper_id)
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM search_history WHERE id = ?",
+                (search_id,),
+            ).fetchone()
+            if not row:
+                raise ValueError(f"Search history entry not found: {search_id}")
+            try:
+                clicked = json.loads(row["clicked_papers"] or "[]")
+            except (TypeError, json.JSONDecodeError):
+                clicked = []
+            if paper_id not in clicked:
+                clicked.append(paper_id)
+            conn.execute(
+                "UPDATE search_history SET clicked_papers = ? WHERE id = ?",
+                (json.dumps(clicked, ensure_ascii=False), search_id),
+            )
+            updated = conn.execute(
+                "SELECT * FROM search_history WHERE id = ?",
+                (search_id,),
+            ).fetchone()
+        return self._search_history_to_dict(updated)
+
+    def get_suggested_searches(self, limit: int = 5) -> List[Dict]:
+        """Return high-frequency search queries as suggestions."""
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT query, COUNT(*) AS freq,
+                       MAX(created_at) AS latest,
+                       MAX(result_count) AS best_result_count
+                FROM search_history
+                GROUP BY lower(query)
+                HAVING freq >= 2
+                ORDER BY freq DESC, latest DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        return [
+            {"query": row["query"], "frequency": row["freq"], "result_count": row["best_result_count"]}
+            for row in rows
+        ]
+
 
 _state_store: Optional[StateStore] = None
 
@@ -2597,3 +2925,4 @@ def get_state_store() -> StateStore:
     if _state_store is None:
         _state_store = StateStore()
     return _state_store
+

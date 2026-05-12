@@ -8,7 +8,8 @@ optional enhancement; deterministic fallback remains the offline path.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 from urllib.parse import quote
 
 from app.services.ai_providers import NoProvider, ProviderError, build_ai_provider_from_env
@@ -16,12 +17,18 @@ from app.services.ai_providers import NoProvider, ProviderError, build_ai_provid
 
 DESTRUCTIVE_TERMS = ("delete", "remove all", "overwrite api key", "bulk archive", "clear all")
 
+VALID_INTENTS = frozenset({
+    "answer", "search", "save", "skim", "deep_read", "watch",
+    "collection", "planner", "analysis", "summarize", "recommendations",
+})
+
 
 @dataclass(frozen=True)
 class AgentPlan:
     intent: str
     query: str = ""
     status: str = ""
+    steps: list = field(default_factory=list)
 
 
 class AgentSafetyPolicy:
@@ -41,143 +48,271 @@ class AgentService:
         self.provider_factory = provider_factory
         self.safety = AgentSafetyPolicy()
 
-    def handle_message(self, message: str, page_context: dict | None = None) -> dict:
+    def handle_message(
+        self,
+        message: str,
+        session_id: Optional[str] = None,
+        page_context: Optional[dict] = None,
+    ) -> dict:
+        """Handle a user message within a session context.
+
+        If session_id is None, creates a new session automatically.
+        Persists both user and assistant messages to the session.
+        """
         page_context = page_context or {}
         message = str(message or "").strip()
-        tool_results: list[dict] = []
-        actions: list[dict] = []
+
+        # Resolve or create session
+        session = self._resolve_session(session_id)
+        session_id = session["id"]
+
+        # Load conversation history for context
+        history = self.state_store.get_session_messages(session_id, limit=20)
+        is_first_message = len(history) == 0
+
+        tool_results: list = []
+        actions: list = []
         state_updates: dict = {}
 
-        plan = self._plan(message, page_context, tool_results)
+        plan = self._plan(message, page_context, tool_results, history)
+
         if self.safety.requires_confirmation(message, plan):
+            reply = "That action needs confirmation before I run it."
+            self._persist_turn(session_id, message, reply, {"confirmation": "required"})
             return self._response(
-                "That action needs confirmation before I run it.",
+                reply,
+                session=self._fresh_session(session_id),
                 actions=[{"type": "confirmation", "status": "required"}],
                 requires_confirmation=True,
                 tool_results=tool_results,
             )
 
+        # Execute the plan
+        result = self._execute(plan, message, page_context, tool_results, actions, state_updates)
+
+        # Persist messages
+        metadata = {
+            "tool_results": tool_results,
+            "actions": actions,
+            "state_updates": state_updates,
+        }
+        self._persist_turn(session_id, message, result, metadata)
+
+        # Auto-title on first message
+        if is_first_message:
+            self._auto_title(session_id, message)
+
+        return self._response(
+            result,
+            session=self._fresh_session(session_id),
+            actions=actions,
+            state_updates=state_updates,
+            tool_results=tool_results,
+        )
+
+    # ------------------------------------------------------------------
+    # Session management
+    # ------------------------------------------------------------------
+
+    def _resolve_session(self, session_id: Optional[str]) -> dict:
+        """Get existing session or create a new one."""
+        if session_id:
+            session = self.state_store.get_agent_session(session_id)
+            if session:
+                return session
+        return self.state_store.create_agent_session()
+
+    def _fresh_session(self, session_id: str) -> dict:
+        """Reload session to get updated counts."""
+        session = self.state_store.get_agent_session(session_id)
+        if not session:
+            return {"id": session_id, "title": "Unknown", "message_count": 0}
+        return {
+            "id": session["id"],
+            "title": session["title"],
+            "message_count": session["message_count"],
+            "last_active": session.get("last_active", ""),
+        }
+
+    def _persist_turn(self, session_id: str, user_msg: str, reply: str, metadata: dict) -> None:
+        """Save user message and assistant reply to the session."""
+        self.state_store.add_agent_message(session_id, "user", user_msg)
+        self.state_store.add_agent_message(session_id, "assistant", reply, metadata=metadata)
+
+    def _auto_title(self, session_id: str, first_message: str) -> None:
+        """Generate a session title from the first message."""
+        title = first_message[:50].strip()
+        if len(first_message) > 50:
+            space = title.rfind(" ")
+            if space > 20:
+                title = title[:space]
+            title += "..."
+
+        try:
+            provider = self.provider_factory()
+            if not isinstance(provider, NoProvider) and hasattr(provider, "chat"):
+                llm_title = provider.chat(
+                    [
+                        {
+                            "role": "system",
+                            "content": (
+                                "Generate a concise title (max 40 characters) for a research "
+                                "assistant conversation. Return ONLY the title text, no quotes."
+                            ),
+                        },
+                        {"role": "user", "content": first_message},
+                    ],
+                    page_context={},
+                )
+                llm_title = str(llm_title or "").strip().strip('"').strip("'")
+                if 3 <= len(llm_title) <= 60:
+                    title = llm_title
+        except Exception:
+            pass
+
+        self.state_store.update_agent_session(session_id, title=title)
+
+
+    def _execute(
+        self,
+        plan: AgentPlan,
+        message: str,
+        page_context: dict,
+        tool_results: list,
+        actions: list,
+        state_updates: dict,
+    ) -> str:
+        """Execute a plan and return the reply text."""
         selected_paper_id = str(page_context.get("selected_paper_id") or "").strip()
-        selected_title = str(page_context.get("selected_paper_title") or selected_paper_id or "this paper")
+        selected_title = str(
+            page_context.get("selected_paper_title") or selected_paper_id or "this paper"
+        )
 
         if plan.intent in {"save", "deep_read", "skim"} and selected_paper_id:
-            status = {
-                "save": "Saved",
-                "deep_read": "Deep Read",
-                "skim": "Skim Later",
-            }[plan.intent]
-            self.state_store.upsert_queue_item(
-                selected_paper_id,
-                status,
-                source="paper_agent",
-                decision_context=f"Paper Agent request: {message}",
-            )
-            actions.append({"type": "queue", "paper_id": selected_paper_id, "status": status})
-            tool_results.append({
-                "tool": "mark_reading_decision",
-                "status": "succeeded",
-                "paper_id": selected_paper_id,
-                "decision": status,
-            })
-            return self._response(f'Marked **{selected_title}** as **{status}**.', actions, state_updates, tool_results)
+            return self._exec_queue(plan, selected_paper_id, selected_title, message, actions, tool_results)
 
         if plan.intent == "collection" and selected_paper_id:
             return self._create_collection(message, page_context, selected_paper_id, selected_title, actions, tool_results)
 
         if plan.intent == "watch":
-            query = plan.query or str(page_context.get("query") or message).strip()
-            sub = self.state_store.create_subscription(
-                "query",
-                query[:48] or "Paper Agent watch",
-                query,
-                payload_json={"source": "paper_agent", "description": "Created by Paper Agent"},
-            )
-            actions.append({"type": "watch", "subscription_id": sub["id"], "query": query})
-            tool_results.append({"tool": "create_watch", "status": "succeeded", "subscription_id": sub["id"], "query": query})
-            return self._response(f'Watching **{query}**.', actions, state_updates, tool_results)
+            return self._exec_watch(plan, page_context, message, actions, tool_results)
 
         if plan.intent == "search":
-            query = plan.query or str(page_context.get("query") or "").strip()
-            actions.append({"type": "search", "query": query})
-            tool_results.append({"tool": "search_papers", "status": "scheduled", "query": query})
-            state_updates["navigate"] = f"/?q={quote(query)}" if query else "/"
-            reply = f'Searching for **{query}**.' if query else "Tell me what to search for."
-            return self._response(reply, actions, state_updates, tool_results)
+            return self._exec_search(plan, page_context, actions, tool_results, state_updates)
 
         if plan.intent == "recommendations":
             state_updates["navigate"] = "/recommendations"
             actions.append({"type": "navigate", "target": "recommendations"})
             tool_results.append({"tool": "open_recommendations", "status": "scheduled"})
-            return self._response("Opening the **Recommendations** workspace.", actions, state_updates, tool_results)
+            return "Opening the **Recommendations** workspace."
 
         if plan.intent == "planner":
-            return self._response(
-                "Planner execution is available from a research question workspace. Create or select a question first.",
-                actions=[{"type": "planner", "status": "needs_research_question"}],
-                tool_results=[*tool_results, {"tool": "run_planner", "status": "blocked", "reason": "needs_research_question"}],
+            return (
+                "Planner execution is available from a research question workspace. "
+                "Create or select a question first."
             )
 
         if plan.intent == "analysis" and selected_paper_id:
             actions.append({"type": "analysis", "paper_id": selected_paper_id, "status": "available_on_detail"})
             state_updates["navigate"] = f"/papers/{quote(selected_paper_id)}"
             tool_results.append({"tool": "generate_paper_analysis", "status": "scheduled", "paper_id": selected_paper_id})
-            return self._response(f'I can generate analysis for **{selected_title}** on the detail page.', actions, state_updates, tool_results)
+            return f"I can generate analysis for **{selected_title}** on the detail page."
 
         if plan.intent == "summarize" and selected_paper_id:
             return self._summarize_selected_paper(selected_paper_id, selected_title, actions, tool_results)
 
-        reply = self._answer_chat(message, page_context, tool_results)
-        return self._response(reply, actions, state_updates, tool_results)
+        return self._answer_chat(message, page_context, tool_results)
+
+    def _exec_queue(self, plan, paper_id, title, message, actions, tool_results) -> str:
+        status = {"save": "Saved", "deep_read": "Deep Read", "skim": "Skim Later"}[plan.intent]
+        self.state_store.upsert_queue_item(
+            paper_id, status,
+            source="paper_agent",
+            decision_context=f"Paper Agent request: {message}",
+        )
+        actions.append({"type": "queue", "paper_id": paper_id, "status": status})
+        tool_results.append({
+            "tool": "mark_reading_decision", "status": "succeeded",
+            "paper_id": paper_id, "decision": status,
+        })
+        return f"Marked **{title}** as **{status}**."
+
+    def _exec_watch(self, plan, page_context, message, actions, tool_results) -> str:
+        query = plan.query or str(page_context.get("query") or message).strip()
+        sub = self.state_store.create_subscription(
+            "query",
+            query[:48] or "Paper Agent watch",
+            query,
+            payload_json={"source": "paper_agent", "description": "Created by Paper Agent"},
+        )
+        actions.append({"type": "watch", "subscription_id": sub["id"], "query": query})
+        tool_results.append({"tool": "create_watch", "status": "succeeded", "subscription_id": sub["id"], "query": query})
+        return f"Watching **{query}**."
+
+    def _exec_search(self, plan, page_context, actions, tool_results, state_updates) -> str:
+        query = plan.query or str(page_context.get("query") or "").strip()
+        actions.append({"type": "search", "query": query})
+        tool_results.append({"tool": "search_papers", "status": "scheduled", "query": query})
+        state_updates["navigate"] = f"/?q={quote(query)}" if query else "/"
+        return f"Searching for **{query}**." if query else "Tell me what to search for."
 
     # ------------------------------------------------------------------
     # Planning
     # ------------------------------------------------------------------
 
-    def _plan(self, message: str, page_context: dict, tool_results: list[dict]) -> AgentPlan:
+    def _plan(
+        self,
+        message: str,
+        page_context: dict,
+        tool_results: list,
+        history: Optional[list] = None,
+    ) -> AgentPlan:
         fallback = self._fallback_plan(message, page_context)
         if fallback.intent != "answer":
             return fallback
-        provider_plan = self._provider_plan(message, page_context, tool_results)
+        provider_plan = self._provider_plan(message, page_context, tool_results, history or [])
         if provider_plan:
             return provider_plan
         return fallback
 
-    def _provider_plan(self, message: str, page_context: dict, tool_results: list[dict]) -> AgentPlan | None:
+    def _provider_plan(
+        self,
+        message: str,
+        page_context: dict,
+        tool_results: list,
+        history: Optional[list] = None,
+    ) -> AgentPlan | None:
         try:
             provider = self.provider_factory()
             if isinstance(provider, NoProvider) or not hasattr(provider, "chat"):
                 return None
-            content = provider.chat(
-                [
-                    {
-                        "role": "system",
-                        "content": (
-                            "Classify a Paper Agent user request. Return JSON only with keys "
-                            "intent and query. Valid intents: answer, search, save, skim, "
-                            "deep_read, watch, collection, planner, analysis, summarize, "
-                            "recommendations. Do not execute tools."
-                        ),
-                    },
-                    {"role": "system", "content": json.dumps(page_context, ensure_ascii=False, sort_keys=True)},
-                    {"role": "user", "content": message},
-                ],
-                page_context=page_context,
-            )
+
+            # Build context-aware messages for planning
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "Classify a Paper Agent user request. Return JSON only with keys "
+                        "intent and query. Valid intents: answer, search, save, skim, "
+                        "deep_read, watch, collection, planner, analysis, summarize, "
+                        "recommendations. Do not execute tools."
+                    ),
+                },
+                {"role": "system", "content": json.dumps(page_context, ensure_ascii=False, sort_keys=True)},
+            ]
+
+            # Add recent history for context
+            for msg in (history or [])[-6:]:
+                role = msg.get("role", "user")
+                if role in ("user", "assistant"):
+                    messages.append({"role": role, "content": msg.get("content", "")})
+
+            messages.append({"role": "user", "content": message})
+
+            content = provider.chat(messages, page_context=page_context)
             parsed = self._extract_json(content)
             intent = str(parsed.get("intent") or "").strip().lower()
-            if intent in {
-                "answer",
-                "search",
-                "save",
-                "skim",
-                "deep_read",
-                "watch",
-                "collection",
-                "planner",
-                "analysis",
-                "summarize",
-                "recommendations",
-            }:
+            if intent in VALID_INTENTS:
                 tool_results.append({"tool": "plan_intent", "status": "succeeded", "model": getattr(provider, "model_name", "provider")})
                 return AgentPlan(intent=intent, query=str(parsed.get("query") or "").strip())
         except (json.JSONDecodeError, KeyError, TypeError):
@@ -230,7 +365,7 @@ class AgentService:
     # Tool implementations
     # ------------------------------------------------------------------
 
-    def _create_collection(self, message, page_context, selected_paper_id, selected_title, actions, tool_results):
+    def _create_collection(self, message, page_context, selected_paper_id, selected_title, actions, tool_results) -> str:
         query = str(page_context.get("query") or "").strip()
         base_name = query[:48] if query else selected_title[:48]
         name = base_name or "Paper Agent collection"
@@ -247,7 +382,7 @@ class AgentService:
                 collection = None
         if collection is None:
             tool_results.append({"tool": "create_collection", "status": "failed", "error": "duplicate_collection"})
-            return self._response("I could not create a collection because a matching collection already exists.", actions, {}, tool_results)
+            return "I could not create a collection because a matching collection already exists."
         self.state_store.add_paper_to_collection(
             collection["id"],
             selected_paper_id,
@@ -260,9 +395,9 @@ class AgentService:
             "collection_id": collection["id"],
             "paper_id": selected_paper_id,
         })
-        return self._response(f'Created collection **{collection["name"]}** and added **{selected_title}**.', actions, {}, tool_results)
+        return f'Created collection **{collection["name"]}** and added **{selected_title}**.'
 
-    def _summarize_selected_paper(self, selected_paper_id, selected_title, actions, tool_results):
+    def _summarize_selected_paper(self, selected_paper_id, selected_title, actions, tool_results) -> str:
         metadata = {}
         getter = getattr(self.state_store, "get_paper_metadata", None)
         if callable(getter):
@@ -275,7 +410,7 @@ class AgentService:
             reply = f'I do not have an abstract for **{selected_title}** yet.'
         actions.append({"type": "summary", "paper_id": selected_paper_id})
         tool_results.append({"tool": "summarize_selected_paper", "status": "succeeded", "paper_id": selected_paper_id})
-        return self._response(reply, actions, {}, tool_results)
+        return reply
 
     def _answer_chat(self, message: str, page_context: dict, tool_results: list[dict]) -> str:
         try:
@@ -357,10 +492,11 @@ class AgentService:
     @staticmethod
     def _response(
         reply: str,
-        actions: list[dict] | None = None,
-        state_updates: dict | None = None,
-        tool_results: list[dict] | None = None,
         *,
+        session: Optional[dict] = None,
+        actions: Optional[list] = None,
+        state_updates: Optional[dict] = None,
+        tool_results: Optional[list] = None,
         requires_confirmation: bool = False,
     ) -> dict:
         return {
@@ -372,4 +508,5 @@ class AgentService:
             "requires_confirmation": requires_confirmation,
             "confirmation_token": "required" if requires_confirmation else "",
             "tool_results": tool_results or [],
+            "session": session or {},
         }

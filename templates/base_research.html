@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/motion.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='research_ui.css', v=static_version) }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='dist/agent-drawer.css', v=static_version) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dist/agent-panel.css', v=static_version) }}">
     {% block head %}{% endblock %}
 </head>
 <body class="{{ body_class or '' }}">
@@ -111,7 +111,7 @@
 
     <div id="toast" class="toast"></div>
 
-    <div id="paper-agent-root"></div>
+    <div id="agent-panel"></div>
 
     <div id="detailScrim" class="detail-scrim" onclick="closeMobileDetail()"></div>
 
@@ -152,7 +152,7 @@
     <script src="{{ url_for('static', filename='js/paper_actions.js', v=static_version) }}"></script>
     <script src="{{ url_for('static', filename='js/preferences.js', v=static_version) }}"></script>
     <script src="{{ url_for('static', filename='js/command_palette.js', v=static_version) }}"></script>
-    <script type="module" src="{{ url_for('static', filename='dist/agent-drawer.js', v=static_version) }}"></script>
+    <script type="module" src="{{ url_for('static', filename='dist/agent-panel.js', v=static_version) }}"></script>
     <script src="{{ url_for('static', filename='js/app.js', v=static_version) }}"></script>
     <script defer src="/static/vendor/alpine-3.15.0.min.js?v={{ static_version }}"></script>
     {% block scripts %}{% endblock %}
