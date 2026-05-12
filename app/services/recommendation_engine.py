@@ -498,12 +498,20 @@ class RecommendationEngine:
 
         sections: list[dict] = []
         all_candidates: list[Candidate] = []
+        seen_paper_ids: set[str] = set()
 
         for strategy in self._strategies:
             try:
                 candidates = strategy.generate(**kwargs)
+                # Filter for signal and deduplicate across sections
+                valid_and_unique = []
+                for c in candidates:
+                    if c.score > 0.1 and c.paper_id not in seen_paper_ids:
+                        valid_and_unique.append(c)
+                        seen_paper_ids.add(c.paper_id)
+                
                 # Take top N per section
-                top = candidates[:max_per_section]
+                top = valid_and_unique[:max_per_section]
                 if top:
                     sections.append({
                         "strategy": strategy.name,
@@ -519,136 +527,6 @@ class RecommendationEngine:
             "all_candidates": all_candidates,
         }
 
-# ------------------------------------------------------------------
-    # User Profile
-    # ------------------------------------------------------------------
-
-    def get_user_profile(self) -> Dict:
-        """Get the singleton user profile, creating it if it doesn't exist."""
-        with self._connect() as conn:
-            row = conn.execute(
-                "SELECT * FROM user_profile WHERE id = 1"
-            ).fetchone()
-        if not row:
-            # Create default profile
-            self.upsert_user_profile()
-            with self._connect() as conn:
-                row = conn.execute(
-                    "SELECT * FROM user_profile WHERE id = 1"
-                ).fetchone()
-        profile = self._row_to_dict(row) if row else {}
-        # Parse JSON fields
-        for key in ("interest_vector", "topic_weights", "entity_affinities", "reading_pace"):
-            raw = profile.get(key, "")
-            if isinstance(raw, str):
-                try:
-                    profile[key] = json.loads(raw)
-                except (json.JSONDecodeError, TypeError):
-                    profile[key] = [] if key == "interest_vector" else {}
-        return profile
-
-    def upsert_user_profile(
-        self,
-        interest_vector: Optional[List[str]] = None,
-        topic_weights: Optional[Dict] = None,
-        entity_affinities: Optional[Dict] = None,
-        reading_pace: Optional[Dict] = None,
-    ) -> None:
-        """Create or update the singleton user profile.
-
-        Only provided fields are updated; None fields are left unchanged.
-        """
-        now = _utc_now()
-        with self._lock, self._connect() as conn:
-            existing = conn.execute(
-                "SELECT * FROM user_profile WHERE id = 1"
-            ).fetchone()
-
-            if existing:
-                existing = self._row_to_dict(existing)
-                updates = {}
-                if interest_vector is not None:
-                    updates["interest_vector"] = json.dumps(interest_vector, ensure_ascii=False)
-                if topic_weights is not None:
-                    updates["topic_weights"] = json.dumps(topic_weights, ensure_ascii=False)
-                if entity_affinities is not None:
-                    updates["entity_affinities"] = json.dumps(entity_affinities, ensure_ascii=False)
-                if reading_pace is not None:
-                    updates["reading_pace"] = json.dumps(reading_pace, ensure_ascii=False)
-                if updates:
-                    updates["updated_at"] = now
-                    set_clause = ", ".join(f"{k} = ?" for k in updates)
-                    conn.execute(
-                        f"UPDATE user_profile SET {set_clause} WHERE id = 1",
-                        list(updates.values()),
-                    )
-            else:
-                conn.execute(
-                    """INSERT INTO user_profile(id, interest_vector, topic_weights, entity_affinities, reading_pace, updated_at)
-                       VALUES (1, ?, ?, ?, ?, ?)""",
-                    (
-                        json.dumps(interest_vector or [], ensure_ascii=False),
-                        json.dumps(topic_weights or {}, ensure_ascii=False),
-                        json.dumps(entity_affinities or {}, ensure_ascii=False),
-                        json.dumps(reading_pace or {}, ensure_ascii=False),
-                        now,
-                    ),
-                )
-
-    def update_profile_from_behavior(self) -> None:
-        """Auto-update user profile from reading behavior, subscriptions, and search history.
-
-        Extracts interest signals from:
-        - Reading queue items (paper categories and topics)
-        - Interaction events (liked papers)
-        - Subscriptions (query texts)
-        """
-        # 1. Collect topics from reading queue papers
-        queue_items = self.list_queue_items()
-        topic_counts: Dict[str, float] = {}
-
-        for item in queue_items:
-            paper_id = item.get("paper_id", "")
-            meta = self.get_paper_metadata(paper_id) or {}
-            categories = meta.get("categories", [])
-            if isinstance(categories, str):
-                try:
-                    categories = json.loads(categories)
-                except (json.JSONDecodeError, TypeError):
-                    categories = []
-
-            # Weight by reading depth
-            weight = 2.0 if item.get("status") == "Deep Read" else 1.0
-            for cat in categories:
-                topic_counts[cat] = topic_counts.get(cat, 0) + weight
-
-            # Extract title keywords (simple approach)
-            title = meta.get("title") or item.get("title") or ""
-            for word in title.lower().split():
-                if len(word) >= 5:  # Skip short words
-                    topic_counts[word] = topic_counts.get(word, 0) + weight * 0.3
-
-        # 2. Add subscription query texts
-        try:
-            subs = self.list_subscriptions()
-            for sub in subs:
-                query = sub.get("query_text", "")
-                if query:
-                    for word in query.lower().split():
-                        if len(word) >= 4:
-                            topic_counts[word] = topic_counts.get(word, 0) + 1.5
-        except Exception:
-            pass
-
-        # 3. Build interest vector from top topics
-        sorted_topics = sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
-        interest_vector = [t[0] for t in sorted_topics[:30]]
-        topic_weights = {t[0]: round(t[1], 2) for t in sorted_topics[:30]}
-
-        self.upsert_user_profile(
-            interest_vector=interest_vector,
-            topic_weights=topic_weights,
-        )
 
 def build_display_reason(
     *,

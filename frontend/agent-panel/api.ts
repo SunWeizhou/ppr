@@ -65,7 +65,8 @@ export async function deleteSession(sessionId: string): Promise<void> {
 export async function sendMessage(
   sessionId: string | null,
   message: string,
-  pageContext: Record<string, unknown> = {}
+  pageContext: Record<string, unknown> = {},
+  confirmationToken?: string
 ): Promise<AgentResponse> {
   const effectiveId = sessionId || "new";
   return request<AgentResponse>(
@@ -73,7 +74,11 @@ export async function sendMessage(
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, page_context: pageContext }),
+      body: JSON.stringify({ 
+        message, 
+        page_context: pageContext,
+        confirmation_token: confirmationToken
+      }),
     }
   );
 }

@@ -376,15 +376,8 @@ class StateStore:
                 CREATE INDEX IF NOT EXISTS idx_search_history_created
                     ON search_history(created_at);
 
-                CREATE TABLE IF NOT EXISTS user_profile (
-                    id INTEGER PRIMARY KEY DEFAULT 1,
-                    interest_vector TEXT DEFAULT '[]',
-                    topic_weights TEXT DEFAULT '{}',
-                    entity_affinities TEXT DEFAULT '{}',
-                    reading_pace TEXT DEFAULT '{}',
-                    updated_at TEXT DEFAULT (datetime('now'))
-                );
                 """
+            )
             )
             # Check current schema version and migrate if needed
             current_version_row = conn.execute(

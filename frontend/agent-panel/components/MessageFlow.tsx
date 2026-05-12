@@ -7,6 +7,8 @@ interface Props {
   busy: boolean;
 }
 
+import DOMPurify from "dompurify";
+
 // Configure marked for safe output
 marked.setOptions({
   breaks: true,
@@ -15,7 +17,8 @@ marked.setOptions({
 
 function renderMarkdown(content: string): string {
   try {
-    return marked.parse(content) as string;
+    const rawHtml = marked.parse(content) as string;
+    return DOMPurify.sanitize(rawHtml);
   } catch {
     return content;
   }

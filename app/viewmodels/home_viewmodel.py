@@ -26,7 +26,7 @@ class HomeViewModel:
         inbox_items = [item for item in queue_items if item.get("status") == "Inbox"]
 
         context = {
-            "title": "Search - Paper Agent",
+            "title": "Home - Paper Agent",
             "active_tab": "home",
             "queue_status_values": QUEUE_STATUS_VALUES,
             "recent_questions": questions[:4],

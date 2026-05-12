@@ -138,7 +138,7 @@ class EntityService:
             return {
                 "publisher": (data.get("host_organization_name") or ""),
                 "issn": (data.get("issn_l") or ""),
-                "impact_factor": data.get("summary_stats", {}).get("2yr_mean_citedness"),
+                "two_year_citedness": data.get("summary_stats", {}).get("2yr_mean_citedness"),
                 "h_index": data.get("summary_stats", {}).get("h_index"),
                 "homepage_url": (data.get("homepage_url") or ""),
                 "scope_description": (data.get("description") or ""),
@@ -224,30 +224,46 @@ class EntityService:
     # ------------------------------------------------------------------
 
     def extract_entities_from_results(self, papers: List[Dict]) -> List[Dict]:
-        """Extract venue entities from search result papers (non-blocking safe)."""
+        """Extract venue and author entities from search result papers."""
         created: List[Dict] = []
         seen_venues: set = set()
+        seen_authors: set = set()
 
         for paper in papers:
+            # 1. Venues
             venue = (paper.get("venue") or "").strip()
-            if not venue or len(venue) <= 2 or venue in seen_venues:
-                continue
-            seen_venues.add(venue)
-            venue_type = self._classify_venue(venue)
-            try:
-                ext_ids = {}
-                paper_ext = paper.get("external_ids") or {}
-                if paper_ext.get("openalex_source"):
-                    ext_ids["openalex"] = paper_ext["openalex_source"]
+            if venue and len(venue) > 2 and venue not in seen_venues:
+                seen_venues.add(venue)
+                venue_type = self._classify_venue(venue)
+                try:
+                    ext_ids = {}
+                    paper_ext = paper.get("external_ids") or {}
+                    if paper_ext.get("openalex_source"):
+                        ext_ids["openalex"] = paper_ext["openalex_source"]
+                    
+                    entity = self.get_or_create(
+                        entity_type=venue_type,
+                        name=venue,
+                        external_ids=ext_ids if ext_ids else None,
+                    )
+                    created.append(entity)
+                except Exception as e:
+                    logger.debug("Failed to create venue entity for '%s': %s", venue, e)
 
-                entity = self.get_or_create(
-                    entity_type=venue_type,
-                    name=venue,
-                    external_ids=ext_ids if ext_ids else None,
-                )
-                created.append(entity)
-            except Exception as e:
-                logger.debug("Failed to create venue entity for '%s': %s", venue, e)
+            # 2. Authors
+            authors = paper.get("authors") or []
+            for author in authors:
+                name = author.strip()
+                if not name or len(name) <= 2 or name in seen_authors:
+                    continue
+                seen_authors.add(name)
+                try:
+                    # Semantic Scholar often has IDs, but we might not have them in ad-hoc results
+                    # If paper_data has author metadata with IDs, we should use them
+                    entity = self.get_or_create(entity_type="scholar", name=name)
+                    created.append(entity)
+                except Exception as e:
+                    logger.debug("Failed to create scholar entity for '%s': %s", name, e)
 
         return created
 

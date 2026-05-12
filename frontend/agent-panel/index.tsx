@@ -42,6 +42,7 @@ function AgentPanel() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [busy, setBusy] = useState(false);
+  const [confirmationToken, setConfirmationToken] = useState<string | null>(null);
   const [panelWidth, setPanelWidth] = useState(360);
 
   // Expose global toggle
@@ -121,27 +122,33 @@ function AgentPanel() {
     await loadSessions();
   }
 
-  const handleSend = useCallback(async (text: string) => {
+  const handleSend = useCallback(async (text: string, isConfirmation = false) => {
     if (busy) return;
     setBusy(true);
 
-    // Optimistic user message
-    const tempMsg: AgentMessage = {
-      id: Date.now(),
-      session_id: activeSessionId || "",
-      role: "user",
-      content: text,
-      metadata_json: {},
-      created_at: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, tempMsg]);
+    if (!isConfirmation) {
+      // Optimistic user message
+      const tempMsg: AgentMessage = {
+        id: Date.now(),
+        session_id: activeSessionId || "",
+        role: "user",
+        content: text,
+        metadata_json: {},
+        created_at: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, tempMsg]);
+    }
 
     try {
       const result = await api.sendMessage(
         activeSessionId,
         text,
-        collectPageContext()
+        collectPageContext(),
+        isConfirmation ? (confirmationToken || undefined) : undefined
       );
+
+      // Clear token after sending
+      setConfirmationToken(null);
 
       // Update session ID if newly created
       if (result.session?.id && !activeSessionId) {
@@ -158,10 +165,15 @@ function AgentPanel() {
           metadata_json: {
             tool_results: result.tool_results || [],
             actions: result.actions || [],
+            requires_confirmation: result.requires_confirmation,
           },
           created_at: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, assistantMsg]);
+
+        if (result.requires_confirmation) {
+          setConfirmationToken(result.confirmation_token || "required");
+        }
       }
 
       // Handle navigation
@@ -194,7 +206,7 @@ function AgentPanel() {
     } finally {
       setBusy(false);
     }
-  }, [activeSessionId, busy]);
+  }, [activeSessionId, busy, confirmationToken]);
 
   // Resize handler
   function handleResizeStart(e: MouseEvent) {
@@ -282,8 +294,29 @@ function AgentPanel() {
           {/* Message flow */}
           <MessageFlow messages={messages} busy={busy} />
 
+          {/* Confirmation Prompt */}
+          {confirmationToken && (
+            <div class="ap-confirmation">
+              <div class="ap-confirmation-msg">This action requires your confirmation.</div>
+              <div class="ap-confirmation-actions">
+                <button 
+                  class="ap-btn ap-btn-primary" 
+                  onClick={() => handleSend("confirm", true)}
+                >
+                  Confirm
+                </button>
+                <button 
+                  class="ap-btn ap-btn-ghost" 
+                  onClick={() => setConfirmationToken(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Input */}
-          <AgentInput onSend={handleSend} disabled={busy} />
+          <AgentInput onSend={handleSend} disabled={busy || !!confirmationToken} />
         </aside>
       )}
     </>

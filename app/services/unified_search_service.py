@@ -166,7 +166,7 @@ def search_semantic_scholar(query: str, *, max_results: int = 25, opener=None) -
     # Check failure cache
     last_fail = _s2_failure_cache.get("last_failure", 0)
     if time.time() - last_fail < S2_FAILURE_CACHE_TTL:
-        return []
+        raise RuntimeError("Semantic Scholar API is currently down or rate limited (cached failure)")
 
     url = (
         f"https://api.semanticscholar.org/graph/v1/paper/search"
@@ -189,14 +189,14 @@ def search_semantic_scholar(query: str, *, max_results: int = 25, opener=None) -
             papers = data.get("data") or []
             return [normalize_semantic_paper(p) for p in papers if p.get("title")]
 
-        except Exception:
+        except Exception as e:
             if attempt < max_retries:
                 time.sleep(1.5 * (attempt + 1))  # Exponential backoff: 1.5s, 3s
                 continue
             _s2_failure_cache["last_failure"] = time.time()
-            return []
+            raise RuntimeError(f"Semantic Scholar API failed: {e}")
 
-    return []
+    raise RuntimeError("Semantic Scholar API failed after retries")
 
 
 # ─────────────────────────────────────────
@@ -283,8 +283,8 @@ def search_openalex(query: str, *, max_results: int = 25) -> list[dict]:
         data = _openalex_request(url)
         results = data.get("results") or []
         return [normalize_openalex_paper(r) for r in results if r.get("title")]
-    except Exception:
-        return []
+    except Exception as e:
+        raise RuntimeError(f"OpenAlex API failed: {e}")
 
 
 # ─────────────────────────────────────────

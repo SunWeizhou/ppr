@@ -60,8 +60,7 @@ class RecommendationWorkspaceService:
         except Exception:
             reading_queue = []
         try:
-            from state_store import get_state_store
-            questions = get_state_store().list_research_questions()
+            questions = self.state_store.list_research_questions()
         except Exception:
             questions = []
 

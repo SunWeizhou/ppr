@@ -215,5 +215,25 @@ function closeRecPreview() {
         c.classList.remove('is-selected');
     });
 }
+
+async function agentSavePaperById(paperId) {
+    if (!paperId) return;
+    await requestJson('/api/queue', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ paper_id: paperId, status: 'Unread' })
+    });
+    showToast('Saved to Reading');
+}
+
+async function agentQueuePaperById(paperId, status) {
+    if (!paperId) return;
+    await requestJson('/api/queue', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ paper_id: paperId, status: status })
+    });
+    showToast(status);
+}
 </script>
 {% endblock %}

@@ -36,14 +36,18 @@ def _request_research_question_id() -> int | None:
 
 @bp.get("/")
 def index():
-    """Render the Paper Agent search workspace."""
-    # Onboarding guard (must run before redirect)
+    """Render the Paper Agent home workspace."""
+    # Onboarding guard
     if not request.args.get("skip_onboarding"):
         from config_manager import CONFIG_FILE
-
         if not CONFIG_FILE.exists():
             return redirect("/onboarding")
-    return _render_search_workspace()
+            
+    from app.viewmodels.home_viewmodel import HomeViewModel
+    store = get_state_store()
+    vm = HomeViewModel(store)
+    context = vm.to_template_context()
+    return render_template("home_workspace.html", **context)
 
 
 @bp.get("/daily")

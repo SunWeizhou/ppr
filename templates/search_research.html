@@ -151,8 +151,13 @@ function paperAgentSearch(event) {
     const query = input ? input.value.trim() : '';
     if (!query) return;
     const url = new URL(window.location.href);
-    url.pathname = '/';
-    url.search = '?q=' + encodeURIComponent(query);
+    const rq = url.searchParams.get('research_question_id');
+    url.pathname = '/search';
+    url.search = '';
+    url.searchParams.set('q', query);
+    if (rq) {
+        url.searchParams.set('research_question_id', rq);
+    }
     window.history.pushState({}, '', url.toString());
     fetchPaperAgentResults(query);
 }
@@ -302,39 +307,29 @@ function clearPaperPreview() {
 async function agentSaveSelectedPaper() {
     const selected = document.querySelector('.paper-result-row.is-selected');
     if (!selected) return;
-    const payload = await requestJson('/api/agent/messages', {
+    const payload = await requestJson('/api/queue', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-            message: 'save this paper',
-            page_context: {
-                selected_paper_id: selected.dataset.paperId,
-                selected_paper_title: selected.dataset.paperTitle,
-                route: window.location.pathname
-            }
+            paper_id: selected.dataset.paperId,
+            status: 'Unread'
         })
     });
-    showToast(payload.reply || 'Saved to Reading');
+    showToast('Saved to Reading');
 }
 
 async function agentQueueSelectedPaper(status, label) {
     const selected = document.querySelector('.paper-result-row.is-selected');
     if (!selected) return;
-    const message = status === 'Deep Read' ? 'deep read this paper' : 'skim this paper later';
-    const payload = await requestJson('/api/agent/messages', {
+    const payload = await requestJson('/api/queue', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-            message: message,
-            page_context: {
-                selected_paper_id: selected.dataset.paperId,
-                selected_paper_title: selected.dataset.paperTitle,
-                query: document.getElementById('paperAgentSearchInput') ? document.getElementById('paperAgentSearchInput').value.trim() : '',
-                route: window.location.pathname
-            }
+            paper_id: selected.dataset.paperId,
+            status: status
         })
     });
-    showToast(payload.reply || label);
+    showToast(label);
 }
 
 async function agentCreateWatchFromSearch() {
@@ -343,15 +338,16 @@ async function agentCreateWatchFromSearch() {
         showToast('Search before creating a watch.');
         return;
     }
-    const payload = await requestJson('/api/agent/messages', {
+    const payload = await requestJson('/api/subscriptions', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-            message: 'create watch for this query',
-            page_context: {query: query, route: window.location.pathname}
+            type: 'query',
+            name: 'Search: ' + query,
+            query_text: query
         })
     });
-    showToast(payload.reply || 'Watch created');
+    showToast('Watch created');
 }
 
 function confirmIntentAndSearch() {

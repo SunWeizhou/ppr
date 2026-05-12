@@ -166,6 +166,7 @@ class SearchViewModel:
         labels = {
             "arxiv": "arXiv",
             "semantic_scholar": "Semantic Scholar",
+            "openalex": "OpenAlex",
         }
         messages = {
             "ok": "Available",

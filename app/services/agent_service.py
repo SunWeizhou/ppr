@@ -88,7 +88,7 @@ class AgentService:
             )
 
         # Execute the plan
-        result = self._execute(plan, message, page_context, tool_results, actions, state_updates)
+        result = self._execute(plan, message, page_context, tool_results, actions, state_updates, history)
 
         # Persist messages
         metadata = {
@@ -181,6 +181,7 @@ class AgentService:
         tool_results: list,
         actions: list,
         state_updates: dict,
+        history: list[dict] = None,
     ) -> str:
         """Execute a plan and return the reply text."""
         selected_paper_id = str(page_context.get("selected_paper_id") or "").strip()
@@ -221,7 +222,7 @@ class AgentService:
         if plan.intent == "summarize" and selected_paper_id:
             return self._summarize_selected_paper(selected_paper_id, selected_title, actions, tool_results)
 
-        return self._answer_chat(message, page_context, tool_results)
+        return self._answer_chat(message, page_context, tool_results, history)
 
     def _exec_queue(self, plan, paper_id, title, message, actions, tool_results) -> str:
         status = {"save": "Saved", "deep_read": "Deep Read", "skim": "Skim Later"}[plan.intent]
@@ -412,12 +413,12 @@ class AgentService:
         tool_results.append({"tool": "summarize_selected_paper", "status": "succeeded", "paper_id": selected_paper_id})
         return reply
 
-    def _answer_chat(self, message: str, page_context: dict, tool_results: list[dict]) -> str:
+    def _answer_chat(self, message: str, page_context: dict, tool_results: list[dict], history: list[dict] = None) -> str:
         try:
             provider = self.provider_factory()
             if not isinstance(provider, NoProvider) and hasattr(provider, "chat"):
                 reply = provider.chat(
-                    self._chat_messages(message, page_context),
+                    self._chat_messages(message, page_context, history),
                     page_context=page_context,
                 )
                 if reply:
@@ -432,7 +433,7 @@ class AgentService:
         return self._fallback_chat_reply(message, page_context)
 
     @staticmethod
-    def _chat_messages(message: str, page_context: dict) -> list[dict]:
+    def _chat_messages(message: str, page_context: dict, history: list[dict] = None) -> list[dict]:
         route = str(page_context.get("route") or "/")
         query = str(page_context.get("query") or "").strip()
         selected_title = str(page_context.get("selected_paper_title") or "").strip()
@@ -441,7 +442,7 @@ class AgentService:
             context_lines.append(f"Current search query: {query}")
         if selected_title:
             context_lines.append(f"Selected paper: {selected_title}")
-        return [
+        msgs = [
             {
                 "role": "system",
                 "content": (
@@ -451,8 +452,18 @@ class AgentService:
                 ),
             },
             {"role": "system", "content": "\n".join(context_lines)},
-            {"role": "user", "content": message},
         ]
+        
+        # Add history
+        for item in (history or [])[-8:]:
+            if item.get("role") in ("user", "assistant"):
+                msgs.append({
+                    "role": item["role"],
+                    "content": item.get("content", "")
+                })
+        
+        msgs.append({"role": "user", "content": message})
+        return msgs
 
     @staticmethod
     def _fallback_chat_reply(message: str, page_context: dict) -> str:

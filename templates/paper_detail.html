@@ -507,7 +507,7 @@ async function paperDetailAction(action, paperId, extra) {
                 break;
         }
     } catch (err) {
-        alert('Action failed: ' + err.message);
+        showToast('Action failed: ' + err.message, 'error');
     }
 }
 
