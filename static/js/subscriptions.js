@@ -294,6 +294,35 @@
     window.location.href = '/settings?tab=subscriptions&edit=' + subId;
   }
 
+  function createFieldSubscription() {
+    var name = prompt('Field name (e.g. "Artificial Intelligence"):');
+    if (!name || !name.trim()) return;
+    var categories = prompt('arXiv categories (comma-separated, e.g. "cs.AI,cs.LG"):');
+    if (!categories || !categories.trim()) return;
+
+    fetch('/api/subscriptions', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        type: 'field',
+        name: name.trim(),
+        query_text: categories.trim()
+      })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      if (data.success) {
+        if (typeof window.showToast === 'function') window.showToast('Field subscription created');
+        setTimeout(function(){ location.reload(); }, 1500);
+      } else {
+        if (typeof window.showToast === 'function') window.showToast('Failed: ' + (data.error || 'Unknown error'), 'error');
+      }
+    })
+    .catch(function() {
+      if (typeof window.showToast === 'function') window.showToast('Failed to create field subscription', 'error');
+    });
+  }
+
   Object.assign(window, {
     openQuerySubscriptionModal: openQuerySubscriptionModal,
     createQuerySubscription: openQuerySubscriptionModal,
@@ -310,6 +339,7 @@
     editSubscription: editSubscription,
     sendHitToInbox: sendHitToInbox,
     ignoreSubscriptionHit: ignoreSubscriptionHit,
-    createCollectionFromHit: createCollectionFromHit
+    createCollectionFromHit: createCollectionFromHit,
+    createFieldSubscription: createFieldSubscription
   });
 })();

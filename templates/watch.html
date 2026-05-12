@@ -9,7 +9,7 @@
         <span class="section-kicker" data-i18n="nav.watch">Watch</span>
         <h1 class="page-title">Watch</h1>
         <div class="page-context">
-            Track research questions, authors, venues, and source health across {{ unified_query_count }} questions, {{ unified_author_count }} authors, and {{ unified_venue_count }} sources.
+            Track research questions, journals, conferences, scholars, and fields across your subscriptions.
         </div>
     </div>
     <div class="actions">
@@ -108,6 +108,9 @@
             <div class="watch-sub-card-actions">
                 <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
                 <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }})">Edit</button>
+                {% if sub.entity_id %}
+                <a href="/entities/{{ sub.entity_id }}" class="btn btn-ghost btn-xs">View Profile</a>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
@@ -204,6 +207,9 @@
                 {% for link in sub.links %}
                 <a href="{{ link.href }}" target="_blank" class="btn btn-ghost btn-xs">{{ link.label }}</a>
                 {% endfor %}
+                {% if sub.entity_id %}
+                <a href="/entities/{{ sub.entity_id }}" class="btn btn-ghost btn-xs">View Profile</a>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
@@ -297,6 +303,9 @@
                 {% if sub.homepage_url %}
                 <a href="{{ sub.homepage_url }}" target="_blank" class="btn btn-ghost btn-xs">Website</a>
                 {% endif %}
+                {% if sub.entity_id %}
+                <a href="/entities/{{ sub.entity_id }}" class="btn btn-ghost btn-xs">View Profile</a>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
@@ -305,6 +314,67 @@
     {{ ui.empty_state('No venues watched', 'Add a venue or source to track new papers.', '', '<button type="button" class="btn btn-primary btn-sm" onclick="createVenueSubscription()">Add venue</button>') }}
     {% endif %}
 </section>
+
+{# =============================================
+   Fields
+   ============================================= #}
+<section class="watch-section">
+    <div class="watch-section-header">
+        <h2 class="section-heading">
+            Fields
+            <span class="chip is-muted">Field</span>
+        </h2>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="createFieldSubscription()">New</button>
+    </div>
+
+    {% if field_subs %}
+    <div class="watch-sub-list">
+        {% for sub in field_subs %}
+        <div class="card watch-sub-card">
+            <div class="watch-sub-card-header">
+                <div>
+                    <h3 class="watch-sub-card-name">{{ sub.name }}</h3>
+                    <div class="watch-sub-card-meta">
+                        {% if sub.query_text %}<span class="watch-sub-meta-item"><code>{{ sub.query_text }}</code></span>{% endif %}
+                        <span class="watch-sub-meta-item">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
+                        {% if not sub.enabled %}<span class="chip is-warn">disabled</span>{% endif %}
+                    </div>
+                </div>
+                <span class="chip">{{ sub.latest_hit_count }} hits</span>
+            </div>
+
+            {% if sub.recent_hits %}
+            <div class="watch-sub-hits">
+                {% for hit in sub.recent_hits %}
+                <div class="watch-sub-hit" data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}">
+                    <span class="watch-sub-hit-arrow">&#9656;</span>
+                    <a href="{{ hit.detail_url }}" class="watch-sub-hit-title">{{ hit.title }}</a>
+                    {% if hit.hit_status %}<span class="chip is-muted js-hit-status">{{ hit.hit_status }}</span>{% endif %}
+                    <div class="watch-sub-hit-actions">
+                        <a class="btn btn-ghost btn-xs" href="{{ hit.detail_url }}">Preview</a>
+                        <button type="button" class="btn btn-ghost btn-xs" onclick="sendHitToInbox({{ hit.id }}, this)" {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}>Send to Reading</button>
+                        <button type="button" class="btn btn-ghost btn-xs" onclick="ignoreSubscriptionHit({{ hit.id }}, this)" {% if hit.hit_status == 'ignored' %}disabled{% endif %}>Ignore</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="watch-sub-card-actions">
+                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
+                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }})">Edit</button>
+                {% if sub.entity_id %}
+                <a href="/entities/{{ sub.entity_id }}" class="btn btn-ghost btn-xs">View Profile</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    {{ ui.empty_state('No fields watched', 'Add a research field to track papers by arXiv category.', '', '<button type="button" class="btn btn-primary btn-sm" onclick="createFieldSubscription()">Add field</button>') }}
+    {% endif %}
+</section>
+
 {% endblock %}
 
 {% block scripts %}

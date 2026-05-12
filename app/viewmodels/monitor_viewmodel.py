@@ -525,6 +525,9 @@ class MonitorViewModel:
             for s in venue_subs
         ]
 
+        # ── fields from unified subscriptions ──
+        field_subs = [s for s in decorated_subs if s.get("type") == "field"]
+
         # ── recent hits ──
         recent_hits = []
         if tab == "recent-hits":
@@ -572,6 +575,7 @@ class MonitorViewModel:
             "query_subs": query_subs,
             "author_subs": author_subs,
             "venue_subs": venue_subs,
+            "field_subs": field_subs,
             "unified_query_count": unified_query_count,
             "unified_author_count": unified_author_count,
             "unified_venue_count": unified_venue_count,
