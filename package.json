@@ -9,11 +9,12 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "preact": "^10.25.4",
-    "marked": "^15.0.6"
+    "marked": "^15.0.6",
+    "preact": "^10.25.4"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.9.4",
+    "@vitejs/plugin-react": "^6.0.1",
     "typescript": "^5.9.3",
     "vite": "^7.2.6"
   }

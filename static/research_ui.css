@@ -4688,7 +4688,7 @@ body {
 .recommendations-workspace .workspace-page-head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   margin-bottom: 32px;
   flex-wrap: wrap;
@@ -4758,23 +4758,26 @@ body {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--shadow-1);
   cursor: pointer;
   scroll-snap-align: start;
-  transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
   flex-direction: column;
   gap: 8px;
+  position: relative;
+  overflow: hidden;
 }
 
 .rec-card:hover {
-  box-shadow: var(--card-shadow-hover);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-3);
+  transform: translateY(-4px);
+  border-color: var(--border-hover);
 }
 
 .rec-card.is-selected {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 1px var(--accent-primary), var(--card-shadow-hover);
+  box-shadow: 0 0 0 2px var(--accent-primary), var(--shadow-2);
 }
 
 .rec-card-venue {
@@ -4815,14 +4818,18 @@ body {
 
 .rec-card-actions {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   margin-top: auto;
   opacity: 0;
-  transition: opacity var(--transition-fast);
+  transform: translateY(8px);
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  padding-top: 8px;
 }
 
-.rec-card:hover .rec-card-actions {
+.rec-card:hover .rec-card-actions,
+.rec-card:focus-within .rec-card-actions {
   opacity: 1;
+  transform: translateY(0);
 }
 
 /* Preview pane */
@@ -4830,14 +4837,21 @@ body {
   position: fixed;
   top: 0;
   right: 0;
-  width: 400px;
+  width: 420px;
   height: 100vh;
-  background: var(--bg-surface);
+  background: var(--surface-raised);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
   border-left: 1px solid var(--border-default);
-  box-shadow: var(--shadow-lg);
-  z-index: 100;
-  padding: 24px;
+  padding: 32px 24px;
   overflow-y: auto;
+  z-index: 100;
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  backdrop-filter: blur(8px);
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .rec-preview-close {

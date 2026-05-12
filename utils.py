@@ -101,9 +101,9 @@ def fetch_with_retry(
     url: str,
     max_retries: int = 5,
     timeout: int = 60,
-    headers: dict | None = None,
-    context: ssl.SSLContext | None = None
-) -> str | None:
+    headers: Optional[dict] = None,
+    context: Optional[ssl.SSLContext] = None
+) -> Optional[str]:
     """Fetch URL with exponential backoff on server errors.
 
     Handles: 429 (rate limit), 500, 502, 503, 504 (server errors)

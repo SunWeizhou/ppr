@@ -230,6 +230,8 @@ class StateStore:
                     rank INTEGER NOT NULL,
                     score REAL NOT NULL DEFAULT 0.0,
                     score_details_json TEXT NOT NULL DEFAULT '{}',
+                    source_strategy TEXT DEFAULT 'for_you',
+                    relevance_reason TEXT DEFAULT '',
                     title TEXT DEFAULT '',
                     authors_json TEXT DEFAULT '[]',
                     abstract TEXT DEFAULT '',
@@ -2221,14 +2223,16 @@ class StateStore:
             for rank, paper in enumerate(papers, start=1):
                 paper_id = paper.get("id") or paper.get("paper_id", "")
                 conn.execute(
-                    """INSERT OR IGNORE INTO recommendation_items(run_id, paper_id, rank, score, score_details_json, title, authors_json, abstract, categories_json, source)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    """INSERT OR IGNORE INTO recommendation_items(run_id, paper_id, rank, score, score_details_json, source_strategy, relevance_reason, title, authors_json, abstract, categories_json, source)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (
                         run_id,
                         paper_id,
                         rank,
                         float(paper.get("score", 0) or 0),
                         json.dumps(paper.get("score_details", {}), ensure_ascii=False),
+                        paper.get("source_strategy", "for_you"),
+                        paper.get("relevance_reason", ""),
                         paper.get("title", ""),
                         json.dumps(paper.get("authors", []), ensure_ascii=False),
                         paper.get("abstract", ""),

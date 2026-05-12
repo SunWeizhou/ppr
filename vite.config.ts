@@ -1,14 +1,14 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import preact from "@preact/preset-vite";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [preact()],
   build: {
     outDir: "static/dist",
     emptyOutDir: false,
     sourcemap: false,
     rollupOptions: {
-      input: "frontend/agent/main.tsx",
+      input: "frontend/agent-panel/index.tsx",
       output: {
         entryFileNames: "agent-drawer.js",
         chunkFileNames: "agent-drawer-[hash].js",
