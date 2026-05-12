@@ -10,13 +10,13 @@ export default defineConfig({
     rollupOptions: {
       input: "frontend/agent-panel/index.tsx",
       output: {
-        entryFileNames: "agent-drawer.js",
-        chunkFileNames: "agent-drawer-[hash].js",
+        entryFileNames: "agent-panel.js",
+        chunkFileNames: "agent-panel-[hash].js",
         assetFileNames: (assetInfo) => {
           if (assetInfo.name && assetInfo.name.endsWith(".css")) {
-            return "agent-drawer.css";
+            return "agent-panel.css";
           }
-          return "agent-drawer-[name][extname]";
+          return "agent-panel-[name][extname]";
         }
       }
     }

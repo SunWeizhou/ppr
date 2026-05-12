@@ -11,7 +11,7 @@
     {% set back_rq = paper.get('active_research_question_id') %}
     {% set return_q = request.args.get('return_q', '') %}
     {% set return_to = request.args.get('return_to', '') %}
-    <a href="{% if return_q %}/search?q={{ return_q|urlencode }}{% elif return_to and return_to.startswith('/') and not return_to.startswith('//') %}{{ return_to }}{% elif back_rq %}/?research_question_id={{ back_rq }}{% else %}/{% endif %}" class="back-link">&larr; {% if return_to.startswith('/recommendations') %}Back to Recommendations{% else %}Back to Search{% endif %}</a>
+    <a href="{% if return_q %}/search?q={{ return_q|urlencode }}{% elif return_to and return_to.startswith('/') and not return_to.startswith('//') %}{{ return_to }}{% elif back_rq %}/search?research_question_id={{ back_rq }}{% else %}/{% endif %}" class="back-link">&larr; {% if return_to and '/recommendations' in return_to %}Back to Recommendations{% else %}Back to Search{% endif %}</a>
 </div>
 {% endblock %}
 
@@ -233,22 +233,13 @@
             <div class="card card-spaced">
                 <h2 class="panel-title">Actions</h2>
 
-                <!-- Primary reading decisions -->
+                <!-- Primary actions -->
                 <div class="action-group">
-                    <div class="action-group-label">Reading Decision</div>
+                    <div class="action-group-label">Actions</div>
                     <div class="action-buttons">
-                        <button class="btn btn-primary btn-sm" onclick="paperDetailAction('save', '{{ paper.get('id') }}')">Save</button>
-                        <button class="btn btn-warm btn-sm" onclick="paperDetailAction('skim', '{{ paper.get('id') }}')">Skim Later</button>
-                        <button class="btn btn-sage btn-sm" onclick="paperDetailAction('deepread', '{{ paper.get('id') }}')">Deep Read</button>
-                    </div>
-                </div>
-
-                <!-- Secondary research actions -->
-                <div class="action-group">
-                    <div class="action-group-label">Research</div>
-                    <div class="action-buttons">
-                        <button class="btn btn-ghost btn-sm" onclick="paperDetailAction('relevant', '{{ paper.get('id') }}')">Relevant</button>
-                        <button class="btn btn-ghost btn-sm" onclick="paperDetailAction('ignore', '{{ paper.get('id') }}')">Ignore</button>
+                        <button class="btn btn-primary btn-sm" onclick="paperDetailAction('addtoreading', '{{ paper.get('id') }}')">Add to Reading</button>
+                        <button class="btn btn-ghost btn-sm" data-feedback="relevant" onclick="paperDetailAction('relevant', '{{ paper.get('id') }}', null, this)">Relevant</button>
+                        <button class="btn btn-ghost btn-sm" data-feedback="ignore" onclick="paperDetailAction('ignore', '{{ paper.get('id') }}', null, this)">Ignore</button>
                         <button class="btn btn-ghost btn-sm" onclick="paperDetailAction('collect', '{{ paper.get('id') }}')">Add to Collection</button>
                         {% if paper.get('first_author') %}
                         <button class="btn btn-ghost btn-sm follow-author-action" title="Follow {{ paper.get('first_author') }}" onclick="paperDetailAction('follow', '{{ paper.get('id') }}', '{{ paper.get('first_author') }}')">Follow {{ paper.get('first_author') }}</button>
@@ -314,7 +305,7 @@
             <!-- Subscription Matches -->
             {% if paper.get('subscription_matches') %}
             <div class="card card-spaced">
-                <h2 class="panel-title">Matches</h2>
+                <h2 class="panel-title">Why this appeared</h2>
                 <div class="list-stack">
                     {% for match in paper.get('subscription_matches', []) %}
                     <div class="list-item">
@@ -326,21 +317,28 @@
             </div>
             {% endif %}
 
-            <!-- Interaction History -->
+            <!-- Interaction Activity -->
             {% if paper.get('interaction_history') %}
             <div class="card card-spaced">
-                <h2 class="panel-title">History</h2>
-                <div class="history-list">
-                    {% for event in paper.get('interaction_history', []) %}
-                    <div class="history-item">
-                        <div class="history-title">{{ event.display_label }}</div>
-                        {% if event.display_detail %}
-                        <div class="history-meta">{{ event.display_detail }}</div>
-                        {% endif %}
-                        <div class="history-time">{{ event.display_time }}</div>
+                <details>
+                    <summary class="detail-disclosure-summary">
+                        <h2 class="panel-title" style="margin:0;">Activity</h2>
+                        <span class="detail-disclosure-copy">{{ paper.get('interaction_history', [])|length }} events</span>
+                    </summary>
+                    <div class="detail-disclosure-body">
+                        <div class="history-list">
+                            {% for event in paper.get('interaction_history', []) %}
+                            <div class="history-item">
+                                <div class="history-title">{{ event.display_label }}</div>
+                                {% if event.display_detail %}
+                                <div class="history-meta">{{ event.display_detail }}</div>
+                                {% endif %}
+                                <div class="history-time">{{ event.display_time }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
-                    {% endfor %}
-                </div>
+                </details>
             </div>
             {% endif %}
 
@@ -352,6 +350,28 @@
 
 {% block scripts %}
 {{ super() }}
+<script>
+// Abstract enrichment — try to recover full abstract if current one is short
+document.addEventListener('DOMContentLoaded', function() {
+    var abstractEl = document.querySelector('.abstract-text');
+    if (!abstractEl) return;
+    var abstractText = (abstractEl.textContent || '').trim();
+    // If abstract is missing, very short, or is a fallback message, try enrichment
+    if (!abstractText || abstractText.length < 100 || abstractText === 'No abstract available.' || abstractText.indexOf('Details for this paper') >= 0) {
+        var paperId = window.location.pathname.split('/').pop();
+        if (paperId && paperId.length > 5) {
+            fetch('/api/fetch_paper/' + encodeURIComponent(paperId))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success && data.metadata && data.metadata.abstract && data.metadata.abstract.length > 100) {
+                        abstractEl.textContent = data.metadata.abstract;
+                    }
+                })
+                .catch(function() { /* enrichment not critical */ });
+        }
+    }
+});
+</script>
 <script>
 function buildReadingLevelChip(level) {
     var chip = document.createElement('span');
@@ -492,7 +512,7 @@ function paperDetailWorkspaceOptions(source) {
     };
 }
 
-async function paperDetailAction(action, paperId, extra) {
+async function paperDetailAction(action, paperId, extra, btn) {
     try {
         switch (action) {
             case 'relevant':
@@ -501,6 +521,7 @@ async function paperDetailAction(action, paperId, extra) {
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({paper_id: paperId, action: 'like', source: 'paper_detail'})
                 });
+                if (btn) { btn.textContent = 'Relevant ✓'; btn.disabled = true; }
                 showToast('Marked as Relevant');
                 break;
             case 'ignore':
@@ -509,7 +530,11 @@ async function paperDetailAction(action, paperId, extra) {
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({paper_id: paperId, action: 'dislike', source: 'paper_detail'})
                 });
+                if (btn) { btn.textContent = 'Ignored'; btn.disabled = true; }
                 showToast('Ignored');
+                break;
+            case 'addtoreading':
+                await queuePaperStatus(paperId, 'Inbox', paperDetailWorkspaceOptions('paper_detail'));
                 break;
             case 'skim':
                 await queuePaperStatus(paperId, 'Skim Later', paperDetailWorkspaceOptions('paper_detail'));

@@ -164,9 +164,33 @@
   }
 
   function openVenueSubscriptionModal(options) {
-    if (typeof window.showToast === 'function') {
-      window.showToast('Venue watches are coming soon', 'info');
-    }
+    var name = prompt('Venue name (e.g. "NeurIPS", "Nature"):');
+    if (!name || !name.trim()) return;
+    var type = prompt('Venue type (journal | conference | preprint):') || 'conference';
+    type = type.trim().toLowerCase();
+    if (!['journal', 'conference', 'preprint'].includes(type)) type = 'conference';
+
+    fetch('/api/subscriptions', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        type: 'venue',
+        name: name.trim(),
+        query_text: name.trim()
+      })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      if (data.success) {
+        if (typeof window.showToast === 'function') window.showToast('Venue subscription created');
+        setTimeout(function(){ location.reload(); }, 1500);
+      } else {
+        if (typeof window.showToast === 'function') window.showToast('Failed: ' + (data.error || 'Unknown error'), 'error');
+      }
+    })
+    .catch(function() {
+      if (typeof window.showToast === 'function') window.showToast('Failed to create venue subscription', 'error');
+    });
   }
 
   async function runSubscription(subId) {
@@ -205,10 +229,10 @@
     row.setAttribute('data-hit-status', statusLabel);
     var chip = row.querySelector('.js-hit-status');
     if (chip) chip.textContent = statusLabel;
-    // Disable the clicked button; for sent_to_inbox also disable Inbox
+    // Disable the clicked button; for sent_to_inbox also disable Send-to-Inbox
     var inboxBtns = row.querySelectorAll('button');
     inboxBtns.forEach(function(btn) {
-      if (statusLabel === 'sent_to_inbox' && btn.textContent.trim() === 'Inbox') {
+      if (statusLabel === 'sent_to_inbox' && btn.dataset.hitAction === 'send-to-inbox') {
         btn.disabled = true;
       } else if (btn === button) {
         btn.disabled = true;
@@ -290,8 +314,25 @@
     }
   }
 
-  function editSubscription(subId) {
-    window.location.href = '/settings?tab=subscriptions&edit=' + subId;
+  function editSubscription(subId, button) {
+    // Determine subscription type from the parent card's data attribute
+    var card = button && button.closest ? button.closest('[data-sub-type]') : null;
+    var subType = card ? card.getAttribute('data-sub-type') : 'query';
+    switch (subType) {
+      case 'author':
+        openAuthorSubscriptionModal({});
+        break;
+      case 'venue':
+        openVenueSubscriptionModal({});
+        break;
+      case 'field':
+        createFieldSubscription();
+        break;
+      case 'query':
+      default:
+        openQuerySubscriptionModal({});
+        break;
+    }
   }
 
   function createFieldSubscription() {

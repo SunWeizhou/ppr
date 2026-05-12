@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "preact/hooks";
 import { SessionList } from "./components/SessionList";
 import { MessageFlow } from "./components/MessageFlow";
 import { AgentInput } from "./components/AgentInput";
+import { AlpacaMark } from "./components/AlpacaMark";
 import * as api from "./api";
 import type { AgentSession, AgentMessage, PageContext } from "./types";
 import "./styles/agent-panel.css";
@@ -58,9 +59,12 @@ function AgentPanel() {
     return () => document.removeEventListener("keydown", handleEsc);
   }, [open]);
 
-  // Toggle body class
+  // Toggle body class and sync CSS variable
   useEffect(() => {
     document.body.classList.toggle("agent-panel-open", open);
+    if (open) {
+      document.documentElement.style.setProperty("--agent-panel-width", `${panelWidth}px`);
+    }
   }, [open]);
 
   // Load sessions on open
@@ -219,7 +223,9 @@ function AgentPanel() {
 
     function onMove(ev: MouseEvent) {
       const delta = startX - ev.clientX;
-      setPanelWidth(Math.max(280, Math.min(600, startWidth + delta)));
+      const newWidth = Math.max(280, Math.min(600, startWidth + delta));
+      setPanelWidth(newWidth);
+      document.documentElement.style.setProperty("--agent-panel-width", `${newWidth}px`);
     }
     function onUp() {
       document.removeEventListener("mousemove", onMove);
@@ -238,11 +244,7 @@ function AgentPanel() {
           onClick={() => setOpen(true)}
           aria-label="Open Paper Agent"
         >
-          <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
-            <path d="M9 5.5h9.25L24 11.25V26.5H9z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-            <path d="M18.25 5.5v6h5.75" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-            <circle cx="22.5" cy="22.5" r="2.6" fill="currentColor"/>
-          </svg>
+          <AlpacaMark size={22} />
         </button>
       )}
 

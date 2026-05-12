@@ -21,23 +21,23 @@
   bottom: 24px;
   right: 24px;
   z-index: 900;
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  border: none;
-  background: var(--accent);
-  color: var(--accent-text);
+  border: 1px solid var(--line, #E7E4DA);
+  background: var(--bg-raised, #FFFFFF);
+  color: var(--ink, #1F1E1B);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .ap-launcher:hover {
-  transform: scale(1.08);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+  transform: scale(1.06);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
 }
 
 /* ── Side Panel ── */
@@ -51,8 +51,9 @@
   border-left: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  box-shadow: -8px 0 32px rgba(0,0,0,0.08);
   animation: ap-slide-in 0.2s ease;
+  font-family: var(--ff-body, system-ui, sans-serif);
 }
 
 @keyframes ap-slide-in {

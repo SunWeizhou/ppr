@@ -130,8 +130,8 @@
                     <a class="text-link" href="{{ paperAgentDetailUrl(selected_paper) }}">Open full detail</a>
                 </div>
                 <div class="preview-deep-links">
-                    {% if selected_paper.citation_count is not none and selected_paper.citation_count != '' %}<button type="button">Cited By {{ selected_paper.citation_count }}</button>{% endif %}
-                    {% if selected_paper.reference_count is not none and selected_paper.reference_count != '' %}<button type="button">Refs {{ selected_paper.reference_count }}</button>{% endif %}
+                    {% if selected_paper.citation_count is not none and selected_paper.citation_count != '' %}<span class="chip preview-meta-chip">Cited By {{ selected_paper.citation_count }}</span>{% endif %}
+                    {% if selected_paper.reference_count is not none and selected_paper.reference_count != '' %}<span class="chip preview-meta-chip">Refs {{ selected_paper.reference_count }}</span>{% endif %}
                 </div>
             </div>
             {% else %}
@@ -262,8 +262,8 @@ function selectPaperResult(row) {
     if (!pane) return;
     const query = document.getElementById('paperAgentSearchInput') ? document.getElementById('paperAgentSearchInput').value.trim() : '';
     const detailUrl = paperAgentDetailUrl(row.dataset.paperId || '', query);
-    const cited = row.dataset.paperCitationCount ? '<button type="button">Cited By ' + escapeHtml(row.dataset.paperCitationCount) + '</button>' : '';
-    const refs = row.dataset.paperReferenceCount ? '<button type="button">Refs ' + escapeHtml(row.dataset.paperReferenceCount) + '</button>' : '';
+    const cited = row.dataset.paperCitationCount ? '<span class="chip preview-meta-chip">Cited By ' + escapeHtml(row.dataset.paperCitationCount) + '</span>' : '';
+    const refs = row.dataset.paperReferenceCount ? '<span class="chip preview-meta-chip">Refs ' + escapeHtml(row.dataset.paperReferenceCount) + '</span>' : '';
     const deepLinks = refs || cited ? '<div class="preview-deep-links">' + refs + cited + '</div>' : '';
     var citation = previewCitation(row.dataset.paperAuthors, row.dataset.paperYear);
     pane.innerHTML =

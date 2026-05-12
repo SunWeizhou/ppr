@@ -610,7 +610,7 @@ class AgentService:
                 "- summarize the selected paper"
             )
         if "怎么" in text or "what can" in text or "help" in text:
-            location = "Search" if route == "/" else route.strip("/").title() or "Search"
+            location = "Home" if route == "/" else route.strip("/").title() or "Search"
             return (
                 f"Paper Agent can help from the current **{location}** page.\n\n"
                 "Try: `search federated learning`, `save this paper`, "

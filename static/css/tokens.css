@@ -41,7 +41,7 @@
   --content-max-w: 640px;
 
   /* Font families */
-  --ff-display: "Source Serif 4", Georgia, "Songti SC", serif;
+  --ff-display: "Anthropic Serif", "Source Serif 4", "Iowan Old Style", Georgia, "Songti SC", serif;
   --ff-body:    "Inter", system-ui, -apple-system, "PingFang SC", sans-serif;
   --ff-mono:    ui-monospace, SFMono-Regular, Menlo, monospace;
 

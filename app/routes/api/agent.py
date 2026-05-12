@@ -118,7 +118,7 @@ def send_agent_message(session_id: str):
 
 @bp.post("/api/agent/messages")
 def agent_message_legacy():
-    """Legacy single-message endpoint. Creates a transient session."""
+    """Legacy single-message endpoint. Creates a persisted session."""
     data = request.get_json() or {}
     service = _agent_service()
     return jsonify(service.handle_message(
