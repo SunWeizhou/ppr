@@ -36,13 +36,27 @@ class SubscriptionRunner:
             return {"success": False, "hit_count": 0, "error": "Subscription not found"}
 
         sub_type = sub.get("type", "query")
+        entity_id = sub.get("entity_id")
+
         try:
             if sub_type == "query":
                 hit_count = self.run_query_subscription(sub)
             elif sub_type == "author":
                 hit_count = self.run_author_subscription(sub)
             elif sub_type == "venue":
-                hit_count = self.run_venue_subscription(sub)
+                # Dispatch to journal or conference runner based on entity type
+                if entity_id:
+                    entity = self._store.get_entity(entity_id)
+                    if entity and entity["type"] == "conference":
+                        hit_count = self.run_conference_subscription(sub)
+                    else:
+                        hit_count = self.run_journal_subscription(sub)
+                else:
+                    hit_count = self.run_venue_subscription(sub)
+            elif sub_type == "field":
+                hit_count = self.run_field_subscription(sub)
+            elif sub_type == "entity":
+                hit_count = self._run_entity_subscription(sub)
             else:
                 return {"success": False, "hit_count": 0, "error": f"Unknown type: {sub_type}"}
 
@@ -188,12 +202,7 @@ class SubscriptionRunner:
         return self.persist_hits(sub["id"], paper_ids, "author")
 
     def run_venue_subscription(self, sub: dict) -> int:
-        """Run a single venue-type subscription.
-
-        Checks cached recommendation items for papers whose categories match
-        the venue string and also searches the arXiv API.  Returns the
-        number of *new* hits persisted.
-        """
+        """Run a venue subscription by category match."""
         venue = sub.get("query_text") or sub.get("name", "")
         if not venue:
             return 0
@@ -208,9 +217,159 @@ class SubscriptionRunner:
         paper_ids.extend(self._search_arxiv_api([venue], venue))
         return self.persist_hits(sub["id"], paper_ids, "venue")
 
-    # ------------------------------------------------------------------
-    # Hit management
-    # ------------------------------------------------------------------
+    def run_journal_subscription(self, sub: dict) -> int:
+        """Run a journal-type subscription.
+
+        Searches for papers published in the target journal by matching
+        venue names in cached recommendations and searching arXiv.
+        Applies filters_json if present.
+        """
+        journal_name = sub.get("name", "")
+        if not journal_name:
+            return 0
+
+        def _match(item: dict) -> bool:
+            title = (item.get("title") or "").lower()
+            abstract = (item.get("abstract") or "").lower()
+            categories = item.get("categories", [])
+            name_lower = journal_name.lower()
+            return (
+                name_lower in title
+                or name_lower in abstract
+                or any(name_lower in str(c).lower() for c in (categories if isinstance(categories, list) else []))
+            )
+
+        paper_ids = self._search_local_recommendations(_match)
+        paper_ids.extend(self._search_arxiv_api([journal_name], journal_name))
+        paper_ids = self._apply_filters(paper_ids, sub.get("filters_json"))
+        return self.persist_hits(sub["id"], paper_ids, f"journal:{journal_name}")
+
+    def run_conference_subscription(self, sub: dict) -> int:
+        """Run a conference-type subscription.
+
+        Searches for papers from the target conference by matching
+        conference name/acronym in cached recommendations and arXiv.
+        Applies filters_json if present.
+        """
+        conf_name = sub.get("name", "")
+        if not conf_name:
+            return 0
+
+        def _match(item: dict) -> bool:
+            title = (item.get("title") or "").lower()
+            abstract = (item.get("abstract") or "").lower()
+            categories = item.get("categories", [])
+            name_lower = conf_name.lower()
+            return (
+                name_lower in title
+                or name_lower in abstract
+                or any(name_lower in str(c).lower() for c in (categories if isinstance(categories, list) else []))
+            )
+
+        paper_ids = self._search_local_recommendations(_match)
+        paper_ids.extend(self._search_arxiv_api([conf_name], conf_name))
+        paper_ids = self._apply_filters(paper_ids, sub.get("filters_json"))
+        return self.persist_hits(sub["id"], paper_ids, f"conference:{conf_name}")
+
+    def run_field_subscription(self, sub: dict) -> int:
+        """Run a field-type subscription.
+
+        Searches arXiv by category (e.g. cs.AI) and matches local
+        recommendations by category. Applies filters_json if present.
+        """
+        query_text = sub.get("query_text") or ""
+        field_name = sub.get("name", "")
+
+        # Get arXiv categories from linked entity if available
+        entity_id = sub.get("entity_id")
+        categories_to_search: List[str] = []
+        if entity_id:
+            entity = self._store.get_entity(entity_id)
+            if entity:
+                import json as _json
+                meta = entity.get("metadata_json") or {}
+                if isinstance(meta, str):
+                    try:
+                        meta = _json.loads(meta)
+                    except (TypeError, _json.JSONDecodeError):
+                        meta = {}
+                categories_to_search = meta.get("arxiv_categories", [])
+
+        if not categories_to_search and query_text:
+            categories_to_search = [c.strip() for c in query_text.split(",") if c.strip()]
+
+        if not categories_to_search:
+            return 0
+
+        def _match(item: dict) -> bool:
+            item_categories = item.get("categories", [])
+            if isinstance(item_categories, list):
+                return any(
+                    cat.lower() in str(ic).lower()
+                    for cat in categories_to_search
+                    for ic in item_categories
+                )
+            return False
+
+        paper_ids = self._search_local_recommendations(_match)
+        for cat in categories_to_search:
+            paper_ids.extend(self._search_arxiv_api([f"cat:{cat}"], field_name))
+        paper_ids = self._apply_filters(paper_ids, sub.get("filters_json"))
+        return self.persist_hits(sub["id"], paper_ids, f"field:{','.join(categories_to_search)}")
+
+    def _run_entity_subscription(self, sub: dict) -> int:
+        """Run a generic entity subscription with cross-type keyword search."""
+        query_text = sub.get("query_text") or sub.get("name", "")
+        if not query_text:
+            return 0
+        keywords = [k.strip() for k in query_text.split() if k.strip()]
+
+        def _match(item: dict) -> bool:
+            title = (item.get("title") or "").lower()
+            abstract = (item.get("abstract") or "").lower()
+            return any(kw.lower() in title or kw.lower() in abstract for kw in keywords)
+
+        paper_ids = self._search_local_recommendations(_match)
+        paper_ids.extend(self._search_arxiv_api(keywords, query_text))
+        paper_ids = self._apply_filters(paper_ids, sub.get("filters_json"))
+        return self.persist_hits(sub["id"], paper_ids, f"entity:{query_text}")
+
+    def _apply_filters(self, paper_ids: List[str], filters_json) -> List[str]:
+        """Apply filters_json criteria to filter paper IDs.
+
+        Currently supports keyword filtering from metadata cache.
+        Papers without cached metadata are kept (can't filter them).
+        """
+        if not filters_json:
+            return paper_ids
+
+        import json as _json
+        filters = filters_json
+        if isinstance(filters, str):
+            try:
+                filters = _json.loads(filters)
+            except (TypeError, _json.JSONDecodeError):
+                return paper_ids
+
+        if not isinstance(filters, dict) or not filters:
+            return paper_ids
+
+        keywords = filters.get("keywords", [])
+        if not keywords:
+            return paper_ids
+
+        filtered = []
+        for pid in paper_ids:
+            metadata = self._store.get_paper_metadata(pid)
+            if not metadata:
+                filtered.append(pid)
+                continue
+            title = str((metadata.get("metadata_json") or {}).get("title", "")).lower()
+            abstract = str((metadata.get("metadata_json") or {}).get("abstract", "")).lower()
+            if any(kw.lower() in title or kw.lower() in abstract for kw in keywords):
+                filtered.append(pid)
+        return filtered
+
 
     def persist_hits(
         self,
