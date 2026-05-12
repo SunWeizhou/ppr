@@ -43,6 +43,17 @@ class RecommendationWorkspaceService:
     def run(self, *, mode: str = "for_you", query: str = "", max_results: int = 20) -> dict:
         """Run the multi-strategy recommendation engine and persist results."""
         query_text = self._query_for_mode(mode, query)
+        if not query_text:
+            # No personalization signal available — return early with empty state
+            return {
+                "run_id": None,
+                "mode": mode,
+                "query": "",
+                "sections": [],
+                "papers": [],
+                "count": 0,
+                "needs_profile": True,
+            }
         papers = self._search(query_text, max_results=max_results * 3)  # Over-fetch for strategy filtering
 
         # Gather context for strategies
@@ -96,6 +107,22 @@ class RecommendationWorkspaceService:
 
             # Re-sort by composite score
             section["candidates"].sort(key=lambda c: c.score, reverse=True)
+            # Prune ultra-low-score candidates (composite < 0.05)
+            section["candidates"] = [c for c in section["candidates"] if c.score >= 0.05]
+
+        # Remove empty sections
+        engine_result["sections"] = [s for s in engine_result["sections"] if s["candidates"]]
+
+        # If no sections remain, return early
+        if not engine_result["sections"]:
+            return {
+                "run_id": None,
+                "mode": mode,
+                "query": query_text or "",
+                "sections": [],
+                "papers": [],
+                "count": 0,
+            }
 
         # Persist the run (flatten all candidates)
         all_papers = []
@@ -181,6 +208,8 @@ class RecommendationWorkspaceService:
         query = str(query or "").strip()
         if query:
             return query
+        # Check for personalization signal (profile topics, subscriptions, etc.)
+        has_signal = False
         try:
             from config_manager import get_config
             profile = get_config().get_keywords_config()
@@ -189,9 +218,22 @@ class RecommendationWorkspaceService:
                 return " ".join(list(core.keys())[:4])
         except Exception:
             pass
-        if mode == "reading":
+        try:
+            subs = self.state_store.list_subscriptions()
+            if subs:
+                has_signal = True
+        except Exception:
+            pass
+        try:
+            queue = self.state_store.list_queue_items()
+            if queue:
+                has_signal = True
+        except Exception:
+            pass
+        if has_signal and mode == "reading":
             return "papers related to saved reading"
-        return "machine learning research"
+        # No personalization signal — return empty to signal need for profile setup
+        return ""
 
     def _search(self, query: str, *, max_results: int) -> list[dict]:
         if self.search_fn is not None:

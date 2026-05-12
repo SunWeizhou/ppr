@@ -376,8 +376,18 @@ class StateStore:
                 CREATE INDEX IF NOT EXISTS idx_search_history_created
                     ON search_history(created_at);
 
+                CREATE TABLE IF NOT EXISTS agent_pending_confirmations (
+                    token TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    plan_json TEXT NOT NULL,
+                    page_context_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    expires_at TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'pending'
+                );
+
                 """
-            )
             )
             # Check current schema version and migrate if needed
             current_version_row = conn.execute(
@@ -2822,6 +2832,76 @@ class StateStore:
                 (session_id, limit),
             ).fetchall()
         return [self._row_to_dict(row) for row in rows]
+
+    # ------------------------------------------------------------------
+    # Agent Pending Confirmations
+    # ------------------------------------------------------------------
+
+    def create_agent_pending_confirmation(
+        self,
+        session_id: str,
+        message: str,
+        plan_json: str,
+        page_context_json: str,
+        *,
+        ttl_minutes: int = 15,
+    ) -> Dict:
+        """Create a pending confirmation record for a destructive action."""
+        token = uuid.uuid4().hex
+        now = _utc_now()
+        expires = datetime.now(tz=timezone.utc) + timedelta(minutes=ttl_minutes)
+        expires_at = expires.replace(microsecond=0).isoformat() + "Z"
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO agent_pending_confirmations(
+                    token, session_id, message, plan_json, page_context_json,
+                    created_at, expires_at, status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
+                """,
+                (token, session_id, message, plan_json, page_context_json, now, expires_at),
+            )
+        return {
+            "token": token,
+            "session_id": session_id,
+            "message": message,
+            "expires_at": expires_at,
+        }
+
+    def get_agent_pending_confirmation(self, token: str) -> Optional[Dict]:
+        """Get a pending confirmation by token."""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM agent_pending_confirmations WHERE token = ?",
+                (token,),
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    def consume_agent_pending_confirmation(self, token: str) -> bool:
+        """Mark a pending confirmation as consumed. Returns True if successful."""
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM agent_pending_confirmations WHERE token = ? AND status = 'pending'",
+                (token,),
+            ).fetchone()
+            if not row:
+                return False
+            conn.execute(
+                "UPDATE agent_pending_confirmations SET status = 'consumed' WHERE token = ?",
+                (token,),
+            )
+        return True
+
+    def clean_expired_agent_confirmations(self) -> int:
+        """Mark expired pending confirmations as expired. Returns count cleaned."""
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            rows = conn.execute(
+                "UPDATE agent_pending_confirmations SET status = 'expired' "
+                "WHERE status = 'pending' AND expires_at < ?",
+                (now,),
+            )
+            return rows.rowcount
 
     # ------------------------------------------------------------------
     # Search History

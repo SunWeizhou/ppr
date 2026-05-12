@@ -280,6 +280,89 @@ class TestSessionAwareAgentService(unittest.TestCase):
         result = self.service.handle_message("delete all papers")
         self.assertTrue(result.get("requires_confirmation", False))
 
+    # ── Confirmation Flow Tests ──
+
+    def test_confirmation_flow_accept(self):
+        """Destructive request → confirmation token → confirm → action executes."""
+        result = self.service.handle_message("delete all saved papers")
+        self.assertTrue(result.get("requires_confirmation"))
+        self.assertIn("confirmation_token", result)
+        token = result["confirmation_token"]
+        session_id = result["session"]["id"]
+
+        confirmed = self.service.handle_message(
+            "confirm", session_id=session_id, confirmation_token=token
+        )
+        self.assertTrue(confirmed["success"])
+        self.assertFalse(confirmed.get("requires_confirmation"))
+        # A reply indicates the action was executed
+        self.assertTrue(len(confirmed.get("reply", "")) > 0)
+
+    def test_confirmation_invalid_token_rejected(self):
+        """Invalid confirmation token should be rejected with error message."""
+        session = self.store.create_agent_session()
+        result = self.service.handle_message(
+            "confirm", session_id=session["id"], confirmation_token="token-does-not-exist"
+        )
+        self.assertTrue(result["success"])
+        reply = (result.get("reply") or "").lower()
+        self.assertIn("invalid", reply)
+
+    def test_confirmation_expired_token_rejected(self):
+        """Expired confirmation token should be rejected."""
+        session = self.store.create_agent_session()
+        result = self.service.handle_message("delete all saved papers", session_id=session["id"])
+        self.assertTrue(result.get("requires_confirmation"))
+        token = result["confirmation_token"]
+
+        # Manipulate DB to expire the token
+        import sqlite3
+        conn = sqlite3.connect(self.tmp.name)
+        conn.execute(
+            "UPDATE agent_pending_confirmations SET expires_at = '2020-01-01T00:00:00Z' WHERE token = ?",
+            (token,),
+        )
+        conn.commit()
+        conn.close()
+
+        # Confirm with expired token
+        rejected = self.service.handle_message(
+            "confirm", session_id=session["id"], confirmation_token=token
+        )
+        self.assertTrue(rejected["success"])
+        reply = (rejected.get("reply") or "").lower()
+        self.assertIn("expired", reply)
+
+    def test_confirmation_consumed_token_rejected(self):
+        """A consumed token must not be reusable."""
+        result = self.service.handle_message("delete all saved papers")
+        token = result["confirmation_token"]
+        session_id = result["session"]["id"]
+
+        # First consumption succeeds
+        self.service.handle_message("confirm", session_id=session_id, confirmation_token=token)
+
+        # Second consumption must fail
+        replay = self.service.handle_message(
+            "confirm", session_id=session_id, confirmation_token=token
+        )
+        self.assertTrue(replay["success"])
+        reply = (replay.get("reply") or "").lower()
+        self.assertIn("already", reply)
+
+    def test_confirmation_wrong_session_rejected(self):
+        """Confirmation token from one session must not work in another."""
+        s1_result = self.service.handle_message("delete all saved papers")
+        token = s1_result["confirmation_token"]
+
+        # Different session
+        s2 = self.store.create_agent_session()
+        result = self.service.handle_message(
+            "confirm", session_id=s2["id"], confirmation_token=token
+        )
+        reply = (result.get("reply") or "").lower()
+        self.assertIn("different session", reply)
+
 
 class TestPhase3Integration(unittest.TestCase):
     """Integration tests for the full Phase 3 feature set."""

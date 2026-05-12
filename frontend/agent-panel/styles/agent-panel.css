@@ -1,3 +1,20 @@
+/* Map formal tokens into the agent panel scope */
+.ap-panel {
+  --accent: var(--accent, #C96442);
+  --accent-text: var(--accent-text, #FFFFFF);
+  --accent-soft: var(--accent-soft, #F5E6DE);
+  --ink: var(--ink, #1F1E1B);
+  --ink-2: var(--ink-2, #4A4844);
+  --ink-3: var(--ink-3, #8C8A82);
+  --line: var(--line, #E7E4DA);
+  --bg-raised: var(--bg-raised, #FFFFFF);
+  --bg-subtle: var(--bg-subtle, #F5F3EE);
+  --bg-sunken: var(--bg-sunken, #F2F0E9);
+  --radius-sm: var(--r-sm, 6px);
+  --radius-md: var(--r-md, 10px);
+  --radius-lg: var(--r-lg, 12px);
+}
+
 /* ── Launcher Button ── */
 .ap-launcher {
   position: fixed;
@@ -433,6 +450,19 @@ body.agent-panel-open .main-content {
   border: 1px solid var(--accent-primary, #d97757);
   border-radius: var(--radius-lg, 12px);
   animation: ap-fade-in 0.2s ease;
+}
+
+.ap-confirmation-action {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--ink-2, #4A4844);
+  background: var(--bg-subtle, #F5F3EE);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm, 6px);
+  margin-bottom: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ap-confirmation-msg {

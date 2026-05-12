@@ -20,7 +20,7 @@
             placeholder="Search papers, authors, topics..."
             autocomplete="off"
         >
-        <button class="btn btn-primary" type="submit">Search</button>
+        <button class="btn btn-primary" type="submit" id="paperAgentSearchBtn" disabled>Search</button>
     </form>
 
     <input type="hidden" id="researchQuestionId" value="{{ active_research_question_id or '' }}">
@@ -104,7 +104,7 @@
         <aside class="paper-preview-pane" id="paperPreviewPane">
             <div class="preview-tabs">
                 <button class="preview-tab is-active" type="button">Article</button>
-                <button class="preview-tab" type="button" disabled>Notes 0</button>
+                {# Notes tab hidden until Notes feature is implemented #}
             </div>
             <button class="preview-close" type="button" onclick="clearPaperPreview()" aria-label="Clear preview">×</button>
             {% if selected_paper %}
@@ -115,7 +115,7 @@
                 <div class="preview-authors">{{ selected_paper.author_text }}</div>
                 <div class="preview-section">
                     <div class="preview-section-head">
-                        <strong>Collections</strong>
+                        <strong>Next Step</strong>
                         <button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Save</button>
                     </div>
                     <div class="preview-action-grid">
@@ -150,6 +150,8 @@ function paperAgentSearch(event) {
     const input = document.getElementById('paperAgentSearchInput');
     const query = input ? input.value.trim() : '';
     if (!query) return;
+    const btn = document.getElementById('paperAgentSearchBtn');
+    if (btn) btn.disabled = true;
     const url = new URL(window.location.href);
     const rq = url.searchParams.get('research_question_id');
     url.pathname = '/search';
@@ -159,13 +161,15 @@ function paperAgentSearch(event) {
         url.searchParams.set('research_question_id', rq);
     }
     window.history.pushState({}, '', url.toString());
-    fetchPaperAgentResults(query);
+    fetchPaperAgentResults(query).finally(function() {
+        if (btn) btn.disabled = false;
+    });
 }
 
 async function fetchPaperAgentResults(query) {
     const list = document.getElementById('paperResultList');
     if (list) list.innerHTML = '<div class="paper-agent-empty"><p>Searching...</p></div>';
-    renderPaperAgentSourceStatus({arxiv: 'not_requested', semantic_scholar: 'not_requested'}, [], []);
+    renderPaperAgentSourceStatus({arxiv: 'not_requested', semantic_scholar: 'not_requested', openalex: 'not_requested'}, [], []);
     try {
         const payload = await requestJson('/api/search', {
             method: 'POST',
@@ -178,7 +182,7 @@ async function fetchPaperAgentResults(query) {
         var filterBar = document.getElementById('searchFilterChips');
         if (filterBar) filterBar.hidden = !(payload.papers && payload.papers.length);
     } catch (error) {
-        renderPaperAgentSourceStatus({arxiv: 'failed', semantic_scholar: 'failed'}, [], [error.message]);
+        renderPaperAgentSourceStatus({arxiv: 'failed', semantic_scholar: 'failed', openalex: 'failed'}, [], [error.message]);
         if (list) list.innerHTML = '<div class="paper-agent-empty"><h2>Search failed</h2><p>' + escapeHtml(error.message) + '</p></div>';
     }
 }
@@ -186,7 +190,7 @@ async function fetchPaperAgentResults(query) {
 function renderPaperAgentSourceStatus(sources, warnings, errors) {
     const container = document.getElementById('paperAgentSourceStatus');
     if (!container) return;
-    const labels = {arxiv: 'arXiv', semantic_scholar: 'Semantic Scholar'};
+    const labels = {arxiv: 'arXiv', semantic_scholar: 'Semantic Scholar', openalex: 'OpenAlex'};
     const messages = {
         ok: 'Available',
         failed: 'Temporarily unavailable',
@@ -194,7 +198,7 @@ function renderPaperAgentSourceStatus(sources, warnings, errors) {
         idle: 'Ready'
     };
     const combined = (warnings || []).concat(errors || []).join(' ');
-    container.innerHTML = ['arxiv', 'semantic_scholar'].map(function(key) {
+    container.innerHTML = ['arxiv', 'semantic_scholar', 'openalex'].map(function(key) {
         const state = sources[key] || 'not_requested';
         const label = labels[key];
         let message = messages[state] || state.replace(/_/g, ' ');
@@ -267,7 +271,7 @@ function selectPaperResult(row) {
         '<a class="preview-title" href="' + detailUrl + '">' + escapeHtml(row.dataset.paperTitle || 'Untitled') + '</a>' +
         '<div class="preview-source">' + escapeHtml(row.dataset.paperVenue || row.dataset.paperSource || '') + '</div>' +
         '<div class="preview-authors">' + escapeHtml(row.dataset.paperAuthors || '') + '</div>' +
-        '<div class="preview-section"><div class="preview-section-head"><strong>Collections</strong><button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Save</button></div>' +
+        '<div class="preview-section"><div class="preview-section-head"><strong>Next Step</strong><button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Save</button></div>' +
         '<div class="preview-action-grid"><button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper(&quot;Skim Later&quot;, &quot;Mark Skim&quot;)">Mark Skim</button>' +
         '<button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper(&quot;Deep Read&quot;, &quot;Deep Read&quot;)">Deep Read</button>' +
         '<button class="btn btn-ghost btn-sm" type="button" onclick="agentCreateWatchFromSearch()">Create Watch</button></div></div>' +
@@ -312,7 +316,7 @@ async function agentSaveSelectedPaper() {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
             paper_id: selected.dataset.paperId,
-            status: 'Unread'
+            status: 'Saved'
         })
     });
     showToast('Saved to Reading');
@@ -372,6 +376,15 @@ document.addEventListener('DOMContentLoaded', function() {
     var chips = document.getElementById('searchFilterChips');
     if (chips && document.querySelectorAll('.paper-result-row').length > 0) {
         chips.hidden = false;
+    }
+    // Enable search button if there's already a query
+    var searchInput = document.getElementById('paperAgentSearchInput');
+    var searchBtn = document.getElementById('paperAgentSearchBtn');
+    if (searchInput && searchBtn) {
+        searchBtn.disabled = !searchInput.value.trim();
+        searchInput.addEventListener('input', function() {
+            searchBtn.disabled = !searchInput.value.trim();
+        });
     }
 });
 

@@ -86,13 +86,23 @@
                 {% endfor %}
             </div>
         </div>
+    {% elif needs_profile %}
+        <div class="paper-agent-empty">
+            <h2>Personalize your recommendations</h2>
+            <p>Paper Agent needs some signal to find relevant papers for you. Add topics to your profile, save some papers, or create watches to get started.</p>
+            <div class="paper-agent-empty-actions">
+                <button class="empty-action" type="button" onclick="window.location.href='/search'">Search and save papers</button>
+                <button class="empty-action" type="button" onclick="window.location.href='/watch'">Create watches</button>
+                <button class="empty-action" type="button" onclick="runRecommendationEngine()">Try with a query</button>
+            </div>
+        </div>
     {% else %}
         <div class="paper-agent-empty">
             <h2>No recommendations yet</h2>
             <p>Click Refresh to generate personalized recommendations from your profile, reading history, and subscriptions.</p>
             <div class="paper-agent-empty-actions">
                 <button class="empty-action" type="button" onclick="runRecommendationEngine()">Generate recommendations</button>
-                <button class="empty-action" type="button" onclick="window.location.href='/'">Search papers</button>
+                <button class="empty-action" type="button" onclick="window.location.href='/search'">Search papers</button>
             </div>
         </div>
     {% endif %}
@@ -221,7 +231,7 @@ async function agentSavePaperById(paperId) {
     await requestJson('/api/queue', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ paper_id: paperId, status: 'Unread' })
+        body: JSON.stringify({ paper_id: paperId, status: 'Saved' })
     });
     showToast('Saved to Reading');
 }

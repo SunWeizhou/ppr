@@ -30,31 +30,36 @@ export function SessionList({
       <div class="ap-sessions-header">
         <span class="ap-sessions-title">Sessions</span>
         <button class="ap-sessions-new" onClick={onCreate} aria-label="New session">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
             <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
         </button>
       </div>
-      <div class="ap-sessions-list">
+      <div class="ap-sessions-list" role="listbox" aria-label="Agent sessions">
         {sessions.map((s) => (
           <div
             key={s.id}
+            role="option"
+            aria-selected={s.id === activeId}
+            tabIndex={0}
             class={`ap-session-row ${s.id === activeId ? "is-active" : ""}`}
             onClick={() => onSelect(s.id)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(s.id); } }}
           >
             <div class="ap-session-info">
-              {s.is_pinned ? <span class="ap-pin-icon" title="Pinned">*</span> : null}
+              {s.is_pinned ? <span class="ap-pin-icon" title="Pinned" aria-label="Pinned">*</span> : null}
               <span class="ap-session-title">{s.title}</span>
             </div>
             <div class="ap-session-meta">
               <span class="ap-session-count">{s.message_count} msgs</span>
               <span class="ap-session-time">{timeAgo(s.last_active)}</span>
             </div>
-            <div class="ap-session-actions" onClick={(e) => e.stopPropagation()}>
+            <div class="ap-session-actions" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
               <button
                 class="ap-session-btn"
                 onClick={() => onPin(s.id, !s.is_pinned)}
                 title={s.is_pinned ? "Unpin" : "Pin"}
+                aria-label={s.is_pinned ? "Unpin session" : "Pin session"}
               >
                 {s.is_pinned ? "Unpin" : "Pin"}
               </button>
@@ -62,6 +67,7 @@ export function SessionList({
                 class="ap-session-btn"
                 onClick={() => onArchive(s.id)}
                 title="Archive"
+                aria-label="Archive session"
               >
                 Archive
               </button>
@@ -69,6 +75,7 @@ export function SessionList({
                 class="ap-session-btn ap-session-btn--danger"
                 onClick={() => onDelete(s.id)}
                 title="Delete"
+                aria-label="Delete session"
               >
                 Delete
               </button>

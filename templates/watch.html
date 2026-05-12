@@ -13,7 +13,7 @@
         </div>
     </div>
     <div class="actions">
-        <a href="/" class="btn btn-primary btn-sm">Back to Search</a>
+        <a href="/search" class="btn btn-primary btn-sm">Back to Search</a>
         <button type="button" class="btn btn-ghost btn-sm" onclick="runAllSubscriptions()">
             <span data-i18n="watch.refresh_all">Refresh</span>
         </button>
@@ -116,7 +116,7 @@
         {% endfor %}
     </div>
     {% else %}
-    {{ ui.empty_state('No watches yet', 'Create a watch from Search, or ask Paper Agent to monitor a topic.', '', '<button type="button" class="btn btn-primary btn-sm" onclick="window.location.href=\'/\'">Create a watch from Search</button><button type="button" class="btn btn-ghost btn-sm" onclick="togglePaperAgent(true)">Ask Paper Agent to monitor a topic</button>') }}
+    {{ ui.empty_state('No watches yet', 'Create a watch from Search, or ask Paper Agent to monitor a topic.', '', '<button type="button" class="btn btn-primary btn-sm" onclick="window.location.href=\'/search\'">Create a watch from Search</button><button type="button" class="btn btn-ghost btn-sm" onclick="togglePaperAgent(true)">Ask Paper Agent to monitor a topic</button>') }}
     {% endif %}
 </section>
 

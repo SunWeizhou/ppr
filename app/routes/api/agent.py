@@ -98,6 +98,7 @@ def send_agent_message(session_id: str):
     data = request.get_json() or {}
     message = str(data.get("message", "") or "").strip()
     page_context = data.get("page_context") or {}
+    confirmation_token = data.get("confirmation_token")
 
     effective_session_id = None if session_id in ("new", "auto") else session_id
 
@@ -106,6 +107,7 @@ def send_agent_message(session_id: str):
         message,
         session_id=effective_session_id,
         page_context=page_context,
+        confirmation_token=confirmation_token,
     )
     return jsonify(result)
 

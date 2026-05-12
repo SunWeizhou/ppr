@@ -36,7 +36,8 @@ python -m unittest tests.test_repository_hygiene -v
 
 ## How It Works
 
-- **Search** — home workspace for paper, author, and topic discovery.
+- **Home** — research-question-first workspace entry. Ask an open-ended topic and search starts from there.
+- **Search** — paper, author, and topic discovery and triage workspace.
 - **Recommendations** — a candidate-set workspace for profile, reading, and
   research-question recommendations with why-recommended context.
 - **Preview** — selected-paper side panel with abstract, save, reading, watch,

@@ -8,6 +8,7 @@ optional enhancement; deterministic fallback remains the offline path.
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from typing import Optional
 from urllib.parse import quote
@@ -53,11 +54,15 @@ class AgentService:
         message: str,
         session_id: Optional[str] = None,
         page_context: Optional[dict] = None,
+        confirmation_token: Optional[str] = None,
     ) -> dict:
         """Handle a user message within a session context.
 
         If session_id is None, creates a new session automatically.
         Persists both user and assistant messages to the session.
+
+        If confirmation_token is provided, resumes a previously
+        saved pending action instead of planning a new one.
         """
         page_context = page_context or {}
         message = str(message or "").strip()
@@ -70,6 +75,13 @@ class AgentService:
         history = self.state_store.get_session_messages(session_id, limit=20)
         is_first_message = len(history) == 0
 
+        # ---- Confirmation resume path ----
+        if confirmation_token:
+            return self._resume_confirmation(
+                confirmation_token, session_id, message, page_context, history, is_first_message,
+            )
+
+        # ---- Normal planning path ----
         tool_results: list = []
         actions: list = []
         state_updates: dict = {}
@@ -77,13 +89,27 @@ class AgentService:
         plan = self._plan(message, page_context, tool_results, history)
 
         if self.safety.requires_confirmation(message, plan):
-            reply = "That action needs confirmation before I run it."
+            # Store the pending action for later confirmation
+            pending = self.state_store.create_agent_pending_confirmation(
+                session_id=session_id,
+                message=message,
+                plan_json=json.dumps({
+                    "intent": plan.intent,
+                    "query": plan.query,
+                    "status": plan.status,
+                    "steps": plan.steps,
+                }),
+                page_context_json=json.dumps(page_context),
+            )
+            reply = "This action requires your confirmation before I run it."
             self._persist_turn(session_id, message, reply, {"confirmation": "required"})
             return self._response(
                 reply,
                 session=self._fresh_session(session_id),
                 actions=[{"type": "confirmation", "status": "required"}],
                 requires_confirmation=True,
+                confirmation_token=pending["token"],
+                expires_at=pending["expires_at"],
                 tool_results=tool_results,
             )
 
@@ -101,6 +127,108 @@ class AgentService:
         # Auto-title on first message
         if is_first_message:
             self._auto_title(session_id, message)
+
+        return self._response(
+            result,
+            session=self._fresh_session(session_id),
+            actions=actions,
+            state_updates=state_updates,
+            tool_results=tool_results,
+        )
+
+    def _resume_confirmation(
+        self,
+        token: str,
+        session_id: str,
+        message: str,
+        page_context: dict,
+        history: list,
+        is_first_message: bool,
+    ) -> dict:
+        """Resume a previously confirmed action."""
+        tool_results: list = []
+        actions: list = []
+        state_updates: dict = {}
+
+        # Load pending confirmation
+        pending = self.state_store.get_agent_pending_confirmation(token)
+        if not pending:
+            return self._response(
+                "This confirmation token is invalid or has already been used.",
+                session=self._fresh_session(session_id),
+                actions=[{"type": "confirmation", "status": "failed"}],
+                tool_results=tool_results,
+            )
+
+        # Validate session match
+        if pending["session_id"] != session_id:
+            return self._response(
+                "This confirmation belongs to a different session.",
+                session=self._fresh_session(session_id),
+                actions=[{"type": "confirmation", "status": "failed"}],
+                tool_results=tool_results,
+            )
+
+        # Validate status
+        if pending["status"] != "pending":
+            reason = "expired" if pending["status"] == "expired" else "already consumed"
+            return self._response(
+                f"This confirmation has {reason}.",
+                session=self._fresh_session(session_id),
+                actions=[{"type": "confirmation", "status": "failed"}],
+                tool_results=tool_results,
+            )
+
+        # Validate expiry
+        now = datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat() + "Z"
+        if pending["expires_at"] < now:
+            self.state_store.clean_expired_agent_confirmations()
+            return self._response(
+                "This confirmation has expired. Please try the action again.",
+                session=self._fresh_session(session_id),
+                actions=[{"type": "confirmation", "status": "expired"}],
+                tool_results=tool_results,
+            )
+
+        # Reconstruct plan and page context
+        try:
+            plan_data = json.loads(pending["plan_json"])
+            stored_context = json.loads(pending["page_context_json"])
+        except (json.JSONDecodeError, TypeError):
+            return self._response(
+                "Could not restore the original action. Please try again.",
+                session=self._fresh_session(session_id),
+                actions=[{"type": "confirmation", "status": "failed"}],
+                tool_results=tool_results,
+            )
+
+        plan = AgentPlan(
+            intent=plan_data.get("intent", ""),
+            query=plan_data.get("query", ""),
+            status=plan_data.get("status", ""),
+            steps=plan_data.get("steps", []),
+        )
+
+        # Execute the original action
+        original_message = pending.get("message", message)
+        merged_context = {**stored_context, **page_context}
+        result = self._execute(plan, original_message, merged_context, tool_results, actions, state_updates, history)
+
+        # Mark consumed
+        self.state_store.consume_agent_pending_confirmation(token)
+
+        # Persist messages
+        metadata = {
+            "tool_results": tool_results,
+            "actions": actions,
+            "state_updates": state_updates,
+            "confirmed": True,
+        }
+        self._persist_turn(session_id, original_message, result, metadata)
+
+        # Auto-title on first message
+        if is_first_message:
+            self._auto_title(session_id, original_message)
 
         return self._response(
             result,
@@ -254,7 +382,7 @@ class AgentService:
         query = plan.query or str(page_context.get("query") or "").strip()
         actions.append({"type": "search", "query": query})
         tool_results.append({"tool": "search_papers", "status": "scheduled", "query": query})
-        state_updates["navigate"] = f"/?q={quote(query)}" if query else "/"
+        state_updates["navigate"] = f"/search?q={quote(query)}" if query else "/search"
         return f"Searching for **{query}**." if query else "Tell me what to search for."
 
     # ------------------------------------------------------------------
@@ -509,6 +637,8 @@ class AgentService:
         state_updates: Optional[dict] = None,
         tool_results: Optional[list] = None,
         requires_confirmation: bool = False,
+        confirmation_token: str = "",
+        expires_at: str = "",
     ) -> dict:
         return {
             "success": True,
@@ -517,7 +647,8 @@ class AgentService:
             "actions": actions or [],
             "state_updates": state_updates or {},
             "requires_confirmation": requires_confirmation,
-            "confirmation_token": "required" if requires_confirmation else "",
+            "confirmation_token": confirmation_token,
+            "expires_at": expires_at,
             "tool_results": tool_results or [],
             "session": session or {},
         }

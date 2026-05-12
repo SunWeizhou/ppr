@@ -43,6 +43,7 @@ function AgentPanel() {
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [busy, setBusy] = useState(false);
   const [confirmationToken, setConfirmationToken] = useState<string | null>(null);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
   const [panelWidth, setPanelWidth] = useState(360);
 
   // Expose global toggle
@@ -173,12 +174,14 @@ function AgentPanel() {
 
         if (result.requires_confirmation) {
           setConfirmationToken(result.confirmation_token || "required");
+          setPendingMessage(text);
         }
       }
 
       // Handle navigation
-      if (result.state_updates?.navigate) {
-        window.location.href = result.state_updates.navigate;
+      const navigateTo = result.state_updates?.navigate as string | undefined;
+      if (navigateTo) {
+        window.location.href = navigateTo;
       }
 
       // Dispatch queue updates
@@ -297,17 +300,23 @@ function AgentPanel() {
           {/* Confirmation Prompt */}
           {confirmationToken && (
             <div class="ap-confirmation">
+              {pendingMessage && (
+                <div class="ap-confirmation-action">"{pendingMessage}"</div>
+              )}
               <div class="ap-confirmation-msg">This action requires your confirmation.</div>
               <div class="ap-confirmation-actions">
-                <button 
-                  class="ap-btn ap-btn-primary" 
+                <button
+                  class="ap-btn ap-btn-primary"
                   onClick={() => handleSend("confirm", true)}
                 >
                   Confirm
                 </button>
-                <button 
-                  class="ap-btn ap-btn-ghost" 
-                  onClick={() => setConfirmationToken(null)}
+                <button
+                  class="ap-btn ap-btn-ghost"
+                  onClick={() => {
+                    setConfirmationToken(null);
+                    setPendingMessage(null);
+                  }}
                 >
                   Cancel
                 </button>

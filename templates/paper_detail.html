@@ -11,7 +11,7 @@
     {% set back_rq = paper.get('active_research_question_id') %}
     {% set return_q = request.args.get('return_q', '') %}
     {% set return_to = request.args.get('return_to', '') %}
-    <a href="{% if return_q %}/?q={{ return_q|urlencode }}{% elif return_to and return_to.startswith('/') and not return_to.startswith('//') %}{{ return_to }}{% elif back_rq %}/?research_question_id={{ back_rq }}{% else %}/{% endif %}" class="back-link">&larr; {% if return_to.startswith('/recommendations') %}Back to Recommendations{% else %}Back to Search{% endif %}</a>
+    <a href="{% if return_q %}/search?q={{ return_q|urlencode }}{% elif return_to and return_to.startswith('/') and not return_to.startswith('//') %}{{ return_to }}{% elif back_rq %}/?research_question_id={{ back_rq }}{% else %}/{% endif %}" class="back-link">&larr; {% if return_to.startswith('/recommendations') %}Back to Recommendations{% else %}Back to Search{% endif %}</a>
 </div>
 {% endblock %}
 
@@ -232,36 +232,57 @@
             <!-- Actions -->
             <div class="card card-spaced">
                 <h2 class="panel-title">Actions</h2>
-                <div class="action-buttons">
-                    <button class="btn btn-primary btn-sm" onclick="paperDetailAction('relevant', '{{ paper.get('id') }}')">Relevant</button>
-                    <button class="btn btn-danger btn-sm" onclick="paperDetailAction('ignore', '{{ paper.get('id') }}')">Ignore</button>
-                    <button class="btn btn-warm btn-sm" onclick="paperDetailAction('skim', '{{ paper.get('id') }}')">Skim Later</button>
-                    <button class="btn btn-sage btn-sm" onclick="paperDetailAction('deepread', '{{ paper.get('id') }}')">Deep Read</button>
-                    <button class="btn btn-secondary btn-sm" onclick="paperDetailAction('save', '{{ paper.get('id') }}')">Saved</button>
-                    <button class="btn btn-tertiary btn-sm" onclick="paperDetailAction('collect', '{{ paper.get('id') }}')">Add to Collection</button>
-                    {% if paper.get('first_author') %}
-                    <button class="btn btn-tertiary btn-sm follow-author-action" title="Follow {{ paper.get('first_author') }}" onclick="paperDetailAction('follow', '{{ paper.get('id') }}', '{{ paper.get('first_author') }}')">Follow {{ paper.get('first_author') }}</button>
-                    {% endif %}
+
+                <!-- Primary reading decisions -->
+                <div class="action-group">
+                    <div class="action-group-label">Reading Decision</div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary btn-sm" onclick="paperDetailAction('save', '{{ paper.get('id') }}')">Save</button>
+                        <button class="btn btn-warm btn-sm" onclick="paperDetailAction('skim', '{{ paper.get('id') }}')">Skim Later</button>
+                        <button class="btn btn-sage btn-sm" onclick="paperDetailAction('deepread', '{{ paper.get('id') }}')">Deep Read</button>
+                    </div>
                 </div>
-                {% if paper.get('id') %}
-                <div class="action-buttons" style="margin-top:8px;">
-                    {% if paper.get('link') %}
-                    <a href="{{ paper.get('link', 'https://arxiv.org/abs/' + paper.get('id', '')) }}" target="_blank" class="btn btn-secondary btn-sm">Open arXiv</a>
-                    <a href="/api/pdf/{{ paper.get('id') }}" target="_blank" class="btn btn-primary btn-sm">Download PDF</a>
-                    <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank" class="btn btn-secondary btn-sm">Export BibTeX</a>
-                    {% endif %}
-                </div>
-                {% if has_ai %}
-                <div class="action-buttons" style="margin-top:8px;">
-                    <button class="btn btn-primary btn-sm" id="aiGenerateBtn" onclick="generateAIAnalysis('{{ paper.get('id') }}')">
-                        {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
-                        Regenerate AI Analysis
-                        {% else %}
-                        Generate AI Analysis
+
+                <!-- Secondary research actions -->
+                <div class="action-group">
+                    <div class="action-group-label">Research</div>
+                    <div class="action-buttons">
+                        <button class="btn btn-ghost btn-sm" onclick="paperDetailAction('relevant', '{{ paper.get('id') }}')">Relevant</button>
+                        <button class="btn btn-ghost btn-sm" onclick="paperDetailAction('ignore', '{{ paper.get('id') }}')">Ignore</button>
+                        <button class="btn btn-ghost btn-sm" onclick="paperDetailAction('collect', '{{ paper.get('id') }}')">Add to Collection</button>
+                        {% if paper.get('first_author') %}
+                        <button class="btn btn-ghost btn-sm follow-author-action" title="Follow {{ paper.get('first_author') }}" onclick="paperDetailAction('follow', '{{ paper.get('id') }}', '{{ paper.get('first_author') }}')">Follow {{ paper.get('first_author') }}</button>
                         {% endif %}
-                    </button>
+                    </div>
+                </div>
+
+                {% if has_ai %}
+                <div class="action-group">
+                    <div class="action-group-label">Analysis</div>
+                    <div class="action-buttons">
+                        <button class="btn btn-ghost btn-sm" id="aiGenerateBtn" onclick="generateAIAnalysis('{{ paper.get('id') }}')">
+                            {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
+                            Regenerate AI Analysis
+                            {% else %}
+                            Generate AI Analysis
+                            {% endif %}
+                        </button>
+                    </div>
                 </div>
                 {% endif %}
+
+                <!-- External/export actions -->
+                {% if paper.get('id') %}
+                <div class="action-group">
+                    <div class="action-group-label">Export</div>
+                    <div class="action-buttons">
+                        {% if paper.get('link') %}
+                        <a href="{{ paper.get('link', 'https://arxiv.org/abs/' + paper.get('id', '')) }}" target="_blank" class="btn btn-ghost btn-sm">Open arXiv</a>
+                        <a href="/api/pdf/{{ paper.get('id') }}" target="_blank" class="btn btn-ghost btn-sm">Download PDF</a>
+                        <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank" class="btn btn-ghost btn-sm">Export BibTeX</a>
+                        {% endif %}
+                    </div>
+                </div>
                 {% endif %}
             </div>
 

@@ -250,7 +250,19 @@ class EntityService:
                 except Exception as e:
                     logger.debug("Failed to create venue entity for '%s': %s", venue, e)
 
-            # 2. Authors
+            # 2. Authors — use author_ids (with provider IDs) when available
+            author_ids = paper.get("author_ids") or []
+            author_id_map: dict[str, dict] = {}
+            for aid in author_ids:
+                name = aid.get("name", "")
+                if name:
+                    ext = {}
+                    if aid.get("semantic_scholar"):
+                        ext["semantic_scholar"] = aid["semantic_scholar"]
+                    if aid.get("openalex"):
+                        ext["openalex"] = aid["openalex"]
+                    author_id_map[name] = ext if ext else None
+
             authors = paper.get("authors") or []
             for author in authors:
                 name = author.strip()
@@ -258,9 +270,12 @@ class EntityService:
                     continue
                 seen_authors.add(name)
                 try:
-                    # Semantic Scholar often has IDs, but we might not have them in ad-hoc results
-                    # If paper_data has author metadata with IDs, we should use them
-                    entity = self.get_or_create(entity_type="scholar", name=name)
+                    ext_ids = author_id_map.get(name)
+                    entity = self.get_or_create(
+                        entity_type="scholar",
+                        name=name,
+                        external_ids=ext_ids,
+                    )
                     created.append(entity)
                 except Exception as e:
                     logger.debug("Failed to create scholar entity for '%s': %s", name, e)

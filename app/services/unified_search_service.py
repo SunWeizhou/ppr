@@ -126,11 +126,18 @@ def normalize_semantic_paper(paper: dict) -> dict:
     external = paper.get("externalIds") or {}
     arxiv_id = _clean_arxiv_id(external.get("ArXiv") or "")
     semantic_id = str(paper.get("paperId") or "").strip()
-    authors = [
-        author.get("name", "")
-        for author in (paper.get("authors") or [])
-        if isinstance(author, dict) and author.get("name")
-    ]
+    raw_authors = paper.get("authors") or []
+    authors = []
+    author_ids: list[dict[str, str]] = []
+    for author in raw_authors[:3]:  # Cap at first 3 for quality
+        if not isinstance(author, dict):
+            continue
+        name = author.get("name", "")
+        if name:
+            authors.append(name)
+            s2_id = author.get("authorId", "")
+            if s2_id:
+                author_ids.append({"name": name, "semantic_scholar": s2_id})
     pdf = paper.get("openAccessPdf") or {}
     paper_id = f"arxiv:{arxiv_id}" if arxiv_id else f"s2:{semantic_id}"
     doi_raw = str(external.get("DOI") or "").strip()
@@ -145,6 +152,7 @@ def normalize_semantic_paper(paper: dict) -> dict:
         "source": "semantic_scholar",
         "title": paper.get("title", ""),
         "authors": authors,
+        "author_ids": author_ids,
         "year": str(paper.get("year") or ""),
         "venue": paper.get("venue") or "Semantic Scholar",
         "abstract": paper.get("abstract") or "",
@@ -216,15 +224,23 @@ def normalize_openalex_paper(paper: dict) -> dict:
     short_id = oa_id.replace("https://openalex.org/", "") if oa_id else ""
 
     authorships = paper.get("authorships") or []
-    authors = [
-        a.get("author", {}).get("display_name", "")
-        for a in authorships
-        if a.get("author", {}).get("display_name")
-    ]
+    authors = []
+    author_ids: list[dict[str, str]] = []
+    for a in authorships[:3]:  # Cap at first 3 authors for quality/scale
+        author_data = a.get("author") or {}
+        name = author_data.get("display_name", "")
+        if name:
+            authors.append(name)
+            author_id = author_data.get("id", "")
+            if author_id:
+                short_author_id = author_id.replace("https://openalex.org/", "")
+                author_ids.append({"name": name, "openalex": short_author_id})
 
     primary = paper.get("primary_location") or {}
     source_info = primary.get("source") or {}
     venue = source_info.get("display_name", "")
+    source_id_raw = source_info.get("id", "")
+    source_id = source_id_raw.replace("https://openalex.org/", "") if source_id_raw else ""
 
     doi_raw = str(paper.get("doi") or "")
     doi = doi_raw.replace("https://doi.org/", "") if doi_raw else ""
@@ -234,6 +250,8 @@ def normalize_openalex_paper(paper: dict) -> dict:
         external_ids["doi"] = doi
     if short_id:
         external_ids["openalex"] = short_id
+    if source_id:
+        external_ids["openalex_source"] = source_id
 
     abstract = ""
     inverted = paper.get("abstract_inverted_index")
@@ -251,6 +269,7 @@ def normalize_openalex_paper(paper: dict) -> dict:
         "source": "openalex",
         "title": str(paper.get("title") or ""),
         "authors": authors,
+        "author_ids": author_ids,
         "author_text": ", ".join(authors),
         "year": paper.get("publication_year"),
         "venue": venue,

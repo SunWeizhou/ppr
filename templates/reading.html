@@ -10,7 +10,7 @@
         <div class="page-context">Review evidence, decide what to read, and keep useful papers.</div>
     </div>
     <div class="actions">
-        <a href="/" class="btn btn-primary btn-sm">Back to Search</a>
+        <a href="/search" class="btn btn-primary btn-sm">Back to Search</a>
     </div>
 </section>
 {% endblock %}
@@ -87,7 +87,7 @@
             {% endfor %}
             </div>
         {% else %}
-            {{ ui.empty_state('Nothing to read yet', 'Build a candidate set from Search, then move promising papers here.', '', '<a href="/" class="btn btn-primary">Go to Search</a>') }}
+            {{ ui.empty_state('Nothing to read yet', 'Build a candidate set from Search, then move promising papers here.', '', '<a href="/search" class="btn btn-primary">Go to Search</a>') }}
         {% endif %}
 
     {% elif tab == 'saved' %}
@@ -119,7 +119,7 @@
             {% endfor %}
             </div>
         {% else %}
-            {{ ui.empty_state('No saved items', 'Save papers after reviewing their evidence.', '', '<a href="/" class="btn btn-primary">Go to Search</a>') }}
+            {{ ui.empty_state('No saved items', 'Save papers after reviewing their evidence.', '', '<a href="/search" class="btn btn-primary">Go to Search</a>') }}
         {% endif %}
 
     {% elif tab == 'collections' %}

@@ -18,6 +18,18 @@ class RecommendationsViewModel:
         # Build sections from latest run papers (group by source_strategy)
         sections = self._build_sections(papers)
 
+        # Check if recommendations can be personalized (has profile signal)
+        # If there are sections/papers, we have results; otherwise check if profile setup is needed
+        needs_profile = not bool(papers) and not bool(sections)
+        if needs_profile:
+            try:
+                subs = self._store.list_subscriptions()
+                queue = self._store.list_queue_items()
+                if subs or queue:
+                    needs_profile = False
+            except Exception:
+                pass
+
         context = assemble_page_context(self._store, active_tab="recommendations")
         context.update({
             "title": "Recommendations - Paper Agent",
@@ -28,6 +40,7 @@ class RecommendationsViewModel:
             "papers": papers,
             "sections": sections,
             "selected_paper": papers[0] if papers else None,
+            "needs_profile": needs_profile,
         })
         return context
 
