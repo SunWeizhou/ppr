@@ -86,7 +86,7 @@ class InboxViewModel:
         ]
 
         context = {
-            "title": "Today - Research Assistant",
+            "title": "Today - Paper Agent",
             "date": date,
             "today": datetime.now().strftime("%Y-%m-%d"),
             "is_today": is_today,
@@ -108,7 +108,7 @@ class InboxViewModel:
         context = assemble_page_context(self._store, active_tab="inbox")
         context["queue_counts"] = self._queue_counts()
         context["queue_status_values"] = QUEUE_STATUS_VALUES
-        context["title"] = "Generating Recommendations - Research Assistant"
+        context["title"] = "Generating Recommendations - Paper Agent"
         return context
 
     def to_no_data_html(self, date: str) -> str:

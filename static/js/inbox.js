@@ -4,13 +4,13 @@
   var aiAnalysisRequestToken = 0;
 
   var aiAnalysisLabels = {
-    one_sentence_summary: '一句话总结',
-    problem: '研究问题',
-    method: '方法思路',
-    contribution: '主要贡献',
-    limitations: '局限性',
-    why_it_matters: '为什么重要',
-    recommended_reading_level: '阅读建议'
+    one_sentence_summary: 'Summary',
+    problem: 'Research question',
+    method: 'Method',
+    contribution: 'Contribution',
+    limitations: 'Limitations',
+    why_it_matters: 'Why it matters',
+    recommended_reading_level: 'Reading suggestion'
   };
 
   // ---- Safe element helpers (guard against missing detail-panel DOM) ----
@@ -76,11 +76,11 @@
     if (!output || !analysis) return;
     while (output.firstChild) output.removeChild(output.firstChild);
     if (analysis.status === 'not_configured') {
-      output.textContent = 'AI provider 未配置。当前显示原始摘要和规则推荐原因。';
+      output.textContent = 'No AI provider is configured. Use the abstract and rule-based context for now.';
       return;
     }
     if (analysis.status === 'failed') {
-      output.textContent = 'AI 分析生成失败。你仍然可以根据摘要和推荐原因判断。';
+      output.textContent = 'AI analysis failed. You can still decide from the abstract and relevance context.';
       return;
     }
     var rows = Object.entries(aiAnalysisLabels)
@@ -102,7 +102,7 @@
         output.appendChild(div);
       });
     } else {
-      output.textContent = '暂无 AI 分析。你可以生成分析，或继续根据摘要和推荐原因判断。';
+      output.textContent = 'No AI analysis yet. Generate one, or continue from the abstract and relevance context.';
     }
   }
 
@@ -110,13 +110,13 @@
     var paper = selectedPaperPayload();
     if (!paper || !paper.id) return;
     var token = ++aiAnalysisRequestToken;
-    setAiAnalysisMessage('暂无 AI 分析。你可以生成分析，或继续根据摘要和推荐原因判断。');
+    setAiAnalysisMessage('No AI analysis yet. Generate one, or continue from the abstract and relevance context.');
     try {
       var payload = await requestJson('/api/papers/' + encodeURIComponent(paper.id) + '/analysis');
       if (token === aiAnalysisRequestToken) renderAiAnalysis(payload.analysis);
     } catch (error) {
       if (token === aiAnalysisRequestToken && !String(error.message || '').includes('analysis_not_found')) {
-        setAiAnalysisMessage('AI 分析暂时不可用。你仍然可以根据摘要和推荐原因判断。');
+        setAiAnalysisMessage('AI analysis is temporarily unavailable. You can still decide from the abstract and relevance context.');
       }
     }
   }
@@ -125,7 +125,7 @@
     var paper = selectedPaperPayload();
     if (!paper || !paper.id) return;
     var token = ++aiAnalysisRequestToken;
-    setAiAnalysisMessage('正在生成 AI 分析...');
+    setAiAnalysisMessage('Generating AI analysis...');
     try {
       var payload = await requestJson('/api/papers/' + encodeURIComponent(paper.id) + '/analysis/generate', {
         method: 'POST',
@@ -135,7 +135,7 @@
       if (token === aiAnalysisRequestToken) renderAiAnalysis(payload.analysis);
     } catch (error) {
       if (token === aiAnalysisRequestToken) {
-        setAiAnalysisMessage('AI 分析生成失败。你仍然可以根据摘要和推荐原因判断。');
+        setAiAnalysisMessage('AI analysis failed. You can still decide from the abstract and relevance context.');
       }
     }
   }
@@ -290,11 +290,11 @@
         // Skim Later, Deep Read, Save — queue action
         await queuePaperStatus(paperId, status, {source: 'home_research'});
         var label = status;
-        showToast('已加入队列: ' + label);
+        showToast('Added to queue: ' + label);
       } else {
         // Pass — feedback dislike
         await submitPaperFeedback(paperId, 'dislike');
-        showToast('已忽略该论文');
+        showToast('Paper ignored');
       }
 
       // Visual feedback: dim the card or remove it
@@ -317,7 +317,7 @@
       refreshInboxProgress();
     } catch (error) {
       if (btn) btn.disabled = false;
-      showToast('操作失败: ' + error.message, 'error');
+      showToast('Action failed: ' + error.message, 'error');
       card.style.opacity = '1';
       card.style.pointerEvents = '';
     }

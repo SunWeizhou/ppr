@@ -35,7 +35,7 @@ class ReadingViewModel:
         library_ctx = library_vm.to_template_context(tab="collections")
 
         context = {
-            "title": "Reading - Agent Literature Research Assistant",
+            "title": "Reading - Paper Agent",
             "active_tab": "reading",
             "tab": tab,
             "queue_counts": queue_counts,

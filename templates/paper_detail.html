@@ -1,5 +1,7 @@
 {% extends "base_research.html" %}
 
+{% set body_class = (body_class or '') ~ ' page-paper-detail' %}
+
 {% block head %}
 {{ super() }}
 {% endblock %}
@@ -7,7 +9,9 @@
 {% block hero %}
 <div class="page-header">
     {% set back_rq = paper.get('active_research_question_id') %}
-    <a href="{% if back_rq %}/search?research_question_id={{ back_rq }}{% else %}/queue?status=Inbox{% endif %}" class="back-link">&larr; {% if back_rq %}返回 Search 工作区{% else %}返回 Inbox{% endif %}</a>
+    {% set return_q = request.args.get('return_q', '') %}
+    {% set return_to = request.args.get('return_to', '') %}
+    <a href="{% if return_q %}/?q={{ return_q|urlencode }}{% elif return_to and return_to.startswith('/') and not return_to.startswith('//') %}{{ return_to }}{% elif back_rq %}/?research_question_id={{ back_rq }}{% else %}/{% endif %}" class="back-link">&larr; {% if return_to.startswith('/recommendations') %}Back to Recommendations{% else %}Back to Search{% endif %}</a>
 </div>
 {% endblock %}
 
@@ -16,7 +20,7 @@
 <div class="page-content">
     <div class="card card-spaced">
         <p>{{ error }}</p>
-        <a href="/queue?status=Inbox" class="btn btn-secondary">返回 Inbox</a>
+        <a href="/queue?status=Inbox" class="btn btn-secondary">Back to Inbox</a>
     </div>
 </div>
 {% else %}
@@ -42,7 +46,7 @@
             </div>
             {% endif %}
 
-            <h1>{{ paper.get('title', 'Untitled') }}</h1>
+            <h1 class="paper-detail-title">{{ paper.get('title', 'Untitled') }}</h1>
             <div class="paper-meta">
                 <div>{{ paper.get('author_text', 'Unknown authors') }}</div>
                 <div>
@@ -103,7 +107,10 @@
                         {% endif %}
                     </div>
                 {% elif not has_ai %}
-                    <p class="empty-state">AI analysis not configured. Add an API key in <a href="/settings?tab=ai">Settings</a>.</p>
+                    <div class="empty-state">
+                        <p><strong>Rule-based reading support is active.</strong></p>
+                        <p>Configure an AI provider only if you want deeper method, limitation, and contribution analysis.</p>
+                    </div>
                 {% elif analysis and analysis.get('status') == 'failed' %}
                     <p class="empty-state">AI analysis generation failed: {{ analysis.get('error_text', 'Unknown error') }}</p>
                     <button class="btn btn-primary btn-sm" id="aiGenerateBtn" onclick="generateAIAnalysis('{{ paper.get('id') }}')">Retry AI Analysis</button>
@@ -233,7 +240,7 @@
                     <button class="btn btn-secondary btn-sm" onclick="paperDetailAction('save', '{{ paper.get('id') }}')">Saved</button>
                     <button class="btn btn-tertiary btn-sm" onclick="paperDetailAction('collect', '{{ paper.get('id') }}')">Add to Collection</button>
                     {% if paper.get('first_author') %}
-                    <button class="btn btn-tertiary btn-sm" onclick="paperDetailAction('follow', '{{ paper.get('id') }}', '{{ paper.get('first_author') }}')">Follow {{ paper.get('first_author') }}</button>
+                    <button class="btn btn-tertiary btn-sm follow-author-action" title="Follow {{ paper.get('first_author') }}" onclick="paperDetailAction('follow', '{{ paper.get('id') }}', '{{ paper.get('first_author') }}')">Follow {{ paper.get('first_author') }}</button>
                     {% endif %}
                 </div>
                 {% if paper.get('id') %}

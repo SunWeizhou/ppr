@@ -125,7 +125,7 @@ def generate_relevance_html(paper: dict) -> str:
     # Legacy path: relevance_breakdown list
     breakdown = paper.get("relevance_breakdown", [])
     if not breakdown:
-        text = html.escape(str(paper.get("relevance") or paper.get("relevance_reason") or "匹配您的研究兴趣"))
+        text = html.escape(str(paper.get("relevance") or paper.get("relevance_reason") or "Matches your research interests"))
         return f'<div class="paper-relevance-text">{text}</div>'
 
     html_items = []
@@ -133,10 +133,10 @@ def generate_relevance_html(paper: dict) -> str:
         if isinstance(reason_item, str):
             if reason_item.startswith("[Core]"):
                 icon = "🎯"
-                text = f"命中核心主题: {html.escape(reason_item.replace('[Core]', '').strip())}"
+                text = f"Core topic match: {html.escape(reason_item.replace('[Core]', '').strip())}"
             elif reason_item.startswith("[Secondary]"):
                 icon = "📌"
-                text = f"相关主题: {html.escape(reason_item.replace('[Secondary]', '').strip())}"
+                text = f"Related topic: {html.escape(reason_item.replace('[Secondary]', '').strip())}"
             else:
                 icon = "📌"
                 text = html.escape(reason_item)
@@ -176,7 +176,7 @@ def _render_structured_reason_html(reason: dict) -> str:
         rows.append(
             '<div class="relevance-item">'
             '<span class="relevance-icon">🎯</span>'
-            f'<span class="relevance-text">命中核心研究主题: {html.escape(topic_text)}</span>'
+            f'<span class="relevance-text">Core research topic: {html.escape(topic_text)}</span>'
             "</div>"
         )
 
@@ -187,7 +187,7 @@ def _render_structured_reason_html(reason: dict) -> str:
         rows.append(
             '<div class="relevance-item">'
             '<span class="relevance-icon">🔔</span>'
-            f'<span class="relevance-text">来自研究问题订阅: {html.escape(sub_text)}</span>'
+            f'<span class="relevance-text">From research subscription: {html.escape(sub_text)}</span>'
             "</div>"
         )
 
@@ -198,7 +198,7 @@ def _render_structured_reason_html(reason: dict) -> str:
         rows.append(
             '<div class="relevance-item">'
             '<span class="relevance-icon">🧠</span>'
-            f'<span class="relevance-text">与 Zotero 文献库中论文语义相似度: {pct}%</span>'
+            f'<span class="relevance-text">Semantic similarity to Zotero library: {pct}%</span>'
             "</div>"
         )
 
@@ -221,7 +221,7 @@ def _render_structured_reason_html(reason: dict) -> str:
         rows.append(
             '<div class="relevance-item">'
             '<span class="relevance-icon">🏷️</span>'
-            f'<span class="relevance-text">来源: {html.escape(source_text)}</span>'
+            f'<span class="relevance-text">Source: {html.escape(source_text)}</span>'
             "</div>"
         )
 
@@ -239,7 +239,7 @@ def _render_structured_reason_html(reason: dict) -> str:
     if not rows:
         rows.append(
             '<div class="relevance-item">'
-            '<span class="relevance-text">基于综合相关性得分推荐</span>'
+            '<span class="relevance-text">Recommended based on overall relevance score</span>'
             "</div>"
         )
 
@@ -261,17 +261,17 @@ def split_query_terms(query_text: str) -> list[str]:
 
 def normalize_reason_type(text: str) -> tuple[str, str]:
     lowered = text.lower()
-    if "核心主题" in text or "core" in lowered:
-        return "🎯", "标题/摘要命中"
-    if "相关主题" in text or "secondary" in lowered:
+    if "core" in lowered or "core topic" in lowered:
+        return "🎯", "Title/abstract match"
+    if "secondary" in lowered or "related topic" in lowered:
         return "📌", ""
-    if "理论" in text or "theorem" in lowered or "proof" in lowered or "bound" in lowered:
+    if "theorem" in lowered or "proof" in lowered or "bound" in lowered:
         return "📐", ""
-    if "zotero" in lowered or "语义" in text:
+    if "zotero" in lowered or "semantic similarity" in lowered:
         return "🧠", ""
-    if "作者" in text or "institution" in lowered or "google research" in lowered:
+    if "institution" in lowered or "google research" in lowered or "author" in lowered:
         return "🏛️", ""
-    if "近" in text or "新论文" in text or "recency" in lowered:
+    if "recency" in lowered or "recent" in lowered:
         return "🆕", ""
     return "📌", ""
 

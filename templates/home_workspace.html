@@ -1,0 +1,110 @@
+{% extends "base_research.html" %}
+
+{% set body_class = (body_class or '') ~ ' page-home' %}
+
+{% block content %}
+<section class="home-shell" x-data="workspaceComposer()">
+    <div class="home-intro">
+        <p class="home-eyebrow">Research Workspace</p>
+        <h1>Ask a research question</h1>
+        <p class="home-copy">Turn an open-ended topic into candidates, evidence, and a clear reading decision.</p>
+    </div>
+
+    <form class="home-composer" @submit.prevent="startResearch">
+        <label class="sr-only" for="homeResearchQuestion">Research question</label>
+        <textarea
+            id="homeResearchQuestion"
+            x-model="query"
+            rows="4"
+            placeholder="What do you want to understand, compare, or decide?"
+            aria-label="Research question"
+        ></textarea>
+        <div class="composer-actions">
+            <button type="submit" class="btn btn-primary" :disabled="busy || !query.trim()">Start research</button>
+            <button type="button" class="btn btn-secondary" @click="runPlanner" :disabled="busy || !query.trim()">Run planner</button>
+            <span class="composer-status" x-text="status"></span>
+        </div>
+    </form>
+
+    <div class="home-summaries" aria-label="Workspace summary">
+        {% for item in home_summaries %}
+        <a class="summary-link" href="{{ item.href }}">
+            <span class="summary-label">{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+            <span>{{ item.description }}</span>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if recent_questions %}
+    <section class="recent-questions" aria-label="Recent research questions">
+        <div class="section-row">
+            <h2>Recent questions</h2>
+            <a href="/" class="text-link">Search all</a>
+        </div>
+        <div class="quiet-list">
+            {% for question in recent_questions %}
+            <a class="quiet-row" href="/search?research_question_id={{ question.id }}&q={{ question.query_text|urlencode }}">
+                <span>{{ question.query_text }}</span>
+                <span>Continue</span>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function workspaceComposer() {
+  return {
+    query: '',
+    busy: false,
+    status: '',
+    async createQuestion() {
+      const query = this.query.trim();
+      const result = await requestJson('/api/workspaces/questions', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({query_text: query, intent_statement: query})
+      });
+      return result.question;
+    },
+    async startResearch() {
+      if (!this.query.trim()) return;
+      this.busy = true;
+      this.status = 'Creating workspace...';
+      try {
+        const question = await this.createQuestion();
+        const q = encodeURIComponent(this.query.trim());
+        window.location.href = '/search?research_question_id=' + encodeURIComponent(question.id) + '&q=' + q;
+      } catch (error) {
+        this.status = error.message || 'Unable to start research.';
+      } finally {
+        this.busy = false;
+      }
+    },
+    async runPlanner() {
+      if (!this.query.trim()) return;
+      this.busy = true;
+      this.status = 'Running planner...';
+      try {
+        const question = await this.createQuestion();
+        await requestJson('/api/workspaces/questions/' + encodeURIComponent(question.id) + '/planner-runs', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({trigger: 'home'})
+        });
+        window.location.href = '/queue?status=Inbox';
+      } catch (error) {
+        this.status = error.message || 'Planner could not run.';
+      } finally {
+        this.busy = false;
+      }
+    }
+  };
+}
+</script>
+{% endblock %}

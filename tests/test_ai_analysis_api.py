@@ -58,7 +58,12 @@ class AIAnalysisApiTests(unittest.TestCase):
             api_routes.STATE_STORE = store
             api_routes.AI_ANALYSIS_PROVIDER = None
             try:
-                with mock.patch.dict("os.environ", {}, clear=True):
+                from app.services.ai_providers import NoProvider
+
+                with (
+                    mock.patch.dict("os.environ", {}, clear=True),
+                    mock.patch("app.routes.api.helpers.build_ai_provider_from_env", return_value=NoProvider()),
+                ):
                     response = web_server.app.test_client().post(
                         "/api/papers/2604.23456v2/analysis/generate",
                         json={"paper": {"id": "2604.23456v2", "title": "No provider"}, "force": False},

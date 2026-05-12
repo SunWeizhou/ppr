@@ -18,6 +18,26 @@ from state_store import QUEUE_STATUS_VALUES
 class MonitorViewModel:
     """Assembles template context for the Monitor page."""
 
+    PLACEHOLDER_VALUES = {
+        "stable identity",
+        "test paper title",
+        "browser smoke paper",
+        "hit test",
+        "hits list",
+        "query a",
+        "query b",
+        "sub a",
+        "sub b",
+        "first paper",
+        "json fields paper",
+        "fixture-paper",
+        "p1",
+        "p2",
+        "a",
+        "b",
+        "[]",
+    }
+
     def __init__(self, state_store):
         self._store = state_store
         self._feedback_service: FeedbackService | None = None
@@ -59,6 +79,36 @@ class MonitorViewModel:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError, Exception):
             return default
+
+    @classmethod
+    def _looks_like_fixture_value(cls, value) -> bool:
+        if value is None:
+            return False
+        text = str(value).strip().lower()
+        if not text:
+            return False
+        if text in cls.PLACEHOLDER_VALUES:
+            return True
+        return any(token in text for token in (
+            "test paper title",
+            "stable identity",
+            "browser smoke paper",
+            "fixture",
+        ))
+
+    @classmethod
+    def _looks_like_fixture_subscription(cls, sub: dict) -> bool:
+        return any(
+            cls._looks_like_fixture_value(sub.get(key))
+            for key in ("name", "query_text")
+        )
+
+    @classmethod
+    def _looks_like_fixture_hit(cls, hit: dict) -> bool:
+        return any(
+            cls._looks_like_fixture_value(hit.get(key))
+            for key in ("paper_id", "title", "matched_reason", "author_text")
+        )
 
     def _queue_counts(self) -> dict[str, int]:
         counts: dict[str, int] = dict.fromkeys(QUEUE_STATUS_VALUES, 0)
@@ -346,6 +396,26 @@ class MonitorViewModel:
             "detail_url": self._detail_url(paper_id, research_question_id),
         }
 
+    @staticmethod
+    def _source_health_for(item: dict) -> dict:
+        if not item.get("enabled", True):
+            return {
+                "state": "paused",
+                "label": "Paused",
+                "message": "This watch is not checking for new hits.",
+            }
+        if item.get("last_checked_at"):
+            return {
+                "state": "healthy",
+                "label": "Healthy",
+                "message": "Last check completed.",
+            }
+        return {
+            "state": "ready",
+            "label": "Ready",
+            "message": "This watch has not checked yet.",
+        }
+
     def _decorate_subscription(
         self,
         sub: dict,
@@ -376,9 +446,20 @@ class MonitorViewModel:
         item["workspace_stats"] = self._workspace_stats_for(
             item.get("research_question_id")
         )
-        item["recent_hits"] = [
-            self._hit_card(hit, item)
-            for hit in hits_by_subscription.get(item["id"], [])[:5]
+        recent_hits = []
+        for hit in hits_by_subscription.get(item["id"], [])[:8]:
+            card = self._hit_card(hit, item)
+            if not self._looks_like_fixture_hit(card):
+                recent_hits.append(card)
+            if len(recent_hits) >= 5:
+                break
+        item["recent_hits"] = recent_hits
+        item["source_health"] = self._source_health_for(item)
+        item["available_hit_actions"] = [
+            "Preview",
+            "Send to Reading",
+            "Ignore",
+            "Create collection",
         ]
         return item
 
@@ -419,7 +500,7 @@ class MonitorViewModel:
         """Assemble the full Monitor page context.
         Replaces web_server.monitor_page and merges _render_track_research."""
 
-        page_context = self._build_page_context("monitor")
+        page_context = self._build_page_context("watch")
 
         # ── unified subscription enrichment ──
         unified_subs = self._store.list_subscriptions()
@@ -427,6 +508,7 @@ class MonitorViewModel:
         decorated_subs = [
             self._decorate_subscription(sub, hits_by_subscription)
             for sub in unified_subs
+            if not self._looks_like_fixture_subscription(sub)
         ]
 
         # ── scholars from unified subscriptions ──
@@ -480,7 +562,7 @@ class MonitorViewModel:
         query_subs = [s for s in decorated_subs if s.get("type") == "query"]
 
         return {
-            "title": "Monitor - Agent Literature Research Assistant",
+            "title": "Watch - Paper Agent",
             "tab": tab,
             "headline_metrics": headline_metrics,
             "my_scholars": my_scholars,

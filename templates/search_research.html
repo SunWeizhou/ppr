@@ -1,457 +1,362 @@
 {% extends "base_research.html" %}
-{% import "_components.html" as ui %}
 
-{% block head %}
-{{ super() }}
-<style>
-/* Intent Card — each field full-width, label above input */
-.intent-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.intent-card .intent-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.intent-card .intent-field input,
-.intent-card .intent-field textarea {
-  width: 100%;
-  box-sizing: border-box;
-}
-.intent-card .intent-field textarea {
-  min-height: 80px;
-  resize: vertical;
-}
-/* Responsive: collapse split to single column on narrow viewports */
-@media (max-width: 768px) {
-  .workspace-search-shell,
-  .split.section-gap {
-    grid-template-columns: 1fr !important;
-  }
-  .intent-card,
-  .search-side {
-    order: -1;
-  }
-}
-</style>
-{% endblock %}
-
-{% block hero %}
-<section class="page-header">
-    <div class="lead">
-        <span class="section-kicker">Question-Driven Explore</span>
-        <h1 class="page-title">Search</h1>
-        <div class="page-context">
-            <span>{{ current_query or 'Start with a research question' }}</span>
-            {% if keywords %}
-                <span class="dot"></span>
-                <span>{{ papers|length }} hits</span>
-            {% endif %}
-        </div>
-    </div>
-    <div class="actions">
-        {% if active_research_question_id %}
-            <button class="btn btn-secondary" onclick="runWorkspacePlanner()">Run planner</button>
-        {% endif %}
-        <button class="btn btn-primary" onclick="createWorkspaceQuestion()">Create workspace</button>
-    </div>
-</section>
-{% endblock %}
+{% set body_class = (body_class or '') ~ ' page-search-workspace' %}
 
 {% block content %}
-<section>
-    <div class="split section-gap workspace-search-shell" data-research-question-id="{{ active_research_question_id or '' }}">
-        <div class="card workspace-chat-card">
-            <div class="section-kicker">Research Question</div>
-            <h2 class="panel-title">Start from intent</h2>
-            <textarea id="workspacePrompt" class="input-lg" rows="4" placeholder="Describe what you want to understand, compare, or decide...">{{ intent_card.intent_statement or current_query }}</textarea>
-            <div class="toolbar compact-toolbar">
-                <button class="btn btn-primary" onclick="confirmIntentAndSearch()">Search candidates</button>
-                {% if active_research_question_id %}
-                    <button class="btn btn-secondary" onclick="runWorkspacePlanner()">Run bounded planner</button>
-                {% endif %}
-                <span class="spacer"></span>
-                {% if planner_result %}
-                    <span class="chip brand">Planner {{ planner_result.status }}</span>
-                {% endif %}
+<section
+    class="paper-agent-search-shell"
+    data-research-question-id="{{ active_research_question_id or '' }}"
+>
+    {% macro paperAgentDetailUrl(paper) -%}
+    /papers/{{ paper.paper_id or paper.id }}{% if current_query %}?return_q={{ current_query|urlencode }}{% endif %}
+    {%- endmacro %}
+
+    <form class="paper-agent-searchbar" onsubmit="paperAgentSearch(event)">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input
+            id="paperAgentSearchInput"
+            type="search"
+            value="{{ current_query }}"
+            placeholder="Search papers, authors, topics..."
+            autocomplete="off"
+        >
+        <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+
+    <input type="hidden" id="researchQuestionId" value="{{ active_research_question_id or '' }}">
+    <input type="hidden" id="intentStatement" value="{{ intent_card.intent_statement }}">
+    <input type="hidden" id="workspacePrompt" value="{{ current_query }}">
+
+    {% if search_warnings %}
+    <div class="paper-agent-warning">
+        {{ search_warnings[0] }}
+    </div>
+    {% endif %}
+
+    <div class="source-status-grid" id="paperAgentSourceStatus" aria-label="Search source status">
+        {% for source in source_statuses %}
+        <div class="source-status-card is-{{ source.state }}" data-source="{{ source.key }}">
+            <span class="source-status-dot" aria-hidden="true"></span>
+            <div>
+                <strong>{{ source.label }}</strong>
+                <span>{{ source.message }}</span>
             </div>
         </div>
-
-        <aside class="card intent-card">
-            <div class="section-kicker">Intent Card</div>
-            <input type="hidden" id="researchQuestionId" value="{{ active_research_question_id or '' }}">
-            <div class="intent-field">
-                <label for="queryText">Searchable question</label>
-                <input type="text" id="queryText" value="{{ intent_card.query_text }}" placeholder="finite-sample conformal prediction under shift">
-            </div>
-            <div class="intent-field">
-                <label for="intentStatement">Intent statement</label>
-                <textarea id="intentStatement" rows="4" placeholder="What should the agent optimize for?">{{ intent_card.intent_statement }}</textarea>
-            </div>
-            <div class="list-stack">
-                <div class="list-item">
-                    <span class="list-item-title">Status</span>
-                    <span class="list-item-trailing">{{ intent_card.status }}</span>
-                </div>
-                <div class="list-item">
-                    <span class="list-item-title">Source</span>
-                    <span class="list-item-trailing">{{ intent_card.source }}</span>
-                </div>
-                {% if workspace_stats %}
-                    <div class="list-item">
-                        <span class="list-item-title">Active reading</span>
-                        <span class="list-item-trailing">{{ workspace_stats.active_reading_count }}</span>
-                    </div>
-                {% endif %}
-            </div>
-        </aside>
+        {% endfor %}
     </div>
 
-    <div class="split section-gap">
-        <div>
-            <div class="card workspace-brief">
-                <div class="section-kicker">Workspace Brief</div>
-                <h2 class="panel-title" id="workspaceBriefMessage">{{ workspace_brief.message }}</h2>
-                {% if workspace_brief.mode == 'results' %}
-                    <div class="row-tags">
-                        <span class="chip brand">{{ workspace_brief.candidate_count }} candidates</span>
-                        {% for category in workspace_brief.top_categories %}
-                            <span class="tag">{{ category }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="muted-copy">Create or select a research question, then search candidates for the workspace.</p>
-                {% endif %}
-                {% if papers and papers|length < 5 %}
-                <div class="info-note warn">
-                    <span>&#9888;</span>
-                    <span>Low-confidence results. Try broadening your query or using different terms.</span>
-                </div>
-                {% endif %}
-                <div id="plannerResult" class="planner-result" hidden>
-                    <div class="section-kicker">Planner Result</div>
-                    <div class="row-tags" id="plannerResultTags"></div>
-                    <p class="muted-copy" id="plannerResultDetail"></p>
-                </div>
-            </div>
-
+    <div class="paper-agent-workspace">
+        <div class="paper-results-pane">
             {% if papers %}
-                <div class="card card--flush">
+                <div class="paper-result-count">{{ papers|length }} articles</div>
+                <div class="paper-result-list" id="paperResultList">
                     {% for paper in papers %}
-                        <article class="row"
-                            data-paper-id="{{ paper.id }}"
-                            data-paper-title="{{ paper.title }}"
-                            data-paper-authors="{{ paper.author_text }}"
-                            data-paper-summary="{{ paper.summary or '' }}"
-                            data-paper-relevance="{{ paper.relevance_reason or '' }}"
-                            data-paper-link="{{ paper.link or '' }}"
-                            data-paper-score="{{ paper.score or 0 }}"
-                            data-paper-first-author="{{ paper.first_author }}"
-                            data-queue-status="{{ paper.queue_status or '' }}"
-                            data-research-question-id="{{ active_research_question_id or '' }}">
-                            <div class="row-lead">
-                                <span class="row-rank">{{ '%02d'|format(paper.rank) }}</span>
-                            </div>
-                            <div class="row-body">
-                                <div class="row-title">{{ paper.title }}</div>
-                                <div class="row-meta">{{ paper.author_text }}</div>
-                                <div class="row-summary">{{ paper.summary_short }}</div>
-                                <div class="row-tags">
-                                    {% for label in paper.category_labels[:3] %}
-                                        <span class="tag">{{ label }}</span>
-                                    {% endfor %}
-                                    {% if paper.queue_status %}
-                                        <span class="state-chip {{ paper.queue_status_class }}" data-queue-state>{{ paper.queue_status }}</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="row-trail">
-                                <span class="score-chip">{{ '%.1f'|format(paper.score or 0) }}</span>
-                                <div class="row-actions row-actions-compact">
-                                    <a class="btn btn-primary btn-sm" href="{{ paper.link or '#' }}" target="_blank" rel="noopener noreferrer" onclick="trackPaperOpen({{ paper.id|tojson }}, 'search_research')">打开 arXiv</a>
-                                    <a
-    href="/papers/{{ paper.id }}{% if active_research_question_id %}?research_question_id={{ active_research_question_id }}{% endif %}"
-    class="btn btn-tertiary btn-xs"
->查看详情</a>
-                                    <button type="button" class="btn btn-tertiary btn-sm" onclick="openPaperActions(this, 'search_research')">More</button>
-                                </div>
-                            </div>
-                        </article>
+                    <article
+                        class="paper-result-row {% if loop.first %}is-selected{% endif %}"
+                        data-paper-id="{{ paper.paper_id or paper.id }}"
+                        data-paper-title="{{ paper.title }}"
+                        data-paper-authors="{{ paper.author_text }}"
+                        data-paper-abstract="{{ paper.abstract or paper.summary or '' }}"
+                        data-paper-url="{{ paper.url or paper.link or '' }}"
+                        data-paper-pdf-url="{{ paper.pdf_url or '' }}"
+                        data-paper-source="{{ paper.source or '' }}"
+                        data-paper-venue="{{ paper.venue or '' }}"
+                        data-paper-year="{{ paper.year or '' }}"
+                        data-paper-citation-count="{{ paper.citation_count if paper.citation_count is not none else '' }}"
+                        data-paper-reference-count="{{ paper.reference_count if paper.reference_count is not none else '' }}"
+                        onclick="selectPaperResult(this)"
+                    >
+                        <div class="paper-result-main">
+                            <div class="paper-result-citation">{{ paper.display_citation }}</div>
+                            <h2>{{ paper.title }}</h2>
+                            <div class="paper-result-venue">{{ paper.venue or paper.source or 'Paper' }}</div>
+                            <p>{{ paper.summary_short or 'No abstract available.' }}</p>
+                        </div>
+                        <span class="paper-result-radio" aria-hidden="true"></span>
+                    </article>
                     {% endfor %}
                 </div>
-            {% elif keywords %}
-                <div class="card">
-                    {{ ui.empty_state('这次没有命中结果', '可以试试更短的 query，或者把复杂问题拆成两个统计关键词。') }}
+            {% elif current_query %}
+                <div class="paper-agent-empty">
+                    <h2>No articles found</h2>
+                    <p>Try a shorter query, a known author, or a broader topic.</p>
                 </div>
             {% else %}
-                <div class="card">
-                    {{ ui.empty_state('从研究问题开始，而不是从单篇论文开始', '例如：minimax nonparametric adaptation、finite-sample conformal shift、icl generalization bound。') }}
+                <div class="paper-agent-empty">
+                    <h2>Search to get started</h2>
+                    <p>Enter a topic, author name, or paper title above.</p>
                 </div>
             {% endif %}
         </div>
 
-        <div class="search-side">
-            <div class="card">
-                <div class="section-kicker">Query Subscriptions</div>
-                <h2 class="panel-title">已保存的问题订阅</h2>
-                {% if all_saved_searches %}
-                    <div class="list-stack mt-3">
-                        {% for search in all_saved_searches %}
-                            <div class="list-item">
-                                <div>
-                                    <span class="list-item-title">{{ search.name }}</span>
-                                    <span class="list-item-subtitle">{{ search.description or search.query_text }}</span>
-                                </div>
-                                <a href="/watch" class="btn btn-tertiary btn-sm">管理</a>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="compact-empty"><p class="muted-copy">先做一次高质量搜索，再把它保存成长期关注对象。</p></div>
-                {% endif %}
+        <aside class="paper-preview-pane" id="paperPreviewPane">
+            <div class="preview-tabs">
+                <button class="preview-tab is-active" type="button">Article</button>
+                <button class="preview-tab" type="button" disabled>Notes 0</button>
             </div>
-
-            <div class="card">
-                <div class="section-kicker">Collections</div>
-                <h2 class="panel-title">研究容器</h2>
-                {% if all_collections %}
-                    <div class="list-stack mt-3">
-                        {% for collection in all_collections %}
-                            <a href="/reading?tab=collections&collection_id={{ collection.id }}" class="list-item list-item-link">
-                                <div>
-                                    <span class="list-item-title">{{ collection.name }}</span>
-                                    <span class="list-item-subtitle">{{ collection.description or collection.query_text or 'No description yet' }}</span>
-                                </div>
-                                <span class="list-item-trailing">{{ collection.paper_count }}</span>
-                            </a>
-                        {% endfor %}
+            <button class="preview-close" type="button" onclick="clearPaperPreview()" aria-label="Clear preview">×</button>
+            {% if selected_paper %}
+            <div id="paperPreviewContent">
+                <h2>{{ selected_paper.display_citation }}</h2>
+                <a class="preview-title" href="{{ paperAgentDetailUrl(selected_paper) }}">{{ selected_paper.title }}</a>
+                <div class="preview-source">{{ selected_paper.venue or selected_paper.source }}</div>
+                <div class="preview-authors">{{ selected_paper.author_text }}</div>
+                <div class="preview-section">
+                    <div class="preview-section-head">
+                        <strong>Collections</strong>
+                        <button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Save</button>
                     </div>
-                {% else %}
-                    <div class="compact-empty"><p class="muted-copy">Collection 更适合沉淀一个方法族或研究线索，而不是一次性结果列表。</p></div>
-                {% endif %}
+                    <div class="preview-action-grid">
+                        <button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper('Skim Later', 'Mark Skim')">Mark Skim</button>
+                        <button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper('Deep Read', 'Deep Read')">Deep Read</button>
+                        <button class="btn btn-ghost btn-sm" type="button" onclick="agentCreateWatchFromSearch()">Create Watch</button>
+                    </div>
+                </div>
+                <div class="preview-section">
+                    <strong>Abstract</strong>
+                    <p>{{ selected_paper.abstract or selected_paper.summary or 'No abstract available.' }}</p>
+                    <a class="text-link" href="{{ paperAgentDetailUrl(selected_paper) }}">Open full detail</a>
+                </div>
+                <div class="preview-deep-links">
+                    {% if selected_paper.citation_count is not none and selected_paper.citation_count != '' %}<button type="button">Cited By {{ selected_paper.citation_count }}</button>{% endif %}
+                    {% if selected_paper.reference_count is not none and selected_paper.reference_count != '' %}<button type="button">Refs {{ selected_paper.reference_count }}</button>{% endif %}
+                </div>
             </div>
-        </div>
+            {% else %}
+            <div id="paperPreviewContent" class="preview-empty">Select an article to preview it.</div>
+            {% endif %}
+        </aside>
     </div>
 </section>
 {% endblock %}
 
 {% block scripts %}
+{{ super() }}
 <script>
-function getSearchCard(element) {
-    return element.closest('[data-paper-id]');
-}
-
-function doSearch() {
-    const query = document.getElementById('keywordInput').value.trim();
+function paperAgentSearch(event) {
+    event.preventDefault();
+    const input = document.getElementById('paperAgentSearchInput');
+    const query = input ? input.value.trim() : '';
     if (!query) return;
-
-    // Show loading feedback
-    const btn = document.querySelector('.toolbar .btn-primary');
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Searching arXiv...';
-    }
-
-    // Navigate after a brief yield so the disabled state renders
-    setTimeout(function () {
-        window.location.href = '/search/' + encodeURIComponent(query);
-    }, 50);
+    const url = new URL(window.location.href);
+    url.pathname = '/';
+    url.search = '?q=' + encodeURIComponent(query);
+    window.history.pushState({}, '', url.toString());
+    fetchPaperAgentResults(query);
 }
 
-document.getElementById('keywordInput')?.addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        doSearch();
+async function fetchPaperAgentResults(query) {
+    const list = document.getElementById('paperResultList');
+    if (list) list.innerHTML = '<div class="paper-agent-empty"><p>Searching...</p></div>';
+    renderPaperAgentSourceStatus({arxiv: 'not_requested', semantic_scholar: 'not_requested'}, [], []);
+    try {
+        const payload = await requestJson('/api/search', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({q: query})
+        });
+        renderPaperAgentSourceStatus(payload.sources || {}, payload.warnings || [], payload.errors || []);
+        renderPaperAgentResults(payload.papers || []);
+    } catch (error) {
+        renderPaperAgentSourceStatus({arxiv: 'failed', semantic_scholar: 'failed'}, [], [error.message]);
+        if (list) list.innerHTML = '<div class="paper-agent-empty"><h2>Search failed</h2><p>' + escapeHtml(error.message) + '</p></div>';
     }
-});
+}
 
-async function saveSearch() {
-    const query = document.getElementById('keywordInput').value.trim();
-    if (!query) {
-        showToast('先输入一个问题再保存', 'error');
+function renderPaperAgentSourceStatus(sources, warnings, errors) {
+    const container = document.getElementById('paperAgentSourceStatus');
+    if (!container) return;
+    const labels = {arxiv: 'arXiv', semantic_scholar: 'Semantic Scholar'};
+    const messages = {
+        ok: 'Available',
+        failed: 'Temporarily unavailable',
+        not_requested: 'Searching...',
+        idle: 'Ready'
+    };
+    const combined = (warnings || []).concat(errors || []).join(' ');
+    container.innerHTML = ['arxiv', 'semantic_scholar'].map(function(key) {
+        const state = sources[key] || 'not_requested';
+        const label = labels[key];
+        let message = messages[state] || state.replace(/_/g, ' ');
+        if (state === 'failed' && combined.indexOf(label) !== -1) {
+            message = (warnings || []).concat(errors || []).find(function(item) {
+                return String(item).indexOf(label) !== -1;
+            }) || message;
+        }
+        return '<div class="source-status-card is-' + escapeHtml(state) + '" data-source="' + key + '">' +
+            '<span class="source-status-dot" aria-hidden="true"></span>' +
+            '<div><strong>' + escapeHtml(label) + '</strong><span>' + escapeHtml(message) + '</span></div>' +
+            '</div>';
+    }).join('');
+}
+
+function renderPaperAgentResults(papers) {
+    const list = document.getElementById('paperResultList') || document.querySelector('.paper-results-pane');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!papers.length) {
+        list.innerHTML = '<div class="paper-agent-empty"><h2>No articles found</h2><p>Try a broader query.</p></div>';
+        clearPaperPreview();
         return;
     }
-    const defaultName = query.length > 36 ? query.slice(0, 36) + '…' : query;
+    papers.forEach(function(paper, index) {
+        const row = document.createElement('article');
+        row.className = 'paper-result-row' + (index === 0 ? ' is-selected' : '');
+        row.dataset.paperId = paper.paper_id || paper.id || '';
+        row.dataset.paperTitle = paper.title || '';
+        row.dataset.paperAuthors = (paper.authors || []).join(', ');
+        row.dataset.paperAbstract = paper.abstract || paper.summary || '';
+        row.dataset.paperUrl = paper.url || paper.link || '';
+        row.dataset.paperPdfUrl = paper.pdf_url || '';
+        row.dataset.paperSource = paper.source || '';
+        row.dataset.paperVenue = paper.venue || '';
+        row.dataset.paperYear = paper.year || '';
+        row.dataset.paperCitationCount = paper.citation_count == null ? '' : String(paper.citation_count);
+        row.dataset.paperReferenceCount = paper.reference_count == null ? '' : String(paper.reference_count);
+        row.onclick = function() { selectPaperResult(row); };
+        const firstAuthor = row.dataset.paperAuthors.split(',')[0] || 'Paper';
+        const citation = (firstAuthor.split(' ').slice(-1)[0] || 'Paper') + (paper.year ? ', ' + paper.year : '');
+        row.innerHTML =
+            '<div class="paper-result-main">' +
+            '<div class="paper-result-citation">' + escapeHtml(citation) + '</div>' +
+            '<h2>' + escapeHtml(paper.title || 'Untitled') + '</h2>' +
+            '<div class="paper-result-venue">' + escapeHtml(paper.venue || paper.source || 'Paper') + '</div>' +
+            '<p>' + escapeHtml((paper.abstract || paper.summary || 'No abstract available.').slice(0, 520)) + '</p>' +
+            '</div><span class="paper-result-radio" aria-hidden="true"></span>';
+        list.appendChild(row);
+        if (index === 0) selectPaperResult(row);
+    });
+}
 
-    try {
-        const savedSearch = await openQuerySubscriptionModal({
-            defaultName: defaultName,
-            queryText: query,
-            description: 'Created from Explore'
-        });
-        if (savedSearch) {
-            window.setTimeout(() => window.location.reload(), 350);
-        }
-    } catch (error) {
-        showToast('保存失败: ' + error.message, 'error');
+function selectPaperResult(row) {
+    var ws = document.querySelector('.paper-agent-workspace');
+    if (ws) ws.classList.add('has-selection');
+    document.querySelectorAll('.paper-result-row').forEach(function(item) {
+        item.classList.toggle('is-selected', item === row);
+    });
+    const pane = document.getElementById('paperPreviewContent');
+    if (!pane) return;
+    const query = document.getElementById('paperAgentSearchInput') ? document.getElementById('paperAgentSearchInput').value.trim() : '';
+    const detailUrl = paperAgentDetailUrl(row.dataset.paperId || '', query);
+    const cited = row.dataset.paperCitationCount ? '<button type="button">Cited By ' + escapeHtml(row.dataset.paperCitationCount) + '</button>' : '';
+    const refs = row.dataset.paperReferenceCount ? '<button type="button">Refs ' + escapeHtml(row.dataset.paperReferenceCount) + '</button>' : '';
+    const deepLinks = refs || cited ? '<div class="preview-deep-links">' + refs + cited + '</div>' : '';
+    var citation = previewCitation(row.dataset.paperAuthors, row.dataset.paperYear);
+    pane.innerHTML =
+        '<h2>' + escapeHtml(citation) + '</h2>' +
+        '<a class="preview-title" href="' + detailUrl + '">' + escapeHtml(row.dataset.paperTitle || 'Untitled') + '</a>' +
+        '<div class="preview-source">' + escapeHtml(row.dataset.paperVenue || row.dataset.paperSource || '') + '</div>' +
+        '<div class="preview-authors">' + escapeHtml(row.dataset.paperAuthors || '') + '</div>' +
+        '<div class="preview-section"><div class="preview-section-head"><strong>Collections</strong><button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Save</button></div>' +
+        '<div class="preview-action-grid"><button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper(&quot;Skim Later&quot;, &quot;Mark Skim&quot;)">Mark Skim</button>' +
+        '<button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper(&quot;Deep Read&quot;, &quot;Deep Read&quot;)">Deep Read</button>' +
+        '<button class="btn btn-ghost btn-sm" type="button" onclick="agentCreateWatchFromSearch()">Create Watch</button></div></div>' +
+        '<div class="preview-section"><strong>Abstract</strong><p>' + escapeHtml(row.dataset.paperAbstract || 'No abstract available.') + '</p><a class="text-link" href="' + detailUrl + '">Open full detail</a></div>' +
+        deepLinks;
+    if (window.innerWidth <= 768) {
+        var previewEl = document.querySelector('.paper-preview-pane');
+        if (previewEl) setTimeout(function() { previewEl.scrollIntoView({behavior: 'smooth', block: 'start'}); }, 50);
     }
 }
 
-async function createCollectionFromCurrentQuery() {
-    const query = document.getElementById('keywordInput').value.trim();
+function previewCitation(authors, year) {
+    var first = '';
+    if (authors) {
+        var lastName = authors.split(',')[0].trim().split(/\s+/);
+        first = lastName[lastName.length - 1];
+    }
+    if (first && year) return first + ', ' + year;
+    return first || year || 'Article';
+}
+
+function paperAgentDetailUrl(paperId, query) {
+    let url = '/papers/' + encodeURIComponent(paperId || '');
+    if (query) {
+        url += '?return_q=' + encodeURIComponent(query);
+    }
+    return url;
+}
+
+function clearPaperPreview() {
+    var ws = document.querySelector('.paper-agent-workspace');
+    if (ws) ws.classList.remove('has-selection');
+    const pane = document.getElementById('paperPreviewContent');
+    if (pane) pane.innerHTML = '<div class="preview-empty">Select an article to preview it.</div>';
+}
+
+async function agentSaveSelectedPaper() {
+    const selected = document.querySelector('.paper-result-row.is-selected');
+    if (!selected) return;
+    const payload = await requestJson('/api/agent/messages', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            message: 'save this paper',
+            page_context: {
+                selected_paper_id: selected.dataset.paperId,
+                selected_paper_title: selected.dataset.paperTitle,
+                route: window.location.pathname
+            }
+        })
+    });
+    showToast(payload.reply || 'Saved to Reading');
+}
+
+async function agentQueueSelectedPaper(status, label) {
+    const selected = document.querySelector('.paper-result-row.is-selected');
+    if (!selected) return;
+    const message = status === 'Deep Read' ? 'deep read this paper' : 'skim this paper later';
+    const payload = await requestJson('/api/agent/messages', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            message: message,
+            page_context: {
+                selected_paper_id: selected.dataset.paperId,
+                selected_paper_title: selected.dataset.paperTitle,
+                query: document.getElementById('paperAgentSearchInput') ? document.getElementById('paperAgentSearchInput').value.trim() : '',
+                route: window.location.pathname
+            }
+        })
+    });
+    showToast(payload.reply || label);
+}
+
+async function agentCreateWatchFromSearch() {
+    const query = document.getElementById('paperAgentSearchInput') ? document.getElementById('paperAgentSearchInput').value.trim() : '';
     if (!query) {
-        showToast('先输入一个问题', 'error');
+        showToast('Search before creating a watch.');
         return;
     }
-    try {
-        const collection = await ensureCollection({
-            defaultName: query.slice(0, 40),
-            queryText: query,
-            description: 'Created from Explore'
-        });
-        if (collection) {
-            window.location.href = '/reading?tab=collections&collection_id=' + collection.id;
-        }
-    } catch (error) {
-        showToast('创建 Collection 失败: ' + error.message, 'error');
-    }
-}
-
-async function queueSearchCard(button, status) {
-    const card = getSearchCard(button);
-    if (!card) return;
-    const questionId = document.getElementById('researchQuestionId')?.value || card.dataset.researchQuestionId || '';
-    try {
-        await queuePaperStatus(card.dataset.paperId, status, {
-            source: 'search_workspace',
-            research_question_id: questionId ? Number(questionId) : null,
-            decision_context: 'Decision from Search workspace'
-        });
-    } catch (error) {
-        showToast('加入队列失败: ' + error.message, 'error');
-    }
-}
-
-function workspaceKeywordsFromIntent() {
-    const query = document.getElementById('queryText')?.value.trim()
-        || document.getElementById('workspacePrompt')?.value.trim()
-        || '';
-    return query.split(/[,，\s]+/).filter(Boolean);
+    const payload = await requestJson('/api/agent/messages', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            message: 'create watch for this query',
+            page_context: {query: query, route: window.location.pathname}
+        })
+    });
+    showToast(payload.reply || 'Watch created');
 }
 
 function confirmIntentAndSearch() {
-    const rawQuery = document.getElementById('queryText')?.value.trim()
-        || document.getElementById('workspacePrompt')?.value.trim()
-        || '';
-    if (!rawQuery) {
-        showToast('先输入一个研究问题', 'error');
-        return;
-    }
-    const questionId = document.getElementById('researchQuestionId')?.value || '';
-    const suffix = questionId ? '?research_question_id=' + encodeURIComponent(questionId) : '';
-    window.location.href = '/search/' + encodeURIComponent(rawQuery) + suffix;
+    const input = document.getElementById('paperAgentSearchInput');
+    if (input) paperAgentSearch({preventDefault: function(){}});
 }
 
-async function createWorkspaceQuestion() {
-    const query = document.getElementById('queryText')?.value.trim()
-        || document.getElementById('workspacePrompt')?.value.trim()
-        || '';
-    const intent = document.getElementById('intentStatement')?.value.trim()
-        || document.getElementById('workspacePrompt')?.value.trim()
-        || query;
-    if (!query) {
-        showToast('先输入一个研究问题', 'error');
-        return;
-    }
-    try {
-        const payload = await requestJson('/api/workspaces/questions', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({query_text: query, intent_statement: intent})
-        });
-        const question = payload.question;
-        document.getElementById('researchQuestionId').value = question.id;
-        showToast('Research workspace created');
-        window.location.href = '/search/' + encodeURIComponent(query) + '?research_question_id=' + encodeURIComponent(question.id);
-    } catch (error) {
-        showToast('创建 workspace 失败: ' + error.message, 'error');
-    }
+function createWorkspaceQuestion() {
+    showToast('Search directly from this workspace.');
 }
 
-async function runWorkspacePlanner() {
-    const questionId = document.getElementById('researchQuestionId')?.value || '';
-    if (!questionId) {
-        showToast('先创建或选择 Research Question', 'error');
-        return;
-    }
-    // Show loading
-    showToast('Running planner...');
-    try {
-        const payload = await requestJson('/api/workspaces/questions/' + encodeURIComponent(questionId) + '/planner-runs', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({trigger: 'manual'})
-        });
-        const result = payload.result || {};
-        const candidate_count = result.candidate_count || 0;
-        const queued = result.queued_count || 0;
-        const analysis_count = result.analysis_count || 0;
-        const degraded = result.degraded_phase || null;
-        const failure_reason = result.failure_reason || null;
-
-        // Populate planner result section
-        var plannerDiv = document.getElementById('plannerResult');
-        if (plannerDiv) {
-            plannerDiv.hidden = false;
-            var tags = document.getElementById('plannerResultTags');
-            if (tags) {
-                tags.innerHTML =
-                    '<span class="chip brand">' + candidate_count + ' candidates</span>' +
-                    '<span class="chip">' + queued + ' queued</span>' +
-                    '<span class="chip">' + analysis_count + ' analyzed</span>' +
-                    (degraded ? '<span class="chip is-warn">degraded: ' + degraded + '</span>' : '') +
-                    (failure_reason ? '<span class="chip is-warn">' + failure_reason + '</span>' : '');
-            }
-            var detail = document.getElementById('plannerResultDetail');
-            if (detail) {
-                detail.textContent = failure_reason
-                    ? 'Planner completed with issues. ' + failure_reason
-                    : (queued > 0
-                        ? queued + ' papers routed to Inbox for triage.'
-                        : 'No candidates were queued. Try broadening your query or checking subscriptions.');
-            }
-        }
-
-        if (queued > 0) {
-            showToast('Planner: ' + queued + ' candidates added to Inbox');
-            setTimeout(function() { window.location.href = '/queue?status=Inbox'; }, 1500);
-        } else {
-            showToast('Planner: no candidates queued. ' + (failure_reason || 'Try broadening your query.'));
-            // Update workspace brief
-            var briefMsg = document.getElementById('workspaceBriefMessage');
-            if (briefMsg) {
-                briefMsg.textContent = failure_reason
-                    ? 'Planner encountered issues: ' + failure_reason
-                    : 'No candidates found. Try broadening your query with different terms.';
-            }
-        }
-    } catch (error) {
-        showToast('Planner run failed: ' + error.message, 'error');
-    }
+function runWorkspacePlanner() {
+    showToast('Create a research question before running planner.');
 }
 
-async function collectSearchCard(button) {
-    const ok = await confirmDangerAction({
-        title: '删除 Query Subscription',
-        objectName: name,
-        message: '这会停止这个问题的长期命中追踪，但不会删除已经加入 Queue 或 Collection 的论文。',
-        confirmLabel: 'Delete subscription'
-    });
-    if (!ok) return;
-    try {
-        await requestJson('/api/saved-searches', {
-            method: 'DELETE',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({search_id: searchId})
-        });
-        removeSavedSearchCache(searchId);
-        showToast('问题订阅已删除');
-        window.setTimeout(() => window.location.reload(), 250);
-    } catch (error) {
-        showToast('删除失败: ' + error.message, 'error');
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.querySelector('.paper-result-row.is-selected')) {
+        var ws = document.querySelector('.paper-agent-workspace');
+        if (ws) ws.classList.add('has-selection');
     }
-}
+});
 </script>
 {% endblock %}

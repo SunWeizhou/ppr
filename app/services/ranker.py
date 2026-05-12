@@ -176,20 +176,20 @@ def score_paper(paper: dict, ctx: dict) -> tuple[float, str]:
 
 
 def explain(signals: list[tuple[str, float]], paper: dict, ctx: dict) -> str:
-    """Generate <=35 char Chinese explanation based on strongest signal."""
+    """Generate short explanation based on strongest signal."""
     if not signals:
-        return '基于你的研究领域'
+        return 'Matches your research area'
     name = max(signals, key=lambda s: s[1])[0]
     if name == 'keyword':
         matched = matched_keywords(paper, ctx.get('keywords', []))
         kw = matched[0] if matched else ''
-        return f'命中关键词：{kw}'
+        return f'Keyword match: {kw}'
     if name == 'library':
-        return '与你论文库中的论文高度相似'
+        return 'Highly similar to your library'
     if name == 'feedback':
-        return '与你标记相关的论文风格相近'
+        return 'Similar to papers you liked'
     if name == 'author':
-        return '来自你关注的作者或团队'
+        return 'From an author you follow'
     if name == 'subscription':
-        return '命中订阅查询'
-    return '基于你的研究领域'
+        return 'Matches a subscription query'
+    return 'Matches your research area'

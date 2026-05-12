@@ -75,7 +75,7 @@ class PaperViewModel:
         from app.viewmodels.shared import assemble_page_context
         from state_store import QUEUE_STATUS_VALUES
 
-        page_ctx = assemble_page_context(self._store, active_tab="inbox")
+        page_ctx = assemble_page_context(self._store, active_tab="search")
         try:
             queue_counts = {status: 0 for status in QUEUE_STATUS_VALUES}
             for item in self._store.list_queue_items():
@@ -89,7 +89,7 @@ class PaperViewModel:
 
         paper_data = self._find_paper_data(paper_id)
         if not paper_data:
-            return {"title": "Paper Not Found - Agent Literature Research Assistant", "error": "Paper not found", "paper_id": paper_id, **page_ctx}
+            return {"title": "Paper Not Found - Paper Agent", "error": "Paper not found", "paper_id": paper_id, **page_ctx}
 
         paper = dict(paper_data)
         paper["id"] = paper_id
@@ -221,7 +221,7 @@ class PaperViewModel:
         paper["score_details"] = details
 
         context = {
-            "title": f"{paper.get('title', 'Paper Detail')[:60]} - Agent Literature Research Assistant",
+            "title": f"{paper.get('title', 'Paper Detail')[:60]} - Paper Agent",
             "paper": paper,
             "has_ai": has_ai,
         }
@@ -420,15 +420,25 @@ class PaperViewModel:
         """Find paper data from any available source.
 
         Lookup order:
-        1. SQLite recommendation runs.
-        2. History markdown digest files.
-        3. SQLite paper_metadata table.
+        1. SQLite paper_metadata table.
+        2. SQLite recommendation runs.
+        3. History markdown digest files.
         4. cache/paper_cache.json on disk.
         5. Graceful detail shell with arXiv link (minimal fallback).
         """
         from state_store import _canonical_paper_id
 
-        # 1. Try recommendation runs in SQLite first
+        # 1. Try SQLite paper_metadata table first. Search and fetch routes
+        # store full abstracts here, so it should win over older recommendation
+        # snapshots that may have been created from truncated metadata.
+        try:
+            meta = self._store.get_paper_metadata(paper_id)
+            if meta:
+                return meta
+        except Exception:
+            pass
+
+        # 2. Try recommendation runs in SQLite
         try:
             recent_runs = self._store.list_recommendation_runs(limit=5)
             for run in recent_runs:
@@ -440,7 +450,7 @@ class PaperViewModel:
         except Exception:
             pass
 
-        # 2. Try reading from history markdown files
+        # 3. Try reading from history markdown files
         import os
         if os.path.exists(str(HISTORY_DIR)):
             for fname in sorted(os.listdir(str(HISTORY_DIR)), reverse=True):
@@ -455,14 +465,6 @@ class PaperViewModel:
                             return p
                 except Exception:
                     continue
-
-        # 3. Try SQLite paper_metadata table
-        try:
-            meta = self._store.get_paper_metadata(paper_id)
-            if meta:
-                return meta
-        except Exception:
-            pass
 
         # 4. Try cache/paper_cache.json
         try:

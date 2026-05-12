@@ -103,7 +103,7 @@ class EvalViewModel:
         reports = self.list_reports()
         feedback_auc = self._store.get_feedback_model_auc()
         return {
-            "title": "Evaluation Dashboard - Agent Literature Research Assistant",
+            "title": "Evaluation Dashboard - Paper Agent",
             "reports": reports,
             "has_reports": len(reports) > 0,
             "latest_report": reports[0] if reports else None,

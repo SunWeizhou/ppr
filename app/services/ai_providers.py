@@ -77,6 +77,9 @@ class NoProvider:
     def analyze(self, paper, user_profile=None, recommendation_context=None):
         return fallback_analysis()
 
+    def chat(self, messages, *, page_context=None):
+        raise ProviderError("No AI provider configured")
+
 
 class FakeProvider:
     model_name = "fake-test-provider"
@@ -94,16 +97,170 @@ class FakeProvider:
             "recommended_reading_level": "skim",
         }
 
+    def chat(self, messages, *, page_context=None):
+        last = ""
+        for item in reversed(messages or []):
+            if item.get("role") == "user":
+                last = item.get("content", "")
+                break
+        return f"Fake chat reply for: {last}"
+
 
 class OpenAICompatibleProvider:
     model_name = "openai-compatible"
 
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str = "https://api.deepseek.com",
+        model: str = "deepseek-chat",
+        timeout: int = 60,
+        post_json=None,
+    ):
+        if not api_key:
+            raise ValueError("OpenAI-compatible API key is required")
+        self.api_key = api_key
+        self.base_url = str(base_url or "https://api.deepseek.com").rstrip("/")
+        self.model = model or "deepseek-chat"
+        self.model_name = self.model
+        self.timeout = timeout
+        self._post_json = post_json or self._default_post_json
+
     def analyze(self, paper, user_profile=None, recommendation_context=None):
-        import logging
-        logging.getLogger(__name__).warning(
-            "OpenAI-compatible provider is not yet implemented; returning fallback analysis"
+        payload = self._build_payload(
+            paper,
+            user_profile=user_profile,
+            recommendation_context=recommendation_context,
+            include_response_format=True,
         )
-        return fallback_analysis(reading_level="skim")
+        try:
+            response = self._request(payload)
+        except ProviderError as exc:
+            if not self._looks_like_response_format_error(exc):
+                raise
+            response = self._request(
+                self._build_payload(
+                    paper,
+                    user_profile=user_profile,
+                    recommendation_context=recommendation_context,
+                    include_response_format=False,
+                )
+            )
+        content = self._extract_message_content(response)
+        return normalize_analysis_result(self._parse_json_content(content))
+
+    def chat(self, messages, *, page_context=None):
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": 0.3,
+        }
+        response = self._request(payload)
+        return self._extract_message_content(response).strip()
+
+    def _build_payload(
+        self,
+        paper,
+        *,
+        user_profile=None,
+        recommendation_context=None,
+        include_response_format: bool = True,
+    ) -> dict:
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {
+                    "role": "user",
+                    "content": self._build_user_prompt(
+                        paper,
+                        user_profile=user_profile,
+                        recommendation_context=recommendation_context,
+                    ),
+                },
+            ],
+            "temperature": 0.2,
+        }
+        if include_response_format:
+            payload["response_format"] = {"type": "json_object"}
+        return payload
+
+    def _build_user_prompt(self, paper, *, user_profile=None, recommendation_context=None) -> str:
+        return "\n".join(
+            [
+                "Title:",
+                str(paper.get("title", "")),
+                "",
+                "Authors:",
+                str(paper.get("authors", "")),
+                "",
+                "Abstract:",
+                str(paper.get("abstract") or paper.get("summary") or ""),
+                "",
+                "User research profile:",
+                json.dumps(user_profile or {}, ensure_ascii=False, sort_keys=True),
+                "",
+                "Recommendation context:",
+                json.dumps(recommendation_context or {}, ensure_ascii=False, sort_keys=True),
+                "",
+                "Return JSON with keys: one_sentence_summary, problem, method, "
+                "contribution, limitations, why_it_matters, recommended_reading_level. "
+                "recommended_reading_level must be one of ignore, skim, deep_read, save.",
+            ]
+        )
+
+    def _request(self, payload: dict) -> dict:
+        url = f"{self.base_url}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        try:
+            return self._post_json(url, payload, headers=headers, timeout=self.timeout)
+        except Exception as exc:
+            raise ProviderError(self._redact(f"OpenAI-compatible request failed: {exc}")) from exc
+
+    @staticmethod
+    def _default_post_json(url, payload, *, headers, timeout):
+        data = json.dumps(payload).encode("utf-8")
+        request = urllib.request.Request(url, data=data, headers=headers, method="POST")
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:  # nosec B310 - user-configured OpenAI-compatible HTTPS endpoint
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            raise ProviderError(f"HTTP {exc.code}: {body}") from exc
+        except json.JSONDecodeError as exc:
+            raise ProviderError("Provider returned non-JSON HTTP response") from exc
+
+    def _redact(self, message: str) -> str:
+        return str(message).replace(self.api_key, "[redacted]")
+
+    @staticmethod
+    def _looks_like_response_format_error(exc: Exception) -> bool:
+        text = str(exc).lower()
+        return "response_format" in text or "json_object" in text
+
+    @staticmethod
+    def _extract_message_content(response: dict) -> str:
+        try:
+            return response["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise ProviderError("Provider response did not include message content") from exc
+
+    @staticmethod
+    def _parse_json_content(content: str) -> dict:
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError:
+            start = content.find("{")
+            end = content.rfind("}")
+            if start != -1 and end != -1 and end > start:
+                try:
+                    return json.loads(content[start : end + 1])
+                except json.JSONDecodeError as exc:
+                    raise ProviderError("Provider returned malformed analysis JSON") from exc
+            raise ProviderError("Provider returned malformed analysis JSON") from None
 
 
 class DeepSeekProvider:
@@ -255,11 +412,18 @@ class DeepSeekProvider:
 
 
 def build_ai_provider_from_env():
-    # 1) Check environment variables first. STATDESK_AI_API_KEY is the
-    # product-level name; DEEPSEEK_API_KEY remains backward compatible.
-    api_key = os.getenv("STATDESK_AI_API_KEY") or os.getenv("DEEPSEEK_API_KEY")
+    # 1) Check environment variables first. OPENAI_COMPATIBLE_API_KEY is the
+    # provider-neutral name; older DeepSeek-compatible names remain supported.
+    openai_key = os.getenv("OPENAI_COMPATIBLE_API_KEY")
+    if openai_key:
+        return OpenAICompatibleProvider(
+            api_key=openai_key,
+            base_url=os.getenv("OPENAI_COMPATIBLE_BASE_URL") or os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
+            model=os.getenv("OPENAI_COMPATIBLE_MODEL") or os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
+        )
+    api_key = os.getenv("DEEPSEEK_API_KEY") or os.getenv("STATDESK_AI_API_KEY")
     if api_key:
-        return DeepSeekProvider(
+        return OpenAICompatibleProvider(
             api_key=api_key,
             base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
             model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
@@ -272,14 +436,12 @@ def build_ai_provider_from_env():
         ai_config = get_config().get_ai_config()
         if ai_config.get("enabled") and ai_config.get("api_key"):
             provider_name = ai_config.get("provider", "none")
-            if provider_name == "deepseek":
-                return DeepSeekProvider(
+            if provider_name in ("openai_compatible", "deepseek"):
+                return OpenAICompatibleProvider(
                     api_key=ai_config["api_key"],
                     base_url=ai_config.get("base_url", "https://api.deepseek.com"),
                     model=ai_config.get("model", "deepseek-chat"),
                 )
-            elif provider_name == "openai":
-                return OpenAICompatibleProvider()
     except Exception:
         import logging
         logging.getLogger(__name__).debug(

@@ -33,7 +33,7 @@ _KEYWORDS_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 
 def load_user_config() -> Dict:
-    """Load user configuration - 使用统一配置管理器."""
+    """Load user configuration via config manager."""
     config = get_config()
     return {
         'research_focus': {
@@ -56,17 +56,17 @@ def load_user_config() -> Dict:
 
 
 def save_user_config(config: Dict) -> bool:
-    """Save user configuration - 使用统一配置管理器."""
+    """Save user configuration via config manager."""
     try:
         cm = get_config()
 
-        # 更新关键词
+        # update keywords
         if 'research_focus' in config and 'topics' in config['research_focus']:
             for topic in config['research_focus']['topics']:
                 if topic not in cm.all_keywords:
                     cm.set_keyword(topic, 3.0, 'core')
 
-        # 更新不感兴趣主题
+        # update disinterested topics
         if 'dislike_topics' in config and 'topics' in config['dislike_topics']:
             for topic in config['dislike_topics']['topics']:
                 cm.set_keyword(topic, -1.0, 'dislike')
@@ -93,7 +93,7 @@ def get_topic_weights() -> Dict[str, float]:
 
 
 def load_keywords_config() -> Dict:
-    """Load keywords configuration - 使用统一配置管理器."""
+    """Load keywords configuration via config manager."""
     cm = get_config()
     return {
         'core_topics': cm.core_keywords,
@@ -105,26 +105,26 @@ def load_keywords_config() -> Dict:
 
 
 def save_keywords_config(config: Dict) -> bool:
-    """Save keywords configuration - 使用统一配置管理器."""
+    """Save keywords configuration via config manager."""
     try:
         cm = get_config()
 
-        # 更新核心主题
+        # update core topics
         if 'core_topics' in config:
             for topic, weight in config['core_topics'].items():
                 cm.set_keyword(topic, weight, 'core')
 
-        # 更新次要主题
+        # update secondary topics
         if 'secondary_topics' in config:
             for topic, weight in config['secondary_topics'].items():
                 cm.set_keyword(topic, weight, 'secondary')
 
-        # 更新降权主题
+        # update downranked topics
         if 'demote_topics' in config:
             for topic, weight in config['demote_topics'].items():
                 cm.set_keyword(topic, weight, 'demote')
 
-        # 更新不感兴趣主题
+        # update disinterested topics
         if 'dislike_topics' in config:
             for topic in config['dislike_topics']:
                 cm.set_keyword(topic, -1.0, 'dislike')

@@ -628,7 +628,7 @@ class LibraryViewModel:
                 history_papers = self._decorate_papers(papers, feedback)
 
         context = {
-            "title": "Library - Agent Literature Research Assistant",
+            "title": "Library - Paper Agent",
             "tab": tab,
             "selected_collection": selected_collection,
             "selected_collection_papers": selected_collection_papers,
@@ -676,7 +676,7 @@ class LibraryViewModel:
         ]
 
         context = {
-            "title": f"{hero_title} - Agent Literature Research Assistant",
+            "title": f"{hero_title} - Paper Agent",
             "hero_kicker": (
                 "Research Assets" if feedback_type == "liked" else "Feedback Memory"
             ),
@@ -731,7 +731,7 @@ class LibraryViewModel:
         ]
 
         context = {
-            "title": "阅读统计 - Agent Literature Research Assistant",
+            "title": "阅读统计 - Paper Agent",
             "headline_metrics": headline_metrics,
             "rhythm_cards": rhythm_cards,
         }

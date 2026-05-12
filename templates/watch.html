@@ -7,15 +7,15 @@
 <section class="page-header">
     <div class="lead">
         <span class="section-kicker" data-i18n="nav.watch">Watch</span>
-        <h1 class="page-title">Watch Cockpit</h1>
+        <h1 class="page-title">Watch</h1>
         <div class="page-context">
-            追踪 {{ unified_query_count }} 个研究方向、{{ unified_author_count }} 位作者、{{ unified_venue_count }} 个来源；
-            新命中可以直接进入对应 Research Question 的 Inbox。
+            Track research questions, authors, venues, and source health across {{ unified_query_count }} questions, {{ unified_author_count }} authors, and {{ unified_venue_count }} sources.
         </div>
     </div>
     <div class="actions">
+        <a href="/" class="btn btn-primary btn-sm">Back to Search</a>
         <button type="button" class="btn btn-ghost btn-sm" onclick="runAllSubscriptions()">
-            <span data-i18n="watch.refresh_all">刷新全部</span> &#8635;
+            <span data-i18n="watch.refresh_all">Refresh</span>
         </button>
     </div>
 </section>
@@ -24,15 +24,15 @@
 {% block content %}
 
 {# =============================================
-   研究方向 (Queries)
+   Research questions
    ============================================= #}
 <section class="watch-section">
     <div class="watch-section-header">
         <h2 class="section-heading">
-            研究方向
-            <span class="chip is-muted">Query</span>
+            Research questions
+            <span class="chip is-muted">Topic</span>
         </h2>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="createQuerySubscription()">+ 新增</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="createQuerySubscription()">New</button>
     </div>
 
     {% if query_subs %}
@@ -48,11 +48,12 @@
                             <code>{{ sub.query_text[:80] }}{% if sub.query_text|length > 80 %}&hellip;{% endif %}</code>
                         </span>
                         {% endif %}
-                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "尚未刷新" }}</time></span>
-                        {% if not sub.enabled %}<span class="chip is-warn">已禁用</span>{% endif %}
+                        <span class="watch-sub-meta-item">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
+                        <span class="chip is-muted">Source health: {{ sub.source_health.label }}</span>
+                        {% if not sub.enabled %}<span class="chip is-warn">disabled</span>{% endif %}
                     </div>
                 </div>
-                <span class="chip">{{ sub.latest_hit_count }} 篇命中</span>
+                <span class="chip">{{ sub.latest_hit_count }} hits</span>
             </div>
 
             {% if sub.research_question %}
@@ -80,18 +81,24 @@
                     <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
                     {% endif %}
                     <div class="watch-sub-hit-actions">
+                        <a class="btn btn-ghost btn-xs" href="{{ hit.detail_url }}">Preview</a>
                         <button
                             type="button"
                             class="btn btn-ghost btn-xs"
                             onclick="sendHitToInbox({{ hit.id }}, this)"
                             {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}
-                        >Inbox</button>
+                        >Send to Reading</button>
                         <button
                             type="button"
                             class="btn btn-ghost btn-xs"
                             onclick="ignoreSubscriptionHit({{ hit.id }}, this)"
                             {% if hit.hit_status == 'ignored' %}disabled{% endif %}
                         >Ignore</button>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs"
+                            onclick="createCollectionFromHit({{ hit.paper_id|tojson }}, {{ hit.title|tojson }})"
+                        >Create collection</button>
                     </div>
                 </div>
                 {% endfor %}
@@ -99,27 +106,27 @@
             {% endif %}
 
             <div class="watch-sub-card-actions">
-                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">手动刷新</button>
-                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }})">编辑</button>
+                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
+                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }})">Edit</button>
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    {{ ui.empty_state('暂无研究方向订阅', '添加查询订阅以追踪特定方向的新论文。', '&#128269;', '<button type="button" class="btn btn-primary btn-sm" onclick="createQuerySubscription()">+ 新增查询</button>') }}
+    {{ ui.empty_state('No watches yet', 'Create a watch from Search, or ask Paper Agent to monitor a topic.', '', '<button type="button" class="btn btn-primary btn-sm" onclick="window.location.href=\'/\'">Create a watch from Search</button><button type="button" class="btn btn-ghost btn-sm" onclick="togglePaperAgent(true)">Ask Paper Agent to monitor a topic</button>') }}
     {% endif %}
 </section>
 
 {# =============================================
-   作者 (Authors)
+   Authors
    ============================================= #}
 <section class="watch-section">
     <div class="watch-section-header">
         <h2 class="section-heading">
-            作者
+            Authors
             <span class="chip is-muted">Author</span>
         </h2>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="createAuthorSubscription()">+ 新增</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="createAuthorSubscription()">New</button>
     </div>
 
     {% if author_subs %}
@@ -132,11 +139,12 @@
                     <div class="watch-sub-card-meta">
                         {% if sub.affiliation %}<span class="watch-sub-meta-item">{{ sub.affiliation }}</span>{% endif %}
                         {% if sub.focus %}<span class="watch-sub-meta-item">{{ sub.focus }}</span>{% endif %}
-                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "尚未刷新" }}</time></span>
-                        {% if not sub.enabled %}<span class="chip is-warn">已禁用</span>{% endif %}
+                        <span class="watch-sub-meta-item">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
+                        <span class="chip is-muted">Source health: {{ sub.source_health.label }}</span>
+                        {% if not sub.enabled %}<span class="chip is-warn">disabled</span>{% endif %}
                     </div>
                 </div>
-                <span class="chip">{{ sub.latest_hit_count }} 篇命中</span>
+                <span class="chip">{{ sub.latest_hit_count }} hits</span>
             </div>
 
             {% if sub.research_question %}
@@ -164,29 +172,35 @@
                     <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
                     {% endif %}
                     <div class="watch-sub-hit-actions">
+                        <a class="btn btn-ghost btn-xs" href="{{ hit.detail_url }}">Preview</a>
                         <button
                             type="button"
                             class="btn btn-ghost btn-xs"
                             onclick="sendHitToInbox({{ hit.id }}, this)"
                             {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}
-                        >Inbox</button>
+                        >Send to Reading</button>
                         <button
                             type="button"
                             class="btn btn-ghost btn-xs"
                             onclick="ignoreSubscriptionHit({{ hit.id }}, this)"
                             {% if hit.hit_status == 'ignored' %}disabled{% endif %}
                         >Ignore</button>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs"
+                            onclick="createCollectionFromHit({{ hit.paper_id|tojson }}, {{ hit.title|tojson }})"
+                        >Create collection</button>
                     </div>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <div class="watch-sub-no-hits muted-copy">暂无命中论文</div>
+            <div class="watch-sub-no-hits muted-copy">No new hits</div>
             {% endif %}
 
             <div class="watch-sub-card-actions">
-                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">刷新</button>
-                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }})">编辑</button>
+                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
+                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }})">Edit</button>
                 {% for link in sub.links %}
                 <a href="{{ link.href }}" target="_blank" class="btn btn-ghost btn-xs">{{ link.label }}</a>
                 {% endfor %}
@@ -195,20 +209,20 @@
         {% endfor %}
     </div>
     {% else %}
-    {{ ui.empty_state('暂无作者订阅', '添加作者订阅以追踪特定学者的新论文。', '&#128100;', '<button type="button" class="btn btn-primary btn-sm" onclick="createAuthorSubscription()">+ 新增作者</button>') }}
+    {{ ui.empty_state('No authors watched', 'Add an author to track new papers from a specific scholar.', '', '<button type="button" class="btn btn-primary btn-sm" onclick="createAuthorSubscription()">Add author</button>') }}
     {% endif %}
 </section>
 
 {# =============================================
-   期刊/会议 (Venues)
+   Venues
    ============================================= #}
 <section class="watch-section">
     <div class="watch-section-header">
         <h2 class="section-heading">
-            期刊/会议
+            Venues
             <span class="chip is-muted">Venue</span>
         </h2>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="createVenueSubscription()">+ 新增</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="createVenueSubscription()">New</button>
     </div>
 
     {% if venue_subs %}
@@ -220,11 +234,12 @@
                     <h3 class="watch-sub-card-name">{{ sub.name }}</h3>
                     <div class="watch-sub-card-meta">
                         <span class="watch-sub-meta-item chip is-muted">{{ sub.venue_type }}</span>
-                        <span class="watch-sub-meta-item">上次：<time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "尚未刷新" }}</time></span>
-                        {% if not sub.enabled %}<span class="chip is-warn">已禁用</span>{% endif %}
+                        <span class="watch-sub-meta-item">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
+                        <span class="chip is-muted">Source health: {{ sub.source_health.label }}</span>
+                        {% if not sub.enabled %}<span class="chip is-warn">disabled</span>{% endif %}
                     </div>
                 </div>
-                <span class="chip">{{ sub.latest_hit_count }} 篇命中</span>
+                <span class="chip">{{ sub.latest_hit_count }} hits</span>
             </div>
 
             {% if sub.research_question %}
@@ -252,18 +267,24 @@
                     <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
                     {% endif %}
                     <div class="watch-sub-hit-actions">
+                        <a class="btn btn-ghost btn-xs" href="{{ hit.detail_url }}">Preview</a>
                         <button
                             type="button"
                             class="btn btn-ghost btn-xs"
                             onclick="sendHitToInbox({{ hit.id }}, this)"
                             {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}
-                        >Inbox</button>
+                        >Send to Reading</button>
                         <button
                             type="button"
                             class="btn btn-ghost btn-xs"
                             onclick="ignoreSubscriptionHit({{ hit.id }}, this)"
                             {% if hit.hit_status == 'ignored' %}disabled{% endif %}
                         >Ignore</button>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs"
+                            onclick="createCollectionFromHit({{ hit.paper_id|tojson }}, {{ hit.title|tojson }})"
+                        >Create collection</button>
                     </div>
                 </div>
                 {% endfor %}
@@ -271,17 +292,17 @@
             {% endif %}
 
             <div class="watch-sub-card-actions">
-                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">刷新</button>
-                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }})">编辑</button>
+                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
+                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }})">Edit</button>
                 {% if sub.homepage_url %}
-                <a href="{{ sub.homepage_url }}" target="_blank" class="btn btn-ghost btn-xs">访问主页</a>
+                <a href="{{ sub.homepage_url }}" target="_blank" class="btn btn-ghost btn-xs">Website</a>
                 {% endif %}
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    {{ ui.empty_state('暂无期刊/会议订阅', '添加期刊或会议订阅以追踪特定来源的新论文。', '&#128240;', '<button type="button" class="btn btn-primary btn-sm" onclick="createVenueSubscription()">+ 新增期刊/会议</button>') }}
+    {{ ui.empty_state('No venues watched', 'Add a venue or source to track new papers.', '', '<button type="button" class="btn btn-primary btn-sm" onclick="createVenueSubscription()">Add venue</button>') }}
     {% endif %}
 </section>
 {% endblock %}
@@ -295,16 +316,16 @@ function humanTime(isoString) {
   if (isNaN(date.getTime())) return isoString;
   var now = new Date();
   var diffMs = now - date;
-  if (diffMs < 0) return '刚刚';
+  if (diffMs < 0) return 'just now';
   var diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return '刚刚';
-  if (diffMin < 60) return diffMin + ' 分钟前';
+  if (diffMin < 1) return 'just now';
+  if (diffMin < 60) return diffMin + ' min ago';
   var diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return diffHour + ' 小时前';
+  if (diffHour < 24) return diffHour + ' hr ago';
   var diffDay = Math.floor(diffHour / 24);
-  if (diffDay < 30) return diffDay + ' 天前';
+  if (diffDay < 30) return diffDay + ' days ago';
   var diffMonth = Math.floor(diffDay / 30);
-  return diffMonth + ' 个月前';
+  return diffMonth + ' months ago';
 }
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('time[datetime]').forEach(function(el) {

@@ -32,7 +32,7 @@ class TestBuildRecommendationReason(unittest.TestCase):
 
     def test_empty_paper_returns_fallback_summary(self):
         result = self._call({}, user_profile={}, run_context={})
-        self.assertEqual(result["reason_summary"], "基于你的研究领域推荐")
+        self.assertEqual(result["reason_summary"], "Recommended based on your research area")
         self.assertEqual(result["matched_topics"], [])
         self.assertEqual(result["matched_subscriptions"], [])
 

@@ -47,6 +47,29 @@ jobs:
       - name: Run ruff lint
         run: ruff check app/ state_store.py config_manager.py web_server.py utils.py --ignore=F401,F841
 
+  frontend:
+    runs-on: ubuntu-latest
+    continue-on-error: false
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Typecheck frontend
+        run: npm run lint
+
+      - name: Build frontend assets
+        run: npm run build
+
   typecheck:
     runs-on: ubuntu-latest
     continue-on-error: true

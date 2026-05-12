@@ -114,7 +114,7 @@ class ReadingWorkbenchTests(unittest.TestCase):
     def test_queue_template_renders_workspace_decision_contract(self):
         template = Path("templates/queue_research.html").read_text(encoding="utf-8")
 
-        self.assertIn("Candidate Decision Workbench", template)
+        self.assertIn("Decide what to read", template)
         self.assertIn("data-research-question-id", template)
         self.assertIn("data-decision-context", template)
         self.assertIn("data-evidence-claims", template)

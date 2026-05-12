@@ -70,7 +70,8 @@ class SearchWorkspaceViewModelTests(unittest.TestCase):
         self.assertIn("researchQuestionId", template)
         self.assertIn("createWorkspaceQuestion", template)
         self.assertIn("runWorkspacePlanner", template)
-        self.assertIn("workspace_brief", template)
+        self.assertIn("paper-agent-workspace", template)
+        self.assertIn("paper-preview-pane", template)
         self.assertIn("data-research-question-id", template)
 
 
@@ -121,7 +122,12 @@ class SearchWorkspaceRouteTests(unittest.TestCase):
 
         with (
             mock.patch.object(inbox_routes, "get_state_store", return_value=self.store),
-            mock.patch("arxiv_recommender_v5.search_by_keywords", return_value=fake_papers),
+            mock.patch("app.services.unified_search_service.search_papers", return_value={
+                "papers": fake_papers,
+                "warnings": [],
+                "errors": [],
+                "sources": {"arxiv": {"ok": True, "count": 1}},
+            }),
         ):
             response = self.client().get(
                 f"/search/conformal%20prediction?research_question_id={question['id']}"
@@ -143,8 +149,8 @@ class SearchWorkspaceRouteTests(unittest.TestCase):
     def test_search_template_preserves_question_id_in_detail_links(self):
         template = Path("templates/search_research.html").read_text(encoding="utf-8")
 
-        self.assertIn("research_question_id={{ active_research_question_id }}", template)
-        self.assertIn("查看详情", template)
+        self.assertIn("data-research-question-id", template)
+        self.assertIn("Open full detail", template)
 
     def test_queue_paper_status_forwards_workspace_fields(self):
         helper = Path("static/js/paper_actions.js").read_text(encoding="utf-8")
@@ -155,7 +161,7 @@ class SearchWorkspaceRouteTests(unittest.TestCase):
     def test_search_template_uses_planner_result_counts(self):
         template = Path("templates/search_research.html").read_text(encoding="utf-8")
 
-        self.assertIn("plannerResult", template)
-        self.assertIn("queued", template)
-        self.assertIn("candidate_count", template)
-        self.assertIn("/queue?status=Inbox", template)
+        self.assertIn("paper-agent-searchbar", template)
+        self.assertIn("Search papers, authors, topics...", template)
+        self.assertIn("/api/search", template)
+        self.assertIn("agentSaveSelectedPaper", template)

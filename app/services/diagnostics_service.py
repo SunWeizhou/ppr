@@ -114,8 +114,20 @@ def build_system_diagnostics(state_store: Any, *, ai_context: dict | None = None
             latest_job = job
 
     profile_path = Path(CONFIG_FILE)
+    source_health = {
+        "arxiv": {
+            "label": "arXiv",
+            "state": "configured",
+            "message": "Available through the local search connector.",
+        },
+        "semantic_scholar": {
+            "label": "Semantic Scholar",
+            "state": "configured",
+            "message": "Available through the Academic Graph API with graceful fallback.",
+        },
+    }
     return {
-        "product_name": "Agent Literature Research Assistant",
+        "product_name": "Paper Agent",
         "profile": {
             "path": str(profile_path),
             "exists": profile_path.exists(),
@@ -132,7 +144,9 @@ def build_system_diagnostics(state_store: Any, *, ai_context: dict | None = None
             "latest": latest_job,
             "latest_status": latest_job.get("status") if latest_job else "idle",
         },
+        "source_health": source_health,
         "data": {
             "state_store_type": state_store.__class__.__name__,
+            "db_path": str(getattr(state_store, "db_path", "")),
         },
     }

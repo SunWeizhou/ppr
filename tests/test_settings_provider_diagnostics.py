@@ -42,7 +42,7 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
                     "version": 1,
                     "keywords": {},
                     "ai": {
-                        "provider": "deepseek",
+                        "provider": "openai_compatible",
                         "api_key": "sk-existing-secret",
                         "base_url": "https://api.deepseek.com",
                         "model": "deepseek-chat",
@@ -77,7 +77,7 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
                     "version": 1,
                     "keywords": {},
                     "ai": {
-                        "provider": "deepseek",
+                        "provider": "openai_compatible",
                         "api_key": "sk-existing-secret",
                         "base_url": "https://api.deepseek.com",
                         "model": "deepseek-chat",
@@ -91,7 +91,7 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
             response = web_server.app.test_client().post(
                 "/api/settings/ai",
                 json={
-                    "provider": "deepseek",
+                    "provider": "openai_compatible",
                     "api_key": "__keep__",
                     "base_url": "https://api.deepseek.com",
                     "model": "deepseek-reasoner",
@@ -102,7 +102,7 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.get_json()["success"])
-        self.assertEqual(ai_cfg["provider"], "deepseek")
+        self.assertEqual(ai_cfg["provider"], "openai_compatible")
         self.assertEqual(ai_cfg["api_key"], "sk-existing-secret")
         self.assertEqual(ai_cfg["model"], "deepseek-reasoner")
         self.assertTrue(ai_cfg["enabled"])
@@ -124,7 +124,7 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
         self.assertFalse(response.get_json()["success"])
 
     def test_build_ai_provider_uses_statdesk_env_var(self):
-        from app.services.ai_providers import DeepSeekProvider, build_ai_provider_from_env
+        from app.services.ai_providers import OpenAICompatibleProvider, build_ai_provider_from_env
 
         with mock.patch.dict(
             os.environ,
@@ -136,7 +136,7 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
         ):
             provider = build_ai_provider_from_env()
 
-        self.assertIsInstance(provider, DeepSeekProvider)
+        self.assertIsInstance(provider, OpenAICompatibleProvider)
         self.assertEqual(provider.api_key, "sk-statdesk-env")
 
     def test_ai_connection_test_uses_env_sentinel_without_leaking_secret(self):
@@ -152,13 +152,13 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
             }
             with mock.patch.dict(os.environ, {"STATDESK_AI_API_KEY": "sk-env-secret"}, clear=True):
                 with mock.patch(
-                    "app.services.ai_providers.DeepSeekProvider._request",
+                    "app.services.ai_providers.OpenAICompatibleProvider._request",
                     return_value=fake_response,
                 ) as mock_request:
                     response = web_server.app.test_client().post(
                         "/api/settings/ai/test",
                         json={
-                            "provider": "deepseek",
+                            "provider": "openai_compatible",
                             "api_key": "__env_var__",
                             "base_url": "https://api.deepseek.com",
                             "model": "deepseek-chat",
@@ -198,7 +198,7 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
                         "areas": [],
                         "papers_per_day": 20,
                         "zotero_path": "",
-                        "ai_provider": "openai_compat",
+                        "ai_provider": "unknown",
                         "ai_api_key": "sk-should-not-save",
                         "first_query": "",
                     },
@@ -236,11 +236,12 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
             context = SettingsViewModel(store).to_template_context(tab="diagnostics")
 
         diagnostics = context["system_diagnostics"]
-        self.assertEqual(diagnostics["product_name"], "Agent Literature Research Assistant")
+        self.assertEqual(diagnostics["product_name"], "Paper Agent")
         self.assertEqual(diagnostics["workspace"]["research_question_count"], 1)
         self.assertEqual(diagnostics["workspace"]["subscription_count"], 1)
         self.assertEqual(diagnostics["workspace"]["queue_counts"]["Inbox"], 1)
         self.assertIn("ai", diagnostics)
+        self.assertEqual(diagnostics["source_health"]["semantic_scholar"]["label"], "Semantic Scholar")
         self.assertIn("data", diagnostics)
 
     def test_settings_ai_tab_renders_without_raw_secret(self):
@@ -254,7 +255,7 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
                     "version": 1,
                     "keywords": {"conformal prediction": {"weight": 5.0, "category": "core"}},
                     "ai": {
-                        "provider": "deepseek",
+                        "provider": "openai_compatible",
                         "api_key": "sk-raw-secret",
                         "base_url": "https://api.deepseek.com",
                         "model": "deepseek-chat",
@@ -281,6 +282,7 @@ class SettingsProviderDiagnosticsTests(unittest.TestCase):
         self.assertIn("tab=ai", template)
         self.assertIn("system_diagnostics", template)
         self.assertIn("AI Provider", template)
+        self.assertIn("Search Sources", template)
         self.assertIn("effective_enabled", template)
 
     def test_onboarding_first_query_creates_bound_research_question_and_subscription(self):

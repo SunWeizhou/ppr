@@ -222,18 +222,18 @@ def build_recommendation_reason(
     # Build summary
     parts: list[str] = []
     if matched_topics:
-        parts.append(f"匹配关键词: {', '.join(matched_topics[:3])}")
+        parts.append(f"Keyword match: {', '.join(matched_topics[:3])}")
     if matched_subscriptions:
-        parts.append(f"命中订阅: {', '.join(matched_subscriptions[:2])}")
+        parts.append(f"Subscription hit: {', '.join(matched_subscriptions[:2])}")
     if zotero_similarity > 0:
-        parts.append("与你的论文库语义相似")
+        parts.append("Semantically similar to your library")
     if not parts:
         # Fallback: use relevance_reason if available
         rel = paper.get("relevance_reason") or paper.get("relevance") or ""
         if rel:
             parts.append(rel[:80])
         else:
-            parts.append("基于你的研究领域推荐")
+            parts.append("Recommended based on your research area")
 
     return {
         "reason_summary": "; ".join(parts),

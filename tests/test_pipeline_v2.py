@@ -79,6 +79,14 @@ class TestPipelineV2(unittest.TestCase):
         self.gen_patcher = patch("app.services.daily_pipeline._generate_outputs")
         self.mock_gen = self.gen_patcher.start()
 
+        # Keep tests independent from the developer's local papers_per_day setting.
+        self.config_patcher = patch("config_manager.get_config")
+        self.mock_get_config = self.config_patcher.start()
+        mock_config = MagicMock()
+        mock_config.core_keywords = {"conformal": 1.0}
+        mock_config._settings.papers_per_day = 20
+        self.mock_get_config.return_value = mock_config
+
     def tearDown(self):
         self.recall_patcher.stop()
         self.score_patcher.stop()
@@ -86,6 +94,7 @@ class TestPipelineV2(unittest.TestCase):
         self.load_patcher.stop()
         self.cache_patcher.stop()
         self.gen_patcher.stop()
+        self.config_patcher.stop()
 
     # ------------------------------------------------------------------
     # Core orchestration

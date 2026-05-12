@@ -116,8 +116,9 @@ class RepositoryHygieneTests(unittest.TestCase):
     def test_readme_documents_local_first_setup(self):
         readme = Path("README.md").read_text(encoding="utf-8")
 
-        self.assertIn("local-first Agent literature research assistant", readme)
-        self.assertIn("Inbox / Search / Detail / Reading / Watch / Settings", readme)
+        self.assertIn("local-first paper discovery and research workspace", readme)
+        self.assertIn("Search / Recommendations / Preview / Reading / Watch / Settings / Agent", readme)
+        self.assertIn("OpenAI-compatible", readme)
         self.assertIn("cp user_profile.example.json user_profile.json", readme)
         self.assertIn("pytest", readme)
         self.assertIn("tests/", readme)
@@ -147,6 +148,11 @@ class RepositoryHygieneTests(unittest.TestCase):
     def test_runtime_cache_does_not_contain_placeholder_titles(self):
         """The runtime cache/app_state.db must not contain obvious placeholder
         titles like 'Stable identity' or 'Test Paper Title'."""
+        import os
+
+        if os.getenv("STATDESK_CHECK_RUNTIME_CACHE") != "1":
+            self.skipTest("runtime cache hygiene is opt-in; local user data is not deterministic")
+
         cache_db = Path("cache/app_state.db")
         if not cache_db.exists():
             self.skipTest("runtime cache not present — cannot inspect")
@@ -158,14 +164,23 @@ class RepositoryHygieneTests(unittest.TestCase):
         )
         tables = [row[0] for row in cursor.fetchall()]
         found_placeholders = []
+        patterns = [
+            "%Stable identity%",
+            "%Test Paper Title%",
+            "%Browser Smoke Paper%",
+            "%Hit Test%",
+            "%Hits List%",
+            "%Query A%",
+            "%JSON Fields Paper%",
+        ]
         for table in tables:
             try:
                 for col in ("title", "paper_id", "name"):
+                    clauses = " OR ".join([f"{col} LIKE ?" for _ in patterns])
                     cursor = conn.execute(
                         f"SELECT DISTINCT {col} FROM \"{table}\" "
-                        f"WHERE {col} LIKE '%Stable identity%' "
-                        f"OR {col} LIKE '%Test Paper Title%' "
-                        f"LIMIT 5"
+                        f"WHERE {clauses} LIMIT 5",
+                        patterns,
                     )
                     for row in cursor.fetchall():
                         found_placeholders.append(f"{table}.{col}={row[0]}")
@@ -176,6 +191,14 @@ class RepositoryHygieneTests(unittest.TestCase):
             found_placeholders, [],
             f"Placeholder records found in runtime cache: {found_placeholders}"
         )
+
+    def test_dev_state_cleanup_script_exists(self):
+        script = Path("scripts/cleanup_dev_state.py")
+
+        self.assertTrue(script.exists())
+        text = script.read_text(encoding="utf-8")
+        self.assertIn("PLACEHOLDER_TITLES", text)
+        self.assertIn("PLACEHOLDER_SUBSCRIPTIONS", text)
 
     # ------------------------------------------------------------------ #
     #  Dependency consistency

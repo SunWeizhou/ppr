@@ -36,14 +36,14 @@ def _request_research_question_id() -> int | None:
 
 @bp.get("/")
 def index():
-    """Redirect to the workspace Inbox."""
+    """Render the Paper Agent search workspace."""
     # Onboarding guard (must run before redirect)
     if not request.args.get("skip_onboarding"):
         from config_manager import CONFIG_FILE
 
         if not CONFIG_FILE.exists():
             return redirect("/onboarding")
-    return redirect("/queue?status=Inbox")
+    return _render_search_workspace()
 
 
 @bp.get("/daily")
@@ -173,17 +173,84 @@ def paper_detail(paper_id):
 
 @bp.get("/search")
 def search_page():
-    """Render an empty search page."""
+    """Render the search workspace."""
+    return _render_search_workspace()
+
+
+def _save_search_metadata(store, papers: list[dict], *, research_question_id: int | None, source_run_id: str) -> None:
+    for paper in papers:
+        pid = paper.get("paper_id") or paper.get("id") or ""
+        if pid:
+            store.save_paper_metadata(
+                pid,
+                {
+                    "title": paper.get("title", ""),
+                    "abstract": paper.get("abstract") or paper.get("summary", ""),
+                    "authors": paper.get("authors", []),
+                    "categories": paper.get("categories", []),
+                    "published_at": paper.get("published_at") or paper.get("date", ""),
+                    "year": paper.get("year", ""),
+                    "venue": paper.get("venue", ""),
+                    "link": paper.get("link") or paper.get("url", ""),
+                    "url": paper.get("url") or paper.get("link", ""),
+                    "pdf_url": paper.get("pdf_url", ""),
+                    "score": paper.get("score", 0),
+                    "citation_count": paper.get("citation_count"),
+                    "reference_count": paper.get("reference_count"),
+                    "external_ids": paper.get("external_ids", {}),
+                    "source": paper.get("source", ""),
+                    "relevance_reason": paper.get("relevance_reason", paper.get("relevance", "")),
+                },
+                source="search_workspace" if research_question_id else "search",
+                source_run_id=source_run_id,
+            )
+
+
+def _render_search_workspace(
+    raw_query: str | None = None,
+    papers: list[dict] | None = None,
+    *,
+    search_sources: dict | None = None,
+    search_warnings: list[str] | None = None,
+    search_errors: list[str] | None = None,
+):
     store = get_state_store()
-    vm = SearchViewModel(store)
-    return render_template(
-        "search_research.html",
-        **vm.to_template_context(
-            [],
-            [],
-            research_question_id=_request_research_question_id(),
-        ),
+    research_question_id = _request_research_question_id()
+    query = (raw_query if raw_query is not None else request.args.get("q") or "").strip()
+    warnings: list[str] = list(search_warnings or [])
+    errors: list[str] = list(search_errors or [])
+    sources: dict = dict(search_sources or {})
+    if papers is None:
+        papers = []
+        if query:
+            try:
+                from app.services.unified_search_service import search_papers
+
+                result = search_papers(query, max_results=25)
+                papers = result["papers"]
+                warnings = result.get("warnings", [])
+                errors = result.get("errors", [])
+                sources = result.get("sources", {})
+            except Exception as exc:
+                warnings = [f"Search is temporarily unavailable: {exc}"]
+    source_run_id = f"research-question-{research_question_id}" if research_question_id else "ad-hoc-search"
+    _save_search_metadata(
+        store,
+        papers,
+        research_question_id=research_question_id,
+        source_run_id=source_run_id,
     )
+    vm = SearchViewModel(store)
+    context = vm.to_template_context(
+        papers,
+        [part for part in query.split() if part],
+        research_question_id=research_question_id,
+        raw_query=query,
+        search_sources=sources,
+        search_warnings=warnings,
+        search_errors=errors,
+    )
+    return render_template("search_research.html", **context)
 
 
 @bp.get("/search/<path:keywords>")
@@ -210,9 +277,13 @@ def search_keywords(keywords):
         )
 
     try:
-        from arxiv_recommender_v5 import search_by_keywords
+        from app.services.unified_search_service import search_papers
 
-        papers = search_by_keywords(keyword_list, max_results=25, days_back=60)
+        result = search_papers(" ".join(keyword_list), max_results=25)
+        papers = result["papers"]
+        warnings = result.get("warnings", [])
+        errors = result.get("errors", [])
+        sources = result.get("sources", {})
     except Exception as e:
         logger.error("Search error: %s", e)
         safe_err = str(e).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
@@ -220,7 +291,7 @@ def search_keywords(keywords):
             '<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#fff;">'
             "<h1>Search Error</h1>"
             f"<p>Error: {safe_err}</p>"
-            '<p><a href="/" style="color:#00d4ff">Return Home</a></p>'
+            '<p><a href="/" style="color:#00d4ff">Return to Search</a></p>'
             "</body></html>"
         )
 
@@ -231,32 +302,10 @@ def search_keywords(keywords):
         if research_question_id
         else "ad-hoc-search"
     )
-    # Save search-result metadata so /papers/<id> can find these papers
-    for paper in papers:
-        pid = paper.get("paper_id") or paper.get("id") or ""
-        if pid:
-            store.save_paper_metadata(
-                pid,
-                {
-                    "title": paper.get("title", ""),
-                    "abstract": paper.get("abstract") or paper.get("summary", ""),
-                    "authors": paper.get("authors", []),
-                    "categories": paper.get("categories", []),
-                    "published_at": paper.get("published_at") or paper.get("date", ""),
-                    "link": paper.get("link") or paper.get("source_url", ""),
-                    "score": paper.get("score", 0),
-                    "relevance_reason": paper.get("relevance_reason", paper.get("relevance", "")),
-                },
-                source="search_workspace" if research_question_id else "search",
-                source_run_id=source_run_id,
-            )
-    vm = SearchViewModel(store)
-    return render_template(
-        "search_research.html",
-        **vm.to_template_context(
-            papers,
-            keyword_list,
-            research_question_id=research_question_id,
-            raw_query=keywords,
-        ),
+    return _render_search_workspace(
+        raw_query=keywords,
+        papers=papers,
+        search_sources=sources,
+        search_warnings=warnings,
+        search_errors=errors,
     )

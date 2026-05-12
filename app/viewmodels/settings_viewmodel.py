@@ -154,7 +154,7 @@ class SettingsViewModel:
         )
 
         return {
-            "title": "Settings - Agent Literature Research Assistant",
+            "title": "Settings - Paper Agent",
             "tab": tab,
             "core_keywords": core_keywords,
             "papers_per_day": papers_per_day,

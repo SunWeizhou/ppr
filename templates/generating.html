@@ -5,9 +5,9 @@
 <section class="page-header">
     <div class="lead">
         <span class="section-kicker">Inbox Refresh</span>
-        <h1 class="page-title">正在生成候选论文</h1>
+        <h1 class="page-title">Generating candidates</h1>
         <div class="page-context">
-            <span>预计需要 30-60 秒，完成后自动刷新页面</span>
+            <span>Usually takes 30–60 seconds. The page will refresh automatically when done.</span>
         </div>
     </div>
 </section>
@@ -16,13 +16,13 @@
 {% block content %}
 <section class="generating-container">
     <div class="generating-spinner" aria-label="Loading"></div>
-    <p class="generating-status">后端正在抓取并分析 arXiv 当日论文<span class="progress-dots"></span></p>
-    <p class="generating-elapsed">已等待: <span id="elapsed">0</span></p>
+    <p class="generating-status">Fetching and scoring today's arXiv papers<span class="progress-dots"></span></p>
+    <p class="generating-elapsed">Elapsed: <span id="elapsed">0</span>s</p>
     <div class="generating-steps">
-        <div class="generating-step active" data-step="0">获取 arXiv 论文</div>
-        <div class="generating-step" data-step="1">计算候选分数</div>
-        <div class="generating-step" data-step="2">生成摘要</div>
-        <div class="generating-step" data-step="3">保存结果</div>
+        <div class="generating-step active" data-step="0">Fetching arXiv papers</div>
+        <div class="generating-step" data-step="1">Scoring candidates</div>
+        <div class="generating-step" data-step="2">Generating summaries</div>
+        <div class="generating-step" data-step="3">Saving results</div>
     </div>
 </section>
 {% endblock %}
@@ -115,7 +115,7 @@
 
     function updateStatus() {
         elapsed += 5;
-        document.getElementById('elapsed').textContent = elapsed + ' 秒';
+        document.getElementById('elapsed').textContent = elapsed;
 
         // Update step display (rotate every 15 seconds)
         const newStep = Math.min(Math.floor(elapsed / 15), steps.length - 1);
@@ -143,7 +143,7 @@
                 if (data.job && data.job.status === 'failed') {
                     var statusEl = document.querySelector('.generating-status');
                     if (statusEl) {
-                        statusEl.textContent = '生成失败: ' + (data.job.error_text || '未知错误');
+                        statusEl.textContent = 'Generation failed: ' + (data.job.error_text || 'Unknown error');
                     }
                 }
             })

@@ -14,9 +14,11 @@ def register_blueprints(flask_app):
     from app.routes.settings import bp as settings_bp
     from app.routes.evaluation import bp as evaluation_bp
     from app.routes.library import bp as library_bp
+    from app.routes.recommendations import bp as recommendations_bp
 
     for blueprint in (
         inbox_bp,
+        recommendations_bp,
         reading_bp,
         watch_bp,
         queue_bp,
@@ -27,4 +29,3 @@ def register_blueprints(flask_app):
         library_bp,
     ):
         flask_app.register_blueprint(blueprint)
-

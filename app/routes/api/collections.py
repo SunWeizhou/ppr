@@ -138,7 +138,7 @@ def export_collection_bibtex(collection_id):
             f"  title = {{{title}}},\n"
             f"  author = {{{authors}}},\n"
             f"  year = {{{year}}},\n"
-            f"  note = {{Exported from Research Assistant collection: {name}}}\n"
+            f"  note = {{Exported from Paper Agent collection: {name}}}\n"
             f"}}"
         )
     bibtex = "\n\n".join(entries)

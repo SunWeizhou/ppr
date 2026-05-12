@@ -11,7 +11,7 @@ Write-Host "Installing dependencies..."
 pip install -r requirements.txt -c constraints.txt --quiet
 
 Write-Host ""
-Write-Host "Starting Agent Literature Research Assistant at http://localhost:5555"
+Write-Host "Starting Paper Agent at http://localhost:5555"
 Write-Host "Press Ctrl+C to stop."
 Write-Host ""
 

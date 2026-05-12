@@ -33,7 +33,7 @@ class ScholarService:
         data = self.load()
         for s in data["scholars"]:
             if s["name"].lower() == name.lower():
-                return False, "学者已存在"
+                return False, "Author already exists"
         scholar = {
             "name": name,
             "affiliation": affiliation,
@@ -53,7 +53,7 @@ class ScholarService:
         original_name = str(original_name or "").strip()
         name = str(name or "").strip()
         if not original_name or not name:
-            return False, "缺少学者姓名"
+            return False, "Author name is required"
         for scholar in data["scholars"]:
             if scholar["name"].lower() != original_name.lower():
                 continue
@@ -65,16 +65,16 @@ class ScholarService:
             })
             self.save(data)
             return True, scholar
-        return False, "学者不存在"
+        return False, "Author not found"
 
     def remove(self, name) -> tuple[bool, str]:
         data = self.load()
         original_len = len(data["scholars"])
         data["scholars"] = [s for s in data["scholars"] if s["name"].lower() != name.lower()]
         if len(data["scholars"]) == original_len:
-            return False, "学者不存在"
+            return False, "Author not found"
         self.save(data)
-        return True, "已删除"
+        return True, "Removed"
 
     def fetch_papers(self, scholar_name: str, max_results: int = 5) -> list[dict]:
         ssl_context = ssl.create_default_context()
@@ -127,7 +127,7 @@ class ScholarService:
     def parse_google_scholar_url(url: str) -> dict:
         match = re.search(r"user=([a-zA-Z0-9_-]+)", url)
         if not match:
-            return {"success": False, "error": "无法从链接中提取学者ID"}
+            return {"success": False, "error": "Could not extract author ID from URL"}
         user_id = match.group(1)
         scholar_url = f"https://scholar.google.com/citations?user={user_id}&hl=en"
         ssl_context = ssl.create_default_context()
@@ -136,7 +136,7 @@ class ScholarService:
             with urllib.request.urlopen(req, timeout=15, context=ssl_context) as response:  # nosec B310 — Google Scholar, fixed https://
                 html = response.read().decode("utf-8", errors="replace")
         except Exception as e:
-            return {"success": False, "error": f"无法访问: {e}"}
+            return {"success": False, "error": f"Could not fetch profile: {e}"}
         name_match = re.search(r'<div id="gsc_prf_in">([^<]+)</div>', html)
         aff_match = re.search(r'<div class="gsc_prf_il">([^<]+)</div>', html)
         return {

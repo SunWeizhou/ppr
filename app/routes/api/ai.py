@@ -99,7 +99,16 @@ def _resolve_paper_context(paper_id: str) -> dict | None:
     except Exception:
         pass
 
-    # 2) Fallback to Markdown history
+    # 2) Fallback to SQLite paper metadata. Search and preview write full
+    # abstracts here, so this is the best source for ad-hoc discovered papers.
+    try:
+        meta = store.get_paper_metadata(paper_id)
+        if meta:
+            return _build_paper_dict(meta)
+    except Exception:
+        pass
+
+    # 3) Fallback to Markdown history
     import os
     from app_paths import HISTORY_DIR
 

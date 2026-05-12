@@ -28,30 +28,30 @@
 
   const I18N = {
     zh: {
-      'brand.sub': '统计研究者的本地 arXiv 工作台',
-      'nav.workflow': '工作流',
-      'nav.inbox': 'Inbox',
-      'nav.queue': 'Queue',
+      'brand.sub': 'Local-first research workspace',
+      'nav.workflow': 'Workflow',
+      'nav.home': 'Home',
+      'nav.search': 'Search',
       'nav.reading': 'Reading',
       'nav.watch': 'Watch',
       'nav.settings': 'Settings',
       'state.relevant': 'Relevant',
       'asset.collections': 'collections',
       'asset.queries': 'queries',
-      'footer.quote': '“好的研究不是读得更多，而是更早看清什么值得读。”'
+      'footer.quote': ''
     },
     en: {
-      'brand.sub': 'local-first arXiv workflow for statistics researchers',
+      'brand.sub': 'local-first paper discovery workspace',
       'nav.workflow': 'Workflow',
-      'nav.inbox': 'Inbox',
-      'nav.queue': 'Queue',
+      'nav.home': 'Home',
+      'nav.search': 'Search',
       'nav.reading': 'Reading',
       'nav.watch': 'Watch',
       'nav.settings': 'Settings',
       'state.relevant': 'Relevant',
       'asset.collections': 'collections',
       'asset.queries': 'queries',
-      'footer.quote': '“The art of doing research is the art of making hard choices visible.”'
+      'footer.quote': ''
     }
   };
 
@@ -170,7 +170,7 @@
     container.innerHTML = '';
     const collections = window.AppState.collections || [];
     if (!collections.length) {
-      container.innerHTML = '<div class="empty-state compact-empty"><p class="muted-copy">还没有 Collection，直接新建一个。</p></div>';
+      container.innerHTML = '<div class="empty-state compact-empty"><p class="muted-copy">No collections yet. Create a new one below.</p></div>';
       return;
     }
     collections.forEach((collection, index) => {
@@ -227,7 +227,7 @@
       const description = document.getElementById('collectionPickerDescription').value.trim();
       const seedQuery = document.getElementById('collectionPickerSeedQuery').value.trim();
       if (!name) {
-        showToast('请填写 Collection 名称', 'error');
+        showToast('Please enter a collection name', 'error');
         return;
       }
       const result = await requestJson('/api/collections', {
@@ -237,11 +237,11 @@
       });
       collection = result.collection;
       updateCollectionCache(collection);
-      showToast('Collection 已创建');
+      showToast('Collection created');
     } else {
       const selected = document.querySelector('input[name="collectionPickerExisting"]:checked');
       if (!selected) {
-        showToast('请选择一个 Collection', 'error');
+        showToast('Please select a collection', 'error');
         return;
       }
       collection = (window.AppState.collections || []).find((item) => String(item.id) === String(selected.value));
@@ -259,7 +259,7 @@
   function openCollectionEditor(options = {}) {
     const state = window.AppState.modalState;
     state.collectionEditTarget = options.collection || null;
-    document.getElementById('collectionEditorTitle').textContent = options.collection ? '编辑 Collection' : '新建 Collection';
+    document.getElementById('collectionEditorTitle').textContent = options.collection ? 'Edit collection' : 'New collection';
     document.getElementById('collectionEditorName').value = options.collection?.name || options.defaultName || '';
     document.getElementById('collectionEditorDescription').value = options.collection?.description || options.description || '';
     document.getElementById('collectionEditorSeedQuery').value = options.collection?.seed_query || options.collection?.query_text || options.seedQuery || '';
@@ -280,7 +280,7 @@
     const description = document.getElementById('collectionEditorDescription').value.trim();
     const seedQuery = document.getElementById('collectionEditorSeedQuery').value.trim();
     if (!name) {
-      showToast('请填写 Collection 名称', 'error');
+      showToast('Please enter a collection name', 'error');
       return;
     }
 
@@ -292,14 +292,14 @@
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({collection_id: state.collectionEditTarget.id, ...payload})
       });
-      showToast('Collection 已更新');
+      showToast('Collection updated');
     } else {
       result = await requestJson('/api/collections', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(payload)
       });
-      showToast('Collection 已创建');
+      showToast('Collection created');
     }
     const collection = result.collection;
     updateCollectionCache(collection);
@@ -313,9 +313,9 @@
     const target = state.collectionEditTarget;
     if (!target?.id) return;
     const ok = await confirmDangerAction({
-      title: '删除 Collection',
+      title: 'Delete collection',
       objectName: target.name,
-      message: '这会删除这个研究容器及其中的收纳关系，但不会删除论文、Queue 状态或历史记录。',
+      message: 'This removes the collection and its paper memberships, but does not delete papers, queue status, or history.',
       confirmLabel: 'Delete collection'
     });
     if (!ok) return;
@@ -325,7 +325,7 @@
       body: JSON.stringify({collection_id: target.id})
     });
     removeCollectionCache(target.id);
-    showToast('Collection 已删除');
+    showToast('Collection deleted');
     const resolver = state.collectionEditorResolver;
     state.collectionEditorResolver = null;
     hideModal('collectionEditorModal');
@@ -344,14 +344,14 @@
         source: options.source || 'research_ui'
       })
     });
-    showToast('已加入 Collection: ' + collection.name);
+    showToast('Added to collection: ' + collection.name);
     return collection;
   }
 
   function openQuerySubscriptionModal(options = {}) {
     const state = window.AppState.modalState;
     state.querySubscriptionTarget = options.savedSearch || null;
-    document.getElementById('querySubscriptionTitle').textContent = options.savedSearch ? '编辑问题订阅' : '保存问题订阅';
+    document.getElementById('querySubscriptionTitle').textContent = options.savedSearch ? 'Edit subscription' : 'Save subscription';
     document.getElementById('querySubscriptionName').value = options.savedSearch?.name || options.defaultName || '';
     document.getElementById('querySubscriptionQuery').value = options.savedSearch?.query_text || options.queryText || '';
     document.getElementById('querySubscriptionDescription').value = options.savedSearch?.description || options.description || '';
@@ -371,7 +371,7 @@
     const queryText = document.getElementById('querySubscriptionQuery').value.trim();
     const description = document.getElementById('querySubscriptionDescription').value.trim();
     if (!name || !queryText) {
-      showToast('请填写名称和 Query', 'error');
+      showToast('Please enter a name and query', 'error');
       return;
     }
 
@@ -395,7 +395,7 @@
           }
         })
       });
-      showToast('问题订阅已更新');
+      showToast('Subscription updated');
     } else {
       result = await requestJson('/api/saved-searches', {
         method: 'POST',
@@ -407,7 +407,7 @@
           filters: {source: 'query_subscription_modal'}
         })
       });
-      showToast('问题订阅已创建');
+      showToast('Subscription created');
     }
     const savedSearch = result.saved_search;
     updateSavedSearchCache(savedSearch);
@@ -421,9 +421,9 @@
     const target = state.querySubscriptionTarget;
     if (!target?.id) return;
     const ok = await confirmDangerAction({
-      title: '删除 Query Subscription',
+      title: 'Delete subscription',
       objectName: target.name,
-      message: '这会停止这个问题的长期命中追踪，但不会删除已经加入 Queue 或 Collection 的论文。',
+      message: 'This stops long-term hit tracking for this query, but does not delete papers already in your queue or collections.',
       confirmLabel: 'Delete subscription'
     });
     if (!ok) return;
@@ -433,7 +433,7 @@
       body: JSON.stringify({search_id: target.id})
     });
     removeSavedSearchCache(target.id);
-    showToast('问题订阅已删除');
+    showToast('Subscription deleted');
     const resolver = state.querySubscriptionResolver;
     state.querySubscriptionResolver = null;
     hideModal('querySubscriptionModal');
@@ -444,7 +444,7 @@
     const state = window.AppState.modalState;
     const author = options.author || null;
     state.authorSubscriptionTarget = author;
-    document.getElementById('authorSubscriptionTitle').textContent = author ? '编辑关注学者' : '关注学者';
+    document.getElementById('authorSubscriptionTitle').textContent = author ? 'Edit author watch' : 'Follow author';
     document.getElementById('authorSubscriptionName').value = author?.name || options.defaultName || '';
     document.getElementById('authorSubscriptionAffiliation').value = author?.affiliation || '';
     document.getElementById('authorSubscriptionFocus').value = author?.focus || '';
@@ -474,7 +474,7 @@
       website: document.getElementById('authorSubscriptionWebsite').value.trim()
     };
     if (!payload.name) {
-      showToast('请填写学者姓名', 'error');
+      showToast('Please enter the author name', 'error');
       return;
     }
 
@@ -484,7 +484,7 @@
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload)
     });
-    showToast(state.authorSubscriptionTarget?.name ? '关注学者已更新' : '关注学者已添加');
+    showToast(state.authorSubscriptionTarget?.name ? 'Author watch updated' : 'Author watch added');
     state.authorSubscriptionResolver = null;
     hideModal('authorSubscriptionModal');
     resolver(result.scholar || result.result || payload);
@@ -495,9 +495,9 @@
     const target = state.authorSubscriptionTarget;
     if (!target?.name) return;
     const ok = await confirmDangerAction({
-      title: '移除关注学者',
+      title: 'Remove author watch',
       objectName: target.name,
-      message: '这会停止在 Watch 中追踪该学者，但不会删除已保存论文、Queue 状态或历史记录。',
+      message: 'This stops tracking this author in Watch, but does not delete saved papers, queue status, or history.',
       confirmLabel: 'Remove author'
     });
     if (!ok) return;
@@ -506,7 +506,7 @@
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({name: target.name})
     });
-    showToast('关注学者已移除');
+    showToast('Author watch removed');
     const resolver = state.authorSubscriptionResolver;
     state.authorSubscriptionResolver = null;
     hideModal('authorSubscriptionModal');
@@ -533,7 +533,7 @@
 
   async function followAuthor(author, options = {}) {
     if (!author) {
-      showToast('缺少作者名', 'error');
+      showToast('Author name is required', 'error');
       return null;
     }
     const result = await requestJson('/api/feedback', {
@@ -547,7 +547,7 @@
         source: options.source || 'research_ui'
       })
     });
-    showToast(result.followed ? ('已关注作者: ' + author) : result.result || '作者已存在');
+    showToast(result.followed ? ('Following author: ' + author) : result.result || 'Author already followed');
     return result;
   }
 
@@ -569,8 +569,8 @@
 
   function confirmDangerAction(options = {}) {
     const state = window.AppState.modalState;
-    document.getElementById('dangerConfirmTitle').textContent = options.title || '确认危险操作';
-    document.getElementById('dangerConfirmBody').textContent = options.message || '这个操作无法自动恢复，请确认后继续。';
+    document.getElementById('dangerConfirmTitle').textContent = options.title || 'Confirm action';
+    document.getElementById('dangerConfirmBody').textContent = options.message || 'This action cannot be undone. Please confirm to continue.';
     document.getElementById('dangerConfirmObject').textContent = options.objectName || '';
     document.getElementById('dangerConfirmObject').hidden = !options.objectName;
     document.getElementById('dangerConfirmButton').textContent = options.confirmLabel || 'Confirm';
@@ -590,17 +590,17 @@
 
   async function confirmRefreshToday() {
     const ok = await confirmDangerAction({
-      title: '刷新 Inbox 候选',
+      title: 'Refresh candidates',
       objectName: 'Today scoring cache',
-      message: '这会重新运行候选生成，可能更新当前 Inbox 排序。Queue、Reading 和反馈状态会保留。',
+      message: 'This re-runs candidate generation and may update the current inbox ranking. Queue, Reading, and feedback state will be preserved.',
       confirmLabel: 'Refresh today'
     });
     if (ok) {
       try {
         const resp = await fetch('/api/refresh?force=1', { method: 'POST' });
         const data = await resp.json();
-        if (!data.success) showToast(data.error || '刷新失败', 'error');
-      } catch (err) { showToast('刷新失败: ' + err.message, 'error'); }
+        if (!data.success) showToast(data.error || 'Refresh failed', 'error');
+      } catch (err) { showToast('Refresh failed: ' + err.message, 'error'); }
     }
   }
 
@@ -644,7 +644,7 @@
     try {
       await window.queuePaperStatus(target.paperId, status, {source: target.source || 'paper_actions'});
     } catch (error) {
-      showToast('队列更新失败: ' + error.message, 'error');
+      showToast('Queue update failed: ' + error.message, 'error');
     }
   }
 
@@ -657,7 +657,7 @@
         source: target.source || 'paper_actions'
       });
     } catch (error) {
-      showToast('加入 Collection 失败: ' + error.message, 'error');
+      showToast('Failed to add to collection: ' + error.message, 'error');
     }
   }
 
@@ -683,7 +683,7 @@
         source: target.source || 'paper_actions'
       });
     } catch (error) {
-      showToast('关注失败: ' + error.message, 'error');
+      showToast('Failed to follow author: ' + error.message, 'error');
     }
   }
 
@@ -691,9 +691,9 @@
     const target = window.AppState.modalState.paperActionTarget;
     if (!target?.collectionId) return;
     const ok = await confirmDangerAction({
-      title: '移出 Collection',
+      title: 'Remove from collection',
       objectName: target.title,
-      message: '这只会移除当前论文与这个 Collection 的关系，不会删除论文或其他状态。',
+      message: 'This only removes the paper from this collection. The paper, queue status, and history are not affected.',
       confirmLabel: 'Remove paper'
     });
     if (!ok) return;
@@ -703,11 +703,11 @@
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({paper_id: target.paperId, source: target.source || 'paper_actions'})
       });
-      showToast('已移出 Collection');
+      showToast('Removed from collection');
       document.querySelectorAll('[data-paper-id="' + escapeAttrValue(target.paperId) + '"][data-collection-id="' + escapeAttrValue(target.collectionId) + '"]').forEach((node) => node.remove());
       hideModal('paperActionsModal');
     } catch (error) {
-      showToast('移除失败: ' + error.message, 'error');
+      showToast('Remove failed: ' + error.message, 'error');
     }
   }
 
@@ -720,7 +720,7 @@
   });
 
   function applyLanguage(language) {
-    const lang = I18N[language] ? language : 'zh';
+    const lang = 'en';
     document.documentElement.dataset.language = lang;
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
     const i18nMap = I18N[lang] || {};
@@ -729,7 +729,7 @@
       if (i18nMap[key]) node.textContent = i18nMap[key];
     });
     const languageToggle = document.querySelector('[data-action="toggle-language"]');
-    if (languageToggle) languageToggle.textContent = lang === 'zh' ? '中 / EN' : 'EN / 中';
+    if (languageToggle) languageToggle.textContent = 'EN';
     localStorage.setItem('statdesk.language', lang);
   }
 
@@ -742,12 +742,12 @@
   }
 
   function initPreferences() {
-    const storedLanguage = localStorage.getItem('statdesk.language') || 'zh';
+    const storedLanguage = 'en';
     const storedTheme = localStorage.getItem('statdesk.theme') || 'light';
     applyLanguage(storedLanguage);
     applyTheme(storedTheme);
     document.querySelector('[data-action="toggle-language"]')?.addEventListener('click', () => {
-      applyLanguage(document.documentElement.dataset.language === 'zh' ? 'en' : 'zh');
+      applyLanguage('en');
     });
     document.querySelector('[data-action="toggle-theme"]')?.addEventListener('click', () => {
       applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');

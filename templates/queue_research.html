@@ -4,8 +4,8 @@
 {% block hero %}
 <section class="page-header">
     <div class="lead">
-        <span class="section-kicker">Candidate Decision Workbench</span>
-        <h1 class="page-title">Reading Queue</h1>
+        <span class="section-kicker">Inbox</span>
+        <h1 class="page-title">Inbox</h1>
         <div class="page-context">
             <span>{{ queue_counts.values() | list | sum }} papers in queue</span>
             <span class="dot"></span>
@@ -13,14 +13,14 @@
         </div>
     </div>
     <div class="actions">
-        <a href="/queue?status=Inbox" class="btn btn-primary">返回 Inbox</a>
+        <a href="/queue?status=Inbox" class="btn btn-primary">Inbox</a>
     </div>
 </section>
 {% endblock %}
 
 {% block content %}
 <div class="reading-workbench-header" style="display: flex; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); margin-bottom: 16px; flex-wrap: wrap;">
-    <span class="section-kicker" style="margin: 0;">Reading Workbench</span>
+    <span class="section-kicker" style="margin: 0;">Decide what to read</span>
     <span class="chip">Deep Read: {{ all_status_counts.get('Deep Read', 0) }}</span>
     <span class="chip">Skim Later: {{ all_status_counts.get('Skim Later', 0) }}</span>
     <span class="chip">Inbox: {{ all_status_counts.get('Inbox', 0) }}</span>
@@ -33,10 +33,9 @@
 
 {% if queue_counts.values() | list | sum == 0 %}
 <div class="card empty-state-card">
-    <div class="empty-state-icon">&#128214;</div>
-    <h2 class="empty-state-title">Queue is Empty</h2>
-    <p class="empty-state-desc">Papers queued from Inbox for Skim Later or Deep Read will appear here.</p>
-    <a href="/queue?status=Inbox" class="btn btn-primary">Go to Inbox</a>
+    <h2 class="empty-state-title">Nothing needs a decision</h2>
+    <p class="empty-state-desc">Build a candidate set from Search, then decide what is worth reading.</p>
+    <a href="/" class="btn btn-primary">Go to Search</a>
 </div>
 {% endif %}
 
@@ -102,15 +101,15 @@
                     </article>
                 {% endfor %}
             {% else %}
-                {{ ui.empty_state(active_status ~ ' 里还没有论文', '从 Inbox 把论文送进阅读流程。') }}
+                {{ ui.empty_state('No papers here', 'Build a candidate set from Search, then send papers into reading.') }}
             {% endif %}
         </div>
     </div>
 
     <div class="detail-panel" id="queueDetailPanel">
-        <div class="detail-kicker">Selected Queue Item</div>
-        <h2 class="detail-title" id="detailTitle">选择一篇论文查看详情</h2>
-        <p class="muted-copy" id="detailHint">左侧列表只负责选择，右侧负责决定下一步。</p>
+        <div class="detail-kicker">Selected paper</div>
+        <h2 class="detail-title" id="detailTitle">Choose a paper</h2>
+        <p class="muted-copy" id="detailHint">Select a paper on the left, then decide the next reading action.</p>
         <div id="detailContent" hidden>
             <p id="detailAuthors" class="detail-authors"></p>
             <div class="detail-meta-row">
@@ -135,7 +134,7 @@
                 <div id="detailEvidenceClaims" class="evidence-preview-list"></div>
             </div>
             <label class="field-label" for="detailQueueNote">Note</label>
-            <textarea id="detailQueueNote" class="form-textarea" rows="4" placeholder="记录你为什么要读它，或下一步要看什么。"></textarea>
+            <textarea id="detailQueueNote" class="form-textarea" rows="4" placeholder="Note why this paper matters or what to check next."></textarea>
             <div class="detail-actions detail-actions-grid mt-2">
                 <a id="detailQueueLink" class="btn btn-primary" href="#" target="_blank" rel="noopener noreferrer" onclick="openQueuePaper()">Open arXiv</a>
                 <button type="button" class="btn btn-tertiary" onclick="downloadQueuePdf()">PDF</button>
@@ -199,7 +198,7 @@ function selectQueuePaper(card) {
         item.className = 'relevance-item';
         const icon = document.createElement('span');
         icon.className = 'relevance-icon';
-        icon.textContent = '💡';
+        icon.textContent = '•';
         const text = document.createElement('span');
         text.className = 'relevance-text';
         text.textContent = relevance;
@@ -259,7 +258,7 @@ async function moveQueuePaper(status) {
     await queuePaperStatus(paperId, status, queueWorkspaceOptions('queue_page'));
     selectedQueuePaper.remove();
     selectedQueuePaper = null;
-    document.getElementById('detailTitle').textContent = '选择一篇论文查看详情';
+    document.getElementById('detailTitle').textContent = 'Choose a paper';
     document.getElementById('detailHint').hidden = false;
     document.getElementById('detailContent').hidden = true;
 }
@@ -274,9 +273,9 @@ async function saveQueueNote() {
             queueWorkspaceOptions('queue_note')
         );
         selectedQueuePaper.dataset.paperNote = item.note || note;
-        showToast('笔记已保存');
+        showToast('Note saved');
     } catch (error) {
-        showToast('保存失败: ' + error.message, 'error');
+        showToast('Save failed: ' + error.message, 'error');
     }
 }
 
@@ -298,7 +297,7 @@ async function collectQueuePaper() {
             source: 'queue_page'
         });
     } catch (error) {
-        showToast('加入 Collection 失败: ' + error.message, 'error');
+        showToast('Collection update failed: ' + error.message, 'error');
     }
 }
 

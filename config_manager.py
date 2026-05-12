@@ -342,7 +342,7 @@ class ConfigManager:
         if self._ai.api_key:
             logger.warning(
                 "API key stored in plaintext config file. Consider using an "
-                "environment variable (STATDESK_AI_API_KEY) instead of "
+                "environment variable (OPENAI_COMPATIBLE_API_KEY) instead of "
                 "storing secrets in %s", CONFIG_FILE
             )
         self._ai.base_url = ai_data.get('base_url', 'https://api.deepseek.com')

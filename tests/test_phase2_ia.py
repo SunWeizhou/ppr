@@ -8,11 +8,11 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
 
         nav = web_server.NAV_ITEM_CONFIG
         keys = [item[0] for item in nav]
-        self.assertIn("inbox", keys)
         self.assertIn("search", keys)
         self.assertIn("reading", keys)
         self.assertIn("watch", keys)
-        self.assertIn("settings", keys)
+        self.assertNotIn("home", keys)
+        self.assertNotIn("explore", keys)
 
     def test_inbox_template_is_strict_triage_surface(self):
         template = Path("templates/today.html").read_text(encoding="utf-8")
@@ -45,11 +45,10 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
     def test_inbox_page_still_serves(self):
         import web_server
 
-        # / now redirects to /queue?status=Inbox
+        # / now renders the Paper Agent search workspace.
         response = web_server.app.test_client().get("/?skip_onboarding=1")
-        self.assertIn(response.status_code, (200, 302))
-        if response.status_code == 302:
-            self.assertIn("/queue?status=Inbox", response.location)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Search papers, authors, topics...", response.get_data(as_text=True))
 
     def test_evaluation_page_serves_200(self):
         import web_server
@@ -97,7 +96,7 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
     def test_watch_labels_unified_subscriptions_and_avoids_prominent_search_cta(self):
         template = Path("templates/watch.html").read_text(encoding="utf-8")
 
-        self.assertIn("研究方向", template)
+        self.assertIn("Research questions", template)
         self.assertNotIn('href="/search" class="btn', template)
 
     def test_watch_empty_icons_render_as_characters_not_entity_text(self):

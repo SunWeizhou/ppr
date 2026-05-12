@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "arxiv-recommender",
+      "runtimeExecutable": "/Users/sunweizhou/miniconda3/bin/python3",
+      "runtimeArgs": ["web_server.py"],
+      "port": 5555
+    }
+  ]
+}

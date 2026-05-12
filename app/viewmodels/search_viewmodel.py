@@ -29,6 +29,9 @@ class SearchViewModel:
         research_question_id: int | None = None,
         planner_result: dict | None = None,
         raw_query: str | None = None,
+        search_sources: dict | None = None,
+        search_warnings: list[str] | None = None,
+        search_errors: list[str] | None = None,
     ) -> dict:
         """Build the full template context for ``search_research.html``."""
         page_ctx = self._build_page_context()
@@ -42,12 +45,22 @@ class SearchViewModel:
             planner_result=planner_result,
         )
 
+        selected_paper = decorated[0] if decorated else None
         context = {
-            "title": "Search - Agent Literature Research Assistant",
+            "title": "Search - Paper Agent",
             "date": datetime.now().strftime("%Y-%m-%d"),
             "current_query": current_query,
             "keywords": keywords,
             "papers": decorated,
+            "selected_paper": selected_paper,
+            "search_warnings": search_warnings or [],
+            "search_errors": search_errors or [],
+            "source_statuses": self._build_source_statuses(
+                search_sources or {},
+                search_warnings or [],
+                search_errors or [],
+                has_query=bool(current_query),
+            ),
         }
         context.update(workspace_context)
         context.update(page_ctx)
@@ -123,7 +136,7 @@ class SearchViewModel:
                 "mode": "empty",
                 "candidate_count": 0,
                 "top_categories": [],
-                "message": "Start with a research question to generate a candidate triage pack.",
+                "message": "Start with a research question to build a candidate set.",
             }
         category_counts = {}
         for paper in papers:
@@ -139,8 +152,44 @@ class SearchViewModel:
             "mode": "results",
             "candidate_count": len(papers),
             "top_categories": top_categories,
-            "message": f"{len(papers)} candidate papers are ready for triage.",
+            "message": f"{len(papers)} candidate papers are ready for review.",
         }
+
+    @staticmethod
+    def _build_source_statuses(
+        sources: dict,
+        warnings: list[str],
+        errors: list[str],
+        *,
+        has_query: bool,
+    ) -> list[dict]:
+        labels = {
+            "arxiv": "arXiv",
+            "semantic_scholar": "Semantic Scholar",
+        }
+        messages = {
+            "ok": "Available",
+            "failed": "Temporarily unavailable",
+            "not_requested": "Ready",
+            "idle": "Ready",
+        }
+        warning_text = " ".join(str(item) for item in warnings + errors)
+        statuses = []
+        for key, label in labels.items():
+            state = str(sources.get(key) or ("not_requested" if has_query else "idle"))
+            message = messages.get(state, state.replace("_", " ").title())
+            if state == "failed" and label in warning_text:
+                message = next(
+                    (item for item in warnings + errors if label in str(item)),
+                    message,
+                )
+            statuses.append({
+                "key": key,
+                "label": label,
+                "state": state,
+                "message": message,
+            })
+        return statuses
 
     # ==================================================================
     # Internal
@@ -148,7 +197,7 @@ class SearchViewModel:
 
     def _build_page_context(self) -> dict:
         feedback = {"liked": [], "disliked": []}  # search pages don't load feedback
-        base = assemble_page_context(self._store, active_tab="", feedback=feedback)
+        base = assemble_page_context(self._store, active_tab="search", feedback=feedback)
         base["queue_counts"] = self._queue_counts()
         base["queue_status_values"] = QUEUE_STATUS_VALUES
         base["recommendation_health"] = {}
@@ -185,7 +234,10 @@ class SearchViewModel:
                 author_text = authors
 
             item["rank"] = idx
+            item["paper_id"] = item.get("paper_id") or item.get("id")
+            item["id"] = item.get("id") or item["paper_id"]
             item["author_text"] = author_text
+            item["display_citation"] = self._display_citation(item, authors)
             item["first_author"] = extract_primary_author(authors)
             item["category_labels"] = [
                 CATEGORY_NAMES.get(cat, cat) for cat in item.get("categories", [])[:4]
@@ -193,7 +245,19 @@ class SearchViewModel:
             item["queue_status"] = queue_map.get(item.get("id"))
             item["queue_status_class"] = status_class(item["queue_status"])
             item["relevance_reason"] = item.get("relevance_reason", "Keyword match")
-            item["summary_short"] = (item.get("summary") or item.get("abstract") or "")[:220]
+            item["summary_short"] = (item.get("summary") or item.get("abstract") or "")[:520]
             decorated.append(item)
 
         return decorated
+
+    @staticmethod
+    def _display_citation(item: dict, authors) -> str:
+        first = ""
+        if isinstance(authors, list) and authors:
+            first = str(authors[0]).split()[-1]
+        elif isinstance(authors, str) and authors:
+            first = authors.split(",")[0].split()[-1]
+        year = str(item.get("year") or item.get("published_at") or item.get("date") or "")[:4]
+        if first and year.isdigit():
+            return f"{first}, {year}"
+        return first or year or "Untitled"

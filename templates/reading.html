@@ -5,8 +5,12 @@
 {% block hero %}
 <section class="page-header">
     <div class="lead">
-        <span class="section-kicker">Reading List</span>
+        <span class="section-kicker">Reading</span>
         <h1 class="page-title">Reading</h1>
+        <div class="page-context">Review evidence, decide what to read, and keep useful papers.</div>
+    </div>
+    <div class="actions">
+        <a href="/" class="btn btn-primary btn-sm">Back to Search</a>
     </div>
 </section>
 {% endblock %}
@@ -83,7 +87,7 @@
             {% endfor %}
             </div>
         {% else %}
-            {{ ui.empty_state('All done', 'Reading queue is empty.', '', '<a href="/queue?status=Inbox" class="btn btn-primary">Inbox</a>') }}
+            {{ ui.empty_state('Nothing to read yet', 'Build a candidate set from Search, then move promising papers here.', '', '<a href="/" class="btn btn-primary">Go to Search</a>') }}
         {% endif %}
 
     {% elif tab == 'saved' %}
@@ -115,7 +119,7 @@
             {% endfor %}
             </div>
         {% else %}
-            {{ ui.empty_state('No saved items', '', '', '<a href="/queue?status=Inbox" class="btn btn-primary">Inbox</a>') }}
+            {{ ui.empty_state('No saved items', 'Save papers after reviewing their evidence.', '', '<a href="/" class="btn btn-primary">Go to Search</a>') }}
         {% endif %}
 
     {% elif tab == 'collections' %}
@@ -156,7 +160,7 @@ function queueReadingPaper(button, paperId, status) {
     if (item) item.dataset.queueStatus = status;
     showToast('Updated: ' + status);
   }).catch(function(error) {
-    showToast('更新失败: ' + error.message, 'error');
+    showToast('Update failed: ' + error.message, 'error');
   });
 }
 

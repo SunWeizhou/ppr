@@ -227,7 +227,7 @@ def run_pipeline_v2(force_refresh: bool = False) -> list[dict]:
     history_dir = str(HISTORY_DIR)
 
     logger.info("=" * 60)
-    logger.info("StatDesk Daily Pipeline v2 (recall -> rank -> top-K)")
+    logger.info("Paper Agent Daily Pipeline v2 (recall -> rank -> top-K)")
     logger.info("=" * 60)
 
     # Initialize cache

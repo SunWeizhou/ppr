@@ -57,16 +57,19 @@ class Phase6ProductAcceptanceTests(unittest.TestCase):
             for needle in forbidden:
                 self.assertNotIn(needle, text, msg=f"{needle!r} in {path}")
 
-    def test_onboarding_does_not_reference_unsupported_providers(self):
+    def test_onboarding_references_openai_compatible_provider(self):
         files = [
             Path("templates/onboarding.html"),
             Path("static/js/subscriptions.js"),
         ]
-        forbidden = ["openai_compat", "OpenAI-Compatible API"]
+        forbidden = ["OpenAI-Compatible API"]
         for path in files:
             text = path.read_text(encoding="utf-8")
             for needle in forbidden:
                 self.assertNotIn(needle, text, msg=f"{needle!r} in {path}")
+        onboarding = Path("templates/onboarding.html").read_text(encoding="utf-8")
+        self.assertIn("openai_compatible", onboarding)
+        self.assertIn("OpenAI-compatible", onboarding)
 
     def test_today_generation_copy_uses_inbox_language(self):
         files = [
@@ -213,12 +216,13 @@ class Phase6ProductAcceptanceTests(unittest.TestCase):
     # Phase 6.2 patch guard tests
     # ------------------------------------------------------------------
 
-    def test_root_redirects_to_queue_inbox(self):
+    def test_root_renders_workspace_home(self):
         import web_server
         response = web_server.app.test_client().get("/?skip_onboarding=1")
-        self.assertIn(response.status_code, (302, 200))
-        if response.status_code == 302:
-            self.assertIn("/queue?status=Inbox", response.location)
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Paper Agent", html)
+        self.assertIn("Search papers, authors, topics...", html)
 
     def test_paper_detail_back_link_is_valid(self):
         template = Path("templates/paper_detail.html").read_text(encoding="utf-8")

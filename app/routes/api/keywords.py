@@ -85,20 +85,50 @@ def manage_keywords():
 @bp.post("/api/search")
 def api_search():
     """API endpoint for keyword search."""
-    data = request.get_json()
+    data = request.get_json() or {}
+    query = str(data.get("q") or data.get("query") or "").strip()
     keywords = data.get("keywords", [])
+    if not query and keywords:
+        query = " ".join(str(part).strip() for part in keywords if str(part).strip())
 
-    if not keywords:
-        return jsonify({"success": False, "error": "No keywords provided"}), 400
+    if not query:
+        return jsonify({"success": False, "error": "No query provided"}), 400
 
     try:
-        from arxiv_recommender_v5 import search_by_keywords
+        from app.services.unified_search_service import search_papers
 
-        papers = search_by_keywords(keywords, max_results=25, days_back=60)
+        result = search_papers(query, max_results=int(data.get("max_results", 25) or 25))
+        papers = result["papers"]
+        store = _current_state_store()
+        for paper in papers:
+            paper_id = paper.get("paper_id") or paper.get("id") or ""
+            if paper_id:
+                store.save_paper_metadata(
+                    paper_id,
+                    {
+                        "title": paper.get("title", ""),
+                        "abstract": paper.get("abstract") or paper.get("summary", ""),
+                        "authors": paper.get("authors", []),
+                        "year": paper.get("year", ""),
+                        "venue": paper.get("venue", ""),
+                        "link": paper.get("link") or paper.get("url", ""),
+                        "url": paper.get("url") or paper.get("link", ""),
+                        "pdf_url": paper.get("pdf_url", ""),
+                        "citation_count": paper.get("citation_count"),
+                        "reference_count": paper.get("reference_count"),
+                        "external_ids": paper.get("external_ids", {}),
+                        "source": paper.get("source", ""),
+                    },
+                    source="api_search",
+                    source_run_id="paper-agent-search",
+                )
         return jsonify({
             "success": True,
             "papers": papers,
             "count": len(papers),
+            "warnings": result.get("warnings", []),
+            "errors": result.get("errors", []),
+            "sources": result.get("sources", {}),
         })
     except Exception as exc:
         return jsonify({"success": False, "error": str(exc)}), 500
@@ -198,7 +228,7 @@ def save_settings():
                 if regeneration_job is None:
                     return jsonify({
                         "success": False,
-                        "error": "已有刷新任务正在排队或运行",
+                        "error": "A refresh job is already queued or running",
                     }), 409
 
                 thread = threading.Thread(
@@ -266,10 +296,10 @@ def test_ai_connection():
         return jsonify({"success": False, "error": "API key is required"}), 400
 
     try:
-        if provider_name == "deepseek":
-            from app.services.ai_providers import DeepSeekProvider
+        if provider_name == "openai_compatible":
+            from app.services.ai_providers import OpenAICompatibleProvider
 
-            provider = DeepSeekProvider(
+            provider = OpenAICompatibleProvider(
                 api_key=api_key,
                 base_url=base_url,
                 model=model,
@@ -288,12 +318,6 @@ def test_ai_connection():
             if not content:
                 return jsonify({"success": False, "error": "Provider returned empty response"}), 502
             return jsonify({"success": True, "message": f"Connection successful (model: {model})"})
-
-        elif provider_name == "openai":
-            return jsonify({
-                "success": False,
-                "error": "OpenAI-compatible provider is not yet implemented",
-            }), 501
         else:
             return jsonify({"success": False, "error": f"Unknown provider: {provider_name}"}), 400
 
@@ -444,18 +468,24 @@ def save_onboarding():
             cm._zotero.database_path = zotero_path
 
         # AI config
-        if ai_provider == "deepseek":
+        from app.services.ai_settings_service import normalize_provider
+
+        try:
+            provider_name = normalize_provider(ai_provider or "none")
+        except ValueError:
+            provider_name = "none"
+        if provider_name == "openai_compatible":
             ai_enabled = bool(ai_api_key)
-            cm._ai.provider = ai_provider
+            cm._ai.provider = "openai_compatible"
             cm._ai.api_key = ai_api_key
             cm._ai.enabled = ai_enabled
             if ai_base_url:
                 cm._ai.base_url = ai_base_url
-            elif ai_provider == "deepseek":
+            else:
                 cm._ai.base_url = "https://api.deepseek.com/v1"
             if ai_model:
                 cm._ai.model = ai_model
-            elif ai_provider == "deepseek":
+            else:
                 cm._ai.model = "deepseek-chat"
         else:
             cm._ai.provider = "none"

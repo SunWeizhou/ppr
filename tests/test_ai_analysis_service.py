@@ -172,13 +172,22 @@ class AIAnalysisServiceTests(unittest.TestCase):
     def test_build_ai_provider_from_env_defaults_to_no_provider(self):
         from app.services.ai_providers import NoProvider, build_ai_provider_from_env
 
-        with mock.patch.dict("os.environ", {}, clear=True):
+        disabled_config = mock.Mock()
+        disabled_config.get_ai_config.return_value = {
+            "provider": "none",
+            "enabled": False,
+            "api_key": "",
+        }
+        with (
+            mock.patch.dict("os.environ", {}, clear=True),
+            mock.patch("config_manager.get_config", return_value=disabled_config),
+        ):
             provider = build_ai_provider_from_env()
 
         self.assertIsInstance(provider, NoProvider)
 
-    def test_build_ai_provider_from_env_uses_deepseek_when_key_exists(self):
-        from app.services.ai_providers import DeepSeekProvider, build_ai_provider_from_env
+    def test_build_ai_provider_from_env_uses_openai_compatible_when_legacy_key_exists(self):
+        from app.services.ai_providers import OpenAICompatibleProvider, build_ai_provider_from_env
 
         with mock.patch.dict(
             "os.environ",
@@ -191,7 +200,7 @@ class AIAnalysisServiceTests(unittest.TestCase):
         ):
             provider = build_ai_provider_from_env()
 
-        self.assertIsInstance(provider, DeepSeekProvider)
+        self.assertIsInstance(provider, OpenAICompatibleProvider)
         self.assertEqual(provider.base_url, "https://example.test")
         self.assertEqual(provider.model_name, "custom-chat")
 

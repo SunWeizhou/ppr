@@ -1,6 +1,6 @@
 (function () {
   function applyLanguage(language) {
-    const lang = window.I18N[language] ? language : 'zh';
+    const lang = 'en';
     document.documentElement.dataset.language = lang;
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
     const i18nMap = window.I18N[lang] || {};
@@ -9,7 +9,7 @@
       if (i18nMap[key]) node.textContent = i18nMap[key];
     });
     const languageToggle = document.querySelector('[data-action="toggle-language"]');
-    if (languageToggle) languageToggle.textContent = lang === 'zh' ? '中 / EN' : 'EN / 中';
+    if (languageToggle) languageToggle.textContent = 'EN';
     localStorage.setItem('statdesk.language', lang);
   }
 
@@ -22,12 +22,12 @@
   }
 
   function initPreferences() {
-    const storedLanguage = localStorage.getItem('statdesk.language') || 'zh';
+    const storedLanguage = 'en';
     const storedTheme = localStorage.getItem('statdesk.theme') || 'light';
     applyLanguage(storedLanguage);
     applyTheme(storedTheme);
     document.querySelector('[data-action="toggle-language"]')?.addEventListener('click', function () {
-      applyLanguage(document.documentElement.dataset.language === 'zh' ? 'en' : 'zh');
+      applyLanguage('en');
     });
     document.querySelector('[data-action="toggle-theme"]')?.addEventListener('click', function () {
       applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');

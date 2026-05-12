@@ -5,17 +5,11 @@
     <div class="lead">
         <span class="section-kicker">Preferences</span>
         <h1 class="page-title">Settings</h1>
-        <div class="page-context">
-            <span>{{ core_keywords|length }} core topics</span>
-            <span class="dot"></span>
-            <span>{{ queue_counts.values() | list | sum }} queue items</span>
-            <span class="dot"></span>
-            <span>{{ all_collections|length }} collections</span>
-        </div>
+        <div class="page-context">Profile, sources, AI provider, and diagnostics.</div>
     </div>
     <div class="actions">
-        <button type="button" class="btn btn-secondary" onclick="saveSettings(false)">保存设置</button>
-        <button type="button" class="btn btn-primary" onclick="saveAndRegenerate()">保存并重生成</button>
+        <button type="button" class="btn btn-secondary" onclick="saveSettings(false)">Save settings</button>
+        <button type="button" class="btn btn-primary" onclick="saveAndRegenerate()">Save and refresh</button>
     </div>
 </section>
 {% endblock %}
@@ -35,8 +29,8 @@
             <form id="settingsForm" class="settings-panel">
                 <section class="form-card">
                     <div class="section-kicker">Keyword Profile</div>
-                    <h2 class="panel-title">研究关键词</h2>
-                    <p class="field-help">通过不同层级的关键词，告诉系统什么是你的主问题、外围问题，以及什么样的论文更像"理论工作"。</p>
+                    <h2 class="panel-title">Research profile</h2>
+                    <p class="field-help">Tell the assistant which topics matter most and which papers deserve deeper review.</p>
 
                     <div class="keyword-section-label">Core Topics</div>
                     <div id="coreKeywords" class="keyword-list">
@@ -50,10 +44,10 @@
                     </div>
                     <div class="keyword-add-row">
                         <div>
-                            <label for="newKeyword" class="field-label">新关键词</label>
-                            <input type="text" id="newKeyword" placeholder="输入新关键词..." onkeypress="if(event.key==='Enter'){event.preventDefault();addKeyword();}">
+                            <label for="newKeyword" class="field-label">New keyword</label>
+                            <input type="text" id="newKeyword" placeholder="Add a keyword..." onkeypress="if(event.key==='Enter'){event.preventDefault();addKeyword();}">
                         </div>
-                        <button type="button" class="btn btn-primary" onclick="addKeyword()">添加</button>
+                        <button type="button" class="btn btn-primary" onclick="addKeyword()">Add</button>
                     </div>
                 </section>
             </form>
@@ -92,7 +86,7 @@
                     <label class="field-label" for="aiProvider">Provider</label>
                     <select class="form-input" id="aiProvider" onchange="onAIProviderChanged()">
                         <option value="none" {% if ai_config.provider == 'none' %}selected{% endif %}>None</option>
-                        <option value="deepseek" {% if ai_config.provider == 'deepseek' %}selected{% endif %}>DeepSeek</option>
+                        <option value="openai_compatible" {% if ai_config.provider == 'openai_compatible' %}selected{% endif %}>OpenAI-compatible</option>
                     </select>
 
                     <div id="aiProviderFields" {% if ai_config.provider == 'none' %}style="display: none;"{% endif %}>
@@ -126,20 +120,20 @@
             <div class="form-grid">
                 <section class="form-card">
                     <div class="section-kicker">arXiv Categories</div>
-                    <h2 class="panel-title">订阅分类</h2>
+                    <h2 class="panel-title">Source categories</h2>
                     <label class="checkbox-row">
                         <input type="checkbox" id="arxivEnabled" {% if sources.arxiv_enabled %}checked{% endif %}>
-                        <span>启用 arXiv 抓取</span>
+                        <span>Enable arXiv discovery</span>
                     </label>
                     <label class="checkbox-row">
                         <input type="checkbox" id="journalEnabled" {% if sources.journal_enabled %}checked{% endif %}>
-                        <span>启用期刊更新</span>
+                        <span>Enable journal updates</span>
                     </label>
                     <label class="checkbox-row">
                         <input type="checkbox" id="scholarEnabled" {% if sources.scholar_enabled %}checked{% endif %}>
-                        <span>启用学者源</span>
+                        <span>Enable author sources</span>
                     </label>
-                    <label class="field-label" for="lookbackDays">回看天数</label>
+                    <label class="field-label" for="lookbackDays">Lookback days</label>
                     <input type="number" class="form-input" id="lookbackDays" value="{{ sources.lookback_days }}" min="3" max="60">
                 </section>
             </div>
@@ -148,10 +142,10 @@
             <form id="settingsForm" class="form-grid">
                 <section class="form-card">
                     <div class="section-kicker">Recommendation Volume</div>
-                    <h2 class="panel-title">每日输出规模</h2>
-                    <label class="field-label" for="papersPerDay">每日推荐数量</label>
+                    <h2 class="panel-title">Daily output</h2>
+                    <label class="field-label" for="papersPerDay">Papers per day</label>
                     <input type="number" class="form-input" id="papersPerDay" name="papersPerDay" value="{{ papers_per_day }}" min="5" max="50">
-                    <p class="field-help">数量越大，探索面越广；数量越小，越像一个精筛后的 inbox。</p>
+                    <p class="field-help">Higher numbers widen exploration; lower numbers make the inbox more selective.</p>
                 </section>
 
             </form>
@@ -193,6 +187,17 @@
                                 </span>
                             </div>
                             <span class="list-item-trailing">{{ system_diagnostics.workspace.queue_total }}</span>
+                        </div>
+                        <div class="list-item">
+                            <div>
+                                <span class="list-item-title">Search Sources</span>
+                                <span class="list-item-subtitle">
+                                    {% for source in system_diagnostics.source_health.values() %}
+                                        {{ source.label }}: {{ source.state }}{% if not loop.last %} · {% endif %}
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <span class="state-chip status-saved">fallback-ready</span>
                         </div>
                         <div class="list-item">
                             <div>

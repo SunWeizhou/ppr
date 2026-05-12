@@ -201,7 +201,7 @@ class TestScorePaper(unittest.TestCase):
         ctx = {"keywords": ["reinforcement learning"]}
         score, explanation = score_paper(paper, ctx)
         self.assertGreater(score, 0.0)
-        self.assertIn("关键词", explanation)
+        self.assertIn("Keyword match", explanation)
 
     def test_empty_ctx(self) -> None:
         """Empty context still works — falls back to author signals."""
@@ -220,7 +220,7 @@ class TestScorePaper(unittest.TestCase):
         }
         score, explanation = score_paper(paper, ctx)
         self.assertGreater(score, 0.0)
-        self.assertIn("订阅", explanation)
+        self.assertIn("subscription", explanation)
 
     def test_with_library_embeddings(self) -> None:
         """library_embeddings in ctx produces a real semantic signal."""
@@ -232,7 +232,7 @@ class TestScorePaper(unittest.TestCase):
         score, explanation = score_paper(paper, ctx)
         self.assertGreater(score, 0.0)
         # Library signal is higher than keyword signal for this config
-        self.assertIn("论文库", explanation)
+        self.assertIn("library", explanation)
 
     def test_with_feedback_model(self) -> None:
         """feedback_model + high AUC in ctx produces a real feedback signal."""
@@ -248,7 +248,7 @@ class TestScorePaper(unittest.TestCase):
         score, explanation = score_paper(paper, ctx)
         self.assertGreater(score, 0.0)
         # Feedback signal is higher than keyword signal for this config
-        self.assertIn("标记相关", explanation)
+        self.assertIn("liked", explanation)
 
 
 class TestExplain(unittest.TestCase):
@@ -258,13 +258,13 @@ class TestExplain(unittest.TestCase):
         paper = _make_paper(title="Deep Learning")
         ctx = {"keywords": ["deep learning"]}
         result = explain(signals, paper, ctx)
-        self.assertIn("关键词", result)
+        self.assertIn("Keyword match", result)
         self.assertLessEqual(len(result), 35)
 
     def test_no_signals(self) -> None:
         """No signals returns default explanation."""
         result = explain([], {}, {})
-        self.assertEqual(result, "基于你的研究领域")
+        self.assertEqual(result, "Matches your research area")
         self.assertLessEqual(len(result), 35)
 
 

@@ -1,26 +1,33 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-language="zh" data-theme="light">
+<html lang="en" data-language="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
-    <meta name="theme-color" content="#124c79">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23C96442'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='system-ui'>R</text></svg>">
+    <meta name="theme-color" content="#f7f7f5">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2323211f'/><path d='M10 7h8l5 5v13H10z' fill='none' stroke='white' stroke-width='2'/><path d='M18 7v6h5' fill='none' stroke='white' stroke-width='2'/><circle cx='22' cy='22' r='2' fill='%23d98f6a'/></svg>">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/typography.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/motion.css', v=static_version) }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ url_for('static', filename='research_ui.css', v=static_version) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dist/agent-drawer.css', v=static_version) }}">
     {% block head %}{% endblock %}
 </head>
 <body class="{{ body_class or '' }}">
     <div class="app">
         <header class="topbar">
-            <a href="/queue?status=Inbox" class="topbar-wordmark" aria-label="Research Assistant home">
-                <span class="brand-mark">Research Assistant</span>
+            <a href="/" class="topbar-wordmark" aria-label="Paper Agent home">
+                <span class="paper-agent-logo" aria-hidden="true">
+                    <svg viewBox="0 0 32 32" role="img" focusable="false">
+                        <path d="M9 5.5h9.25L24 11.25V26.5H9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+                        <path d="M18.25 5.5v6h5.75" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+                        <circle cx="22.5" cy="22.5" r="2.6" fill="currentColor"/>
+                    </svg>
+                </span>
+                <span class="brand-mark">Paper Agent</span>
             </a>
             <nav class="topbar-nav" aria-label="Main navigation">
                 {% for item in nav_items %}
@@ -34,10 +41,10 @@
             </nav>
             <span class="spacer"></span>
             <div class="topbar-actions">
-                <button type="button" class="btn btn-ghost btn-sm" data-action="toggle-language" data-lang="zh" aria-label="Current language: Chinese, click to switch to English">中 / EN</button>
-                <button type="button" class="btn btn-ghost btn-sm" data-action="toggle-theme" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-action="toggle-language" data-lang="en" aria-label="Current language: English">EN</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-action="toggle-theme" aria-label="Toggle dark mode" title="Toggle dark mode">Dark</button>
                 <button type="button" class="btn btn-ghost btn-sm" data-action="command-palette" aria-label="Open command palette" title="Command palette (Cmd+K)">⌘K</button>
-                <a href="/settings" class="btn btn-ghost btn-sm" aria-label="Open Settings" title="Settings">⚙</a>
+                <a href="/settings" class="btn btn-ghost btn-sm" aria-label="Open Settings" title="Settings">Settings</a>
             </div>
         </header>
 
@@ -52,26 +59,28 @@
 
     <div id="toast" class="toast"></div>
 
+    <div id="paper-agent-root"></div>
+
     <div id="detailScrim" class="detail-scrim" onclick="closeMobileDetail()"></div>
 
     <div id="shortcutsHelpModal" class="modal-shell" hidden>
         <div class="modal-backdrop" onclick="closeModal('shortcutsHelpModal')"></div>
         <div class="modal-card modal-card--compact">
             <div class="modal-head modal-head-center">
-                <h2 class="panel-title">键盘快捷键</h2>
-                <button type="button" class="btn btn-ghost btn-sm" onclick="closeModal('shortcutsHelpModal')">关闭</button>
+                <h2 class="panel-title">Keyboard Shortcuts</h2>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="closeModal('shortcutsHelpModal')">Close</button>
             </div>
             <div class="modal-body">
                 <table class="shortcuts-table">
-                    <tr><td><kbd>j</kbd> / <kbd>↓</kbd></td><td>选择下一篇论文</td></tr>
-                    <tr><td><kbd>k</kbd> / <kbd>↑</kbd></td><td>选择上一篇论文</td></tr>
-                    <tr><td><kbd>r</kbd></td><td>标记为相关</td></tr>
-                    <tr><td><kbd>i</kbd></td><td>忽略</td></tr>
-                    <tr><td><kbd>s</kbd></td><td>稍后浏览</td></tr>
-                    <tr><td><kbd>d</kbd></td><td>精读</td></tr>
-                    <tr><td><kbd>o</kbd></td><td>打开论文详情</td></tr>
-                    <tr><td><kbd>⌘K</kbd></td><td>命令面板</td></tr>
-                    <tr><td><kbd>?</kbd></td><td>查看帮助</td></tr>
+                    <tr><td><kbd>j</kbd> / <kbd>↓</kbd></td><td>Select next paper</td></tr>
+                    <tr><td><kbd>k</kbd> / <kbd>↑</kbd></td><td>Select previous paper</td></tr>
+                <tr><td><kbd>r</kbd></td><td>Mark relevant</td></tr>
+                <tr><td><kbd>i</kbd></td><td>Ignore</td></tr>
+                <tr><td><kbd>s</kbd></td><td>Skim later</td></tr>
+                <tr><td><kbd>d</kbd></td><td>Deep read</td></tr>
+                <tr><td><kbd>o</kbd></td><td>Open paper detail</td></tr>
+                <tr><td><kbd>⌘K</kbd></td><td>Command palette</td></tr>
+                <tr><td><kbd>?</kbd></td><td>Show help</td></tr>
                 </table>
             </div>
         </div>
@@ -90,7 +99,9 @@
     <script src="{{ url_for('static', filename='js/paper_actions.js', v=static_version) }}"></script>
     <script src="{{ url_for('static', filename='js/preferences.js', v=static_version) }}"></script>
     <script src="{{ url_for('static', filename='js/command_palette.js', v=static_version) }}"></script>
+    <script type="module" src="{{ url_for('static', filename='dist/agent-drawer.js', v=static_version) }}"></script>
     <script src="{{ url_for('static', filename='js/app.js', v=static_version) }}"></script>
+    <script defer src="/static/vendor/alpine-3.15.0.min.js?v={{ static_version }}"></script>
     {% block scripts %}{% endblock %}
     <script>
     function closeMobileDetail() {
@@ -99,15 +110,5 @@
         if (scrim) scrim.hidden = true;
     }
     </script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
-      onload="renderMathInElement(document.body, {
-        delimiters: [
-          {left:'$$', right:'$$', display:true},
-          {left:'$', right:'$', display:false},
-          {left:'\\(', right:'\\)', display:false},
-          {left:'\\[', right:'\\]', display:true}
-        ]
-      });"></script>
 </body>
 </html>

@@ -15,7 +15,7 @@
       })
     });
     syncPaperState(paperId, status, result.item?.note || '');
-    showToast('已加入队列: ' + status);
+    showToast('Added to queue: ' + status);
     return result.item;
   }
 
@@ -41,7 +41,7 @@
   async function followAuthor(author, options) {
     if (options === undefined) options = {};
     if (!author) {
-      showToast('缺少作者名', 'error');
+      showToast('Missing author name', 'error');
       return null;
     }
     const result = await requestJson('/api/feedback', {
@@ -55,7 +55,7 @@
         source: options.source || 'research_ui'
       })
     });
-    showToast(result.followed ? ('已关注作者: ' + author) : result.result || '作者已存在');
+    showToast(result.followed ? ('Following author: ' + author) : result.result || 'Author already exists');
     return result;
   }
 
@@ -117,7 +117,7 @@
     try {
       await queuePaperStatus(target.paperId, status, {source: target.source || 'paper_actions'});
     } catch (error) {
-      showToast('队列更新失败: ' + error.message, 'error');
+      showToast('Queue update failed: ' + error.message, 'error');
     }
   }
 
@@ -130,7 +130,7 @@
         source: target.source || 'paper_actions'
       });
     } catch (error) {
-      showToast('加入 Collection 失败: ' + error.message, 'error');
+      showToast('Add to collection failed: ' + error.message, 'error');
     }
   }
 
@@ -156,7 +156,7 @@
         source: target.source || 'paper_actions'
       });
     } catch (error) {
-      showToast('关注失败: ' + error.message, 'error');
+      showToast('Follow failed: ' + error.message, 'error');
     }
   }
 
@@ -164,9 +164,9 @@
     const target = window.AppState.modalState.paperActionTarget;
     if (!target?.collectionId) return;
     const ok = await confirmDangerAction({
-      title: '移出 Collection',
+      title: 'Remove from collection',
       objectName: target.title,
-      message: '这只会移除当前论文与这个 Collection 的关系，不会删除论文或其他状态。',
+      message: 'This only removes the link between this paper and the collection. It does not delete the paper or other state.',
       confirmLabel: 'Remove paper'
     });
     if (!ok) return;
@@ -176,11 +176,11 @@
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({paper_id: target.paperId, source: target.source || 'paper_actions'})
       });
-      showToast('已移出 Collection');
+      showToast('Removed from collection');
       document.querySelectorAll('[data-paper-id="' + escapeAttrValue(target.paperId) + '"][data-collection-id="' + escapeAttrValue(target.collectionId) + '"]').forEach(function (node) { return node.remove(); });
       hideModal('paperActionsModal');
     } catch (error) {
-      showToast('移除失败: ' + error.message, 'error');
+      showToast('Remove failed: ' + error.message, 'error');
     }
   }
 

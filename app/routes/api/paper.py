@@ -89,18 +89,18 @@ def fetch_paper_info(paper_id):
         # Save to state_store
         _current_state_store().save_paper_metadata(paper_id, {
             "title": metadata["title"],
-            "abstract": metadata["abstract"][:500],
+            "abstract": metadata["abstract"],
             "authors": ", ".join(metadata["authors"]),
             "date": datetime.now().strftime("%Y-%m-%d"),
             "score": 0,
-            "relevance": "从 arXiv 获取",
+            "relevance": "Fetched from arXiv",
         })
 
         return jsonify({
             "success": True,
             "paper_id": paper_id,
             "title": metadata["title"],
-            "abstract": metadata["abstract"][:500],
+            "abstract": metadata["abstract"],
             "authors": ", ".join(metadata["authors"]),
         })
     except Exception as exc:

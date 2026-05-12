@@ -5,7 +5,7 @@
     container.innerHTML = '';
     const collections = window.AppState.collections || [];
     if (!collections.length) {
-      container.innerHTML = '<div class="empty-state compact-empty"><p class="muted-copy">还没有 Collection，直接新建一个。</p></div>';
+      container.innerHTML = '<div class="empty-state compact-empty"><p class="muted-copy">No collections yet. Create one when you need a durable research asset.</p></div>';
       return;
     }
     collections.forEach(function (collection, index) {
@@ -62,7 +62,7 @@
       const description = document.getElementById('collectionPickerDescription').value.trim();
       const seedQuery = document.getElementById('collectionPickerSeedQuery').value.trim();
       if (!name) {
-        showToast('请填写 Collection 名称', 'error');
+        showToast('Enter a collection name', 'error');
         return;
       }
       const result = await requestJson('/api/collections', {
@@ -72,11 +72,11 @@
       });
       collection = result.collection;
       updateCollectionCache(collection);
-      showToast('Collection 已创建');
+      showToast('Collection created');
     } else {
       const selected = document.querySelector('input[name="collectionPickerExisting"]:checked');
       if (!selected) {
-        showToast('请选择一个 Collection', 'error');
+        showToast('Select a collection', 'error');
         return;
       }
       collection = (window.AppState.collections || []).find(function (item) { return String(item.id) === String(selected.value); });
@@ -96,7 +96,7 @@
     if (options === undefined) options = {};
     const state = window.AppState.modalState;
     state.collectionEditTarget = options.collection || null;
-    document.getElementById('collectionEditorTitle').textContent = options.collection ? '编辑 Collection' : '新建 Collection';
+    document.getElementById('collectionEditorTitle').textContent = options.collection ? 'Edit collection' : 'New collection';
     document.getElementById('collectionEditorName').value = options.collection?.name || options.defaultName || '';
     document.getElementById('collectionEditorDescription').value = options.collection?.description || options.description || '';
     document.getElementById('collectionEditorSeedQuery').value = options.collection?.seed_query || options.collection?.query_text || options.seedQuery || '';
@@ -117,7 +117,7 @@
     const description = document.getElementById('collectionEditorDescription').value.trim();
     const seedQuery = document.getElementById('collectionEditorSeedQuery').value.trim();
     if (!name) {
-      showToast('请填写 Collection 名称', 'error');
+      showToast('Enter a collection name', 'error');
       return;
     }
 
@@ -129,14 +129,14 @@
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({collection_id: state.collectionEditTarget.id, ...payload})
       });
-      showToast('Collection 已更新');
+      showToast('Collection updated');
     } else {
       result = await requestJson('/api/collections', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(payload)
       });
-      showToast('Collection 已创建');
+      showToast('Collection created');
     }
     const collection = result.collection;
     updateCollectionCache(collection);
@@ -150,9 +150,9 @@
     const target = state.collectionEditTarget;
     if (!target?.id) return;
     const ok = await confirmDangerAction({
-      title: '删除 Collection',
+      title: 'Delete collection',
       objectName: target.name,
-      message: '这会删除这个研究容器及其中的收纳关系，但不会删除论文、Queue 状态或历史记录。',
+      message: 'This removes the research container and its paper links, but does not delete papers, queue state, or history.',
       confirmLabel: 'Delete collection'
     });
     if (!ok) return;
@@ -162,7 +162,7 @@
       body: JSON.stringify({collection_id: target.id})
     });
     removeCollectionCache(target.id);
-    showToast('Collection 已删除');
+    showToast('Collection deleted');
     const resolver = state.collectionEditorResolver;
     state.collectionEditorResolver = null;
     hideModal('collectionEditorModal');
@@ -182,7 +182,7 @@
         source: options.source || 'research_ui'
       })
     });
-    showToast('已加入 Collection: ' + collection.name);
+    showToast('Added to collection: ' + collection.name);
     return collection;
   }
 

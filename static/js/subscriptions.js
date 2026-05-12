@@ -3,7 +3,7 @@
     if (options === undefined) options = {};
     const state = window.AppState.modalState;
     state.querySubscriptionTarget = options.savedSearch || null;
-    document.getElementById('querySubscriptionTitle').textContent = options.savedSearch ? '编辑问题订阅' : '保存问题订阅';
+    document.getElementById('querySubscriptionTitle').textContent = options.savedSearch ? 'Edit topic watch' : 'Save topic watch';
     document.getElementById('querySubscriptionName').value = options.savedSearch?.name || options.defaultName || '';
     document.getElementById('querySubscriptionQuery').value = options.savedSearch?.query_text || options.queryText || '';
     document.getElementById('querySubscriptionDescription').value = options.savedSearch?.description || options.description || '';
@@ -23,7 +23,7 @@
     const queryText = document.getElementById('querySubscriptionQuery').value.trim();
     const description = document.getElementById('querySubscriptionDescription').value.trim();
     if (!name || !queryText) {
-      showToast('请填写名称和 Query', 'error');
+      showToast('Enter a name and query', 'error');
       return;
     }
 
@@ -44,7 +44,7 @@
           filters: Object.assign({}, safeFilters, {source: 'query_subscription_modal'})
         })
       });
-      showToast('问题订阅已更新');
+      showToast('Topic watch updated');
     } else {
       result = await requestJson('/api/saved-searches', {
         method: 'POST',
@@ -56,7 +56,7 @@
           filters: {source: 'query_subscription_modal'}
         })
       });
-      showToast('问题订阅已创建');
+      showToast('Topic watch created');
     }
     const savedSearch = result.saved_search;
     updateSavedSearchCache(savedSearch);
@@ -70,9 +70,9 @@
     const target = state.querySubscriptionTarget;
     if (!target?.id) return;
     const ok = await confirmDangerAction({
-      title: '删除 Query Subscription',
+      title: 'Delete topic watch',
       objectName: target.name,
-      message: '这会停止这个问题的长期命中追踪，但不会删除已经加入 Queue 或 Collection 的论文。',
+      message: 'This stops long-term tracking for the topic, but does not delete papers already sent to the queue or collections.',
       confirmLabel: 'Delete subscription'
     });
     if (!ok) return;
@@ -82,7 +82,7 @@
       body: JSON.stringify({search_id: target.id})
     });
     removeSavedSearchCache(target.id);
-    showToast('问题订阅已删除');
+    showToast('Topic watch deleted');
     const resolver = state.querySubscriptionResolver;
     state.querySubscriptionResolver = null;
     hideModal('querySubscriptionModal');
@@ -94,7 +94,7 @@
     const state = window.AppState.modalState;
     const author = options.author || null;
     state.authorSubscriptionTarget = author;
-    document.getElementById('authorSubscriptionTitle').textContent = author ? '编辑关注学者' : '关注学者';
+    document.getElementById('authorSubscriptionTitle').textContent = author ? 'Edit followed author' : 'Follow author';
     document.getElementById('authorSubscriptionName').value = author?.name || options.defaultName || '';
     document.getElementById('authorSubscriptionAffiliation').value = author?.affiliation || '';
     document.getElementById('authorSubscriptionFocus').value = author?.focus || '';
@@ -124,7 +124,7 @@
       website: document.getElementById('authorSubscriptionWebsite').value.trim()
     };
     if (!payload.name) {
-      showToast('请填写学者姓名', 'error');
+      showToast('Enter an author name', 'error');
       return;
     }
 
@@ -134,7 +134,7 @@
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload)
     });
-    showToast(state.authorSubscriptionTarget?.name ? '关注学者已更新' : '关注学者已添加');
+    showToast(state.authorSubscriptionTarget?.name ? 'Followed author updated' : 'Author followed');
     state.authorSubscriptionResolver = null;
     hideModal('authorSubscriptionModal');
     resolver(result.scholar || result.result || payload);
@@ -145,9 +145,9 @@
     const target = state.authorSubscriptionTarget;
     if (!target?.name) return;
     const ok = await confirmDangerAction({
-      title: '移除关注学者',
+      title: 'Remove followed author',
       objectName: target.name,
-      message: '这会停止在 Watch 中追踪该学者，但不会删除已保存论文、Queue 状态或历史记录。',
+      message: 'This stops tracking the author in Watch, but does not delete saved papers, queue state, or history.',
       confirmLabel: 'Remove author'
     });
     if (!ok) return;
@@ -156,7 +156,7 @@
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({name: target.name})
     });
-    showToast('关注学者已移除');
+    showToast('Followed author removed');
     const resolver = state.authorSubscriptionResolver;
     state.authorSubscriptionResolver = null;
     hideModal('authorSubscriptionModal');
@@ -165,7 +165,7 @@
 
   function openVenueSubscriptionModal(options) {
     if (typeof window.showToast === 'function') {
-      window.showToast('期刊/会议订阅功能即将上线', 'info');
+      window.showToast('Venue watches are coming soon', 'info');
     }
   }
 
@@ -174,13 +174,13 @@
       var resp = await fetch('/api/subscriptions/' + subId + '/run', {method: 'POST'});
       var data = await resp.json();
       if (data.success) {
-        if (typeof window.showToast === 'function') window.showToast('刷新完成');
+        if (typeof window.showToast === 'function') window.showToast('Refresh complete');
         setTimeout(function(){ location.reload(); }, 1500);
       } else {
-        if (typeof window.showToast === 'function') window.showToast('刷新失败: ' + (data.error || 'unknown'), 'error');
+        if (typeof window.showToast === 'function') window.showToast('Refresh failed: ' + (data.error || 'unknown'), 'error');
       }
     } catch(e) {
-      if (typeof window.showToast === 'function') window.showToast('刷新失败', 'error');
+      if (typeof window.showToast === 'function') window.showToast('Refresh failed', 'error');
     }
   }
 
@@ -189,13 +189,13 @@
       var resp = await fetch('/api/subscriptions/run-all', {method: 'POST'});
       var data = await resp.json();
       if (data.success) {
-        if (typeof window.showToast === 'function') window.showToast('全部刷新任务已启动');
+        if (typeof window.showToast === 'function') window.showToast('All refresh jobs started');
         setTimeout(function(){ location.reload(); }, 1500);
       } else {
-        if (typeof window.showToast === 'function') window.showToast('刷新失败: ' + (data.error || 'unknown'), 'error');
+        if (typeof window.showToast === 'function') window.showToast('Refresh failed: ' + (data.error || 'unknown'), 'error');
       }
     } catch(e) {
-      if (typeof window.showToast === 'function') window.showToast('刷新失败', 'error');
+      if (typeof window.showToast === 'function') window.showToast('Refresh failed', 'error');
     }
   }
 
@@ -236,12 +236,12 @@
       var data = await resp.json();
       if (data.success) {
         updateHitRow(button, 'sent_to_inbox');
-        if (typeof window.showToast === 'function') window.showToast('已加入 Inbox');
+        if (typeof window.showToast === 'function') window.showToast('Added to Inbox');
       } else if (typeof window.showToast === 'function') {
-        window.showToast('加入 Inbox 失败', 'error');
+        window.showToast('Failed to add to Inbox', 'error');
       }
     } catch(e) {
-      if (typeof window.showToast === 'function') window.showToast('加入 Inbox 失败', 'error');
+      if (typeof window.showToast === 'function') window.showToast('Failed to add to Inbox', 'error');
     }
   }
 
@@ -253,12 +253,40 @@
       var data = await resp.json();
       if (data.success) {
         updateHitRow(button, 'ignored');
-        if (typeof window.showToast === 'function') window.showToast('已忽略');
+        if (typeof window.showToast === 'function') window.showToast('Ignored');
       } else if (typeof window.showToast === 'function') {
-        window.showToast('忽略失败', 'error');
+        window.showToast('Ignore failed', 'error');
       }
     } catch(e) {
-      if (typeof window.showToast === 'function') window.showToast('忽略失败', 'error');
+      if (typeof window.showToast === 'function') window.showToast('Ignore failed', 'error');
+    }
+  }
+
+  async function createCollectionFromHit(paperId, title) {
+    var safeTitle = title || paperId || 'Watch hit';
+    try {
+      var created = await fetch('/api/collections', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          name: safeTitle.slice(0, 72),
+          description: 'Created from Watch',
+          query_text: safeTitle
+        })
+      });
+      var data = await created.json();
+      if (!data.success) throw new Error(data.error || 'Collection creation failed');
+      var collectionId = data.collection.id;
+      var added = await fetch('/api/collections/' + collectionId + '/papers', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({paper_id: paperId, source: 'watch'})
+      });
+      var addData = await added.json();
+      if (!addData.success) throw new Error(addData.error || 'Add paper failed');
+      if (typeof window.showToast === 'function') window.showToast('Collection created');
+    } catch (e) {
+      if (typeof window.showToast === 'function') window.showToast('Collection failed: ' + e.message, 'error');
     }
   }
 
@@ -281,6 +309,7 @@
     runAllSubscriptions: runAllSubscriptions,
     editSubscription: editSubscription,
     sendHitToInbox: sendHitToInbox,
-    ignoreSubscriptionHit: ignoreSubscriptionHit
+    ignoreSubscriptionHit: ignoreSubscriptionHit,
+    createCollectionFromHit: createCollectionFromHit
   });
 })();

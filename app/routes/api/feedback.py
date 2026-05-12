@@ -115,7 +115,7 @@ def refresh_recommendations():
         if (has_sqlite or has_json) and not force:
             return jsonify({
                 "success": True,
-                "message": "今日推荐已存在",
+                "message": "Today's recommendations already exist",
                 "has_recommendation": True,
                 "source": "sqlite" if has_sqlite else "json",
                 "date": today,
@@ -132,7 +132,7 @@ def refresh_recommendations():
         if job is None:
             return jsonify({
                 "success": False,
-                "error": "已有刷新任务正在排队或运行",
+                "error": "A refresh job is already queued or running",
             }), 409
 
         def _run_pipeline_bg(run_id, force_refresh):
@@ -161,7 +161,7 @@ def refresh_recommendations():
 
         return jsonify({
             "success": True,
-            "message": "刷新任务已提交",
+            "message": "Refresh job submitted",
             "job_id": job["run_id"],
             "date": today,
         })

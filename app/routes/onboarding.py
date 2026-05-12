@@ -88,7 +88,7 @@ def onboarding_page():
 
     return render_template(
         "onboarding.html",
-        title="Setup - Research Assistant",
+        title="Setup - Paper Agent",
         body_class="",
         nav_items=build_nav_items(),
         active_tab="",

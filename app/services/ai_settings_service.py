@@ -6,7 +6,7 @@ import os
 from typing import Mapping
 
 
-SUPPORTED_PROVIDERS = {"none", "deepseek"}
+SUPPORTED_PROVIDERS = {"none", "openai_compatible"}
 KEEP_SENTINEL = "__keep__"
 ENV_SENTINEL = "__env_var__"
 
@@ -15,8 +15,8 @@ def normalize_provider(value: str | None) -> str:
     provider = str(value or "none").strip().lower()
     if provider in ("", "disabled"):
         return "none"
-    if provider in ("openai", "openai_compat", "openai-compatible"):
-        raise ValueError("OpenAI-compatible provider is not implemented yet")
+    if provider in ("openai", "openai_compat", "openai-compatible", "deepseek"):
+        return "openai_compatible"
     if provider not in SUPPORTED_PROVIDERS:
         raise ValueError(f"Unknown provider: {provider}")
     return provider
@@ -34,7 +34,7 @@ def mask_api_key(key: str) -> str:
 def resolve_ai_env(environ: Mapping[str, str] | None = None) -> dict:
     if environ is None:
         environ = os.environ
-    for name in ("STATDESK_AI_API_KEY", "DEEPSEEK_API_KEY"):
+    for name in ("OPENAI_COMPATIBLE_API_KEY", "DEEPSEEK_API_KEY", "STATDESK_AI_API_KEY"):
         value = str(environ.get(name, "") or "").strip()
         if value:
             return {

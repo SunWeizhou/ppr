@@ -28,26 +28,23 @@
 
   window.I18N = {
     zh: {
-      'brand.sub': '统计研究者的本地 arXiv 工作台',
-      'nav.workflow': '工作流',
-      'nav.inbox': 'Inbox',
-      'nav.queue': 'Queue',
+      'brand.sub': 'Local-first research workspace',
+      'nav.workflow': 'Workflow',
+      'nav.search': 'Search',
+      'nav.recommendations': 'Recommendations',
       'nav.reading': 'Reading',
       'nav.watch': 'Watch',
-      'nav.settings': 'Settings',
       'state.relevant': 'Relevant',
       'asset.collections': 'collections',
       'asset.queries': 'queries',
-      'footer.quote': '“好的研究不是读得更多，而是更早看清什么值得读。”'
+      'footer.quote': ''
     },
     en: {
-      'brand.sub': 'local-first arXiv workflow for statistics researchers',
+      'brand.sub': 'local-first paper workflow for researchers',
       'nav.workflow': 'Workflow',
-      'nav.inbox': 'Inbox',
-      'nav.queue': 'Queue',
+      'nav.search': 'Search',
       'nav.reading': 'Reading',
       'nav.watch': 'Watch',
-      'nav.settings': 'Settings',
       'state.relevant': 'Relevant',
       'asset.collections': 'collections',
       'asset.queries': 'queries',

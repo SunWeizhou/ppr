@@ -21,11 +21,11 @@ class QueueViewModel:
 
     def to_template_context(self, *, active_status: str = "Skim Later"):
         feedback = self.queue_service.load_feedback()
-        context = assemble_page_context(self.state_store, active_tab="queue", feedback=feedback)
+        context = assemble_page_context(self.state_store, active_tab="", feedback=feedback)
         all_status_counts = self.queue_service.count_by_status()
         queue_counts = {k: v for k, v in all_status_counts.items() if k in ACTIVE_READING_STATUSES}
         context.update({
-            "title": "Queue - Agent Literature Research Assistant",
+            "title": "Queue - Paper Agent",
             "active_tab": "queue",
             "queue_counts": queue_counts,
             "all_status_counts": all_status_counts,

@@ -64,7 +64,7 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
                     "areas": ["statistics", "machine learning"],
                     "papers_per_day": 15,
                     "zotero_path": "",
-                    "ai_provider": "deepseek",
+                    "ai_provider": "openai_compatible",
                     "ai_api_key": "sk-test-key",
                     "ai_base_url": "",
                     "ai_model": "",
@@ -89,7 +89,7 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
                 self.assertEqual(keywords["conformal prediction"]["category"], "core")
                 self.assertEqual(keywords["conformal prediction"]["weight"], 5.0)
                 self.assertEqual(raw["settings"]["papers_per_day"], 15)
-                self.assertEqual(raw["ai"]["provider"], "deepseek")
+                self.assertEqual(raw["ai"]["provider"], "openai_compatible")
                 self.assertTrue(raw["ai"]["enabled"])
             finally:
                 cm_mod.CONFIG_FILE = original_cf
@@ -270,7 +270,7 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
                 response = client.post(
                     "/api/settings/ai",
                     json={
-                        "provider": "deepseek",
+                        "provider": "openai_compatible",
                         "api_key": "sk-abc123",
                         "base_url": "https://api.deepseek.com/v1",
                         "model": "deepseek-chat",
@@ -288,7 +288,7 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.get_json()["success"])
-        self.assertEqual(ai_cfg["provider"], "deepseek")
+        self.assertEqual(ai_cfg["provider"], "openai_compatible")
         self.assertEqual(ai_cfg["api_key"], "sk-abc123")
         self.assertEqual(ai_cfg["base_url"], "https://api.deepseek.com/v1")
         self.assertEqual(ai_cfg["model"], "deepseek-chat")
@@ -321,7 +321,7 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
         self.assertEqual(ai_cfg["api_key"], "")
 
     def test_ai_settings_provider_switch(self):
-        """Switching provider from 'none' to 'deepseek' persists correctly."""
+        """Switching provider from 'none' to 'openai_compatible' persists correctly."""
         import web_server
         import config_manager as cm_mod
         from config_manager import ConfigManager, get_config
@@ -350,11 +350,11 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
                 ConfigManager._instance = None
                 self.assertEqual(get_config().get_ai_config()["provider"], "none")
 
-                # Round 2: switch to deepseek
+                # Round 2: switch to OpenAI-compatible
                 r2 = client.post(
                     "/api/settings/ai",
                     json={
-                        "provider": "deepseek",
+                        "provider": "openai_compatible",
                         "api_key": "sk-switched",
                         "enabled": True,
                     },
@@ -368,15 +368,15 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
                 cm_mod.CONFIG_FILE = original_cf
                 ConfigManager._instance = original_instance
 
-        self.assertEqual(final_cfg["provider"], "deepseek")
+        self.assertEqual(final_cfg["provider"], "openai_compatible")
         self.assertTrue(final_cfg["enabled"])
         self.assertEqual(final_cfg["api_key"], "sk-switched")
 
     def test_ai_provider_builds_from_config(self):
-        """build_ai_provider_from_env() returns DeepSeekProvider when config has api_key."""
+        """build_ai_provider_from_env() returns OpenAICompatibleProvider when config has api_key."""
         import config_manager as cm_mod
         from config_manager import ConfigManager, get_config
-        from app.services.ai_providers import build_ai_provider_from_env, DeepSeekProvider
+        from app.services.ai_providers import build_ai_provider_from_env, OpenAICompatibleProvider
 
         with tempfile.TemporaryDirectory() as tmp:
             tmp_config = Path(tmp) / "user_profile.json"
@@ -385,7 +385,7 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
                     "version": 1,
                     "keywords": {},
                     "ai": {
-                        "provider": "deepseek",
+                        "provider": "openai_compatible",
                         "api_key": "sk-config-key",
                         "base_url": "https://api.deepseek.com",
                         "model": "deepseek-chat",
@@ -409,7 +409,7 @@ class OnboardingAndAISettingsTests(unittest.TestCase):
                 cm_mod.CONFIG_FILE = original_cf
                 ConfigManager._instance = original_instance
 
-        self.assertIsInstance(provider, DeepSeekProvider)
+        self.assertIsInstance(provider, OpenAICompatibleProvider)
         self.assertEqual(provider.api_key, "sk-config-key")
         self.assertEqual(provider.model, "deepseek-chat")
 

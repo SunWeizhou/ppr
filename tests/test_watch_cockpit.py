@@ -175,6 +175,44 @@ class WatchCockpitTests(unittest.TestCase):
             f"research_question_id={question['id']}",
             hit["detail_url"],
         )
+        self.assertIn("source_health", decorated)
+        self.assertIn("Preview", decorated["available_hit_actions"])
+        self.assertIn("Send to Reading", decorated["available_hit_actions"])
+
+    def test_watch_context_filters_fixture_subscription_and_hit_data(self):
+        from app.viewmodels.monitor_viewmodel import MonitorViewModel
+
+        dirty = self.store.create_subscription("query", "Stable identity", "Query A")
+        clean = self.store.create_subscription("query", "Federated learning alerts", "federated learning")
+        self.store.save_paper_metadata(
+            "fixture-paper",
+            {
+                "title": "Test Paper Title",
+                "abstract": "Fixture abstract.",
+                "authors": ["Fixture"],
+            },
+            source="test",
+        )
+        self.store.save_paper_metadata(
+            "2604.55555",
+            {
+                "title": "Federated Optimization for Edge Devices",
+                "abstract": "A real watch hit.",
+                "authors": ["Ada Lovelace"],
+            },
+            source="watch-test",
+        )
+        self.store.upsert_subscription_hit(dirty["id"], "fixture-paper")
+        self.store.upsert_subscription_hit(clean["id"], "2604.55555")
+
+        context = MonitorViewModel(self.store).to_template_context()
+
+        names = [sub["name"] for sub in context["query_subs"]]
+        hit_titles = [hit["title"] for hit in context["recent_hits"]]
+        self.assertNotIn("Stable identity", names)
+        self.assertNotIn("Test Paper Title", hit_titles)
+        self.assertIn("Federated learning alerts", names)
+        self.assertIn("Federated Optimization for Edge Devices", hit_titles)
 
     def test_watch_recent_hits_does_not_call_live_search_when_empty(self):
         from unittest.mock import patch
@@ -219,12 +257,16 @@ class WatchCockpitTests(unittest.TestCase):
         self.assertIn("Conformal alerts", item["decision_context"])
         self.assertIn("query: conformal prediction", item["decision_context"])
 
-    def test_watch_template_exposes_workspace_cockpit_contract(self):
+    def test_watch_template_exposes_workspace_watch_contract(self):
         template = Path("templates/watch.html").read_text(encoding="utf-8")
 
-        self.assertIn("Watch Cockpit", template)
+        self.assertIn("Create a watch from Search", template)
+        self.assertIn("Ask Paper Agent to monitor a topic", template)
         self.assertIn("research_question", template)
         self.assertIn("workspace_stats", template)
+        self.assertIn("source_health", template)
+        self.assertIn("Preview", template)
+        self.assertIn("Create collection", template)
         self.assertIn("data-hit-id", template)
         self.assertIn("sendHitToInbox", template)
         self.assertIn("ignoreSubscriptionHit", template)
@@ -255,7 +297,7 @@ class WatchCockpitTests(unittest.TestCase):
         self.store.save_paper_metadata(
             "2604.44444",
             {
-                "title": "A Watch Cockpit Paper",
+                "title": "A Watch Paper",
                 "abstract": "A paper discovered by a subscription.",
                 "authors": ["Ada Lovelace"],
             },
@@ -275,9 +317,9 @@ class WatchCockpitTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         body = response.get_data(as_text=True)
-        self.assertIn("Watch Cockpit", body)
+        self.assertIn("Watch", body)
         self.assertIn("Conformal alerts", body)
-        self.assertIn("A Watch Cockpit Paper", body)
+        self.assertIn("A Watch Paper", body)
         self.assertIn("sendHitToInbox", body)
         mock_search.assert_not_called()
 
