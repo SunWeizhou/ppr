@@ -3,116 +3,113 @@
 {% set body_class = (body_class or '') ~ ' page-recommendations' %}
 
 {% block content %}
-<section class="paper-agent-search-shell recommendations-workspace">
+<section class="recommendations-workspace">
     <div class="workspace-page-head">
         <div>
-            <a href="/" class="back-link">← Back to Search</a>
-            <h1 class="paper-detail-title">Recommendations</h1>
-            <p class="muted-copy">Build a focused candidate set from your profile, reading state, and recent research context.</p>
+            <h1 class="page-title">Recommendations</h1>
+            <p class="muted-copy">Personalized paper recommendations from multiple strategies.</p>
         </div>
         <div class="recommendation-controls">
-            <select id="recommendationMode" class="input">
-                <option value="for_you" {% if mode == 'for_you' %}selected{% endif %}>For You</option>
-                <option value="question" {% if mode == 'question' %}selected{% endif %}>Research Question</option>
-                <option value="reading" {% if mode == 'reading' %}selected{% endif %}>From Reading</option>
-                <option value="recent" {% if mode == 'recent' %}selected{% endif %}>Recent Runs</option>
-            </select>
             <input id="recommendationQuery" class="input" value="{{ query }}" placeholder="Optional topic or research question">
-            <button type="button" class="btn btn-primary" onclick="runRecommendationWorkspace()">Run recommendations</button>
+            <button type="button" class="btn btn-primary" onclick="runRecommendationEngine()">Refresh</button>
         </div>
     </div>
 
     <div id="recommendationStatus" class="paper-agent-warning" hidden></div>
 
-    <div class="paper-agent-workspace">
-        <div class="paper-results-pane">
-            {% if papers %}
-                <div class="paper-result-count">{{ papers|length }} recommendations</div>
-                <div class="paper-result-list" id="recommendationResultList">
-                    {% for paper in papers %}
-                    <article
-                        class="paper-result-row {% if loop.first %}is-selected{% endif %}"
-                        data-paper-id="{{ paper.paper_id or paper.id }}"
-                        data-paper-title="{{ paper.title }}"
-                        data-paper-authors="{{ paper.author_text }}"
-                        data-paper-abstract="{{ paper.abstract or paper.summary or '' }}"
-                        data-paper-url="{{ paper.url or paper.link or '' }}"
-                        data-paper-source="{{ paper.source or '' }}"
-                        data-paper-venue="{{ paper.venue or '' }}"
-                        data-paper-year="{{ paper.year or '' }}"
-                        data-paper-citation-count="{{ paper.citation_count if paper.citation_count is not none else '' }}"
-                        data-paper-reference-count="{{ paper.reference_count if paper.reference_count is not none else '' }}"
-                        onclick="selectRecommendationResult(this)"
-                    >
-                        <div class="paper-result-main">
-                            <div class="paper-result-citation">{{ paper.display_citation }}</div>
-                            <h2>{{ paper.title }}</h2>
-                            <div class="paper-result-venue">{{ paper.venue or paper.source or 'Paper' }}</div>
-                            <p>{{ paper.summary_short or 'No abstract available.' }}</p>
-                            <div class="recommendation-reason">{{ paper.relevance_reason or 'Matches your recommendation profile.' }}</div>
-                        </div>
-                        <span class="paper-result-radio" aria-hidden="true"></span>
-                    </article>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="paper-agent-empty">
-                    <h2>No recommendations yet</h2>
-                    <p>Run recommendations to create a candidate set for your current research direction.</p>
-                    <div class="paper-agent-empty-actions">
-                        <button class="empty-action" type="button" onclick="runRecommendationWorkspace()">Run recommendations</button>
-                        <button class="empty-action" type="button" onclick="window.location.href='/'">Search papers</button>
+    {% if sections %}
+        {% for section in sections %}
+        <div class="rec-section" data-strategy="{{ section.strategy }}">
+            <div class="rec-section-header">
+                <h2 class="rec-section-title">{{ section.title }}</h2>
+                <span class="rec-section-count">{{ section.papers|length }} papers</span>
+            </div>
+            <div class="rec-card-scroll">
+                {% for paper in section.papers %}
+                <article class="rec-card"
+                    data-paper-id="{{ paper.paper_id or paper.id }}"
+                    data-paper-title="{{ paper.title }}"
+                    data-paper-authors="{{ paper.author_text }}"
+                    data-paper-abstract="{{ paper.abstract or paper.summary or '' }}"
+                    data-paper-url="{{ paper.url or paper.link or '' }}"
+                    data-paper-source="{{ paper.source or '' }}"
+                    data-paper-venue="{{ paper.venue or '' }}"
+                    data-paper-year="{{ paper.year or '' }}"
+                    data-paper-citation-count="{{ paper.citation_count if paper.citation_count is not none else '' }}"
+                    data-relevance-reason="{{ paper.relevance_reason or '' }}"
+                    onclick="selectRecCard(this)"
+                >
+                    <div class="rec-card-venue">{{ paper.venue or paper.source or 'Paper' }}</div>
+                    <h3 class="rec-card-title">{{ paper.title }}</h3>
+                    <div class="rec-card-citation">{{ paper.display_citation }}</div>
+                    <p class="rec-card-reason">{{ paper.relevance_reason or 'Matches your recommendation profile.' }}</p>
+                    <div class="rec-card-actions">
+                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentSavePaperById('{{ paper.paper_id or paper.id }}')">Save</button>
+                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById('{{ paper.paper_id or paper.id }}', 'Skim Later')">Skim</button>
+                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById('{{ paper.paper_id or paper.id }}', 'Deep Read')">Read</button>
                     </div>
-                </div>
-            {% endif %}
+                </article>
+                {% endfor %}
+            </div>
         </div>
+        {% endfor %}
+    {% elif papers %}
+        {# Fallback: single flat list when no sections available #}
+        <div class="rec-section" data-strategy="for_you">
+            <div class="rec-section-header">
+                <h2 class="rec-section-title">For You</h2>
+                <span class="rec-section-count">{{ papers|length }} papers</span>
+            </div>
+            <div class="rec-card-scroll">
+                {% for paper in papers %}
+                <article class="rec-card"
+                    data-paper-id="{{ paper.paper_id or paper.id }}"
+                    data-paper-title="{{ paper.title }}"
+                    data-paper-authors="{{ paper.author_text }}"
+                    data-paper-abstract="{{ paper.abstract or paper.summary or '' }}"
+                    data-paper-url="{{ paper.url or paper.link or '' }}"
+                    data-paper-venue="{{ paper.venue or '' }}"
+                    data-paper-year="{{ paper.year or '' }}"
+                    data-relevance-reason="{{ paper.relevance_reason or '' }}"
+                    onclick="selectRecCard(this)"
+                >
+                    <div class="rec-card-venue">{{ paper.venue or paper.source or 'Paper' }}</div>
+                    <h3 class="rec-card-title">{{ paper.title }}</h3>
+                    <div class="rec-card-citation">{{ paper.display_citation }}</div>
+                    <p class="rec-card-reason">{{ paper.relevance_reason or 'Matches your recommendation profile.' }}</p>
+                    <div class="rec-card-actions">
+                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentSavePaperById('{{ paper.paper_id or paper.id }}')">Save</button>
+                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById('{{ paper.paper_id or paper.id }}', 'Skim Later')">Skim</button>
+                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById('{{ paper.paper_id or paper.id }}', 'Deep Read')">Read</button>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="paper-agent-empty">
+            <h2>No recommendations yet</h2>
+            <p>Click Refresh to generate personalized recommendations from your profile, reading history, and subscriptions.</p>
+            <div class="paper-agent-empty-actions">
+                <button class="empty-action" type="button" onclick="runRecommendationEngine()">Generate recommendations</button>
+                <button class="empty-action" type="button" onclick="window.location.href='/'">Search papers</button>
+            </div>
+        </div>
+    {% endif %}
 
-        <aside class="paper-preview-pane" id="recommendationPreviewPane">
-            <div class="preview-tabs">
-                <button class="preview-tab is-active" type="button">Article</button>
-                <button class="preview-tab" type="button" disabled>Notes 0</button>
-            </div>
-            <div id="recommendationPreviewContent">
-                {% if selected_paper %}
-                <h2>{{ selected_paper.display_citation }}</h2>
-                <a class="preview-title" href="/papers/{{ selected_paper.paper_id or selected_paper.id }}?return_to=/recommendations">{{ selected_paper.title }}</a>
-                <div class="preview-source">{{ selected_paper.venue or selected_paper.source }}</div>
-                <div class="preview-authors">{{ selected_paper.author_text }}</div>
-                <div class="preview-section">
-                    <div class="preview-section-head">
-                        <strong>Decision</strong>
-                        <button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Save</button>
-                    </div>
-                    <div class="preview-action-grid">
-                        <button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper('Skim Later', 'Mark Skim')">Mark Skim</button>
-                        <button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper('Deep Read', 'Deep Read')">Deep Read</button>
-                        <button class="btn btn-ghost btn-sm" type="button" onclick="agentCreateWatchFromSearch()">Create Watch</button>
-                    </div>
-                </div>
-                <div class="preview-section">
-                    <strong>Why recommended</strong>
-                    <p>{{ selected_paper.relevance_reason or 'Matches your recommendation profile.' }}</p>
-                </div>
-                <div class="preview-section">
-                    <strong>Abstract</strong>
-                    <p>{{ selected_paper.abstract or selected_paper.summary or 'No abstract available.' }}</p>
-                    <a class="text-link" href="/papers/{{ selected_paper.paper_id or selected_paper.id }}?return_to=/recommendations">Open full detail</a>
-                </div>
-                {% else %}
-                <div class="preview-empty">Select a recommendation to preview it.</div>
-                {% endif %}
-            </div>
-        </aside>
-    </div>
+    {# Preview pane: slides in on card click #}
+    <aside class="rec-preview-pane" id="recPreviewPane" hidden>
+        <button class="rec-preview-close" type="button" onclick="closeRecPreview()">&times;</button>
+        <div id="recPreviewContent"></div>
+    </aside>
 </section>
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
 <script>
-async function runRecommendationWorkspace() {
+async function runRecommendationEngine() {
     var status = document.getElementById('recommendationStatus');
-    var mode = document.getElementById('recommendationMode').value;
     var query = document.getElementById('recommendationQuery').value.trim();
     if (status) {
         status.hidden = false;
@@ -122,78 +119,101 @@ async function runRecommendationWorkspace() {
         var payload = await requestJson('/api/recommendations/runs', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({mode: mode, query: query, max_results: 20})
+            body: JSON.stringify({mode: 'for_you', query: query, max_results: 15})
         });
-        renderRecommendationResults(payload.papers || []);
+        renderSections(payload.sections || []);
         if (status) {
-            status.textContent = 'Created ' + (payload.count || 0) + ' recommendations.';
+            status.textContent = 'Generated ' + (payload.count || 0) + ' recommendations across ' + (payload.sections || []).length + ' categories.';
         }
     } catch (error) {
         if (status) status.textContent = 'Recommendation run failed: ' + error.message;
     }
 }
 
-function renderRecommendationResults(papers) {
-    var container = document.getElementById('recommendationResultList') || document.querySelector('.paper-results-pane');
-    if (!container) return;
-    container.innerHTML = '';
-    if (!papers.length) {
-        container.innerHTML = '<div class="paper-agent-empty"><h2>No recommendations found</h2><p>Try adding a topic or using Search.</p></div>';
+function renderSections(sections) {
+    // Remove existing sections
+    document.querySelectorAll('.rec-section').forEach(function(el) { el.remove(); });
+    document.querySelectorAll('.paper-agent-empty').forEach(function(el) { el.remove(); });
+
+    var container = document.querySelector('.recommendations-workspace');
+    var preview = document.getElementById('recPreviewPane');
+
+    if (!sections.length) {
+        var empty = document.createElement('div');
+        empty.className = 'paper-agent-empty';
+        empty.innerHTML = '<h2>No recommendations found</h2><p>Try adding a topic or expanding your profile.</p>';
+        container.insertBefore(empty, preview);
         return;
     }
-    papers.forEach(function(paper, index) {
-        var row = document.createElement('article');
-        row.className = 'paper-result-row' + (index === 0 ? ' is-selected' : '');
-        row.dataset.paperId = paper.paper_id || paper.id || '';
-        row.dataset.paperTitle = paper.title || '';
-        row.dataset.paperAuthors = paper.author_text || (paper.authors || []).join(', ');
-        row.dataset.paperAbstract = paper.abstract || paper.summary || '';
-        row.dataset.paperSource = paper.source || '';
-        row.dataset.paperVenue = paper.venue || '';
-        row.dataset.paperYear = paper.year || '';
-        row.dataset.paperCitationCount = paper.citation_count == null ? '' : String(paper.citation_count);
-        row.dataset.paperReferenceCount = paper.reference_count == null ? '' : String(paper.reference_count);
-        row.dataset.relevanceReason = paper.relevance_reason || 'Matches your recommendation profile.';
-        row.onclick = function() { selectRecommendationResult(row); };
-        var citation = paper.display_citation || previewCitation(row.dataset.paperAuthors, row.dataset.paperYear);
-        row.innerHTML = '<div class="paper-result-main"><div class="paper-result-citation">' + escapeHtml(citation) + '</div>' +
-            '<h2>' + escapeHtml(paper.title || 'Untitled') + '</h2>' +
-            '<div class="paper-result-venue">' + escapeHtml(paper.venue || paper.source || 'Paper') + '</div>' +
-            '<p>' + escapeHtml(paper.summary_short || (paper.abstract || 'No abstract available.').slice(0, 620)) + '</p>' +
-            '<div class="recommendation-reason">' + escapeHtml(row.dataset.relevanceReason) + '</div></div>' +
-            '<span class="paper-result-radio" aria-hidden="true"></span>';
-        container.appendChild(row);
-        if (index === 0) selectRecommendationResult(row);
+
+    sections.forEach(function(section) {
+        var sectionEl = document.createElement('div');
+        sectionEl.className = 'rec-section';
+        sectionEl.dataset.strategy = section.strategy;
+
+        var header = '<div class="rec-section-header"><h2 class="rec-section-title">' +
+            escapeHtml(section.title) + '</h2><span class="rec-section-count">' +
+            (section.papers || []).length + ' papers</span></div>';
+
+        var cards = '<div class="rec-card-scroll">';
+        (section.papers || []).forEach(function(paper) {
+            var pid = paper.paper_id || paper.id || '';
+            cards += '<article class="rec-card" data-paper-id="' + escapeHtml(pid) + '"' +
+                ' data-paper-title="' + escapeHtml(paper.title || '') + '"' +
+                ' data-paper-authors="' + escapeHtml(paper.author_text || (paper.authors || []).join(', ')) + '"' +
+                ' data-paper-abstract="' + escapeHtml(paper.abstract || paper.summary || '') + '"' +
+                ' data-paper-url="' + escapeHtml(paper.url || paper.link || '') + '"' +
+                ' data-paper-venue="' + escapeHtml(paper.venue || '') + '"' +
+                ' data-paper-year="' + escapeHtml(String(paper.year || '')) + '"' +
+                ' data-relevance-reason="' + escapeHtml(paper.relevance_reason || '') + '"' +
+                ' onclick="selectRecCard(this)">' +
+                '<div class="rec-card-venue">' + escapeHtml(paper.venue || paper.source || 'Paper') + '</div>' +
+                '<h3 class="rec-card-title">' + escapeHtml(paper.title || 'Untitled') + '</h3>' +
+                '<div class="rec-card-citation">' + escapeHtml(paper.display_citation || '') + '</div>' +
+                '<p class="rec-card-reason">' + escapeHtml(paper.relevance_reason || 'Matches your profile.') + '</p>' +
+                '<div class="rec-card-actions">' +
+                '<button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentSavePaperById(\'' + escapeHtml(pid) + '\')">Save</button>' +
+                '<button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById(\'' + escapeHtml(pid) + '\', \'Skim Later\')">Skim</button>' +
+                '<button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById(\'' + escapeHtml(pid) + '\', \'Deep Read\')">Read</button>' +
+                '</div></article>';
+        });
+        cards += '</div>';
+
+        sectionEl.innerHTML = header + cards;
+        container.insertBefore(sectionEl, preview);
     });
 }
 
-function selectRecommendationResult(row) {
-    document.querySelectorAll('.paper-result-row').forEach(function(item) {
-        item.classList.toggle('is-selected', item === row);
+function selectRecCard(card) {
+    document.querySelectorAll('.rec-card').forEach(function(c) {
+        c.classList.toggle('is-selected', c === card);
     });
-    var pane = document.getElementById('recommendationPreviewContent');
-    if (!pane) return;
-    var detailUrl = '/papers/' + encodeURIComponent(row.dataset.paperId || '') + '?return_to=/recommendations';
-    pane.innerHTML = '<h2>' + escapeHtml(previewCitation(row.dataset.paperAuthors, row.dataset.paperYear)) + '</h2>' +
-        '<a class="preview-title" href="' + detailUrl + '">' + escapeHtml(row.dataset.paperTitle || 'Untitled') + '</a>' +
-        '<div class="preview-source">' + escapeHtml(row.dataset.paperVenue || row.dataset.paperSource || '') + '</div>' +
-        '<div class="preview-authors">' + escapeHtml(row.dataset.paperAuthors || '') + '</div>' +
-        '<div class="preview-section"><div class="preview-section-head"><strong>Decision</strong><button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Save</button></div>' +
-        '<div class="preview-action-grid"><button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper(&quot;Skim Later&quot;, &quot;Mark Skim&quot;)">Mark Skim</button>' +
-        '<button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper(&quot;Deep Read&quot;, &quot;Deep Read&quot;)">Deep Read</button>' +
-        '<button class="btn btn-ghost btn-sm" type="button" onclick="agentCreateWatchFromSearch()">Create Watch</button></div></div>' +
-        '<div class="preview-section"><strong>Why recommended</strong><p>' + escapeHtml(row.dataset.relevanceReason || 'Matches your recommendation profile.') + '</p></div>' +
-        '<div class="preview-section"><strong>Abstract</strong><p>' + escapeHtml(row.dataset.paperAbstract || 'No abstract available.') + '</p><a class="text-link" href="' + detailUrl + '">Open full detail</a></div>';
+    var pane = document.getElementById('recPreviewPane');
+    var content = document.getElementById('recPreviewContent');
+    if (!pane || !content) return;
+    pane.hidden = false;
+
+    var detailUrl = '/papers/' + encodeURIComponent(card.dataset.paperId || '') + '?return_to=/recommendations';
+    content.innerHTML =
+        '<a class="preview-title" href="' + detailUrl + '">' + escapeHtml(card.dataset.paperTitle || 'Untitled') + '</a>' +
+        '<div class="preview-source">' + escapeHtml(card.dataset.paperVenue || '') + '</div>' +
+        '<div class="preview-authors">' + escapeHtml(card.dataset.paperAuthors || '') + '</div>' +
+        '<div class="preview-section"><div class="preview-section-head"><strong>Decision</strong>' +
+        '<button class="btn btn-primary btn-sm" type="button" onclick="agentSavePaperById(\'' + escapeHtml(card.dataset.paperId) + '\')">Save</button></div>' +
+        '<div class="preview-action-grid">' +
+        '<button class="btn btn-ghost btn-sm" type="button" onclick="agentQueuePaperById(\'' + escapeHtml(card.dataset.paperId) + '\', \'Skim Later\')">Mark Skim</button>' +
+        '<button class="btn btn-ghost btn-sm" type="button" onclick="agentQueuePaperById(\'' + escapeHtml(card.dataset.paperId) + '\', \'Deep Read\')">Deep Read</button></div></div>' +
+        '<div class="preview-section"><strong>Why recommended</strong><p>' + escapeHtml(card.dataset.relevanceReason || 'Matches your recommendation profile.') + '</p></div>' +
+        '<div class="preview-section"><strong>Abstract</strong><p>' + escapeHtml(card.dataset.paperAbstract || 'No abstract available.') + '</p>' +
+        '<a class="text-link" href="' + detailUrl + '">Open full detail</a></div>';
 }
 
-function previewCitation(authors, year) {
-    var first = '';
-    if (authors) {
-        var parts = authors.split(',')[0].trim().split(/\s+/);
-        first = parts[parts.length - 1];
-    }
-    if (first && year) return first + ', ' + year;
-    return first || year || 'Article';
+function closeRecPreview() {
+    var pane = document.getElementById('recPreviewPane');
+    if (pane) pane.hidden = true;
+    document.querySelectorAll('.rec-card.is-selected').forEach(function(c) {
+        c.classList.remove('is-selected');
+    });
 }
 </script>
 {% endblock %}

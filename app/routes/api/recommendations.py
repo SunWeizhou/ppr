@@ -28,7 +28,23 @@ def create_recommendation_run():
         query=str(data.get("query") or data.get("q") or ""),
         max_results=int(data.get("max_results") or 20),
     )
-    return jsonify({"success": True, **result})
+    # Serialize sections: convert Candidate objects to dicts
+    sections = []
+    for section in result.get("sections", []):
+        sections.append({
+            "strategy": section["strategy"],
+            "title": section["title"],
+            "papers": section["papers"],
+        })
+    return jsonify({
+        "success": True,
+        "run_id": result.get("run_id"),
+        "mode": result.get("mode"),
+        "query": result.get("query"),
+        "sections": sections,
+        "papers": result.get("papers", []),
+        "count": result.get("count", 0),
+    })
 
 
 @bp.get("/api/recommendations/runs/<run_id>")

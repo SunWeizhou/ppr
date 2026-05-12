@@ -298,6 +298,13 @@ def run_pipeline_v2(force_refresh: bool = False) -> list[dict]:
 
     ctx: dict = {"keywords": keywords}
 
+    from app.services.recommendation_engine import (
+        RecommendationScorer,
+        normalize_citation_score,
+        normalize_freshness_score,
+        _days_since_publication,
+    )
+
     # Enrich context with library embeddings, feedback model, and subscriptions
     try:
         from app.services.embedding_service import EmbeddingService
@@ -339,9 +346,27 @@ def run_pipeline_v2(force_refresh: bool = False) -> list[dict]:
     except Exception:
         logger.warning("Could not load subscriptions for context")
 
+    multi_scorer = RecommendationScorer()
+
     for paper in papers:
+        # Existing ranker score (keyword + author + semantic + feedback + subscription)
         score, explanation = score_paper(paper, ctx)
-        paper["score"] = score
+
+        # Multi-dimensional score for richer breakdown
+        days_old = _days_since_publication(paper)
+        cit_count = int(paper.get("citation_count") or 0)
+
+        # Map existing ranker signals to new dimensions
+        scored = multi_scorer.score(
+            relevance=score,  # ranker's blended score as relevance proxy
+            citation=normalize_citation_score(cit_count),
+            freshness=normalize_freshness_score(days_old),
+            entity_affinity=0.0,  # Populated when entity system is active
+            feedback=0.0,  # Populated when feedback model is used
+        )
+
+        paper["score"] = scored["composite"]
+        paper["score_details"] = scored["breakdown"]
         paper["relevance_reason"] = explanation
         paper["summary"] = generate_summary(paper.get("abstract", ""))
 

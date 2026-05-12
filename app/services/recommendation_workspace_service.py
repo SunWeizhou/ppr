@@ -2,9 +2,17 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from datetime import date
 
-from app.services.scoring_service import build_recommendation_reason
+from app.services.recommendation_engine import (
+    Candidate,
+    RecommendationEngine,
+    RecommendationScorer,
+    normalize_citation_score,
+    normalize_freshness_score,
+    _days_since_publication,
+)
 
 
 class RecommendationWorkspaceService:
@@ -13,6 +21,8 @@ class RecommendationWorkspaceService:
     def __init__(self, state_store, *, search_fn=None):
         self.state_store = state_store
         self.search_fn = search_fn
+        self._engine = RecommendationEngine()
+        self._scorer = RecommendationScorer()
 
     def list_recent(self, *, limit: int = 5) -> list[dict]:
         runs = self.state_store.list_recommendation_runs(limit=limit)
@@ -31,16 +41,92 @@ class RecommendationWorkspaceService:
         return runs[0]["items"]
 
     def run(self, *, mode: str = "for_you", query: str = "", max_results: int = 20) -> dict:
+        """Run the multi-strategy recommendation engine and persist results."""
         query_text = self._query_for_mode(mode, query)
-        papers = self._search(query_text, max_results=max_results)
-        ranked = self._rank(papers, query_text)[:max_results]
+        papers = self._search(query_text, max_results=max_results * 3)  # Over-fetch for strategy filtering
+
+        # Gather context for strategies
+        profile = self.state_store.get_user_profile()
+        try:
+            subscriptions = self.state_store.list_subscriptions()
+        except Exception:
+            subscriptions = []
+        try:
+            reading_queue_items = self.state_store.list_queue_items()
+            reading_queue = []
+            for item in reading_queue_items:
+                meta = self.state_store.get_paper_metadata(item.get("paper_id", "")) or {}
+                reading_queue.append({**item, **meta})
+        except Exception:
+            reading_queue = []
+        try:
+            from state_store import get_state_store
+            questions = get_state_store().list_research_questions()
+        except Exception:
+            questions = []
+
+        # Run engine
+        engine_result = self._engine.recommend(
+            papers=papers,
+            user_profile=profile,
+            subscriptions=subscriptions,
+            reading_queue=reading_queue,
+            research_questions=questions,
+            max_per_section=max_results,
+        )
+
+        # Score each candidate with multi-dimensional scorer
+        for section in engine_result["sections"]:
+            for candidate in section["candidates"]:
+                paper = candidate.paper_data
+                days_old = _days_since_publication(paper)
+                cit_count = int(paper.get("citation_count") or 0)
+                bd = candidate.score_breakdown
+
+                scored = self._scorer.score(
+                    relevance=bd.get("relevance", candidate.score),
+                    citation=normalize_citation_score(cit_count),
+                    freshness=normalize_freshness_score(days_old),
+                    entity_affinity=bd.get("entity_affinity", 0.0),
+                    feedback=bd.get("feedback", 0.0),
+                )
+                candidate.score = scored["composite"]
+                candidate.score_breakdown = {
+                    dim: info["raw"] for dim, info in scored["breakdown"].items()
+                }
+
+            # Re-sort by composite score
+            section["candidates"].sort(key=lambda c: c.score, reverse=True)
+
+        # Persist the run (flatten all candidates)
+        all_papers = []
+        for section in engine_result["sections"]:
+            for c in section["candidates"]:
+                paper = dict(c.paper_data)
+                paper["score"] = c.score
+                paper["score_details"] = c.score_breakdown
+                paper["relevance_reason"] = c.reason
+                paper["source_strategy"] = c.source_strategy
+                all_papers.append(paper)
+
+        # Deduplicate by paper_id for persistence (keep highest score)
+        seen: dict[str, dict] = {}
+        for paper in all_papers:
+            pid = paper.get("paper_id") or paper.get("id", "")
+            if pid not in seen or paper["score"] > seen[pid]["score"]:
+                seen[pid] = paper
+        deduped = list(seen.values())
+        deduped.sort(key=lambda p: p.get("score", 0), reverse=True)
+
         run_id = self.state_store.save_recommendation_run(
             date.today().isoformat(),
             trigger_source="paper_agent_recommendations",
-            papers=ranked,
+            papers=deduped[:max_results],
             themes=[query_text],
         )
-        for paper in ranked:
+
+        # Save paper metadata
+        for paper in deduped[:max_results]:
             paper_id = paper.get("paper_id") or paper.get("id")
             if not paper_id:
                 continue
@@ -66,13 +152,31 @@ class RecommendationWorkspaceService:
                 source="paper_agent_recommendations",
                 source_run_id=run_id,
             )
+
+        # Build sectioned response
+        sections_data = []
+        for section in engine_result["sections"]:
+            sections_data.append({
+                "strategy": section["strategy"],
+                "title": section["title"],
+                "papers": self._decorate_items([
+                    {**c.paper_data, "score": c.score, "relevance_reason": c.reason, "source_strategy": c.source_strategy, "score_breakdown": c.score_breakdown}
+                    for c in section["candidates"]
+                ]),
+            })
+
         return {
             "run_id": run_id,
             "mode": mode,
             "query": query_text,
-            "papers": self._decorate_items(ranked),
-            "count": len(ranked),
+            "sections": sections_data,
+            "papers": self._decorate_items(deduped[:max_results]),
+            "count": len(deduped[:max_results]),
         }
+
+    def run_sectioned(self, *, max_results: int = 15) -> dict:
+        """Run the engine and return sectioned results for the recommendations page."""
+        return self.run(mode="for_you", max_results=max_results)
 
     def _query_for_mode(self, mode: str, query: str) -> str:
         query = str(query or "").strip()
@@ -80,7 +184,6 @@ class RecommendationWorkspaceService:
             return query
         try:
             from config_manager import get_config
-
             profile = get_config().get_keywords_config()
             core = profile.get("core_topics", {})
             if isinstance(core, dict) and core:
@@ -95,29 +198,8 @@ class RecommendationWorkspaceService:
         if self.search_fn is not None:
             return self.search_fn(query, max_results=max_results)
         from app.services.unified_search_service import search_papers
-
         result = search_papers(query, max_results=max_results)
         return result.get("papers", [])
-
-    def _rank(self, papers: list[dict], query: str) -> list[dict]:
-        ranked = []
-        keywords = [part for part in query.split() if part]
-        user_profile = {"keywords": keywords, "core_topics": {kw: 1 for kw in keywords}}
-        for index, paper in enumerate(papers):
-            item = dict(paper)
-            base = float(item.get("score", 0) or 0)
-            citation_bonus = min(float(item.get("citation_count") or 0) / 1000.0, 0.25)
-            score = max(base, 0.45) + citation_bonus - (index * 0.002)
-            item["score"] = round(score, 4)
-            try:
-                reason = build_recommendation_reason(item, user_profile=user_profile)
-                item["recommendation_reason"] = reason
-                item["relevance_reason"] = reason.get("summary") or item.get("relevance_reason") or "Matches your recommendation profile."
-            except Exception:
-                item["relevance_reason"] = item.get("relevance_reason") or "Matches your recommendation profile."
-            ranked.append(item)
-        ranked.sort(key=lambda p: float(p.get("score", 0) or 0), reverse=True)
-        return ranked
 
     def _decorate_items(self, papers: list[dict]) -> list[dict]:
         from app.services.paper_utils import format_author_text, extract_primary_author
@@ -141,5 +223,7 @@ class RecommendationWorkspaceService:
             item["paper_id"] = paper_id
             item["id"] = paper_id
             item.setdefault("relevance_reason", "Matches your recommendation profile.")
+            item.setdefault("source_strategy", "")
+            item.setdefault("score_breakdown", {})
             decorated.append(item)
         return decorated

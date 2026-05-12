@@ -4674,3 +4674,201 @@ body {
   font-size: 12px;
   padding: 8px 0;
 }
+
+/* ============================================================
+   Recommendation Page — Sectioned Card Layout
+   ============================================================ */
+
+.recommendations-workspace {
+  padding: 24px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.recommendations-workspace .workspace-page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.recommendations-workspace .recommendation-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Section */
+.rec-section {
+  margin-bottom: 32px;
+}
+
+.rec-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.rec-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin: 0;
+}
+
+.rec-section-count {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+
+/* Horizontal scroll track */
+.rec-card-scroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 4px 4px 12px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+}
+
+.rec-card-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.rec-card-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rec-card-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 3px;
+}
+
+/* Card */
+.rec-card {
+  flex: 0 0 280px;
+  min-height: 200px;
+  padding: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rec-card:hover {
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.rec-card.is-selected {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-primary), var(--card-shadow-hover);
+}
+
+.rec-card-venue {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.rec-card-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin: 0;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rec-card-citation {
+  font-size: 0.8125rem;
+  color: var(--ink-secondary);
+}
+
+.rec-card-reason {
+  font-size: 0.8125rem;
+  color: var(--accent-primary);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.rec-card-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: auto;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.rec-card:hover .rec-card-actions {
+  opacity: 1;
+}
+
+/* Preview pane */
+.rec-preview-pane {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 400px;
+  height: 100vh;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-default);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.rec-preview-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+}
+
+.rec-preview-close:hover {
+  color: var(--ink-primary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .recommendations-workspace {
+    padding: 16px;
+  }
+
+  .rec-card {
+    flex: 0 0 240px;
+    min-height: 180px;
+  }
+
+  .rec-preview-pane {
+    width: 100%;
+  }
+}
