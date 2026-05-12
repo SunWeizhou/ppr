@@ -16,8 +16,22 @@ def _serialize_subscription(sub):
         except (json.JSONDecodeError, TypeError):
             payload = {}
     item["payload"] = payload
-    item["filters"] = payload.get("filters", {})
+    item["filters"] = item.get("filters_json") or {}
+    if isinstance(item["filters"], str):
+        try:
+            item["filters"] = json.loads(item["filters"])
+        except (json.JSONDecodeError, TypeError):
+            item["filters"] = {}
     item["description"] = payload.get("description", "") or payload.get("focus", "")
+
+    # Include linked entity data if present
+    entity_id = item.get("entity_id")
+    if entity_id:
+        entity = _current_state_store().get_entity(entity_id)
+        item["entity"] = dict(entity) if entity else None
+    else:
+        item["entity"] = None
+
     return item
 
 
@@ -39,13 +53,20 @@ def manage_subscriptions():
     name = str(data.get("name", "")).strip()
     if not name:
         return jsonify({"success": False, "error": "Missing name"}), 400
-    if sub_type not in ("query", "author", "venue"):
+    if sub_type not in ("query", "author", "venue", "field", "entity"):
         return jsonify({"success": False, "error": "Invalid type"}), 400
 
     query_text = str(data.get("query_text", "")).strip()
     payload = data.get("payload_json", data.get("payload", {}))
     if isinstance(payload, dict):
         payload = json.dumps(payload, ensure_ascii=False)
+
+    # Entity and filter support
+    entity_id = data.get("entity_id")
+    filters = data.get("filters_json", data.get("filters"))
+    filters_json = None
+    if filters is not None:
+        filters_json = filters if isinstance(filters, str) else json.dumps(filters, ensure_ascii=False)
 
     try:
         research_question_id = _optional_int(data.get("research_question_id"))
@@ -56,12 +77,14 @@ def manage_subscriptions():
             payload_json=payload,
             enabled=data.get("enabled", True),
             research_question_id=research_question_id,
+            entity_id=entity_id,
+            filters_json=filters_json,
         )
     except ValueError as exc:
         return jsonify({"success": False, "error": str(exc)}), 400
     _current_state_store().record_event(
         "subscription_created",
-        payload={"subscription_id": sub["id"], "type": sub_type, "name": name},
+        payload={"subscription_id": sub["id"], "type": sub_type, "name": name, "entity_id": entity_id},
     )
     return jsonify({"success": True, "subscription": _serialize_subscription(sub)})
 
@@ -84,14 +107,14 @@ def manage_subscription_item(sub_id):
         kwargs["payload_json"] = payload_val
     if "research_question_id" in data:
         try:
-            kwargs["research_question_id"] = _optional_int(
-                data.get("research_question_id")
-            )
+            kwargs["research_question_id"] = _optional_int(data.get("research_question_id"))
         except ValueError:
-            return jsonify({
-                "success": False,
-                "error": "Invalid research_question_id",
-            }), 400
+            return jsonify({"success": False, "error": "Invalid research_question_id"}), 400
+    if "entity_id" in data:
+        kwargs["entity_id"] = data["entity_id"]
+    if "filters_json" in data or "filters" in data:
+        filters = data.get("filters_json", data.get("filters", {}))
+        kwargs["filters_json"] = filters if isinstance(filters, str) else json.dumps(filters, ensure_ascii=False)
     try:
         sub = _current_state_store().update_subscription(sub_id, **kwargs)
     except ValueError as exc:
