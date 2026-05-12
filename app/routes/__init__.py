@@ -15,6 +15,7 @@ def register_blueprints(flask_app):
     from app.routes.evaluation import bp as evaluation_bp
     from app.routes.library import bp as library_bp
     from app.routes.recommendations import bp as recommendations_bp
+    from app.routes.entities import bp as entities_bp
 
     for blueprint in (
         inbox_bp,
@@ -27,5 +28,6 @@ def register_blueprints(flask_app):
         onboarding_bp,
         evaluation_bp,
         library_bp,
+        entities_bp,
     ):
         flask_app.register_blueprint(blueprint)

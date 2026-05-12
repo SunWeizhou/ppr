@@ -1,0 +1,221 @@
+{# templates/entity_profile.html #}
+{% extends "base_research.html" %}
+{% import "_components.html" as ui %}
+
+{% set body_class = (body_class or '') ~ ' page-entity-profile' %}
+
+{% block hero %}
+<section class="page-header">
+    <div class="lead">
+        <span class="section-kicker">{{ entity_type | capitalize }}</span>
+        <h1 class="page-title">{{ entity.name }}</h1>
+        {% if entity.aliases %}
+        <div class="page-context">
+            Also known as: {{ entity.aliases | join(', ') }}
+        </div>
+        {% endif %}
+    </div>
+    <div class="actions">
+        {% if is_subscribed %}
+        <span class="chip chip-active">Subscribed</span>
+        {% else %}
+        <button type="button" class="btn btn-primary btn-sm"
+                onclick="subscribeToEntity('{{ entity.id }}')">
+            Subscribe
+        </button>
+        {% endif %}
+        <button type="button" class="btn btn-ghost btn-sm"
+                onclick="syncEntityMetadata('{{ entity.id }}')">
+            Sync Metadata
+        </button>
+        {% if metadata.homepage_url %}
+        <a href="{{ metadata.homepage_url }}" target="_blank"
+           class="btn btn-ghost btn-sm">Website</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="entity-profile-layout">
+    {# ── Main content ── #}
+    <div class="entity-profile-main">
+
+        {# Type-specific metadata section #}
+        <section class="entity-section">
+            <h2 class="section-heading">Details</h2>
+
+            {% if entity_type == 'journal' %}
+            <div class="entity-stats-grid">
+                {% if metadata.publisher %}<div class="entity-stat"><span class="entity-stat-label">Publisher</span><span class="entity-stat-value">{{ metadata.publisher }}</span></div>{% endif %}
+                {% if metadata.issn %}<div class="entity-stat"><span class="entity-stat-label">ISSN</span><span class="entity-stat-value">{{ metadata.issn }}</span></div>{% endif %}
+                {% if metadata.impact_factor %}<div class="entity-stat"><span class="entity-stat-label">Impact Factor</span><span class="entity-stat-value">{{ metadata.impact_factor }}</span></div>{% endif %}
+                {% if metadata.h_index %}<div class="entity-stat"><span class="entity-stat-label">H-Index</span><span class="entity-stat-value">{{ metadata.h_index }}</span></div>{% endif %}
+                {% if metadata.works_count %}<div class="entity-stat"><span class="entity-stat-label">Works</span><span class="entity-stat-value">{{ metadata.works_count | default('N/A') }}</span></div>{% endif %}
+            </div>
+            {% if metadata.scope_description %}
+            <p class="entity-description">{{ metadata.scope_description }}</p>
+            {% endif %}
+
+            {% elif entity_type == 'conference' %}
+            <div class="entity-stats-grid">
+                {% if metadata.series_name %}<div class="entity-stat"><span class="entity-stat-label">Series</span><span class="entity-stat-value">{{ metadata.series_name }}</span></div>{% endif %}
+                {% if metadata.frequency %}<div class="entity-stat"><span class="entity-stat-label">Frequency</span><span class="entity-stat-value">{{ metadata.frequency }}</span></div>{% endif %}
+                {% if metadata.acceptance_rate %}<div class="entity-stat"><span class="entity-stat-label">Acceptance Rate</span><span class="entity-stat-value">{{ (metadata.acceptance_rate * 100) | round(1) }}%</span></div>{% endif %}
+                {% if metadata.tier %}<div class="entity-stat"><span class="entity-stat-label">Tier</span><span class="entity-stat-value">{{ metadata.tier }}</span></div>{% endif %}
+                {% if metadata.next_date %}<div class="entity-stat"><span class="entity-stat-label">Next Date</span><span class="entity-stat-value">{{ metadata.next_date }}</span></div>{% endif %}
+                {% if metadata.location %}<div class="entity-stat"><span class="entity-stat-label">Location</span><span class="entity-stat-value">{{ metadata.location }}</span></div>{% endif %}
+            </div>
+
+            {% elif entity_type == 'scholar' %}
+            <div class="entity-stats-grid">
+                {% if metadata.affiliations %}<div class="entity-stat"><span class="entity-stat-label">Affiliations</span><span class="entity-stat-value">{{ metadata.affiliations | join(', ') }}</span></div>{% endif %}
+                {% if metadata.h_index %}<div class="entity-stat"><span class="entity-stat-label">H-Index</span><span class="entity-stat-value">{{ metadata.h_index }}</span></div>{% endif %}
+                {% if metadata.citation_count %}<div class="entity-stat"><span class="entity-stat-label">Citations</span><span class="entity-stat-value">{{ metadata.citation_count | default('N/A') }}</span></div>{% endif %}
+                {% if metadata.paper_count %}<div class="entity-stat"><span class="entity-stat-label">Papers</span><span class="entity-stat-value">{{ metadata.paper_count }}</span></div>{% endif %}
+            </div>
+            {% if metadata.research_interests %}
+            <div class="entity-interests">
+                <span class="entity-stat-label">Research Interests:</span>
+                {% for interest in metadata.research_interests %}
+                <span class="chip">{{ interest }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% elif entity_type == 'field' %}
+            <div class="entity-stats-grid">
+                {% if metadata.arxiv_categories %}<div class="entity-stat"><span class="entity-stat-label">arXiv Categories</span><span class="entity-stat-value">{{ metadata.arxiv_categories | join(', ') }}</span></div>{% endif %}
+            </div>
+            {% if metadata.description %}
+            <p class="entity-description">{{ metadata.description }}</p>
+            {% endif %}
+            {% if metadata.key_venues %}
+            <div class="entity-interests">
+                <span class="entity-stat-label">Key Venues:</span>
+                {% for venue in metadata.key_venues %}
+                <span class="chip">{{ venue }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endif %}
+        </section>
+
+        {# Recent papers section #}
+        {% if recent_papers %}
+        <section class="entity-section">
+            <h2 class="section-heading">Recent Papers</h2>
+            <div class="entity-papers-list">
+                {% for paper in recent_papers %}
+                <div class="entity-paper-item">
+                    <a href="/papers/{{ paper.paper_id }}" class="entity-paper-title">{{ paper.title }}</a>
+                    <div class="entity-paper-meta muted-copy">
+                        {% if paper.authors %}{{ paper.authors[:3] | join(', ') }}{% if paper.authors | length > 3 %} et al.{% endif %}{% endif %}
+                        {% if paper.year %} ({{ paper.year }}){% endif %}
+                    </div>
+                    {% if paper.matched_reason %}
+                    <span class="chip is-muted">{{ paper.matched_reason }}</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+
+    {# ── Sidebar ── #}
+    <aside class="entity-profile-sidebar">
+        {# Subscriptions #}
+        {% if entity_subs %}
+        <div class="entity-sidebar-card">
+            <h3 class="entity-sidebar-title">Subscriptions</h3>
+            {% for sub in entity_subs %}
+            <div class="entity-sub-item">
+                <span>{{ sub.name }}</span>
+                <span class="chip is-muted">{{ sub.latest_hit_count }} hits</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {# Related entities #}
+        {% if related_entities %}
+        <div class="entity-sidebar-card">
+            <h3 class="entity-sidebar-title">Related</h3>
+            {% for rel in related_entities %}
+            <a href="/entities/{{ rel.id }}" class="entity-related-item">
+                <span class="chip is-muted">{{ rel.type }}</span>
+                <span>{{ rel.name }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {# External links #}
+        <div class="entity-sidebar-card">
+            <h3 class="entity-sidebar-title">External Links</h3>
+            {% if entity.external_ids %}
+                {% if entity.external_ids.openalex %}
+                <a href="https://openalex.org/{{ entity.external_ids.openalex }}"
+                   target="_blank" class="btn btn-ghost btn-sm" style="width:100%;justify-content:flex-start;margin-bottom:4px;">
+                    OpenAlex
+                </a>
+                {% endif %}
+                {% if entity.external_ids.semantic_scholar %}
+                <a href="https://www.semanticscholar.org/author/{{ entity.external_ids.semantic_scholar }}"
+                   target="_blank" class="btn btn-ghost btn-sm" style="width:100%;justify-content:flex-start;margin-bottom:4px;">
+                    Semantic Scholar
+                </a>
+                {% endif %}
+            {% endif %}
+            {% if metadata.homepage_url %}
+            <a href="{{ metadata.homepage_url }}" target="_blank"
+               class="btn btn-ghost btn-sm" style="width:100%;justify-content:flex-start;">
+                Homepage
+            </a>
+            {% endif %}
+        </div>
+
+        {# Last synced #}
+        {% if entity.last_synced %}
+        <div class="entity-sidebar-meta muted-copy">
+            Last synced: {{ entity.last_synced }}
+        </div>
+        {% endif %}
+    </aside>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function subscribeToEntity(entityId) {
+    fetch('/api/entities/' + entityId + '/subscribe', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({}),
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Failed to subscribe: ' + (data.error || 'Unknown error'));
+        }
+    });
+}
+
+function syncEntityMetadata(entityId) {
+    fetch('/api/entities/' + entityId + '/sync', {method: 'POST'})
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Sync failed: ' + (data.error || 'Unknown error'));
+        }
+    });
+}
+</script>
+{% endblock %}
