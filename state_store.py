@@ -297,6 +297,43 @@ class StateStore:
                     auc REAL,
                     pickle_blob BLOB
                 );
+
+                CREATE TABLE IF NOT EXISTS entities (
+                    id            TEXT PRIMARY KEY,
+                    type          TEXT NOT NULL CHECK(type IN ('journal','conference','scholar','field')),
+                    name          TEXT NOT NULL,
+                    aliases       TEXT DEFAULT '[]',
+                    external_ids  TEXT DEFAULT '{}',
+                    metadata_json TEXT DEFAULT '{}',
+                    stats_json    TEXT DEFAULT '{}',
+                    last_synced   TEXT,
+                    created_at    TEXT DEFAULT (datetime('now')),
+                    updated_at    TEXT DEFAULT (datetime('now'))
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_entities_type ON entities(type);
+                CREATE INDEX IF NOT EXISTS idx_entities_name ON entities(name);
+
+                CREATE TABLE IF NOT EXISTS entity_relations (
+                    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                    source_id      TEXT NOT NULL,
+                    target_id      TEXT NOT NULL,
+                    relation_type  TEXT NOT NULL CHECK(relation_type IN (
+                        'publishes_in','affiliated_with','researches','subfield_of','co_located'
+                    )),
+                    weight         REAL DEFAULT 1.0,
+                    created_at     TEXT DEFAULT (datetime('now')),
+                    UNIQUE(source_id, target_id, relation_type)
+                );
+
+                CREATE TABLE IF NOT EXISTS user_profile (
+                    id                INTEGER PRIMARY KEY DEFAULT 1,
+                    interest_vector   TEXT DEFAULT '[]',
+                    topic_weights     TEXT DEFAULT '{}',
+                    entity_affinities TEXT DEFAULT '{}',
+                    reading_pace      TEXT DEFAULT '{}',
+                    updated_at        TEXT DEFAULT (datetime('now'))
+                );
                 """
             )
             # Check current schema version and migrate if needed
@@ -379,6 +416,63 @@ class StateStore:
                 conn, "subscriptions", "research_question_id",
                 "research_question_id INTEGER",
             )
+            # Phase 2: add entity_id and filters_json to subscriptions
+            self._add_column_if_missing(
+                conn, "subscriptions", "entity_id",
+                "entity_id TEXT",
+            )
+            self._add_column_if_missing(
+                conn, "subscriptions", "filters_json",
+                "filters_json TEXT DEFAULT '{}'",
+            )
+
+            # Phase 2 migration: extend subscriptions CHECK constraint to include 'field' and 'entity'
+            if current_version < 7:
+                try:
+                    conn.execute(
+                        "INSERT INTO subscriptions(type, name, created_at, updated_at) "
+                        "VALUES ('field', '__check_test__', datetime('now'), datetime('now'))"
+                    )
+                    conn.execute("DELETE FROM subscriptions WHERE name = '__check_test__'")
+                    # Constraint already allows 'field' — just bump version
+                except sqlite3.IntegrityError:
+                    # Need to recreate table with new CHECK constraint
+                    conn.executescript("""
+                        CREATE TABLE IF NOT EXISTS subscriptions_new (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            type TEXT NOT NULL CHECK(type IN ('query', 'author', 'venue', 'field', 'entity')),
+                            name TEXT NOT NULL,
+                            query_text TEXT DEFAULT '',
+                            payload_json TEXT DEFAULT '{}',
+                            enabled INTEGER DEFAULT 1,
+                            latest_hit_count INTEGER DEFAULT 0,
+                            last_checked_at TEXT,
+                            entity_id TEXT,
+                            filters_json TEXT DEFAULT '{}',
+                            research_question_id INTEGER,
+                            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+                        );
+
+                        INSERT INTO subscriptions_new(
+                            id, type, name, query_text, payload_json, enabled,
+                            latest_hit_count, last_checked_at, research_question_id,
+                            created_at, updated_at
+                        )
+                        SELECT id, type, name, query_text, payload_json, enabled,
+                               latest_hit_count, last_checked_at, research_question_id,
+                               created_at, updated_at
+                        FROM subscriptions;
+
+                        DROP TABLE subscriptions;
+                        ALTER TABLE subscriptions_new RENAME TO subscriptions;
+
+                        CREATE INDEX IF NOT EXISTS idx_subscriptions_type ON subscriptions(type);
+                        CREATE INDEX IF NOT EXISTS idx_subscriptions_enabled ON subscriptions(enabled);
+                    """)
+                conn.execute(
+                    "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '7')"
+                )
 
     def _migrate_arxiv_paper_ids(self, conn: sqlite3.Connection) -> None:
         queue_rows = conn.execute(
@@ -511,12 +605,19 @@ class StateStore:
     @staticmethod
     def _row_to_dict(row: sqlite3.Row) -> Dict:
         data = dict(row)
-        for key in ("payload_json", "result_json", "filters_json", "tags_json", "evidence_claim_ids"):
+        for key in (
+            "payload_json", "result_json", "filters_json", "tags_json",
+            "evidence_claim_ids", "aliases", "metadata_json",
+            "stats_json", "external_ids", "interest_vector",
+            "topic_weights", "entity_affinities", "reading_pace",
+        ):
             if key in data:
                 try:
                     data[key] = json.loads(data[key])
                 except (TypeError, json.JSONDecodeError):
-                    data[key] = [] if key == "evidence_claim_ids" else {}
+                    data[key] = [] if key in (
+                        "evidence_claim_ids", "aliases", "interest_vector"
+                    ) else {}
         return data
 
     # ------------------------------------------------------------------
@@ -1203,9 +1304,14 @@ class StateStore:
         payload_json: str = "{}",
         enabled: bool = True,
         research_question_id: Optional[int] = None,
+        entity_id: Optional[str] = None,
+        filters_json: Optional[str] = None,
     ) -> Dict:
-        if type not in ("query", "author", "venue"):
+        if type not in ("query", "author", "venue", "field", "entity"):
             raise ValueError(f"Invalid subscription type: {type}")
+        if entity_id is not None:
+            if self.get_entity(entity_id) is None:
+                raise ValueError(f"Unknown entity: {entity_id}")
         if research_question_id is not None:
             research_question_id = int(research_question_id)
             if self.get_research_question(research_question_id) is None:
@@ -1214,22 +1320,29 @@ class StateStore:
                 )
         if isinstance(payload_json, dict):
             payload_json = json.dumps(payload_json, ensure_ascii=False)
+        if filters_json is None:
+            filters_json = "{}"
+        elif isinstance(filters_json, dict):
+            filters_json = json.dumps(filters_json, ensure_ascii=False)
         now = _utc_now()
         with self._lock, self._connect() as conn:
             conn.execute(
                 """
                 INSERT INTO subscriptions(
                     type, name, query_text, payload_json, enabled,
-                    latest_hit_count, research_question_id, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)
+                    latest_hit_count, research_question_id, entity_id,
+                    filters_json, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
                 """,
                 (
                     type,
                     name.strip(),
-                    query_text.strip(),
+                    (query_text or "").strip(),
                     payload_json,
                     1 if enabled else 0,
                     research_question_id,
+                    entity_id,
+                    filters_json,
                     now,
                     now,
                 ),
@@ -1270,6 +1383,22 @@ class StateStore:
                     raise ValueError(f"Unknown research question: {question_id}")
                 updates.append("research_question_id = ?")
                 params.append(question_id)
+
+        if "entity_id" in kwargs:
+            value = kwargs["entity_id"]
+            if value in (None, ""):
+                updates.append("entity_id = ?")
+                params.append(None)
+            else:
+                if self.get_entity(str(value)) is None:
+                    raise ValueError(f"Unknown entity: {value}")
+                updates.append("entity_id = ?")
+                params.append(str(value))
+
+        if "filters_json" in kwargs:
+            updates.append("filters_json = ?")
+            fval = kwargs["filters_json"]
+            params.append(fval if isinstance(fval, str) else json.dumps(fval, ensure_ascii=False))
 
         if not updates:
             return self.get_subscription(subscription_id)
@@ -1395,6 +1524,205 @@ class StateStore:
             params.append(status)
         query += " ORDER BY hit_date DESC LIMIT ?"
         params.append(limit)
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+
+    # ------------------------------------------------------------------
+    # Entities
+    # ------------------------------------------------------------------
+
+    def create_entity(
+        self,
+        entity_id: str,
+        entity_type: str,
+        name: str,
+        *,
+        aliases: Optional[List[str]] = None,
+        external_ids: Optional[Dict] = None,
+        metadata_json: Optional[Dict] = None,
+        stats_json: Optional[Dict] = None,
+    ) -> Dict:
+        if entity_type not in ("journal", "conference", "scholar", "field"):
+            raise ValueError(f"Invalid entity type: {entity_type}")
+        entity_id = str(entity_id or "").strip()
+        name = str(name or "").strip()
+        if not entity_id:
+            raise ValueError("entity_id is required")
+        if not name:
+            raise ValueError("name is required")
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO entities(
+                    id, type, name, aliases, external_ids,
+                    metadata_json, stats_json, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    name = excluded.name,
+                    aliases = excluded.aliases,
+                    external_ids = excluded.external_ids,
+                    metadata_json = excluded.metadata_json,
+                    stats_json = excluded.stats_json,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    entity_id,
+                    entity_type,
+                    name,
+                    _to_json(aliases, []),
+                    _to_json(external_ids, {}),
+                    _to_json(metadata_json, {}),
+                    _to_json(stats_json, {}),
+                    now,
+                    now,
+                ),
+            )
+            row = conn.execute(
+                "SELECT * FROM entities WHERE id = ?", (entity_id,)
+            ).fetchone()
+        return self._row_to_dict(row)
+
+    def get_entity(self, entity_id: str) -> Optional[Dict]:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM entities WHERE id = ?", (entity_id,)
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    def list_entities(
+        self,
+        entity_type: Optional[str] = None,
+        *,
+        limit: int = 100,
+        search: Optional[str] = None,
+    ) -> List[Dict]:
+        query = "SELECT * FROM entities"
+        params: List[object] = []
+        conditions = []
+        if entity_type:
+            conditions.append("type = ?")
+            params.append(entity_type)
+        if search:
+            conditions.append("(name LIKE ? OR aliases LIKE ?)")
+            like_term = f"%{search}%"
+            params.extend([like_term, like_term])
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        query += " ORDER BY updated_at DESC LIMIT ?"
+        params.append(limit)
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+    def update_entity(
+        self,
+        entity_id: str,
+        *,
+        name: Optional[str] = None,
+        aliases: Optional[List[str]] = None,
+        external_ids: Optional[Dict] = None,
+        metadata_json: Optional[Dict] = None,
+        stats_json: Optional[Dict] = None,
+        last_synced: Optional[str] = None,
+    ) -> Optional[Dict]:
+        updates = []
+        params: List[object] = []
+        if name is not None:
+            updates.append("name = ?")
+            params.append(str(name).strip())
+        if aliases is not None:
+            updates.append("aliases = ?")
+            params.append(_to_json(aliases, []))
+        if external_ids is not None:
+            updates.append("external_ids = ?")
+            params.append(_to_json(external_ids, {}))
+        if metadata_json is not None:
+            updates.append("metadata_json = ?")
+            params.append(_to_json(metadata_json, {}))
+        if stats_json is not None:
+            updates.append("stats_json = ?")
+            params.append(_to_json(stats_json, {}))
+        if last_synced is not None:
+            updates.append("last_synced = ?")
+            params.append(last_synced)
+        if not updates:
+            return self.get_entity(entity_id)
+        updates.append("updated_at = ?")
+        params.append(_utc_now())
+        params.append(entity_id)
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                f"UPDATE entities SET {', '.join(updates)} WHERE id = ?",
+                params,
+            )
+        return self.get_entity(entity_id)
+
+    def delete_entity(self, entity_id: str) -> bool:
+        with self._lock, self._connect() as conn:
+            result = conn.execute(
+                "DELETE FROM entities WHERE id = ?", (entity_id,)
+            )
+        return result.rowcount > 0
+
+    # ------------------------------------------------------------------
+    # Entity Relations
+    # ------------------------------------------------------------------
+
+    def create_entity_relation(
+        self,
+        source_id: str,
+        target_id: str,
+        relation_type: str,
+        weight: float = 1.0,
+    ) -> Dict:
+        valid_types = (
+            "publishes_in", "affiliated_with", "researches",
+            "subfield_of", "co_located",
+        )
+        if relation_type not in valid_types:
+            raise ValueError(f"Invalid relation type: {relation_type}")
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO entity_relations(source_id, target_id, relation_type, weight, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(source_id, target_id, relation_type) DO UPDATE SET
+                    weight = excluded.weight
+                """,
+                (source_id, target_id, relation_type, weight, now),
+            )
+            row = conn.execute(
+                "SELECT * FROM entity_relations WHERE source_id = ? AND target_id = ? AND relation_type = ?",
+                (source_id, target_id, relation_type),
+            ).fetchone()
+        return self._row_to_dict(row)
+
+    def list_entity_relations(
+        self,
+        entity_id: str,
+        *,
+        direction: str = "both",
+        relation_type: Optional[str] = None,
+    ) -> List[Dict]:
+        conditions = []
+        params: List[object] = []
+        if direction == "outgoing":
+            conditions.append("source_id = ?")
+            params.append(entity_id)
+        elif direction == "incoming":
+            conditions.append("target_id = ?")
+            params.append(entity_id)
+        else:
+            conditions.append("(source_id = ? OR target_id = ?)")
+            params.extend([entity_id, entity_id])
+        if relation_type:
+            conditions.append("relation_type = ?")
+            params.append(relation_type)
+        query = f"SELECT * FROM entity_relations WHERE {' AND '.join(conditions)} ORDER BY weight DESC"
         with self._connect() as conn:
             rows = conn.execute(query, params).fetchall()
         return [self._row_to_dict(row) for row in rows]
