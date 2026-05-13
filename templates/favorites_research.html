@@ -29,18 +29,6 @@
                     <span class="mini-stat-label">Inbox</span>
                     <span class="mini-stat-value">{{ queue_counts['Inbox'] }}</span>
                 </div>
-                <div class="mini-stat">
-                    <span class="mini-stat-label">Skim Later</span>
-                    <span class="mini-stat-value">{{ queue_counts['Skim Later'] }}</span>
-                </div>
-                <div class="mini-stat">
-                    <span class="mini-stat-label">Deep Read</span>
-                    <span class="mini-stat-value">{{ queue_counts['Deep Read'] }}</span>
-                </div>
-                <div class="mini-stat">
-                    <span class="mini-stat-label">Saved</span>
-                    <span class="mini-stat-value">{{ queue_counts['Saved'] }}</span>
-                </div>
             </div>
         </div>
 
@@ -121,10 +109,7 @@
                         <div class="action-row">
                             <button class="action-button btn-brand" onclick="sendFeedbackAction(this, 'like')">相关</button>
                             <button class="action-button btn-danger" onclick="sendFeedbackAction(this, 'dislike')">忽略</button>
-                            <button class="action-button btn-warm" onclick="queuePaper(this, 'Skim Later')">稍后读</button>
-                            <button class="action-button btn-sage" onclick="queuePaper(this, 'Deep Read')">精读</button>
-                            <button class="action-button btn-subtle" onclick="queuePaper(this, 'Saved')">Saved</button>
-                            <button class="action-button btn-subtle" onclick="queuePaper(this, 'Archived')">Archived</button>
+                            <button class="action-button btn-primary" onclick="queuePaper(this, 'Inbox')">Add to Reading</button>
                             <button class="action-button btn-ghost" onclick="collectPaper(this)">加入 Collection</button>
                             {% if paper.is_incomplete %}
                                 <button class="action-button btn-subtle" onclick="fetchPaperInfo('{{ paper.id }}', this)">补全信息</button>

@@ -7,15 +7,15 @@ from __future__ import annotations
 
 NAV_ITEM_CONFIG = [
     # Main section
-    {"key": "search", "label": "Search", "href": "/", "icon": "search", "section": "main"},
+    {"key": "search", "label": "Search", "href": "/search", "icon": "search", "section": "main"},
     {"key": "recommendations", "label": "Recommendations", "href": "/recommendations", "icon": "star", "section": "main"},
-    {"key": "watch", "label": "Watch", "href": "/watch", "icon": "eye", "section": "main"},
+    {"key": "subscriptions", "label": "Subscriptions", "href": "/watch", "icon": "eye", "section": "main"},
     {"key": "reading", "label": "Reading", "href": "/reading", "icon": "book", "section": "main"},
     # Subscriptions section
-    {"key": "sub_journals", "label": "Journals", "href": "/watch?tab=journals", "icon": "journal", "section": "subscriptions"},
-    {"key": "sub_conferences", "label": "Conferences", "href": "/watch?tab=conferences", "icon": "conference", "section": "subscriptions"},
-    {"key": "sub_scholars", "label": "Scholars", "href": "/watch?tab=scholars", "icon": "scholar", "section": "subscriptions"},
-    {"key": "sub_fields", "label": "Fields", "href": "/watch?tab=fields", "icon": "field", "section": "subscriptions"},
+    {"key": "sub_journals", "label": "Journals", "href": "/watch#watch-journals", "icon": "journal", "section": "subscriptions"},
+    {"key": "sub_conferences", "label": "Conferences", "href": "/watch#watch-conferences", "icon": "conference", "section": "subscriptions"},
+    {"key": "sub_scholars", "label": "Scholars", "href": "/watch#watch-scholars", "icon": "scholar", "section": "subscriptions"},
+    {"key": "sub_fields", "label": "Fields", "href": "/watch#watch-fields", "icon": "field", "section": "subscriptions"},
     # Footer section
     {"key": "settings", "label": "Settings", "href": "/settings", "icon": "settings", "section": "footer"},
 ]

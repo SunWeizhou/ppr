@@ -287,10 +287,9 @@
 
     try {
       if (status) {
-        // Skim Later, Deep Read, Save — queue action
+        // Inbox — queue action
         await queuePaperStatus(paperId, status, {source: 'home_research'});
-        var label = status;
-        showToast('Added to queue: ' + label);
+        showToast('Added to Reading');
       } else {
         // Pass — feedback dislike
         await submitPaperFeedback(paperId, 'dislike');

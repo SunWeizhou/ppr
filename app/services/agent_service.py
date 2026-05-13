@@ -19,7 +19,7 @@ from app.services.ai_providers import NoProvider, ProviderError, build_ai_provid
 DESTRUCTIVE_TERMS = ("delete", "remove all", "overwrite api key", "bulk archive", "clear all")
 
 VALID_INTENTS = frozenset({
-    "answer", "search", "save", "skim", "deep_read", "watch",
+    "answer", "search", "save", "watch",
     "collection", "planner", "analysis", "summarize", "recommendations",
 })
 
@@ -317,7 +317,7 @@ class AgentService:
             page_context.get("selected_paper_title") or selected_paper_id or "this paper"
         )
 
-        if plan.intent in {"save", "deep_read", "skim"} and selected_paper_id:
+        if plan.intent == "save" and selected_paper_id:
             return self._exec_queue(plan, selected_paper_id, selected_title, message, actions, tool_results)
 
         if plan.intent == "collection" and selected_paper_id:
@@ -353,18 +353,17 @@ class AgentService:
         return self._answer_chat(message, page_context, tool_results, history)
 
     def _exec_queue(self, plan, paper_id, title, message, actions, tool_results) -> str:
-        status = {"save": "Saved", "deep_read": "Deep Read", "skim": "Skim Later"}[plan.intent]
         self.state_store.upsert_queue_item(
-            paper_id, status,
+            paper_id, "Inbox",
             source="paper_agent",
             decision_context=f"Paper Agent request: {message}",
         )
-        actions.append({"type": "queue", "paper_id": paper_id, "status": status})
+        actions.append({"type": "queue", "paper_id": paper_id, "status": "Inbox"})
         tool_results.append({
             "tool": "mark_reading_decision", "status": "succeeded",
-            "paper_id": paper_id, "decision": status,
+            "paper_id": paper_id, "decision": "Inbox",
         })
-        return f"Marked **{title}** as **{status}**."
+        return f"Added **{title}** to Reading."
 
     def _exec_watch(self, plan, page_context, message, actions, tool_results) -> str:
         query = plan.query or str(page_context.get("query") or message).strip()
@@ -422,8 +421,8 @@ class AgentService:
                     "role": "system",
                     "content": (
                         "Classify a Paper Agent user request. Return JSON only with keys "
-                        "intent and query. Valid intents: answer, search, save, skim, "
-                        "deep_read, watch, collection, planner, analysis, summarize, "
+                        "intent and query. Valid intents: answer, search, save, "
+                        "watch, collection, planner, analysis, summarize, "
                         "recommendations. Do not execute tools."
                     ),
                 },
@@ -475,10 +474,6 @@ class AgentService:
             return AgentPlan("analysis")
         if any(word in text for word in ("save", "saved", "keep", "收藏", "保存")):
             return AgentPlan("save")
-        if any(word in text for word in ("deep read", "deepread", "精读")):
-            return AgentPlan("deep_read")
-        if any(word in text for word in ("skim", "later", "稍后")):
-            return AgentPlan("skim")
         if any(word in text for word in ("watch", "subscribe", "monitor", "追踪", "监控")):
             return AgentPlan("watch", query=str(page_context.get("query") or message).strip())
         if any(word in text for word in ("planner", "plan")):
@@ -604,7 +599,6 @@ class AgentService:
                 "你可以让我：\n"
                 "- search papers\n"
                 "- save the selected paper\n"
-                "- mark it for skim or deep read\n"
                 "- create a watch\n"
                 "- create a collection\n"
                 "- summarize the selected paper"
@@ -614,8 +608,7 @@ class AgentService:
             return (
                 f"Paper Agent can help from the current **{location}** page.\n\n"
                 "Try: `search federated learning`, `save this paper`, "
-                "`deep read this paper`, `create watch for this query`, or "
-                "`summarize this paper`."
+                "`create watch for this query`, or `summarize this paper`."
             )
         if query:
             return (
@@ -624,7 +617,7 @@ class AgentService:
             )
         return (
             "Paper Agent can chat about your research workflow and execute local actions: "
-            "search papers, save papers, mark reading decisions, create watches, create "
+            "search papers, save papers, create watches, create "
             "collections, and summarize selected papers."
         )
 

@@ -500,7 +500,7 @@ class MonitorViewModel:
         """Assemble the full Monitor page context.
         Replaces web_server.monitor_page and merges _render_track_research."""
 
-        page_context = self._build_page_context("watch")
+        page_context = self._build_page_context("subscriptions")
 
         # ── unified subscription enrichment ──
         unified_subs = self._store.list_subscriptions()
@@ -518,8 +518,10 @@ class MonitorViewModel:
             for s in author_subs
         ]
 
-        # ── venues from unified subscriptions ──
+        # ── venues split into journals and conferences ──
         venue_subs = [s for s in decorated_subs if s.get("type") == "venue"]
+        journal_subs = [s for s in venue_subs if s.get("venue_type") == "journal" or s.get("venue_type") == "venue"]
+        conference_subs = [s for s in venue_subs if s.get("venue_type") == "conference"]
         journal_cards = [
             self._subscription_to_venue(s)
             for s in venue_subs
@@ -536,14 +538,11 @@ class MonitorViewModel:
         # ── headline metrics ──
         headline_metrics = [
             {"label": "Followed Scholars", "value": len(my_scholars)},
-            {"label": "Tracked Venues", "value": len(venue_subs)},
+            {"label": "Tracked Journals", "value": len(journal_subs)},
+            {"label": "Tracked Conferences", "value": len(conference_subs)},
             {
                 "label": "Collections",
                 "value": len(page_context["all_collections"]),
-            },
-            {
-                "label": "Saved Searches",
-                "value": len(page_context["all_saved_searches"]),
             },
         ]
 
@@ -565,7 +564,7 @@ class MonitorViewModel:
         query_subs = [s for s in decorated_subs if s.get("type") == "query"]
 
         return {
-            "title": "Watch - Paper Agent",
+            "title": "Subscriptions - Paper Agent",
             "tab": tab,
             "headline_metrics": headline_metrics,
             "my_scholars": my_scholars,
@@ -574,7 +573,8 @@ class MonitorViewModel:
             "unified_subs": decorated_subs,
             "query_subs": query_subs,
             "author_subs": author_subs,
-            "venue_subs": venue_subs,
+            "journal_subs": journal_subs,
+            "conference_subs": conference_subs,
             "field_subs": field_subs,
             "unified_query_count": unified_query_count,
             "unified_author_count": unified_author_count,

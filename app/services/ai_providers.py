@@ -23,7 +23,7 @@ ANALYSIS_FIELDS = (
     "recommended_reading_level",
 )
 
-READING_LEVELS = {"ignore", "skim", "deep_read", "save"}
+READING_LEVELS = {"ignore", "inbox"}
 
 SYSTEM_PROMPT = (
     "You are a research paper triage assistant. Analyze the paper for a machine "
@@ -35,7 +35,7 @@ class ProviderError(RuntimeError):
     pass
 
 
-def fallback_analysis(*, reading_level: str = "skim") -> dict:
+def fallback_analysis(*, reading_level: str = "inbox") -> dict:
     return {
         "one_sentence_summary": "",
         "problem": "",
@@ -50,13 +50,13 @@ def fallback_analysis(*, reading_level: str = "skim") -> dict:
 def normalize_reading_level(value) -> str:
     normalized = str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
     aliases = {
-        "skim_later": "skim",
-        "deep_reading": "deep_read",
-        "deepread": "deep_read",
-        "saved": "save",
+        "save": "inbox",
+        "saved": "inbox",
+        "skim": "inbox",
+        "deep_read": "inbox",
     }
     normalized = aliases.get(normalized, normalized)
-    return normalized if normalized in READING_LEVELS else "skim"
+    return normalized if normalized in READING_LEVELS else "inbox"
 
 
 def normalize_analysis_result(result: dict | None) -> dict:
@@ -205,7 +205,7 @@ class OpenAICompatibleProvider:
                 "",
                 "Return JSON with keys: one_sentence_summary, problem, method, "
                 "contribution, limitations, why_it_matters, recommended_reading_level. "
-                "recommended_reading_level must be one of ignore, skim, deep_read, save.",
+                "recommended_reading_level must be one of ignore, inbox.",
             ]
         )
 
@@ -352,7 +352,7 @@ class DeepSeekProvider:
                 "",
                 "Return JSON with keys: one_sentence_summary, problem, method, "
                 "contribution, limitations, why_it_matters, recommended_reading_level. "
-                "recommended_reading_level must be one of ignore, skim, deep_read, save.",
+                "recommended_reading_level must be one of ignore, inbox.",
             ]
         )
 

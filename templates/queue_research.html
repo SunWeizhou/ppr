@@ -21,13 +21,8 @@
 {% block content %}
 <div class="reading-workbench-header" style="display: flex; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); margin-bottom: 16px; flex-wrap: wrap;">
     <span class="section-kicker" style="margin: 0;">Decide what to read</span>
-    <span class="chip">Deep Read: {{ all_status_counts.get('Deep Read', 0) }}</span>
-    <span class="chip">Skim Later: {{ all_status_counts.get('Skim Later', 0) }}</span>
     <span class="chip">Inbox: {{ all_status_counts.get('Inbox', 0) }}</span>
-    <span class="chip" style="opacity:0.6;">Saved: {{ all_status_counts.get('Saved', 0) }}</span>
-    <span class="chip" style="opacity:0.6;">Archived: {{ all_status_counts.get('Archived', 0) }}</span>
-    <span class="spacer"></span>
-    <a href="/reading?tab=saved" class="btn btn-tertiary btn-sm">View Saved in Reading</a>
+    <span class="chip">Completed: {{ all_status_counts.get('Completed', 0) }}</span>
 </div>
 
 
@@ -149,11 +144,10 @@
                 <div class="detail-disclosure-body">
                     <div class="detail-actions detail-actions-grid">
                         {% for status in active_statuses %}
-                            <button type="button" class="btn {% if status == 'Skim Later' %}btn-warm{% elif status == 'Deep Read' %}btn-sage{% elif status == 'Inbox' %}btn-primary{% endif %}" onclick="moveQueuePaper('{{ status }}')">{{ status }}</button>
+                            <button type="button" class="btn {% if status == 'Inbox' %}btn-primary{% endif %}" onclick="moveQueuePaper('{{ status }}')">{{ status }}</button>
                         {% endfor %}
                         <div style="flex-basis: 100%; height: 1px; background: var(--line); margin: 4px 0;"></div>
-                        <button type="button" class="btn btn-secondary" onclick="moveQueuePaper('Saved')">Save to Reading</button>
-                        <button type="button" class="btn btn-tertiary" onclick="moveQueuePaper('Archived')">Archive</button>
+                        <button type="button" class="btn btn-sage" onclick="moveQueuePaper('Completed')">Complete</button>
                     </div>
                 </div>
             </details>

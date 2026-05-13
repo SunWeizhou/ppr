@@ -93,11 +93,9 @@
                         {% if analysis.get('recommended_reading_level') %}
                         <p class="reading-level-row">
                             <strong>Reading Level:</strong>
-                            {% set rl = analysis.get('recommended_reading_level', 'skim')|string|lower|replace('-', '_')|replace(' ', '_') %}
-                            {% if rl == 'deep_read' %}
-                            <span class="reading-level-chip chip sage">Deep Read</span>
-                            {% elif rl == 'skim' %}
-                            <span class="reading-level-chip chip gold">Skim</span>
+                            {% set rl = analysis.get('recommended_reading_level', 'inbox')|string|lower|replace('-', '_')|replace(' ', '_') %}
+                            {% if rl == 'inbox' %}
+                            <span class="reading-level-chip chip sage">To Read</span>
                             {% elif rl == 'ignore' %}
                             <span class="reading-level-chip chip" style="background: var(--line); color: var(--ink-3);">Skip</span>
                             {% else %}
@@ -377,12 +375,9 @@ function buildReadingLevelChip(level) {
     var chip = document.createElement('span');
     chip.className = 'reading-level-chip';
     var normalized = String(level || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
-    if (normalized === 'deep_read') {
+    if (normalized === 'inbox') {
         chip.className += ' chip sage';
-        chip.textContent = 'Deep Read';
-    } else if (normalized === 'skim') {
-        chip.className += ' chip gold';
-        chip.textContent = 'Skim';
+        chip.textContent = 'To Read';
     } else if (normalized === 'ignore') {
         chip.className += ' chip';
         chip.style.background = 'var(--line)';
@@ -535,15 +530,6 @@ async function paperDetailAction(action, paperId, extra, btn) {
                 break;
             case 'addtoreading':
                 await queuePaperStatus(paperId, 'Inbox', paperDetailWorkspaceOptions('paper_detail'));
-                break;
-            case 'skim':
-                await queuePaperStatus(paperId, 'Skim Later', paperDetailWorkspaceOptions('paper_detail'));
-                break;
-            case 'deepread':
-                await queuePaperStatus(paperId, 'Deep Read', paperDetailWorkspaceOptions('paper_detail'));
-                break;
-            case 'save':
-                await queuePaperStatus(paperId, 'Saved', paperDetailWorkspaceOptions('paper_detail'));
                 break;
             case 'collect':
                 await addPaperToCollection(paperId, {source: 'paper_detail'});

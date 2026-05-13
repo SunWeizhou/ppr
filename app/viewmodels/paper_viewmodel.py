@@ -33,9 +33,8 @@ def _format_event(event: dict) -> dict:
 
     label_map = {
         "queue_status_changed": {
-            "Deep Read": "Marked for Deep Reading",
-            "Skim Later": "Marked to Skim",
-            "Saved": "Saved",
+            "Inbox": "Added to Reading",
+            "Completed": "Marked as Complete",
         },
         "feedback_relevant": "Marked as Relevant",
         "feedback_ignored": "Ignored",

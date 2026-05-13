@@ -340,7 +340,7 @@
       window.createAuthorSubscription();
     } else if (cmd.action === 'new-query-sub' && window.createQuerySubscription) {
       window.createQuerySubscription();
-    } else if (cmd.action === 'mark-relevant' || cmd.action === 'mark-ignore' || cmd.action === 'mark-skim' || cmd.action === 'mark-deepread') {
+    } else if (cmd.action === 'mark-relevant' || cmd.action === 'mark-ignore' || cmd.action === 'mark-skim') {
       var active = document.querySelector('.paper-list-item.active');
       if (!active) { window.showToast('Select a paper first'); return; }
       var paperId = active.dataset.paperId;
@@ -349,10 +349,6 @@
         window.submitPaperFeedback(paperId, 'like');
       } else if (cmd.action === 'mark-ignore' && window.submitPaperFeedback) {
         window.submitPaperFeedback(paperId, 'dislike');
-      } else if (cmd.action === 'mark-skim' && window.queuePaper) {
-        window.queuePaper(paperId, 'Skim Later');
-      } else if (cmd.action === 'mark-deepread' && window.queuePaper) {
-        window.queuePaper(paperId, 'Deep Read');
       }
       window.showToast(cmd.label);
     } else if (cmd.action === 'toggle-dark') {
@@ -408,13 +404,13 @@
       }
     } else if (cmd.action === 'new-venue-sub') {
       window.location.href = '/watch';
-    } else if (cmd.action === 'mark-saved' && window.queuePaper) {
+    } else if (cmd.action === 'mark-inbox' && window.queuePaper) {
       var active = document.querySelector('.paper-list-item.active');
       if (!active) { window.showToast('Select a paper first'); return; }
       var paperId = active.dataset.paperId;
       if (paperId) {
-        window.queuePaper(paperId, 'Saved');
-        window.showToast('Paper saved');
+        window.queuePaper(paperId, 'Inbox');
+        window.showToast('Added to Reading');
       }
     } else if (cmd.action === 'jump-to-collection') {
       window.location.href = '/reading?tab=collections';

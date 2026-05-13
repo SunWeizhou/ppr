@@ -14,11 +14,11 @@ STATE_STORE = get_state_store()
 
 @bp.get("/queue")
 def queue_page():
-    status = request.args.get("status") or "Skim Later"
+    status = request.args.get("status") or "Inbox"
     if status not in QUEUE_STATUS_VALUES:
-        status = "Skim Later"
+        status = "Inbox"
     if status not in ACTIVE_READING_STATUSES:
-        status = "Skim Later"
+        status = "Inbox"
     service = QueueService(STATE_STORE)
     viewmodel = QueueViewModel(service, STATE_STORE)
     return render_template("queue_research.html", **viewmodel.to_template_context(active_status=status))

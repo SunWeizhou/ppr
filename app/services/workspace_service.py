@@ -45,7 +45,5 @@ class WorkspaceService:
             "status": question["status"],
             "queue_counts": queue_counts,
             "undecided_count": queue_counts.get("Inbox", 0),
-            "active_reading_count": queue_counts.get("Skim Later", 0) + queue_counts.get("Deep Read", 0),
-            "saved_count": queue_counts.get("Saved", 0),
-            "archived_count": queue_counts.get("Archived", 0),
+            "completed_count": queue_counts.get("Completed", 0),
         }

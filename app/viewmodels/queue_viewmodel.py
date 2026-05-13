@@ -11,7 +11,7 @@ from app.viewmodels.shared import (
 )
 from state_store import QUEUE_STATUS_VALUES
 
-ACTIVE_READING_STATUSES = ("Inbox", "Skim Later", "Deep Read", "Saved", "Archived")
+ACTIVE_READING_STATUSES = ("Inbox",)
 
 
 class QueueViewModel:
@@ -19,7 +19,7 @@ class QueueViewModel:
         self.queue_service = queue_service
         self.state_store = state_store
 
-    def to_template_context(self, *, active_status: str = "Skim Later"):
+    def to_template_context(self, *, active_status: str = "Inbox"):
         feedback = self.queue_service.load_feedback()
         context = assemble_page_context(self.state_store, active_tab="", feedback=feedback)
         all_status_counts = self.queue_service.count_by_status()

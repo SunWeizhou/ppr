@@ -39,8 +39,6 @@ def inbox_triage_complete():
         "papers_total": total,
         "papers_liked": progress["liked"],
         "papers_disliked": progress["disliked"],
-        "papers_skimmed": progress["skimmed"],
-        "papers_deep_read": progress["deep_read"],
         "papers_queued": progress["queued"],
     }
 

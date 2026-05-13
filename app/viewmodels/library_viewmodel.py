@@ -611,8 +611,8 @@ class LibraryViewModel:
                 resolved.append(paper)
             selected_collection_papers = self._decorate_papers(resolved, feedback)
 
-        # ── Saved Papers tab ──
-        saved_papers = self._resolve_queue_papers(status="Saved")
+        # ── Reading Queue tab ──
+        saved_papers = self._resolve_queue_papers(status="Inbox")
 
         # ── History tab ──
         history_dates = self._available_dates()

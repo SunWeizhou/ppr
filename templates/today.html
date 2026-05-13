@@ -75,9 +75,7 @@
             {% endif %}
 
             <div class="detail-actions" role="group" aria-label="Paper actions">
-                <button type="button" class="btn btn-primary btn-xs" data-action="skim" data-paper="{{ paper.id }}">Skim Later</button>
-                <button type="button" class="btn btn-sage btn-xs" data-action="deepread" data-paper="{{ paper.id }}">Deep Read</button>
-                <button type="button" class="btn btn-ghost btn-xs" data-action="save" data-paper="{{ paper.id }}">Save</button>
+                <button type="button" class="btn btn-primary btn-xs" data-action="inbox" data-paper="{{ paper.id }}">Add to Reading</button>
                 <button type="button" class="btn btn-ghost btn-xs" data-action="pass" data-paper="{{ paper.id }}">Pass</button>
             </div>
         </article>
@@ -113,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (btn) {
         var action = btn.dataset.action;
         var paperId = btn.dataset.paper;
-        var statusMap = {skim: 'Skim Later', deepread: 'Deep Read', save: 'Saved', pass: null};
+        var statusMap = {inbox: 'Inbox', pass: null};
         var status = statusMap[action];
         triageAction(paperId, action, status);
         return;

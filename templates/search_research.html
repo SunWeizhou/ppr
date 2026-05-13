@@ -116,11 +116,10 @@
                 <div class="preview-section">
                     <div class="preview-section-head">
                         <strong>Next Step</strong>
-                        <button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Save</button>
+                        <button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Add to Reading</button>
                     </div>
                     <div class="preview-action-grid">
-                        <button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper('Skim Later', 'Mark Skim')">Mark Skim</button>
-                        <button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper('Deep Read', 'Deep Read')">Deep Read</button>
+                        <button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper('Inbox', 'Add to Reading')">Add to Reading</button>
                         <button class="btn btn-ghost btn-sm" type="button" onclick="agentCreateWatchFromSearch()">Create Watch</button>
                     </div>
                 </div>
@@ -271,9 +270,8 @@ function selectPaperResult(row) {
         '<a class="preview-title" href="' + detailUrl + '">' + escapeHtml(row.dataset.paperTitle || 'Untitled') + '</a>' +
         '<div class="preview-source">' + escapeHtml(row.dataset.paperVenue || row.dataset.paperSource || '') + '</div>' +
         '<div class="preview-authors">' + escapeHtml(row.dataset.paperAuthors || '') + '</div>' +
-        '<div class="preview-section"><div class="preview-section-head"><strong>Next Step</strong><button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Save</button></div>' +
-        '<div class="preview-action-grid"><button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper(&quot;Skim Later&quot;, &quot;Mark Skim&quot;)">Mark Skim</button>' +
-        '<button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper(&quot;Deep Read&quot;, &quot;Deep Read&quot;)">Deep Read</button>' +
+        '<div class="preview-section"><div class="preview-section-head"><strong>Next Step</strong><button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Add to Reading</button></div>' +
+        '<div class="preview-action-grid"><button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper(&quot;Inbox&quot;, &quot;Add to Reading&quot;)">Add to Reading</button>' +
         '<button class="btn btn-ghost btn-sm" type="button" onclick="agentCreateWatchFromSearch()">Create Watch</button></div></div>' +
         '<div class="preview-section"><strong>Abstract</strong><p>' + escapeHtml(row.dataset.paperAbstract || 'No abstract available.') + '</p><a class="text-link" href="' + detailUrl + '">Open full detail</a></div>' +
         deepLinks;
@@ -316,10 +314,10 @@ async function agentSaveSelectedPaper() {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
             paper_id: selected.dataset.paperId,
-            status: 'Saved'
+            status: 'Inbox'
         })
     });
-    showToast('Saved to Reading');
+    showToast('Added to Reading');
 }
 
 async function agentQueueSelectedPaper(status, label) {
@@ -333,7 +331,7 @@ async function agentQueueSelectedPaper(status, label) {
             status: status
         })
     });
-    showToast(label);
+    showToast('Added to Reading');
 }
 
 async function agentCreateWatchFromSearch() {

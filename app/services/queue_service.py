@@ -304,11 +304,7 @@ class QueueService:
         return paper
 
     def get_todays_reading_plan(self) -> dict:
-        """Return today's reading plan: top Deep Read and Skim Later papers.
-
-        Each paper is resolved against the history index, favorites, and
-        paper cache so the template gets title, authors, score, etc.
-        """
+        """Return today's reading items."""
         from datetime import datetime
 
         from app.services.paper_utils import format_author_text as _fmt_authors
@@ -319,15 +315,13 @@ class QueueService:
             item
             for item in all_items
             if (item.get("updated_at") or "").startswith(today)
-            and item.get("status") in ("Deep Read", "Skim Later")
         ]
 
         history_index = self._load_history_paper_index()
         favorites = self._load_favorites()
         paper_cache = self._load_paper_cache()
 
-        deep_read: list = []
-        skim_later: list = []
+        items: list = []
 
         for item in today_items:
             paper = self._resolve_paper_record(
@@ -339,23 +333,15 @@ class QueueService:
             paper["queue_status"] = item.get("status")
             paper["updated_at"] = item.get("updated_at", "")
             paper["queue_note"] = item.get("note", "")
-            if item.get("status") == "Deep Read":
-                deep_read.append(paper)
-            else:
-                skim_later.append(paper)
+            items.append(paper)
 
-        # Sort by time added (most recent first)
-        deep_read.sort(key=lambda p: p.get("updated_at", ""), reverse=True)
-        skim_later.sort(key=lambda p: p.get("updated_at", ""), reverse=True)
-
-        # Decorate with author formatting and short summary, then limit
-        for paper in deep_read[:3] + skim_later[:5]:
+        items.sort(key=lambda p: p.get("updated_at", ""), reverse=True)
+        for paper in items[:8]:
             paper["author_text"] = _fmt_authors(paper.get("authors"))
             paper["summary_short"] = (paper.get("summary") or paper.get("abstract") or "")[:220]
 
         return {
-            "deep_read": deep_read[:3],
-            "skim_later": skim_later[:5],
+            "items": items[:8],
         }
 
     def resolve_papers(self, status: str | None = None):

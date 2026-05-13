@@ -217,7 +217,7 @@ def save_paper_note(paper_id):
         if existing:
             svc.update_status(paper_id, existing["status"], note=note)
         else:
-            svc.add_to_queue(paper_id, "Saved", note=note)
+            svc.update_status(paper_id, "Inbox", note=note)
         store.record_event("note_saved", paper_id, {"note_length": len(note)})
         return jsonify({"success": True, "note": note})
     except Exception as exc:

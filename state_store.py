@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 from app_paths import STATE_DB_PATH, ensure_runtime_dirs
 
 JOB_STATUS_VALUES = ("queued", "running", "succeeded", "degraded", "failed")
-QUEUE_STATUS_VALUES = ("Inbox", "Skim Later", "Deep Read", "Saved", "Archived")
+QUEUE_STATUS_VALUES = ("Inbox", "Completed")
 
 
 def _utc_now() -> str:
@@ -1956,11 +1956,18 @@ class StateStore:
             ).fetchone()
         return self._row_to_dict(row) if row else None
 
-    def get_inbox_progress(self, date_str: str) -> Dict:
-        """Return triage progress stats for a given date.
+    def mark_as_completed(self, paper_id: str, *, source: str = "reading_page") -> Dict:
+        """Mark a paper as Completed and record the event."""
+        paper_id = _canonical_paper_id(paper_id)
+        item = self.upsert_queue_item(paper_id, "Completed", source=source)
+        self.record_event("queue_status_changed", paper_id, {"status": "Completed", "source": source})
+        return item
 
-        Returns counts for: handled, untriaged, liked, disliked, skimmed,
-        deep_read, queued.  ``total`` is set to handled so the caller can
+    def get_inbox_progress(self, date_str: str) -> Dict:
+        """Return queue workflow progress for a given date.
+
+        Returns counts for: handled, untriaged, liked, disliked, queued.
+        ``total`` is set to handled so the caller can
         override it when the page knows how many papers were shown.
         """
         start_utc, end_utc = _utc_bounds_for_local_date(date_str)
@@ -2000,8 +2007,6 @@ class StateStore:
 
         liked = event_counts.get("like", 0)
         disliked = event_counts.get("dislike", 0)
-        skimmed = queue_counts.get("Skim Later", 0)
-        deep_read = queue_counts.get("Deep Read", 0)
         queued = sum(queue_counts.values())
 
         return {
@@ -2010,8 +2015,6 @@ class StateStore:
             "untriaged": 0,
             "liked": liked,
             "disliked": disliked,
-            "skimmed": skimmed,
-            "deep_read": deep_read,
             "queued": queued,
         }
 
@@ -2058,10 +2061,8 @@ class StateStore:
                     eff_type = event_type
                     if event_type == "queue_status_changed" and payload:
                         status = payload.get("status", "")
-                        if status == "Deep Read":
-                            eff_type = "deep_read"
-                        elif status == "Skim Later":
-                            eff_type = "skim_later"
+                        if status == "Completed":
+                            eff_type = "completed"
 
                     # Ignore events: skip negative affinity if paper was also liked
                     skip_affinity = False
@@ -2152,14 +2153,10 @@ class StateStore:
 
         if event_type in ("like", "Relevant"):
             positive_delta = 1.0
-        elif event_type == "deep_read":
-            positive_delta = 2.0
-        elif event_type == "skim_later":
+        elif event_type == "completed":
             positive_delta = 1.5
         elif event_type in ("dislike",):
             negative_delta = 1.0
-        elif event_type in ("save", "save_for_later"):
-            positive_delta = 2.5
         elif event_type in ("ignore", "ignore_topic"):
             negative_delta = 1.0
         else:
@@ -3095,7 +3092,7 @@ class StateStore:
                     categories = []
 
             # Weight by reading depth
-            weight = 2.0 if item.get("status") == "Deep Read" else 1.0
+            weight = 1.0
             for cat in categories:
                 topic_counts[cat] = topic_counts.get(cat, 0) + weight
 

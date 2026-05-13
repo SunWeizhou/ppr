@@ -14,10 +14,9 @@ from utils import CATEGORY_NAMES, atomic_write_json, parse_markdown_digest, safe
 
 QUEUE_ACTIONS = {
     "inbox": "Inbox",
-    "save_for_later": "Skim Later",
-    "deep_read": "Deep Read",
-    "save": "Saved",
-    "archive": "Archived",
+    "save": "Inbox",
+    "save_for_later": "Inbox",
+    "deep_read": "Inbox",
 }
 
 
@@ -263,14 +262,14 @@ class FeedbackService:
             self.remove_from_favorites(paper_id)
             event_id = self.state_store.record_event("dislike", paper_id, event_payload)
 
+        elif action == "finish":
+            item = self.state_store.mark_as_completed(paper_id, source=source)
+            event_id = self.state_store.record_event("finish", paper_id, event_payload)
+            return {"success": True, "queue_item": item, "event_id": event_id}, 200
+
         elif action in QUEUE_ACTIONS:
             queue_item = self.state_store.upsert_queue_item(paper_id, QUEUE_ACTIONS[action], source=source, note=data.get("note", ""), tags=data.get("tags"))
             event_id = self.state_store.record_event(action, paper_id, event_payload)
-            # Record additional semantic events for analytics
-            if action == "save_for_later":
-                self.state_store.record_event("paper_skimmed", paper_id, {**event_payload, "parent_action": action})
-            elif action == "deep_read":
-                self.state_store.record_event("paper_deep_read", paper_id, {**event_payload, "parent_action": action})
             return {"success": True, "queue_item": queue_item, "event_id": event_id}, 200
 
         elif action in {"open_paper", "impression", "export_to_zotero"}:

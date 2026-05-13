@@ -19,10 +19,6 @@ class HomeViewModel:
         subscriptions = self._safe_subscriptions()
         watch_hits = self._safe_watch_hits()
 
-        active_reading = [
-            item for item in queue_items
-            if item.get("status") in ("Skim Later", "Deep Read")
-        ]
         inbox_items = [item for item in queue_items if item.get("status") == "Inbox"]
 
         context = {
@@ -30,7 +26,6 @@ class HomeViewModel:
             "active_tab": "home",
             "queue_status_values": QUEUE_STATUS_VALUES,
             "recent_questions": questions[:4],
-            "active_reading_count": len(active_reading),
             "inbox_count": len(inbox_items),
             "watch_count": len(subscriptions),
             "watch_hit_count": len(watch_hits),
@@ -42,8 +37,8 @@ class HomeViewModel:
                     "description": "Continue a research thread.",
                 },
                 {
-                    "label": "Active reading",
-                    "value": len(active_reading),
+                    "label": "Reading queue",
+                    "value": len(inbox_items),
                     "href": "/reading",
                     "description": "Papers waiting for attention.",
                 },

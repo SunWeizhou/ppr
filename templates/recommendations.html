@@ -44,9 +44,8 @@
                     <div class="rec-card-citation">{{ paper.display_citation }}</div>
                     <p class="rec-card-reason">{{ paper.relevance_reason or 'Matches your recommendation profile.' }}</p>
                     <div class="rec-card-actions">
-                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentSavePaperById('{{ paper.paper_id or paper.id }}')">Save</button>
-                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById('{{ paper.paper_id or paper.id }}', 'Skim Later')">Skim</button>
-                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById('{{ paper.paper_id or paper.id }}', 'Deep Read')">Read</button>
+                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentSavePaperById('{{ paper.paper_id or paper.id }}')">Add to Reading</button>
+                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById('{{ paper.paper_id or paper.id }}', 'Inbox')">Add to Reading</button>
                     </div>
                 </article>
                 {% endfor %}
@@ -78,9 +77,8 @@
                     <div class="rec-card-citation">{{ paper.display_citation }}</div>
                     <p class="rec-card-reason">{{ paper.relevance_reason or 'Matches your recommendation profile.' }}</p>
                     <div class="rec-card-actions">
-                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentSavePaperById('{{ paper.paper_id or paper.id }}')">Save</button>
-                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById('{{ paper.paper_id or paper.id }}', 'Skim Later')">Skim</button>
-                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById('{{ paper.paper_id or paper.id }}', 'Deep Read')">Read</button>
+                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentSavePaperById('{{ paper.paper_id or paper.id }}')">Add to Reading</button>
+                        <button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById('{{ paper.paper_id or paper.id }}', 'Inbox')">Add to Reading</button>
                     </div>
                 </article>
                 {% endfor %}
@@ -182,9 +180,8 @@ function renderSections(sections) {
                 '<div class="rec-card-citation">' + escapeHtml(paper.display_citation || '') + '</div>' +
                 '<p class="rec-card-reason">' + escapeHtml(paper.relevance_reason || 'Matches your profile.') + '</p>' +
                 '<div class="rec-card-actions">' +
-                '<button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentSavePaperById(\'' + escapeHtml(pid) + '\')">Save</button>' +
-                '<button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById(\'' + escapeHtml(pid) + '\', \'Skim Later\')">Skim</button>' +
-                '<button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById(\'' + escapeHtml(pid) + '\', \'Deep Read\')">Read</button>' +
+                '<button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentSavePaperById(\'' + escapeHtml(pid) + '\')">Add to Reading</button>' +
+                '<button class="btn btn-ghost btn-xs" type="button" onclick="event.stopPropagation(); agentQueuePaperById(\'' + escapeHtml(pid) + '\', \'Inbox\')">Add to Reading</button>' +
                 '</div></article>';
         });
         cards += '</div>';
@@ -209,10 +206,9 @@ function selectRecCard(card) {
         '<div class="preview-source">' + escapeHtml(card.dataset.paperVenue || '') + '</div>' +
         '<div class="preview-authors">' + escapeHtml(card.dataset.paperAuthors || '') + '</div>' +
         '<div class="preview-section"><div class="preview-section-head"><strong>Decision</strong>' +
-        '<button class="btn btn-primary btn-sm" type="button" onclick="agentSavePaperById(\'' + escapeHtml(card.dataset.paperId) + '\')">Save</button></div>' +
+        '<button class="btn btn-primary btn-sm" type="button" onclick="agentSavePaperById(\'' + escapeHtml(card.dataset.paperId) + '\')">Add to Reading</button></div>' +
         '<div class="preview-action-grid">' +
-        '<button class="btn btn-ghost btn-sm" type="button" onclick="agentQueuePaperById(\'' + escapeHtml(card.dataset.paperId) + '\', \'Skim Later\')">Mark Skim</button>' +
-        '<button class="btn btn-ghost btn-sm" type="button" onclick="agentQueuePaperById(\'' + escapeHtml(card.dataset.paperId) + '\', \'Deep Read\')">Deep Read</button></div></div>' +
+        '<button class="btn btn-ghost btn-sm" type="button" onclick="agentQueuePaperById(\'' + escapeHtml(card.dataset.paperId) + '\', \'Inbox\')">Add to Reading</button></div></div>' +
         '<div class="preview-section"><strong>Why recommended</strong><p>' + escapeHtml(card.dataset.relevanceReason || 'Matches your recommendation profile.') + '</p></div>' +
         '<div class="preview-section"><strong>Abstract</strong><p>' + escapeHtml(card.dataset.paperAbstract || 'No abstract available.') + '</p>' +
         '<a class="text-link" href="' + detailUrl + '">Open full detail</a></div>';
@@ -231,9 +227,9 @@ async function agentSavePaperById(paperId) {
     await requestJson('/api/queue', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ paper_id: paperId, status: 'Saved' })
+        body: JSON.stringify({ paper_id: paperId, status: 'Inbox' })
     });
-    showToast('Saved to Reading');
+    showToast('Added to Reading');
 }
 
 async function agentQueuePaperById(paperId, status) {
@@ -243,7 +239,7 @@ async function agentQueuePaperById(paperId, status) {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ paper_id: paperId, status: status })
     });
-    showToast(status);
+    showToast('Added to Reading');
 }
 </script>
 {% endblock %}
