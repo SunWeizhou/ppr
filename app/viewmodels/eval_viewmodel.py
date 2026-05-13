@@ -84,7 +84,7 @@ class EvalViewModel:
     def to_dashboard_context(self) -> dict:
         """Build evaluation dashboard context."""
         from app.viewmodels.shared import assemble_page_context
-        from state_store import QUEUE_STATUS_VALUES
+        from app.data._constants import QUEUE_STATUS_VALUES
 
         page_ctx = assemble_page_context(self._store, active_tab="settings")
 

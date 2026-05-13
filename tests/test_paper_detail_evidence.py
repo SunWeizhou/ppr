@@ -81,7 +81,7 @@ class PaperDetailEvidenceViewModelTests(unittest.TestCase):
     def test_detail_context_uses_queue_question_when_url_has_no_question(self):
         self.store.upsert_queue_item(
             self.paper_id,
-            "Deep Read",
+            "Inbox",
             research_question_id=self.question["id"],
             decision_context="Core paper for this workspace.",
         )

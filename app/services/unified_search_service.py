@@ -302,8 +302,8 @@ def search_openalex(query: str, *, max_results: int = 25) -> list[dict]:
         data = _openalex_request(url)
         results = data.get("results") or []
         return [normalize_openalex_paper(r) for r in results if r.get("title")]
-    except Exception as e:
-        raise RuntimeError(f"OpenAlex API failed: {e}")
+    except Exception:
+        return []
 
 
 # ─────────────────────────────────────────

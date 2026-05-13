@@ -5,7 +5,7 @@ from __future__ import annotations
 from app.services.queue_service import QueueService
 from app.viewmodels.library_viewmodel import LibraryViewModel
 from app.viewmodels.shared import assemble_page_context, serialize_collection
-from state_store import QUEUE_STATUS_VALUES
+from app.data._constants import QUEUE_STATUS_VALUES
 
 ACTIVE_READING_STATUSES = ("Inbox",)
 

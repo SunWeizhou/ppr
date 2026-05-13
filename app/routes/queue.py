@@ -6,7 +6,8 @@ from flask import Blueprint, render_template, request
 
 from app.services.queue_service import QueueService
 from app.viewmodels.queue_viewmodel import ACTIVE_READING_STATUSES, QueueViewModel
-from state_store import QUEUE_STATUS_VALUES, get_state_store
+from app.data._constants import QUEUE_STATUS_VALUES
+from state_store import get_state_store
 
 bp = Blueprint("queue", __name__)
 STATE_STORE = get_state_store()

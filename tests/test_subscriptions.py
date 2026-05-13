@@ -238,8 +238,8 @@ class SubscriptionTests(unittest.TestCase):
         self.store.record_event("like", "2604.12345")
         self.store.record_event("dislike", "2604.67890")
         self.store.record_event("queue_status_changed", "2604.11111")
-        self.store.upsert_queue_item("2604.12345", "Skim Later")
-        self.store.upsert_queue_item("2604.67890", "Deep Read")
+        self.store.upsert_queue_item("2604.12345", "Inbox")
+        self.store.upsert_queue_item("2604.67890", "Inbox")
 
         import web_server
 
@@ -258,13 +258,7 @@ class SubscriptionTests(unittest.TestCase):
 
         data = payload["data"]
         for key in (
-            "handled",
-            "untriaged",
-            "liked",
-            "disliked",
-            "skimmed",
-            "deep_read",
-            "queued",
+            "handled", "untriaged", "liked", "disliked", "queued",
         ):
             self.assertIn(key, data, f"Missing key: {key}")
             self.assertIsInstance(data[key], int)
@@ -279,7 +273,7 @@ class SubscriptionTests(unittest.TestCase):
         # Same paper liked + queued + disliked → handled should be 1, not 3
         self.store.record_event("like", paper_id)
         self.store.record_event("dislike", paper_id)
-        self.store.upsert_queue_item(paper_id, "Deep Read")
+        self.store.upsert_queue_item(paper_id, "Inbox")
         self.store.record_event("queue_status_changed", paper_id)
 
         import web_server
@@ -379,7 +373,7 @@ class SubscriptionTests(unittest.TestCase):
 
         self.assertEqual(context["title"], "Queue - Paper Agent")
         self.assertEqual(context["active_tab"], "queue")
-        self.assertEqual(context["active_status"], "Skim Later")
+        self.assertEqual(context["active_status"], "Inbox")
         self.assertIsInstance(context["queue_counts"], dict)
         self.assertIsInstance(context["queue_items"], list)
 

@@ -85,7 +85,7 @@ class TestUserProfileAutoUpdate(unittest.TestCase):
         store, tmp = _make_store()
         try:
             # Add some reading queue items with known topics
-            store.upsert_queue_item("paper1", "Deep Read", source="test")
+            store.upsert_queue_item("paper1", "Inbox", source="test")
             store.save_paper_metadata("paper1", {
                 "title": "Transformers for NLP",
                 "categories": ["cs.CL", "cs.LG"],

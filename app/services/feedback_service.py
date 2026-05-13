@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
 
-from state_store import _canonical_paper_id
+from app.data._constants import canonical_paper_id as _canonical_paper_id
 from utils import CATEGORY_NAMES, atomic_write_json, parse_markdown_digest, safe_load_json
 
 QUEUE_ACTIONS = {
@@ -78,6 +78,149 @@ def _unique_canonical_ids(values) -> list:
             seen.add(canonical)
             result.append(canonical)
     return result
+
+
+# ---------------------------------------------------------------------------
+# Handler registry for feedback actions (strategy pattern)
+# ---------------------------------------------------------------------------
+
+_HANDLERS: dict[str, callable] = {}
+
+
+def _register(action: str):
+    """Decorator: register a function as the handler for *action*."""
+    def wrapper(func):
+        _HANDLERS[action] = func
+        return func
+    return wrapper
+
+
+@_register("like")
+def _handle_like(service, data, event_payload):
+    paper_id = _canonical_paper_id(data.get("paper_id", ""))
+    feedback = service.load_feedback()
+    if paper_id not in feedback["liked"]:
+        feedback["liked"].append(paper_id)
+    if paper_id in feedback.get("disliked", []):
+        feedback["disliked"].remove(paper_id)
+
+    paper_title = data.get("title", "")
+    paper_abstract = data.get("abstract", "")
+    paper_authors = data.get("authors", "")
+    paper_score = data.get("score", 0)
+    paper_relevance = data.get("relevance", "")
+    service.save_paper_to_cache(paper_id, paper_title, paper_abstract)
+    paper_info = {
+        "id": paper_id, "title": paper_title, "authors": paper_authors,
+        "abstract": paper_abstract,
+        "summary": paper_abstract[:300] + "..." if len(paper_abstract) > 300 else paper_abstract,
+        "link": f"https://arxiv.org/abs/{paper_id}", "score": paper_score,
+        "relevance": paper_relevance, "date": datetime.now().strftime("%Y-%m-%d"),
+    }
+    full_info = service.find_paper_in_history(paper_id)
+    if full_info:
+        paper_info.update(full_info)
+    service.add_to_favorites(paper_id, paper_info)
+    event_id = service.state_store.record_event("like", paper_id, event_payload)
+    service.save_feedback(feedback)
+    return {"success": True, "feedback": feedback, "event_id": event_id}, 200
+
+
+@_register("dislike")
+def _handle_dislike(service, data, event_payload):
+    paper_id = _canonical_paper_id(data.get("paper_id", ""))
+    feedback = service.load_feedback()
+    if paper_id not in feedback.get("disliked", []):
+        feedback.setdefault("disliked", []).append(paper_id)
+    if paper_id in feedback["liked"]:
+        feedback["liked"].remove(paper_id)
+    service.remove_from_favorites(paper_id)
+    event_id = service.state_store.record_event("dislike", paper_id, event_payload)
+    service.save_feedback(feedback)
+    return {"success": True, "feedback": feedback, "event_id": event_id}, 200
+
+
+@_register("finish")
+def _handle_finish(service, data, event_payload):
+    paper_id = _canonical_paper_id(data.get("paper_id", ""))
+    item = service.state_store.mark_as_completed(
+        paper_id, source=data.get("source", "web_feedback"),
+    )
+    event_id = service.state_store.record_event("finish", paper_id, event_payload)
+    return {"success": True, "queue_item": item, "event_id": event_id}, 200
+
+
+def _handle_queue_action(service, data, event_payload):
+    paper_id = _canonical_paper_id(data.get("paper_id", ""))
+    action = data.get("action", "inbox")
+    source = data.get("source", "web_feedback")
+    queue_item = service.state_store.upsert_queue_item(
+        paper_id, QUEUE_ACTIONS[action],
+        source=source, note=data.get("note", ""), tags=data.get("tags"),
+    )
+    event_id = service.state_store.record_event(action, paper_id, event_payload)
+    return {"success": True, "queue_item": queue_item, "event_id": event_id}, 200
+
+
+for _action in QUEUE_ACTIONS:
+    _HANDLERS[_action] = _handle_queue_action
+
+
+def _handle_event_only(service, data, event_payload):
+    paper_id = _canonical_paper_id(data.get("paper_id", ""))
+    event_id = service.state_store.record_event(
+        data.get("action"), paper_id, event_payload,
+    )
+    return {"success": True, "event_id": event_id}, 200
+
+
+for _action in ("open_paper", "impression", "export_to_zotero"):
+    _HANDLERS[_action] = _handle_event_only
+
+
+@_register("follow_author")
+def _handle_follow_author(service, data, event_payload):
+    paper_id = _canonical_paper_id(data.get("paper_id", ""))
+    author_name = str(data.get("author", "")).strip()
+    if not author_name:
+        return {"success": False, "error": "Missing author"}, 400
+    if service._scholar_service:
+        success, result = service._scholar_service.add(
+            name=author_name, focus=data.get("focus", ""),
+        )
+    else:
+        # TODO: migrate ScholarService to use subscriptions(type='author')
+        from app.services.scholar_service import ScholarService
+
+        svc = ScholarService(str(service.history_dir.parent / "my_scholars.json"))
+        success, result = svc.add(name=author_name, focus=data.get("focus", ""))
+    event_id = service.state_store.record_event(
+        "follow_author", paper_id, {**event_payload, "author": author_name},
+    )
+    return {
+        "success": True, "followed": success, "author": author_name,
+        "result": result if success else str(result), "event_id": event_id,
+    }, 200
+
+
+@_register("ignore_topic")
+def _handle_ignore_topic(service, data, event_payload):
+    paper_id = _canonical_paper_id(data.get("paper_id", ""))
+    topic = str(data.get("topic", "")).strip().lower()
+    if not topic:
+        return {"success": False, "error": "Missing topic"}, 400
+    if service._keywords_loader and service._keywords_saver:
+        config = service._keywords_loader()
+        dislike_topics = config.get("dislike_topics", {})
+        if isinstance(dislike_topics, list):
+            dislike_topics = {item: -1.0 for item in dislike_topics}
+        dislike_topics[topic] = -1.0
+        config["dislike_topics"] = dislike_topics
+        service._keywords_saver(config)
+    event_id = service.state_store.record_event(
+        "ignore_topic", paper_id, {**event_payload, "topic": topic},
+    )
+    return {"success": True, "topic": topic, "event_id": event_id}, 200
 
 
 class FeedbackService:
@@ -213,106 +356,30 @@ class FeedbackService:
                 dates.append(match.group(1))
         return sorted(dates, reverse=True)
 
-    # ---- handle_feedback action handler ----
+    # ---- handle_feedback action handler -- strategy pattern ----------------
 
     def handle_feedback(self, data: dict) -> tuple[dict, int]:
-        paper_id = _canonical_paper_id(data.get("paper_id", ""))
         action = data.get("action")
-        paper_title = data.get("title", "")
-        paper_abstract = data.get("abstract", "")
-        paper_authors = data.get("authors", "")
-        paper_score = data.get("score", 0)
-        paper_relevance = data.get("relevance", "")
-        source = data.get("source", "web_feedback")
-
         if not action:
             return {"success": False, "error": "Missing action"}, 400
+
+        handler = _HANDLERS.get(action)
+        if handler is None:
+            return {"success": False, "error": f"Unsupported action: {action}"}, 400
+
+        paper_id = _canonical_paper_id(data.get("paper_id", ""))
         if action != "ignore_topic" and not paper_id:
             return {"success": False, "error": "Missing paper_id"}, 400
 
-        event_payload = {"title": paper_title, "authors": paper_authors, "score": paper_score, "relevance": paper_relevance, "source": source}
+        event_payload = {
+            "title": data.get("title", ""),
+            "authors": data.get("authors", ""),
+            "score": data.get("score", 0),
+            "relevance": data.get("relevance", ""),
+            "source": data.get("source", "web_feedback"),
+        }
 
-        feedback = self.load_feedback()
-        event_id = None
-
-        if action == "like":
-            if paper_id not in feedback["liked"]:
-                feedback["liked"].append(paper_id)
-            if paper_id in feedback.get("disliked", []):
-                feedback["disliked"].remove(paper_id)
-            self.save_paper_to_cache(paper_id, paper_title, paper_abstract)
-            paper_info = {
-                "id": paper_id, "title": paper_title, "authors": paper_authors,
-                "abstract": paper_abstract,
-                "summary": paper_abstract[:300] + "..." if len(paper_abstract) > 300 else paper_abstract,
-                "link": f"https://arxiv.org/abs/{paper_id}", "score": paper_score,
-                "relevance": paper_relevance, "date": datetime.now().strftime("%Y-%m-%d"),
-            }
-            full_info = self.find_paper_in_history(paper_id)
-            if full_info:
-                paper_info.update(full_info)
-            self.add_to_favorites(paper_id, paper_info)
-            event_id = self.state_store.record_event("like", paper_id, event_payload)
-
-        elif action == "dislike":
-            if paper_id not in feedback.get("disliked", []):
-                feedback.setdefault("disliked", []).append(paper_id)
-            if paper_id in feedback["liked"]:
-                feedback["liked"].remove(paper_id)
-            self.remove_from_favorites(paper_id)
-            event_id = self.state_store.record_event("dislike", paper_id, event_payload)
-
-        elif action == "finish":
-            item = self.state_store.mark_as_completed(paper_id, source=source)
-            event_id = self.state_store.record_event("finish", paper_id, event_payload)
-            return {"success": True, "queue_item": item, "event_id": event_id}, 200
-
-        elif action in QUEUE_ACTIONS:
-            queue_item = self.state_store.upsert_queue_item(paper_id, QUEUE_ACTIONS[action], source=source, note=data.get("note", ""), tags=data.get("tags"))
-            event_id = self.state_store.record_event(action, paper_id, event_payload)
-            return {"success": True, "queue_item": queue_item, "event_id": event_id}, 200
-
-        elif action in {"open_paper", "impression", "export_to_zotero"}:
-            event_id = self.state_store.record_event(action, paper_id, event_payload)
-            return {"success": True, "event_id": event_id}, 200
-
-        elif action == "follow_author":
-            author_name = str(data.get("author", "")).strip()
-            if not author_name:
-                return {"success": False, "error": "Missing author"}, 400
-            if self._scholar_service:
-                success, result = self._scholar_service.add(name=author_name, focus=data.get("focus", ""))
-            else:
-                # TODO: migrate ScholarService to use subscriptions(type='author')
-                import urllib.parse
-
-                from app.services.scholar_service import ScholarService
-
-                svc = ScholarService(str(self.history_dir.parent / "my_scholars.json"))
-                success, result = svc.add(name=author_name, focus=data.get("focus", ""))
-            event_id = self.state_store.record_event("follow_author", paper_id, {**event_payload, "author": author_name})
-            return {"success": True, "followed": success, "author": author_name, "result": result if success else str(result), "event_id": event_id}, 200
-
-        elif action == "ignore_topic":
-            topic = str(data.get("topic", "")).strip().lower()
-            if not topic:
-                return {"success": False, "error": "Missing topic"}, 400
-            if self._keywords_loader and self._keywords_saver:
-                config = self._keywords_loader()
-                dislike_topics = config.get("dislike_topics", {})
-                if isinstance(dislike_topics, list):
-                    dislike_topics = {item: -1.0 for item in dislike_topics}
-                dislike_topics[topic] = -1.0
-                config["dislike_topics"] = dislike_topics
-                self._keywords_saver(config)
-            event_id = self.state_store.record_event("ignore_topic", paper_id, {**event_payload, "topic": topic})
-            return {"success": True, "topic": topic, "event_id": event_id}, 200
-
-        else:
-            return {"success": False, "error": f"Unsupported action: {action}"}, 400
-
-        self.save_feedback(feedback)
-        return {"success": True, "feedback": feedback, "event_id": event_id}, 200
+        return handler(self, data, event_payload)
 
 
 __all__ = ["load_user_feedback", "FeedbackService", "_canonicalize_feedback", "_canonicalize_favorites"]

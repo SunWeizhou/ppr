@@ -11,7 +11,7 @@ from app.services.ai_settings_service import build_ai_settings_context
 from app.services.diagnostics_service import build_system_diagnostics
 from app.services.feedback_service import FeedbackService
 from app.viewmodels.shared import assemble_page_context
-from state_store import QUEUE_STATUS_VALUES
+from app.data._constants import QUEUE_STATUS_VALUES
 
 
 class SettingsViewModel:

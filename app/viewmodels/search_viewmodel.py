@@ -11,7 +11,7 @@ from app.services.paper_utils import (
 )
 from app.services.workspace_service import WorkspaceService
 from app.viewmodels.shared import assemble_page_context
-from state_store import QUEUE_STATUS_VALUES
+from app.data._constants import QUEUE_STATUS_VALUES
 from utils import CATEGORY_NAMES
 
 

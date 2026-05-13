@@ -5,7 +5,7 @@ from flask import jsonify, request
 
 from . import bp
 from .helpers import _current_state_store, serialize_collection
-from state_store import _canonical_paper_id
+from app.data._constants import canonical_paper_id as _canonical_paper_id
 
 
 @bp.route("/api/collections", methods=["GET", "POST", "PUT", "DELETE"])

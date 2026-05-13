@@ -38,7 +38,7 @@ class SubscriptionService:
         if not target:
             return False
 
-        from state_store import _canonical_paper_id
+        from app.data._constants import canonical_paper_id as _canonical_paper_id
         paper_id = _canonical_paper_id(target.get("paper_id", ""))
         sub_id = target.get("subscription_id", 0)
 
@@ -81,7 +81,7 @@ class SubscriptionService:
         if not target:
             return False
 
-        from state_store import _canonical_paper_id
+        from app.data._constants import canonical_paper_id as _canonical_paper_id
         paper_id = _canonical_paper_id(target.get("paper_id", ""))
         sub_id = target.get("subscription_id", 0)
 

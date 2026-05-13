@@ -67,12 +67,12 @@ class PaperViewModel:
 
     def to_detail_context(self, paper_id: str, research_question_id: int | None = None) -> dict:
         """Build the full detail context for a paper."""
-        from state_store import _canonical_paper_id
+        from app.data._constants import canonical_paper_id as _canonical_paper_id
         paper_id = _canonical_paper_id(paper_id)
 
         # Build page context first — needed by both the error and success paths
         from app.viewmodels.shared import assemble_page_context
-        from state_store import QUEUE_STATUS_VALUES
+        from app.data._constants import QUEUE_STATUS_VALUES
 
         page_ctx = assemble_page_context(self._store, active_tab="search")
         try:
@@ -195,7 +195,7 @@ class PaperViewModel:
         # Collections — only show collections that actually contain this paper
         all_collections = self._store.list_collections()
         if isinstance(all_collections, list) and hasattr(self._store, 'list_collection_papers'):
-            from state_store import _canonical_paper_id
+            from app.data._constants import canonical_paper_id as _canonical_paper_id
             canonical_id = _canonical_paper_id(paper_id)
             filtered = []
             for col in all_collections:
@@ -425,7 +425,7 @@ class PaperViewModel:
         4. cache/paper_cache.json on disk.
         5. Graceful detail shell with arXiv link (minimal fallback).
         """
-        from state_store import _canonical_paper_id
+        from app.data._constants import canonical_paper_id as _canonical_paper_id
 
         # 1. Try SQLite paper_metadata table first. Search and fetch routes
         # store full abstracts here, so it should win over older recommendation

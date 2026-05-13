@@ -8,7 +8,7 @@ from typing import Callable, Dict, List, Tuple
 
 from app.services.ai_analysis_service import AIAnalysisService
 from app.services.ranker import score_paper
-from state_store import _canonical_paper_id
+from app.data._constants import canonical_paper_id as _canonical_paper_id
 
 
 def _default_search_fn(keywords, *, max_results: int, days_back: int) -> List[Dict]:

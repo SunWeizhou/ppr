@@ -156,7 +156,7 @@ def view_date(date):
 @bp.get("/papers/<paper_id>")
 def paper_detail(paper_id):
     """Render the paper detail page."""
-    from state_store import _canonical_paper_id
+    from app.data._constants import canonical_paper_id as _canonical_paper_id
     paper_id = _canonical_paper_id(paper_id)
     from app.viewmodels.paper_viewmodel import PaperViewModel
     store = get_state_store()

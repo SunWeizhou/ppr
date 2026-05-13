@@ -260,8 +260,8 @@ class WatchCockpitTests(unittest.TestCase):
     def test_watch_template_exposes_workspace_watch_contract(self):
         template = Path("templates/watch.html").read_text(encoding="utf-8")
 
-        self.assertIn("Create a watch from Search", template)
-        self.assertIn("Ask Paper Agent to monitor a topic", template)
+        self.assertIn("No saved searches yet", template)
+        self.assertIn("Ask Paper Agent to monitor", template)
         self.assertIn("research_question", template)
         self.assertIn("workspace_stats", template)
         self.assertIn("source_health", template)

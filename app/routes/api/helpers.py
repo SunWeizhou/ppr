@@ -18,7 +18,8 @@ from app.services.errors import AppError
 from app.services.queue_service import QueueService
 from app.viewmodels.shared import serialize_collection, serialize_job, serialize_saved_search  # noqa: F401
 from app_paths import CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
-from state_store import QUEUE_STATUS_VALUES, _canonical_paper_id, get_state_store  # noqa: F401
+from app.data._constants import QUEUE_STATUS_VALUES, canonical_paper_id as _canonical_paper_id  # noqa: F401
+from state_store import get_state_store  # noqa: F401
 from utils import atomic_write_json, safe_load_json  # noqa: F401
 
 from . import bp
@@ -60,12 +61,12 @@ def _current_state_store():
     Resolution order:
       1. ``api_routes.STATE_STORE`` — package-level name; test patches reassign this.
       2. ``web_server.STATE_STORE`` — module-level global (backward-compat).
-      3. Flask ``current_app.config["STATE_STORE"]`` — P2-C, preferred in production.
+      3. Flask ``current_app.config["STATE_STORE"]`` — injected by ``app.factory.create_app()``.
       4. The local ``_own_state_store`` fallback.
 
     Test patches on ``web_server.STATE_STORE`` or ``api_routes.STATE_STORE``
-    always win because they are checked before the (immutable) app config,
-    preserving backward compat without changing test code.
+    always win, preserving backward compat without changing test code.
+    In production the factory ensures paths 2 and 3 return the same store.
     """
     # 1. Package-level STATE_STORE (test patches via api_routes.STATE_STORE = ...)
     pkg_store = _package_attr("STATE_STORE")

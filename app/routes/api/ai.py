@@ -7,7 +7,7 @@ from .helpers import _ai_analysis_service
 
 @bp.get("/api/papers/<paper_id>/analysis")
 def get_paper_analysis(paper_id):
-    from state_store import _canonical_paper_id
+    from app.data._constants import canonical_paper_id as _canonical_paper_id
 
     canonical_id = _canonical_paper_id(paper_id)
     service = _ai_analysis_service()
@@ -24,7 +24,7 @@ def get_paper_analysis(paper_id):
 
 @bp.post("/api/papers/<paper_id>/analysis/generate")
 def generate_paper_analysis(paper_id):
-    from state_store import _canonical_paper_id
+    from app.data._constants import canonical_paper_id as _canonical_paper_id
 
     canonical_id = _canonical_paper_id(paper_id)
     service = _ai_analysis_service()
@@ -86,7 +86,7 @@ def _resolve_paper_context(paper_id: str) -> dict | None:
     store = get_state_store()
 
     # 1) Search SQLite recommendation_items (primary)
-    from state_store import _canonical_paper_id
+    from app.data._constants import canonical_paper_id as _canonical_paper_id
 
     try:
         runs = store.list_recommendation_runs(limit=10)

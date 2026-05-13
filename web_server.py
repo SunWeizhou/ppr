@@ -6,18 +6,12 @@ handling live in app/viewmodels/, app/services/, and app/routes/.
 
 from __future__ import annotations
 
-import hashlib
 import os
 import subprocess  # noqa: F401 — test compat (mocked via web_server.subprocess)
-import time
-from urllib.parse import urlparse
 
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-
+from app.factory import create_app
 from app_paths import CACHE_DIR, PROJECT_ROOT, SNAPSHOT_FILES, STATE_DB_PATH, ensure_runtime_dirs
 from logger_config import get_logger
-from state_store import get_state_store
 
 logger = get_logger(__name__)
 
@@ -25,7 +19,23 @@ logger = get_logger(__name__)
 # Flask app
 # ---------------------------------------------------------------------------
 
-app = Flask(__name__)
+app = create_app()
+STATE_STORE = app.config["STATE_STORE"]  # backward compat for test patches
+
+# Module-level state (backward compat — used by some tests and config references)
+STATE_DB_FILE = str(STATE_DB_PATH)
+FEEDBACK_FILE = str(CACHE_DIR / "user_feedback.json")
+FAVORITES_FILE = str(CACHE_DIR / "favorite_papers.json")
+CACHE_FILE = str(CACHE_DIR / "paper_cache.json")
+
+# SNAPSHOT_FILES imported from app_paths (consolidated, single source of truth)
+
+# Re-export for test compat
+from app.viewmodels.shared import NAV_ITEM_CONFIG  # noqa: E402 — test compat re-export
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
 
 
 def _configured_port() -> int:
@@ -35,122 +45,6 @@ def _configured_port() -> int:
         return int(raw)
     except ValueError:
         return 5555
-
-
-CORS(
-    app,
-    origins=[
-        "http://localhost:5555",
-        "http://127.0.0.1:5555",
-        f"http://localhost:{_configured_port()}",
-        f"http://127.0.0.1:{_configured_port()}",
-    ],
-)
-
-# Static assets: 1-year immutable cache (cache-bust via content hash)
-app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000
-
-
-def _compute_static_hash() -> str:
-    """MD5 of all static .js/.css content → auto cache-bust on any change."""
-    static_dir = os.path.join(PROJECT_ROOT, "static")
-    hasher = hashlib.md5()
-    for root, _dirs, files in os.walk(static_dir):
-        for f in sorted(files):
-            if f.endswith((".js", ".css")):
-                path = os.path.join(root, f)
-                try:
-                    with open(path, "rb") as fh:
-                        hasher.update(fh.read())
-                except OSError:
-                    pass  # skip unreadable files
-    return hasher.hexdigest()[:8]
-
-
-_static_version: str | None = None
-
-
-def _get_static_version() -> str:
-    global _static_version
-    if _static_version is None:
-        _static_version = _compute_static_hash()
-    return _static_version
-
-
-@app.after_request
-def _cache_static_assets(response):
-    if request.path.startswith("/static/"):
-        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-    return response
-
-
-@app.context_processor
-def _inject_static_version():
-    return {"static_version": _get_static_version()}
-
-
-@app.before_request
-def _log_and_guard_request():
-    request._start_time = time.time()
-
-    # Local CSRF guard: for state-changing methods, verify the request
-    # originates from the local app (malicious pages cannot set a localhost Origin)
-    if request.method in ("POST", "PUT", "DELETE", "PATCH"):
-        origin = request.headers.get("Origin") or ""
-        referer = request.headers.get("Referer") or ""
-        port = _configured_port()
-        allowed = frozenset({("localhost", 5555), ("127.0.0.1", 5555),
-                             ("localhost", port), ("127.0.0.1", port)})
-
-        def _host_port_ok(url: str) -> bool:
-            if not url:
-                return True  # no header = not cross-origin, allow
-            try:
-                p = urlparse(url)
-                return (p.hostname, p.port or 80) in allowed
-            except Exception:
-                return False
-
-        if not _host_port_ok(origin) or not _host_port_ok(referer):
-            logger.warning("Blocked cross-origin %s %s (Origin: %s, Referer: %s)",
-                           request.method, request.path, origin, referer)
-            return jsonify({"success": False, "error": "Cross-origin requests not allowed"}), 403
-
-
-@app.after_request
-def _log_response(response):
-    duration = time.time() - getattr(request, "_start_time", time.time())
-    logger.info("%s %s %s (%.3fs)", request.method, request.path, response.status_code, duration)
-    return response
-
-
-# ---------------------------------------------------------------------------
-# Module-level state (mutable — tests patch these)
-# ---------------------------------------------------------------------------
-
-STATE_STORE = get_state_store()
-app.config["STATE_STORE"] = STATE_STORE  # P2-C: inject into Flask app config
-STATE_DB_FILE = str(STATE_DB_PATH)
-FEEDBACK_FILE = str(CACHE_DIR / "user_feedback.json")
-FAVORITES_FILE = str(CACHE_DIR / "favorite_papers.json")
-CACHE_FILE = str(CACHE_DIR / "paper_cache.json")
-
-# SNAPSHOT_FILES imported from app_paths (consolidated, single source of truth)
-
-# ---------------------------------------------------------------------------
-# Blueprint registration (module-level -- required for test clients)
-# ---------------------------------------------------------------------------
-
-
-from app.routes import register_blueprints  # noqa: E402
-from app.viewmodels.shared import NAV_ITEM_CONFIG  # noqa: E402 — test compat re-export
-
-register_blueprints(app)
-
-
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
 
 
 def main():

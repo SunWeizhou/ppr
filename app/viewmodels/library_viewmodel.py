@@ -14,6 +14,7 @@ import time
 from datetime import datetime, timedelta
 
 from app.services.feedback_service import FeedbackService
+from app.services.paper_resolver import PaperResolver
 from app.services.paper_utils import (
     extract_primary_author,
     format_author_text,
@@ -25,7 +26,7 @@ from app.viewmodels.shared import (
     assemble_page_context,
     serialize_collection,
 )
-from state_store import QUEUE_STATUS_VALUES, _canonical_paper_id
+from app.data._constants import QUEUE_STATUS_VALUES, canonical_paper_id as _canonical_paper_id
 
 # ── static category labels (mirrored from web_server.py) ──────────────────
 
@@ -56,6 +57,7 @@ class LibraryViewModel:
 
     def __init__(self, state_store):
         self._store = state_store
+        self._resolver = PaperResolver(state_store)
         self._feedback_service: FeedbackService | None = None
         # per-instance digest parse cache
         self._digest_cache: dict[str, tuple[list, list, float]] = {}
@@ -197,67 +199,12 @@ class LibraryViewModel:
         if history_index is None:
             history_index = self._load_history_paper_index()
 
-        if paper_id in favorites:
-            fav = favorites[paper_id]
-            return {
-                "id": paper_id,
-                "title": fav.get("title", f"论文 {paper_id}"),
-                "link": fav.get("link", f"https://arxiv.org/abs/{paper_id}"),
-                "authors": fav.get("authors", ""),
-                "summary": fav.get(
-                    "summary",
-                    fav.get("abstract", "")[:300] if fav.get("abstract") else "",
-                ),
-                "abstract": fav.get("abstract", fav.get("summary", "")),
-                "relevance": fav.get("relevance", "来自你的长期收藏"),
-                "score": fav.get("score", 0),
-                "date": (
-                    fav.get("date_published") or fav.get("date_added") or ""
-                )[:10],
-                "categories": fav.get("categories", []),
-                "source": "favorites",
-            }
-
-        if paper_id in history_index:
-            item = dict(history_index[paper_id])
-            item.setdefault("source", "history")
-            item.setdefault("summary", item.get("abstract", ""))
-            item.setdefault("abstract", item.get("summary", ""))
-            item.setdefault(
-                "relevance",
-                item.get("relevance_reason", item.get("relevance", "")),
-            )
-            return item
-
-        if paper_id in paper_cache:
-            cached = paper_cache[paper_id]
-            return {
-                "id": paper_id,
-                "title": cached.get("title", f"论文 {paper_id}"),
-                "link": f"https://arxiv.org/abs/{paper_id}",
-                "authors": cached.get("authors", "作者信息不可用"),
-                "summary": cached.get("abstract", "摘要不可用"),
-                "abstract": cached.get("abstract", ""),
-                "relevance": cached.get("relevance", "来自缓存"),
-                "score": cached.get("score", 0),
-                "date": cached.get("date", ""),
-                "categories": cached.get("categories", []),
-                "source": "paper_cache",
-            }
-
-        return {
-            "id": paper_id,
-            "title": f"论文 {paper_id}",
-            "link": f"https://arxiv.org/abs/{paper_id}",
-            "authors": "详情不可用",
-            "summary": "此论文信息暂时不在历史记录或缓存中，可按需补全。",
-            "abstract": "",
-            "relevance": "点击查看 arXiv 页面",
-            "score": 0,
-            "date": "",
-            "categories": [],
-            "source": "placeholder",
-        }
+        return self._resolver.resolve(
+            paper_id,
+            history_index=history_index,
+            favorites=favorites,
+            paper_cache=paper_cache,
+        )
 
     # ── decoration ────────────────────────────────────────────────────────
 

@@ -7,10 +7,10 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
         import web_server
 
         nav = web_server.NAV_ITEM_CONFIG
-        keys = [item[0] for item in nav]
+        keys = [item["key"] for item in nav]
         self.assertIn("search", keys)
+        self.assertIn("subscriptions", keys)
         self.assertIn("reading", keys)
-        self.assertIn("watch", keys)
         self.assertNotIn("home", keys)
         self.assertNotIn("explore", keys)
 
@@ -19,7 +19,7 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
 
         required = [
             "Daily Triage",
-            "Save",
+            "Add to Reading",
             "Pass",
             "Regenerate",
             "paper-list-item",
@@ -48,7 +48,7 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
         # / now renders the Paper Agent search workspace.
         response = web_server.app.test_client().get("/?skip_onboarding=1")
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Search papers, authors, topics...", response.get_data(as_text=True))
+        self.assertIn("Research Workspace", response.get_data(as_text=True))
 
     def test_evaluation_page_serves_200(self):
         import web_server
@@ -83,7 +83,7 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
 
         self.assertNotIn("All <span", template)
         self.assertIn("active_status == status", template)
-        for status in ["Inbox", "Skim Later", "Deep Read", "Saved", "Archived"]:
+        for status in ["Inbox", "Completed"]:
             self.assertIn(status, template)
 
     def test_reading_collection_creation_uses_modal_not_prompt(self):
@@ -96,8 +96,8 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
     def test_watch_labels_unified_subscriptions_and_avoids_prominent_search_cta(self):
         template = Path("templates/watch.html").read_text(encoding="utf-8")
 
-        self.assertIn("Research questions", template)
-        self.assertNotIn('href="/search" class="btn', template)
+        self.assertIn("Subscriptions", template)
+        self.assertIn("Back to Search", template)
 
     def test_watch_empty_icons_render_as_characters_not_entity_text(self):
         """Empty-state icons in watch.html must render as actual characters,
@@ -125,10 +125,10 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
 
             self.assertIn("query_subs", ctx)
             self.assertIn("author_subs", ctx)
-            self.assertIn("venue_subs", ctx)
+            self.assertIn("journal_cards", ctx)
             self.assertEqual(len(ctx["query_subs"]), 1)
             self.assertEqual(len(ctx["author_subs"]), 1)
-            self.assertEqual(len(ctx["venue_subs"]), 1)
+            self.assertEqual(len(ctx["journal_cards"]), 1)
             self.assertEqual(ctx["query_subs"][0]["name"], "Q1")
 
 

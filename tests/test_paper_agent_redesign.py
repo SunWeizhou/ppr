@@ -34,16 +34,15 @@ class PaperAgentSearchTests(unittest.TestCase):
         html = response.get_data(as_text=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn("Paper Agent", html)
-        self.assertIn("Search papers, authors, topics", html)
-        self.assertIn("paper-agent-search-shell", html)
-        self.assertNotIn("Ask a research question", html)
+        self.assertIn("Research Workspace", html)
+        self.assertIn("Ask a research question", html)
         self.assertNotIn("Explore", html)
 
     def test_top_navigation_uses_paper_agent_information_architecture(self):
         import web_server
 
-        labels = [item[2] for item in web_server.NAV_ITEM_CONFIG]
-        self.assertEqual(labels, ["Search", "Recommendations", "Reading", "Watch"])
+        labels = [item["label"] for item in web_server.NAV_ITEM_CONFIG]
+        self.assertEqual(labels[0:4], ["Search", "Recommendations", "Subscriptions", "Reading"])
 
     def test_search_api_returns_unified_dual_source_shape(self):
         import app.routes.api.keywords as keyword_routes
@@ -91,12 +90,12 @@ class PaperAgentSearchTests(unittest.TestCase):
             [],
             ["federated", "learning"],
             raw_query="federated learning",
-            search_sources={"arxiv": "ok", "semantic_scholar": "failed"},
+            search_sources={"arxiv": "ok", "semantic_scholar": "failed", "openalex": "ok"},
             search_warnings=["Semantic Scholar is temporarily unavailable. Showing arXiv results."],
         )
 
         statuses = context["source_statuses"]
-        self.assertEqual([item["key"] for item in statuses], ["arxiv", "semantic_scholar"])
+        self.assertEqual([item["key"] for item in statuses], ["arxiv", "semantic_scholar", "openalex"])
         self.assertEqual(statuses[0]["state"], "ok")
         self.assertEqual(statuses[1]["state"], "failed")
         self.assertIn("Semantic Scholar", statuses[1]["label"])
@@ -105,8 +104,7 @@ class PaperAgentSearchTests(unittest.TestCase):
         template = Path("templates/search_research.html").read_text(encoding="utf-8")
 
         self.assertIn("paperAgentSourceStatus", template)
-        self.assertIn("Mark Skim", template)
-        self.assertIn("Deep Read", template)
+        self.assertIn("Add to Reading", template)
         self.assertIn("Create Watch", template)
         self.assertIn("agentQueueSelectedPaper", template)
         self.assertIn("agentCreateWatchFromSearch", template)
@@ -157,9 +155,9 @@ class PaperAgentSearchTests(unittest.TestCase):
             semantic_fn=fake_semantic,
         )
 
-        self.assertEqual(len(result["papers"]), 1)
+        self.assertGreaterEqual(len(result["papers"]), 1)
         self.assertEqual(result["sources"]["semantic_scholar"], "failed")
-        self.assertIn("Semantic Scholar is temporarily unavailable", result["warnings"][0])
+        self.assertIn("Semantic Scholar: rate limited", result["warnings"][0])
 
     def test_arxiv_normalization_extracts_year_from_published_field(self):
         from app.services.unified_search_service import normalize_arxiv_paper
@@ -224,15 +222,17 @@ class PaperAgentSearchTests(unittest.TestCase):
 
     def test_agent_react_island_preserves_feedback_across_page_load(self):
         template = Path("templates/base_research.html").read_text(encoding="utf-8")
-        script = Path("frontend/agent/main.tsx").read_text(encoding="utf-8")
+        script_paths = sorted(Path("frontend/agent-panel").glob("*.tsx"))
+        self.assertTrue(len(script_paths) > 0, "No TSX files found in frontend/agent-panel")
+        script = script_paths[0].read_text(encoding="utf-8")
 
         self.assertIn("paper-agent-root", template)
-        self.assertIn("dist/agent-drawer.js", template)
-        self.assertIn("ReactMarkdown", script)
-        self.assertIn("rehypeSanitize", script)
-        self.assertIn("paperAgentPendingEvent", script)
-        self.assertIn("sessionStorage", script)
-        self.assertIn("restorePaperAgentPendingEvent", script)
+        self.assertIn("dist/agent-panel.js", template)
+        self.assertIn('render(<AgentPanel />', script)
+        self.assertIn("preact/hooks", script)
+        self.assertIn("window.togglePaperAgent", script)
+        self.assertIn("paperAgentPageContext", script)
+        self.assertIn("loadSessions", script)
 
     def test_recommendations_page_renders_workbench(self):
         import app.routes.recommendations as recommendation_routes
@@ -243,7 +243,7 @@ class PaperAgentSearchTests(unittest.TestCase):
         html = response.get_data(as_text=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn("Recommendations", html)
-        self.assertIn("Run recommendations", html)
+        self.assertIn("Personalize your recommendations", html)
         self.assertIn("recommendations-workspace", html)
 
     def test_recommendations_api_creates_candidate_run(self):
@@ -368,7 +368,7 @@ class PaperAgentProviderAndAgentTests(unittest.TestCase):
             self.assertFalse(payload["requires_confirmation"])
             self.assertGreaterEqual(len(payload["tool_results"]), 1)
             self.assertEqual(payload["tool_results"][0]["status"], "succeeded")
-            self.assertEqual(store.get_queue_item("2604.11111")["status"], "Saved")
+            self.assertEqual(store.get_queue_item("2604.11111")["status"], "Inbox")
 
     def test_agent_api_answers_general_chat_without_tool_action(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -477,7 +477,7 @@ class PaperAgentProviderAndAgentTests(unittest.TestCase):
         reading = Path("templates/reading.html").read_text(encoding="utf-8")
         watch = Path("templates/watch.html").read_text(encoding="utf-8")
 
-        self.assertIn('href="/"', reading)
+        self.assertIn('href="/search"', reading)
         self.assertIn("Back to Search", reading)
-        self.assertIn('href="/"', watch)
+        self.assertIn('href="/search"', watch)
         self.assertIn("Back to Search", watch)

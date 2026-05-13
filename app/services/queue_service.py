@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
+from app.services.paper_resolver import PaperResolver
 from app.services.paper_utils import (
     category_labels,
 )
@@ -25,7 +26,7 @@ from app.services.paper_utils import (
     status_class as _status_class,
 )
 from app_paths import CACHE_DIR, HISTORY_DIR
-from state_store import QUEUE_STATUS_VALUES, _canonical_paper_id
+from app.data._constants import QUEUE_STATUS_VALUES, canonical_paper_id as _canonical_paper_id
 
 
 def _safe_load_json(path: Path, default):
@@ -42,6 +43,7 @@ class QueueService:
         self.state_store = state_store
         self.cache_dir = Path(cache_dir)
         self.history_dir = Path(history_dir)
+        self._resolver = PaperResolver(state_store)
 
     def list_items(self, status: str | None = None):
         if status and status not in QUEUE_STATUS_VALUES:
@@ -180,72 +182,12 @@ class QueueService:
         return load_history_paper_index(self.history_dir)
 
     def _resolve_paper_record(self, paper_id, *, history_index, favorites, paper_cache):
-        paper_id = _canonical_paper_id(paper_id)
-        if paper_id in favorites:
-            favorite = favorites[paper_id]
-            return {
-                "id": paper_id,
-                "title": favorite.get("title", f"Paper {paper_id}"),
-                "link": favorite.get("link", f"https://arxiv.org/abs/{paper_id}"),
-                "authors": favorite.get("authors", ""),
-                "summary": favorite.get("summary", favorite.get("abstract", "")[:300] if favorite.get("abstract") else ""),
-                "abstract": favorite.get("abstract", favorite.get("summary", "")),
-                "relevance": favorite.get("relevance", "From your long-term collection"),
-                "score": favorite.get("score", 0),
-                "date": (favorite.get("date_published") or favorite.get("date_added") or "")[:10],
-                "categories": favorite.get("categories", []),
-                "source": "favorites",
-            }
-        if paper_id in history_index:
-            item = dict(history_index[paper_id])
-            item.setdefault("source", "history")
-            item.setdefault("summary", item.get("abstract", ""))
-            item.setdefault("abstract", item.get("summary", ""))
-            item.setdefault("relevance", item.get("relevance_reason", item.get("relevance", "")))
-            return item
-        metadata = self.state_store.get_paper_metadata(paper_id)
-        if metadata:
-            return {
-                "id": paper_id,
-                "title": metadata.get("title", f"Paper {paper_id}"),
-                "link": metadata.get("link") or metadata.get("source_url") or f"https://arxiv.org/abs/{paper_id}",
-                "authors": metadata.get("authors", []),
-                "summary": metadata.get("summary") or metadata.get("abstract", ""),
-                "abstract": metadata.get("abstract", metadata.get("summary", "")),
-                "relevance": metadata.get("relevance_reason", metadata.get("relevance", "From workspace metadata")),
-                "score": metadata.get("workspace_score", metadata.get("score", 0)),
-                "date": (metadata.get("published_at") or metadata.get("published") or metadata.get("date") or "")[:10],
-                "categories": metadata.get("categories", []),
-                "source": "paper_metadata",
-            }
-        if paper_id in paper_cache:
-            cached = paper_cache[paper_id]
-            return {
-                "id": paper_id,
-                "title": cached.get("title", f"Paper {paper_id}"),
-                "link": f"https://arxiv.org/abs/{paper_id}",
-                "authors": cached.get("authors", "Author information unavailable"),
-                "summary": cached.get("abstract", "Abstract unavailable"),
-                "abstract": cached.get("abstract", ""),
-                "relevance": cached.get("relevance", "From cache"),
-                "score": cached.get("score", 0),
-                "date": cached.get("date", ""),
-                "categories": cached.get("categories", []),
-                "source": "paper_cache",
-            }
-        return {
-            "id": paper_id,
-            "title": f"Paper {paper_id}",
-            "link": f"https://arxiv.org/abs/{paper_id}",
-            "authors": "Details unavailable",
-            "summary": "Paper information not found in history or cache.",
-            "abstract": "",
-            "relevance": "View on arXiv",
-            "score": 0,
-            "date": "",
-            "categories": [],
-            "source": "placeholder",
-        }
+        return self._resolver.resolve(
+            paper_id,
+            history_index=history_index,
+            favorites=favorites,
+            paper_cache=paper_cache,
+        )
 
     def _decorate_papers(self, papers, feedback, *, queue_overrides=None):
         queue_map = {

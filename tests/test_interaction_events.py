@@ -159,7 +159,7 @@ class TestInteractionEventTracking(unittest.TestCase):
             "/api/queue",
             json={
                 "paper_id": "2401.12345",
-                "status": "Skim Later",
+                "status": "Inbox",
                 "source": "test",
             },
         )
@@ -177,7 +177,7 @@ class TestInteractionEventTracking(unittest.TestCase):
             "/api/queue",
             json={
                 "paper_id": "2401.12345",
-                "status": "Deep Read",
+                "status": "Inbox",
                 "source": "test",
             },
         )
@@ -190,7 +190,7 @@ class TestInteractionEventTracking(unittest.TestCase):
         self.assertGreaterEqual(len(matching), 1)
         # Check at least one has the payload status
         has_status = any(
-            (e.get("payload_json") or {}).get("status") == "Deep Read"
+            (e.get("payload_json") or {}).get("status") == "Inbox"
             for e in matching
         )
         self.assertTrue(has_status)
@@ -205,7 +205,7 @@ class TestInteractionEventTracking(unittest.TestCase):
             "/api/queue/bulk",
             json={
                 "paper_ids": ["2401.12345", "2401.67890"],
-                "status": "Deep Read",
+                "status": "Inbox",
                 "source": "test",
             },
         )

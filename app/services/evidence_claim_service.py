@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from typing import Dict, List, Optional
 
-from state_store import _canonical_paper_id
+from app.data._constants import canonical_paper_id as _canonical_paper_id
 
 
 class EvidenceClaimService:

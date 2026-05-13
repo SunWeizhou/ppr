@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import Counter
 from typing import Dict
 
-from state_store import QUEUE_STATUS_VALUES
+from app.data._constants import QUEUE_STATUS_VALUES
 
 
 class WorkspaceService:

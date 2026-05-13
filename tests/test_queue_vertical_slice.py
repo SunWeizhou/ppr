@@ -70,22 +70,22 @@ class QueueVerticalSliceTests(unittest.TestCase):
 
             store = StateStore(str(root / "state.db"))
             service = QueueService(store, cache_dir=cache_dir, history_dir=history_dir)
-            service.update_item("2604.11111v2", "Skim Later", note="keep this", source="test")
-            service.update_item("2604.11111", "Deep Read", note=None, source="test")
-            service.update_item("2604.22222v3", "Saved", note="favorite", source="test")
-            service.update_item("2604.33333v1", "Archived", note="cached", source="test")
+            service.update_item("2604.11111v2", "Inbox", note="keep this", source="test")
+            service.update_item("2604.11111", "Inbox", note=None, source="test")
+            service.update_item("2604.22222v3", "Inbox", note="favorite", source="test")
+            service.update_item("2604.33333v1", "Completed", note="cached", source="test")
 
             papers = service.resolve_papers(status=None)
 
         by_id = {paper["id"]: paper for paper in papers}
         self.assertEqual(by_id["2604.11111"]["title"], "History Queue Paper")
-        self.assertEqual(by_id["2604.11111"]["queue_status"], "Deep Read")
+        self.assertEqual(by_id["2604.11111"]["queue_status"], "Inbox")
         self.assertEqual(by_id["2604.11111"]["queue_note"], "keep this")
         self.assertTrue(by_id["2604.11111"]["is_liked"])
         self.assertEqual(by_id["2604.22222"]["title"], "Favorite Queue Paper")
         self.assertEqual(by_id["2604.33333"]["title"], "Cached Queue Paper")
         self.assertTrue(by_id["2604.33333"]["is_disliked"])
-        self.assertEqual(by_id["2604.33333"]["queue_status_class"], "status-archived")
+        self.assertEqual(by_id["2604.33333"]["queue_status_class"], "status-completed")
 
     def test_queue_service_records_single_and_bulk_status_events(self):
         from app.services.queue_service import QueueService
@@ -96,13 +96,13 @@ class QueueVerticalSliceTests(unittest.TestCase):
 
             item, event_id = service.update_status(
                 "2604.44444v2",
-                "Skim Later",
+                "Inbox",
                 source="api_test",
                 note="single",
             )
             bulk_items = service.bulk_update_status(
                 ["2604.55555v1", "2604.66666v3"],
-                "Deep Read",
+                "Completed",
                 source="bulk_test",
                 note="bulk",
             )
@@ -113,7 +113,7 @@ class QueueVerticalSliceTests(unittest.TestCase):
         self.assertEqual([item["paper_id"] for item in bulk_items], ["2604.55555", "2604.66666"])
         self.assertEqual([event["event_type"] for event in events], ["queue_status_changed"] * 3)
         self.assertEqual(events[0]["payload_json"]["note"], "single")
-        self.assertEqual(events[1]["payload_json"]["status"], "Deep Read")
+        self.assertEqual(events[1]["payload_json"]["status"], "Completed")
 
     def test_queue_routes_no_longer_forward_to_web_server_queue_handlers(self):
         import app.routes.api as api_routes
@@ -144,13 +144,13 @@ class QueueVerticalSliceTests(unittest.TestCase):
                 client = web_server.app.test_client()
                 create_response = client.post(
                     "/api/queue",
-                    json={"paper_id": "2604.77777v2", "status": "Skim Later", "note": "read intro"},
+                    json={"paper_id": "2604.77777v2", "status": "Inbox", "note": "read intro"},
                 )
                 preserve_response = client.post(
                     "/api/queue",
-                    json={"paper_id": "2604.77777", "status": "Deep Read"},
+                    json={"paper_id": "2604.77777", "status": "Inbox"},
                 )
-                list_response = client.get("/api/queue?status=Deep%20Read")
+                list_response = client.get("/api/queue?status=Inbox")
                 invalid_response = client.post(
                     "/api/queue/bulk",
                     json={"paper_ids": ["2604.88888"], "status": "Unknown"},

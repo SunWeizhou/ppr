@@ -66,7 +66,7 @@ class WorkspaceApiTests(unittest.TestCase):
         question = self.store.create_research_question("causal inference")
         self.store.upsert_queue_item(
             "2604.11111",
-            "Deep Read",
+            "Inbox",
             research_question_id=question["id"],
         )
 
@@ -75,7 +75,7 @@ class WorkspaceApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         payload = response.get_json()
         self.assertTrue(payload["success"])
-        self.assertEqual(payload["stats"]["active_reading_count"], 1)
+        self.assertEqual(payload["stats"]["undecided_count"], 1)
 
     def test_start_planner_run_endpoint_records_job(self):
         question = self.store.create_research_question("causal inference")
@@ -117,7 +117,7 @@ class WorkspaceApiTests(unittest.TestCase):
             "/api/queue",
             json={
                 "paper_id": "2604.22222v1",
-                "status": "Deep Read",
+                "status": "Inbox",
                 "source": "search_workspace",
                 "research_question_id": question["id"],
                 "decision_context": "Central benchmark paper for this question.",

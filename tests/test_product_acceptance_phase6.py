@@ -222,7 +222,7 @@ class Phase6ProductAcceptanceTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
         self.assertIn("Paper Agent", html)
-        self.assertIn("Search papers, authors, topics...", html)
+        self.assertIn("Research Workspace", html)
 
     def test_paper_detail_back_link_is_valid(self):
         template = Path("templates/paper_detail.html").read_text(encoding="utf-8")

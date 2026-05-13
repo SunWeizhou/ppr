@@ -12,7 +12,7 @@ from app.services.feedback_service import FeedbackService
 from app.services.paper_utils import format_author_text, split_query_terms
 from app.services.workspace_service import WorkspaceService
 from app.viewmodels.shared import assemble_page_context
-from state_store import QUEUE_STATUS_VALUES
+from app.data._constants import QUEUE_STATUS_VALUES
 
 
 class MonitorViewModel:
@@ -249,7 +249,7 @@ class MonitorViewModel:
         The method aligns with ``PaperViewModel._find_paper_data`` so that
         Watch hit enrichment uses the same resolution chain as Paper Detail.
         """
-        from state_store import _canonical_paper_id
+        from app.data._constants import canonical_paper_id as _canonical_paper_id
 
         canonical_id = _canonical_paper_id(paper_id)
         result: dict = {}
@@ -350,7 +350,7 @@ class MonitorViewModel:
 
     def _find_paper_in_recommendations(self, paper_id: str) -> dict | None:
         """Search recent recommendation runs for paper metadata."""
-        from state_store import _canonical_paper_id
+        from app.data._constants import canonical_paper_id as _canonical_paper_id
         canonical = _canonical_paper_id(paper_id)
         try:
             recent_runs = self._store.list_recommendation_runs(limit=10)

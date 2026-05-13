@@ -13,7 +13,7 @@ from typing import Callable, Dict, List, Optional
 
 from logger_config import get_logger
 from app.services.subscription_service import SubscriptionService
-from state_store import _canonical_paper_id
+from app.data._constants import canonical_paper_id as _canonical_paper_id
 
 logger = get_logger(__name__)
 

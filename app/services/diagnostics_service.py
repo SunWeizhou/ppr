@@ -97,7 +97,7 @@ def build_recommendation_health(
 
 def build_system_diagnostics(state_store: Any, *, ai_context: dict | None = None) -> dict[str, Any]:
     from config_manager import CONFIG_FILE
-    from state_store import QUEUE_STATUS_VALUES
+    from app.data._constants import QUEUE_STATUS_VALUES
 
     queue_counts = {status: 0 for status in QUEUE_STATUS_VALUES}
     for item in state_store.list_queue_items():

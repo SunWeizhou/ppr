@@ -9,7 +9,7 @@ from app.viewmodels.shared import (
     serialize_job,
     serialize_saved_search,
 )
-from state_store import QUEUE_STATUS_VALUES
+from app.data._constants import QUEUE_STATUS_VALUES
 
 ACTIVE_READING_STATUSES = ("Inbox",)
 

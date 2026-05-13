@@ -8,47 +8,27 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 import sqlite3
 import threading
 import uuid
 from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Iterable, List, Optional
 
 logger = logging.getLogger(__name__)
 
 from app_paths import STATE_DB_PATH, ensure_runtime_dirs
 
-JOB_STATUS_VALUES = ("queued", "running", "succeeded", "degraded", "failed")
-QUEUE_STATUS_VALUES = ("Inbox", "Completed")
-
-
-def _utc_now() -> str:
-    return datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat() + "Z"
-
-
-def _utc_bounds_for_local_date(date_str: str) -> tuple[str, str]:
-    """Return UTC timestamp bounds for a YYYY-MM-DD date in system local time."""
-    day = datetime.strptime(date_str, "%Y-%m-%d").date()
-    local_tz = datetime.now().astimezone().tzinfo
-    start_local = datetime.combine(day, datetime.min.time()).replace(tzinfo=local_tz)
-    end_local = start_local + timedelta(days=1)
-    start_utc = start_local.astimezone(timezone.utc).replace(microsecond=0)
-    end_utc = end_local.astimezone(timezone.utc).replace(microsecond=0)
-    return start_utc.isoformat() + "Z", end_utc.isoformat() + "Z"
-
-
-def _to_json(value: Optional[object], default: object) -> str:
-    return json.dumps(value if value is not None else default, ensure_ascii=False)
-
-
-def _canonical_paper_id(paper_id: str) -> str:
-    value = str(paper_id or "").strip()
-    match = re.search(r"(\d{4}\.\d{4,5})(v\d+)?", value)
-    if match:
-        return match.group(1)
-    return re.sub(r"v\d+$", "", value)
+# Re-exports from pure-constants module for backward compatibility.
+# New code should import directly from app.data._constants.
+from app.data._constants import (          # noqa: F401
+    JOB_STATUS_VALUES,
+    QUEUE_STATUS_VALUES,
+    utc_now as _utc_now,
+    utc_bounds_for_local_date as _utc_bounds_for_local_date,
+    to_json as _to_json,
+    canonical_paper_id as _canonical_paper_id,
+)
 
 
 class StateStore:

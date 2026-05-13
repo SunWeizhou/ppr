@@ -44,16 +44,10 @@ def _event_label(event_type: str) -> Optional[tuple[str, float]]:
 
 
 def _queue_label(status: str) -> tuple[str, float]:
-    if status == "Skim Later":
-        return "skim_later", POSITIVE_WEIGHTS["skim_later"]
-    if status == "Deep Read":
+    if status == "Completed":
         return "deep_read", POSITIVE_WEIGHTS["deep_read"]
-    if status == "Saved":
-        return "saved", POSITIVE_WEIGHTS["saved"]
-    if status == "Archived":
-        return "neutral", 0.0
     if status == "Inbox":
-        return "neutral", 0.0
+        return "saved", POSITIVE_WEIGHTS["saved"]
     return "neutral", 0.0
 
 

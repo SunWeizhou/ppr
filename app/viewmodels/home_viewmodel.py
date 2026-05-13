@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from app.viewmodels.shared import assemble_page_context
-from state_store import QUEUE_STATUS_VALUES
+from app.data._constants import QUEUE_STATUS_VALUES
 
 
 class HomeViewModel:

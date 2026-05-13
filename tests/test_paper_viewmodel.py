@@ -5,7 +5,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from state_store import StateStore, _canonical_paper_id
+from app.data._constants import canonical_paper_id as _canonical_paper_id
+from state_store import StateStore
 from app.viewmodels.paper_viewmodel import PaperViewModel
 
 

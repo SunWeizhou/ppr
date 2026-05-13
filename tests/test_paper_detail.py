@@ -7,7 +7,8 @@ from pathlib import Path
 from unittest import mock
 from unittest.mock import patch
 
-from state_store import _canonical_paper_id, StateStore
+from app.data._constants import canonical_paper_id as _canonical_paper_id
+from state_store import StateStore
 
 
 # ---------------------------------------------------------------------------

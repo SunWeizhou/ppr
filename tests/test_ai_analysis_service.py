@@ -69,7 +69,7 @@ class AIAnalysisServiceTests(unittest.TestCase):
         self.assertEqual(analysis["model_name"], "none")
         self.assertEqual(analysis["prompt_version"], "v1")
         self.assertEqual(analysis["status"], "not_configured")
-        self.assertEqual(analysis["recommended_reading_level"], "skim")
+        self.assertEqual(analysis["recommended_reading_level"], "inbox")
         for key in ["one_sentence_summary", "problem", "method", "contribution", "limitations", "why_it_matters"]:
             self.assertEqual(analysis[key], "")
 
@@ -247,7 +247,7 @@ class AIAnalysisServiceTests(unittest.TestCase):
         self.assertNotIn("response_format", calls[1][1])
         self.assertEqual(calls[0][2]["Authorization"], "Bearer test-api-key")
         self.assertIn("Title:", calls[0][1]["messages"][1]["content"])
-        self.assertEqual(analysis["recommended_reading_level"], "deep_read")
+        self.assertEqual(analysis["recommended_reading_level"], "inbox")
 
     def test_deepseek_provider_malformed_json_raises_safe_error(self):
         from app.services.ai_providers import DeepSeekProvider, ProviderError

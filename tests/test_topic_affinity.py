@@ -153,19 +153,19 @@ class TopicAffinityTests(unittest.TestCase):
         self._save_test_recommendation_run()
 
         self.store.record_event("queue_status_changed", "2604.11111",
-                                {"status": "Deep Read"})
+                                {"status": "Completed"})
 
         affinities = self.store.get_user_topic_affinities()
         ml_topics = [a for a in affinities if a["topic"] == "ML"]
         self.assertEqual(len(ml_topics), 1)
-        self.assertAlmostEqual(ml_topics[0]["positive_score"], 2.0)
+        self.assertAlmostEqual(ml_topics[0]["positive_score"], 1.5)
 
     def test_queue_status_skim_later_creates_affinity(self):
         """Skim Later queue status creates moderate positive affinity."""
         self._save_test_recommendation_run()
 
         self.store.record_event("queue_status_changed", "2604.11111",
-                                {"status": "Skim Later"})
+                                {"status": "Completed"})
 
         affinities = self.store.get_user_topic_affinities()
         ml_topics = [a for a in affinities if a["topic"] == "ML"]

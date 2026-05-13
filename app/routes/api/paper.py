@@ -8,7 +8,7 @@ from flask import jsonify, make_response, request, send_file
 
 from . import bp
 from .helpers import _current_state_store, _feedback_service, _load_history_paper_index, CACHE_DIR, PROJECT_ROOT, HISTORY_DIR
-from state_store import _canonical_paper_id
+from app.data._constants import canonical_paper_id as _canonical_paper_id
 
 logger = logging.getLogger(__name__)
 

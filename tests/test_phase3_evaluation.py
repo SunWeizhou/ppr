@@ -19,12 +19,12 @@ class Phase3EvaluationTests(unittest.TestCase):
             store.record_event("like", "2604.00001v2", {"source": "test"})
             store.record_event("dislike", "2604.00002v1", {"source": "test"})
             store.record_event("ignored", "2604.00005", {"source": "test"})
-            store.upsert_queue_item("2604.00002", "Skim Later", note="low positive loses")
-            store.upsert_queue_item("2604.00003v3", "Deep Read", note="protected positive")
+            store.upsert_queue_item("2604.00002", "Inbox", note="low positive loses")
+            store.upsert_queue_item("2604.00003v3", "Inbox", note="protected positive")
             store.record_event("dislike", "2604.00003", {"source": "test"})
-            store.upsert_queue_item("2604.00004", "Saved", note="protected saved")
+            store.upsert_queue_item("2604.00004", "Inbox", note="protected saved")
             store.record_event("ignore_topic", "2604.00004", {"source": "test"})
-            store.upsert_queue_item("2604.00006", "Archived")
+            store.upsert_queue_item("2604.00006", "Inbox")
             feedback_path = root / "user_feedback.json"
             feedback_path.write_text(
                 json.dumps({"liked": ["2604.00007v2"], "disliked": ["2604.00008v1"]}),
@@ -35,13 +35,15 @@ class Phase3EvaluationTests(unittest.TestCase):
 
         self.assertEqual(labels["2604.00001"].label, "relevant")
         self.assertEqual(labels["2604.00001"].weight, 1.0)
-        self.assertEqual(labels["2604.00002"].label, "ignored")
-        self.assertEqual(labels["2604.00003"].label, "deep_read")
-        self.assertEqual(labels["2604.00003"].weight, 2.0)
+        self.assertEqual(labels["2604.00002"].label, "saved")
+        self.assertEqual(labels["2604.00002"].weight, 1.75)
+        self.assertEqual(labels["2604.00003"].label, "saved")
+        self.assertEqual(labels["2604.00003"].weight, 1.75)
         self.assertEqual(labels["2604.00004"].label, "saved")
         self.assertEqual(labels["2604.00004"].weight, 1.75)
         self.assertEqual(labels["2604.00005"].label, "ignored")
-        self.assertEqual(labels["2604.00006"].label, "neutral")
+        self.assertEqual(labels["2604.00006"].label, "saved")
+        self.assertEqual(labels["2604.00006"].weight, 1.75)
         self.assertEqual(labels["2604.00007"].label, "relevant")
         self.assertEqual(labels["2604.00008"].label, "ignored")
 

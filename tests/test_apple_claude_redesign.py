@@ -13,20 +13,23 @@ def test_root_renders_paper_agent_search_workspace():
 
     assert response.status_code == 200
     assert "Paper Agent" in html
-    assert "Search papers, authors, topics..." in html
-    assert "paper-agent-searchbar" in html
-    assert "paper-preview-pane" in html
+    assert "Research Workspace" in html
+    assert "Ask a research question" in html
     assert "/queue?status=Inbox" not in (response.location or "")
 
 
 def test_top_navigation_uses_workspace_information_architecture():
     import web_server
 
-    keys = [item[0] for item in web_server.NAV_ITEM_CONFIG]
-    labels = [item[2] for item in web_server.NAV_ITEM_CONFIG]
+    keys = [item["key"] for item in web_server.NAV_ITEM_CONFIG]
+    labels = [item["label"] for item in web_server.NAV_ITEM_CONFIG]
 
-    assert keys == ["search", "recommendations", "reading", "watch"]
-    assert labels == ["Search", "Recommendations", "Reading", "Watch"]
+    assert "search" in keys
+    assert "recommendations" in keys
+    assert "subscriptions" in keys
+    assert "reading" in keys
+    assert "settings" in keys
+    assert labels[0:4] == ["Search", "Recommendations", "Subscriptions", "Reading"]
 
 
 def test_base_shell_defaults_to_english_and_loads_local_alpine():
@@ -72,7 +75,7 @@ def test_visual_system_uses_quiet_tokens_and_no_radial_body_background():
     assert "--app-bg:" in css
     assert "--surface:" in css
     assert "--text-primary:" in css
-    assert "--radius-card: 12px" in css
+    assert "--radius-card: var(--radius-lg)" in css
     assert "body {" in css
     body_block = css.split("body {", 1)[1].split("}", 1)[0]
     assert "radial-gradient" not in body_block

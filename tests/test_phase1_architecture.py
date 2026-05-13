@@ -48,7 +48,8 @@ class Phase1ArchitectureTests(unittest.TestCase):
         source = Path("web_server.py").read_text(encoding="utf-8")
 
         self.assertNotIn("@app.route", source)
-        self.assertIn("register_blueprints(app)", source)
+        self.assertIn("create_app()", source)
+        self.assertIn("from app.factory import create_app", source)
 
     def test_core_pages_are_served_by_blueprints(self):
         import web_server
@@ -97,7 +98,7 @@ class Phase1ArchitectureTests(unittest.TestCase):
                 )
                 queue_response = client.post(
                     "/api/queue",
-                    json={"paper_id": "2604.12345v2", "status": "Skim Later", "note": "read intro"},
+                    json={"paper_id": "2604.12345v2", "status": "Inbox", "note": "read intro"},
                 )
                 searches_response = client.post(
                     "/api/saved-searches",

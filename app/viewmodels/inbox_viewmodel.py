@@ -20,7 +20,7 @@ from app.services.paper_utils import (
 )
 from app.viewmodels.shared import assemble_page_context
 from app_paths import CACHE_DIR, HISTORY_DIR, PROJECT_ROOT
-from state_store import QUEUE_STATUS_VALUES
+from app.data._constants import QUEUE_STATUS_VALUES
 from utils import CATEGORY_NAMES, count_keyword, parse_markdown_digest
 
 # ---------------------------------------------------------------------------

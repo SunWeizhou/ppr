@@ -23,7 +23,7 @@ class SearchWorkspaceViewModelTests(unittest.TestCase):
         )
         self.store.upsert_queue_item(
             "2604.11111",
-            "Deep Read",
+            "Inbox",
             research_question_id=question["id"],
         )
 
@@ -36,7 +36,7 @@ class SearchWorkspaceViewModelTests(unittest.TestCase):
 
         self.assertEqual(context["active_research_question"]["id"], question["id"])
         self.assertEqual(context["intent_card"]["query_text"], question["query_text"])
-        self.assertEqual(context["workspace_stats"]["active_reading_count"], 1)
+        self.assertEqual(context["workspace_stats"]["undecided_count"], 1)
         self.assertEqual(context["planner_result"]["run_id"], "run-1")
         self.assertEqual(context["workspace_brief"]["mode"], "empty")
 

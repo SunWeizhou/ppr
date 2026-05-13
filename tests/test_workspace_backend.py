@@ -55,13 +55,13 @@ class WorkspaceBackendSchemaTests(unittest.TestCase):
             "2604.12345v2",
             {"title": "Workspace compatible paper", "abstract": "A."},
         )
-        self.store.upsert_queue_item("2604.12345v2", "Skim Later")
+        self.store.upsert_queue_item("2604.12345v2", "Inbox")
 
         metadata = self.store.get_paper_metadata("2604.12345")
         queue_item = self.store.get_queue_item("2604.12345")
 
         self.assertEqual(metadata["title"], "Workspace compatible paper")
-        self.assertEqual(queue_item["status"], "Skim Later")
+        self.assertEqual(queue_item["status"], "Inbox")
 
     # ------------------------------------------------------------------
     #  Research Question CRUD
@@ -128,7 +128,7 @@ class WorkspaceBackendSchemaTests(unittest.TestCase):
         question = self.store.create_research_question("causal inference")
         item = self.store.upsert_queue_item(
             "2604.55555v1",
-            "Deep Read",
+            "Inbox",
             research_question_id=question["id"],
             decision_context="Useful for identification assumptions.",
         )
@@ -230,17 +230,17 @@ class WorkspaceServiceTests(unittest.TestCase):
         )
         self.store.upsert_queue_item(
             "2604.11111",
-            "Skim Later",
+            "Inbox",
             research_question_id=question["id"],
         )
         self.store.upsert_queue_item(
             "2604.22222",
-            "Deep Read",
+            "Inbox",
             research_question_id=question["id"],
         )
 
         stats = service.workspace_stats(question["id"])
         self.assertEqual(stats["research_question_id"], question["id"])
-        self.assertEqual(stats["queue_counts"]["Skim Later"], 1)
-        self.assertEqual(stats["queue_counts"]["Deep Read"], 1)
-        self.assertEqual(stats["undecided_count"], 0)
+        self.assertEqual(stats["queue_counts"]["Inbox"], 2)
+        self.assertEqual(stats["queue_counts"]["Completed"], 0)
+        self.assertEqual(stats["undecided_count"], 2)

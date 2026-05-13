@@ -171,7 +171,7 @@ class WebProductizationTests(unittest.TestCase):
             try:
                 response = web_server.app.test_client().post(
                     "/api/queue",
-                    json={"paper_id": "2604.12345v2", "status": "Deep Read"},
+                    json={"paper_id": "2604.12345v2", "status": "Inbox"},
                 )
                 rows = sqlite3.connect(db_path).execute(
                     "SELECT paper_id, status FROM reading_queue_items"
@@ -180,7 +180,7 @@ class WebProductizationTests(unittest.TestCase):
                 web_server.STATE_STORE = original_store
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(rows, [("2604.12345", "Deep Read")])
+        self.assertEqual(rows, [("2604.12345", "Inbox")])
 
     def test_state_snapshot_export_and_import_restore_whitelisted_data(self):
         import web_server
@@ -193,7 +193,7 @@ class WebProductizationTests(unittest.TestCase):
             original_store = web_server.STATE_STORE
             web_server.SNAPSHOT_FILES = {"user_feedback": feedback_file}
             web_server.STATE_STORE = StateStore(str(root / "state.db"))
-            web_server.STATE_STORE.upsert_queue_item("2604.55555v1", "Saved")
+            web_server.STATE_STORE.upsert_queue_item("2604.55555v1", "Inbox")
             feedback_file.write_text(json.dumps({"liked": ["2604.55555v1"], "disliked": []}), encoding="utf-8")
             try:
                 export_response = web_server.app.test_client().get("/api/state/export")

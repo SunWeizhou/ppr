@@ -14,7 +14,7 @@ from app.services.ai_providers import (
     normalize_analysis_result,
 )
 from app.services.evidence_claim_service import EvidenceClaimService
-from state_store import _canonical_paper_id
+from app.data._constants import canonical_paper_id as _canonical_paper_id
 
 
 class AIAnalysisService:

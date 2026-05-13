@@ -43,12 +43,12 @@ class ReadingWorkbenchTests(unittest.TestCase):
 
         item, _ = service.update_status(
             "2604.60001",
-            "Skim Later",
+            "Completed",
             source="queue_note",
             note="Read the experiment section.",
         )
 
-        self.assertEqual(item["status"], "Skim Later")
+        self.assertEqual(item["status"], "Completed")
         self.assertEqual(item["note"], "Read the experiment section.")
         self.assertEqual(item["research_question_id"], self.question["id"])
         self.assertEqual(
@@ -123,14 +123,12 @@ class ReadingWorkbenchTests(unittest.TestCase):
         self.assertIn("queueWorkspaceOptions", template)
         self.assertNotIn("In Progress", template)
 
-    def test_reading_viewmodel_active_items_include_workspace_context(self):
-        QueueService(self.store).update_status("2604.60001", "Deep Read", source="test")
-
+    def test_reading_viewmodel_inbox_items_include_workspace_context(self):
         from app.viewmodels.reading_viewmodel import ReadingViewModel
 
-        context = ReadingViewModel(self.store).to_template_context(tab="active")
+        context = ReadingViewModel(self.store).to_template_context(tab="inbox")
 
-        paper = context["deep_read_items"][0]
+        paper = context["inbox_items"][0]
         self.assertEqual(paper["research_question_id"], self.question["id"])
         self.assertEqual(paper["active_research_question"]["query_text"], self.question["query_text"])
         self.assertIn("research_question_id=", paper["detail_url"])
@@ -141,5 +139,120 @@ class ReadingWorkbenchTests(unittest.TestCase):
         self.assertIn("data-research-question-id", template)
         self.assertIn("data-decision-context", template)
         self.assertIn("data-detail-url", template)
-        self.assertIn("queueReadingPaper", template)
+        self.assertIn("finishReadingPaper", template)
+        self.assertIn("unfinishReadingPaper", template)
         self.assertIn("evidence_summary", template)
+
+    def test_mark_as_completed_sets_status_and_records_event(self):
+        item = self.store.mark_as_completed("2604.60001", source="test")
+        self.assertEqual(item["status"], "Completed")
+
+        result = self.store.get_queue_item("2604.60001")
+        self.assertEqual(result["status"], "Completed")
+
+        events = self.store.list_interaction_events(paper_id="2604.60001")
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["event_type"], "queue_status_changed")
+        self.assertEqual(events[0]["payload_json"]["status"], "Completed")
+
+    def test_reading_viewmodel_separates_inbox_and_completed_items(self):
+        from app.viewmodels.reading_viewmodel import ReadingViewModel
+
+        self.store.save_paper_metadata(
+            "2604.60002",
+            {
+                "title": "Completed Paper",
+                "abstract": "This paper was read.",
+                "authors": ["Bob"],
+                "categories": ["stat.ML"],
+            },
+        )
+        self.store.upsert_queue_item("2604.60001", "Inbox", source="test")
+        self.store.upsert_queue_item("2604.60002", "Completed", source="test")
+
+        context = ReadingViewModel(self.store).to_template_context(tab="inbox")
+
+        self.assertEqual(len(context["inbox_items"]), 1)
+        self.assertEqual(context["inbox_items"][0]["id"], "2604.60001")
+        self.assertIn("Completed", context["queue_status_values"])
+
+    def test_reading_completed_items_match_tab(self):
+        from app.viewmodels.reading_viewmodel import ReadingViewModel
+
+        self.store.save_paper_metadata(
+            "2604.60002",
+            {
+                "title": "Completed Paper",
+                "abstract": "This paper was read.",
+                "authors": ["Bob"],
+                "categories": ["stat.ML"],
+            },
+        )
+        self.store.upsert_queue_item("2604.60001", "Inbox", source="test")
+        self.store.upsert_queue_item("2604.60002", "Completed", source="test")
+
+        context = ReadingViewModel(self.store).to_template_context(tab="completed")
+
+        self.assertEqual(len(context["completed_items"]), 1)
+        self.assertEqual(context["completed_items"][0]["id"], "2604.60002")
+
+    def test_old_queue_statuses_raise_value_error(self):
+        with self.assertRaises(ValueError):
+            self.store.upsert_queue_item("2604.60001", "Skim Later")
+        with self.assertRaises(ValueError):
+            self.store.upsert_queue_item("2604.60001", "Deep Read")
+        with self.assertRaises(ValueError):
+            self.store.upsert_queue_item("2604.60001", "Saved")
+        with self.assertRaises(ValueError):
+            self.store.upsert_queue_item("2604.60001", "Archived")
+
+    def test_queue_service_rejects_old_statuses(self):
+        from app.services.queue_service import QueueService
+
+        svc = QueueService(self.store)
+        with self.assertRaises(ValueError):
+            svc.update_item("2604.60001", "Skim Later")
+        with self.assertRaises(ValueError):
+            svc.update_status("2604.60001", "Deep Read")
+        with self.assertRaises(ValueError):
+            svc.bulk_update_status(["2604.60001"], "Archived")
+
+    def test_queue_route_defaults_old_status_to_inbox(self):
+        import app.routes.queue as queue_routes
+        import web_server
+
+        old_store = queue_routes.STATE_STORE
+        queue_routes.STATE_STORE = self.store
+        try:
+            response = web_server.app.test_client().get("/queue?status=Skim%20Later")
+        finally:
+            queue_routes.STATE_STORE = old_store
+
+        self.assertEqual(response.status_code, 200)
+        body = response.data.decode("utf-8", errors="replace")
+        self.assertIn("Inbox", body)
+
+    def test_feedback_finish_action_marks_paper_completed(self):
+        from app.services.feedback_service import FeedbackService
+
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmp:
+            svc = FeedbackService(
+                self.store,
+                feedback_file=str(Path(tmp) / "feedback.json"),
+                favorites_file=str(Path(tmp) / "favorites.json"),
+                cache_file=str(Path(tmp) / "cache.json"),
+                history_dir=str(Path(tmp) / "history"),
+            )
+            result, status_code = svc.handle_feedback({
+                "paper_id": "2604.60001",
+                "action": "finish",
+                "title": "Test Paper",
+                "source": "test",
+            })
+
+        self.assertEqual(status_code, 200)
+        self.assertTrue(result["success"])
+        self.assertEqual(result["queue_item"]["status"], "Completed")
