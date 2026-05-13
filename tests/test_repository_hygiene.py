@@ -116,8 +116,8 @@ class RepositoryHygieneTests(unittest.TestCase):
     def test_readme_documents_local_first_setup(self):
         readme = Path("README.md").read_text(encoding="utf-8")
 
-        self.assertIn("local-first paper discovery and research workspace", readme)
-        self.assertIn("Search / Recommendations / Preview / Reading / Watch / Settings / Agent", readme)
+        self.assertIn("research-question-driven AI literature workspace", readme)
+        self.assertIn("Workspaces / Search / Recommendations / Reading / Watch / Agent / Settings", readme)
         self.assertIn("OpenAI-compatible", readme)
         self.assertIn("cp user_profile.example.json user_profile.json", readme)
         self.assertIn("pytest", readme)

@@ -1,0 +1,59 @@
+{% extends "base_research.html" %}
+
+{% set body_class = (body_class or '') ~ ' page-memo' %}
+
+{% block hero %}
+<div class="page-header">
+    <a href="/workspaces/{{ workspace_id }}" class="back-link">&larr; Back to Workspace</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="memo-shell">
+    <div class="memo-header">
+        <div>
+            <span class="section-kicker">Research Memo</span>
+            <h1 class="memo-title">{{ workspace.get('query_text', 'Untitled Workspace') }}</h1>
+            {% if workspace.get('intent_statement') and workspace.get('intent_statement') != workspace.get('query_text') %}
+            <p class="memo-intent">{{ workspace.get('intent_statement') }}</p>
+            {% endif %}
+        </div>
+        <div class="memo-header-meta">
+            {% if memo %}
+            <span class="chip is-muted">Last saved {{ memo.get('updated_at', '')[:10] }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="memo-editor-section">
+        <form method="POST" action="/workspaces/{{ workspace_id }}/memo" class="memo-form">
+            <div class="memo-editor-toolbar">
+                <span class="toolbar-hint">Markdown supported</span>
+                <button type="submit" class="btn btn-primary btn-sm">Save Memo</button>
+            </div>
+            <textarea
+                name="content"
+                class="memo-textarea"
+                placeholder="Start writing your research memo...
+
+## Research Question
+
+## Why This Matters
+
+## Current Understanding
+
+## Key Papers
+
+## Method / Idea Map
+
+## Open Questions
+
+## Potential Research Gaps
+
+## Next Reading / Next Experiments"
+                spellcheck="true"
+            >{{ memo_content }}</textarea>
+        </form>
+    </div>
+</section>
+{% endblock %}

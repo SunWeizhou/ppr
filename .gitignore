@@ -34,8 +34,9 @@ cache/*
 !cache/.gitkeep
 history/*
 !history/.gitkeep
-daily_arxiv_digest.md
 reports/*
+!reports/.gitkeep
+data/*
 
 # Large binary and local data files
 *.zip
@@ -62,6 +63,12 @@ liked.html
 scholars.html
 scholars_test.html
 search.html
+
+# Dev/test artifacts
+*_snapshot.md
+daily_arxiv_digest.md
+.stitch/
+.agents/
 
 # Git worktrees
 .worktrees/

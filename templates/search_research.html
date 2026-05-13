@@ -2,25 +2,42 @@
 
 {% set body_class = (body_class or '') ~ ' page-search-workspace' %}
 
+{% block hero %}
+<section class="hero-modern">
+    <div class="page-content-modern" style="padding-bottom:0;">
+        <h1 class="hero-modern-title">Search</h1>
+        <p class="hero-modern-sub">Find papers across arXiv, Semantic Scholar, and OpenAlex.</p>
+    </div>
+</section>
+{% endblock %}
+
 {% block content %}
 <section
-    class="paper-agent-search-shell"
+    class="page-content-modern"
     data-research-question-id="{{ active_research_question_id or '' }}"
 >
     {% macro paperAgentDetailUrl(paper) -%}
-    /papers/{{ paper.paper_id or paper.id }}{% if current_query %}?return_q={{ current_query|urlencode }}{% endif %}
+    {%- set base = "/papers/" ~ (paper.paper_id or paper.id) -%}
+    {%- set params = [] -%}
+    {%- if current_query %}{% set _ = params.append("return_q=" ~ current_query|urlencode) %}{% endif -%}
+    {%- if active_research_question_id %}{% set _ = params.append("research_question_id=" ~ active_research_question_id) %}{% endif -%}
+    {{ base }}{% if params %}?{{ params|join("&") }}{% endif %}
     {%- endmacro %}
 
-    <form class="paper-agent-searchbar" onsubmit="paperAgentSearch(event)">
-        <span class="search-icon" aria-hidden="true">⌕</span>
-        <input
-            id="paperAgentSearchInput"
-            type="search"
-            value="{{ current_query }}"
-            placeholder="Search papers, authors, topics..."
-            autocomplete="off"
-        >
-        <button class="btn btn-primary" type="submit" id="paperAgentSearchBtn" disabled>Search</button>
+    <!-- Search Bar -->
+    <form style="margin-bottom:24px;" onsubmit="paperAgentSearch(event)">
+        <div style="display:flex; align-items:center; background:#FFFFFF; border:1px solid var(--line); border-radius:100px; padding:6px 6px 6px 20px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <span style="color:var(--ink-3); margin-right:10px; flex-shrink:0;" aria-hidden="true">⌕</span>
+            <input
+                id="paperAgentSearchInput"
+                type="search"
+                value="{{ current_query }}"
+                placeholder="Search papers, authors, topics..."
+                autocomplete="off"
+                style="border:none; background:transparent; width:100%; font-size:14px; font-family:var(--ff-body); color:var(--ink); outline:none;"
+            >
+            <button class="btn-modern btn-modern-primary btn-modern-sm" type="submit" id="paperAgentSearchBtn" disabled>Search</button>
+        </div>
     </form>
 
     <input type="hidden" id="researchQuestionId" value="{{ active_research_question_id or '' }}">
@@ -28,43 +45,44 @@
     <input type="hidden" id="workspacePrompt" value="{{ current_query }}">
 
     {% if search_warnings %}
-    <div class="paper-agent-warning">
+    <div style="margin-bottom:16px; padding:12px 16px; border-radius:8px; background:var(--gold-tint, #F0E7CF); color:var(--gold, #8A6B2C); font-size:13px;">
         {{ search_warnings[0] }}
     </div>
     {% endif %}
 
-    <div class="source-status-grid" id="paperAgentSourceStatus" aria-label="Search source status">
+    <!-- Source Status -->
+    <div style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;" id="paperAgentSourceStatus" aria-label="Search source status">
         {% for source in source_statuses %}
-        <div class="source-status-card is-{{ source.state }}" data-source="{{ source.key }}">
-            <span class="source-status-dot" aria-hidden="true"></span>
-            <div>
-                <strong>{{ source.label }}</strong>
-                <span>{{ source.message }}</span>
-            </div>
+        <div style="display:flex; align-items:center; gap:6px; padding:4px 14px; background:#FFFFFF; border:1px solid var(--line); border-radius:100px; font-size:12px; color:var(--ink-2);">
+            <span class="status-dot status-dot--{{ source.state if source.state == 'ok' else 'warn' if source.state == 'failed' else 'fail' }}" aria-hidden="true"></span>
+            <strong>{{ source.label }}</strong>
+            <span style="color:var(--ink-3);">{{ source.message }}</span>
         </div>
         {% endfor %}
     </div>
 
-    <div class="paper-agent-workspace">
-        <div class="paper-results-pane">
+    <div class="split-modern">
+        <!-- Left: Paper Results -->
+        <div style="display:flex; flex-direction:column; gap:12px;" id="paperResultListContainer">
             <!-- Filter chips bar -->
-            <div class="filter-chips" id="searchFilterChips" hidden>
-              <span class="filter-chips-label">Filter:</span>
-              <button class="chip" data-filter="all" onclick="applySearchFilter('all')">All</button>
-              <button class="chip" data-filter="arxiv" onclick="applySearchFilter('arxiv')">arXiv</button>
-              <button class="chip" data-filter="semantic_scholar" onclick="applySearchFilter('semantic_scholar')">Semantic Scholar</button>
-              <button class="chip" data-filter="openalex" onclick="applySearchFilter('openalex')">OpenAlex</button>
-              <span class="filter-chips-divider"></span>
-              <button class="chip" data-filter="conference" onclick="applySearchFilter('conference')">Conference</button>
-              <button class="chip" data-filter="journal" onclick="applySearchFilter('journal')">Journal</button>
-              <button class="chip" data-filter="preprint" onclick="applySearchFilter('preprint')">Preprint</button>
+            <div class="filter-chips" id="searchFilterChips" hidden style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:4px;">
+              <span style="font-size:11px; color:var(--ink-3); margin-right:4px; align-self:center;">Filter:</span>
+              <button class="chip-modern is-active" data-filter="all" onclick="applySearchFilter('all')">All</button>
+              <button class="chip-modern" data-filter="arxiv" onclick="applySearchFilter('arxiv')">arXiv</button>
+              <button class="chip-modern" data-filter="semantic_scholar" onclick="applySearchFilter('semantic_scholar')">Semantic Scholar</button>
+              <button class="chip-modern" data-filter="openalex" onclick="applySearchFilter('openalex')">OpenAlex</button>
+              <span style="width:1px; background:var(--line); margin:0 4px; align-self:stretch;"></span>
+              <button class="chip-modern" data-filter="conference" onclick="applySearchFilter('conference')">Conference</button>
+              <button class="chip-modern" data-filter="journal" onclick="applySearchFilter('journal')">Journal</button>
+              <button class="chip-modern" data-filter="preprint" onclick="applySearchFilter('preprint')">Preprint</button>
             </div>
+
             {% if papers %}
-                <div class="paper-result-count">{{ papers|length }} articles</div>
-                <div class="paper-result-list" id="paperResultList">
+                <div style="font-size:13px; color:var(--ink-3); margin-bottom:4px;">{{ papers|length }} articles</div>
+                <div class="paper-result-list" id="paperResultList" style="display:flex; flex-direction:column; gap:12px;">
                     {% for paper in papers %}
                     <article
-                        class="paper-result-row {% if loop.first %}is-selected{% endif %}"
+                        class="paper-item-modern {% if loop.first %}is-selected{% endif %}"
                         data-paper-id="{{ paper.paper_id or paper.id }}"
                         data-paper-title="{{ paper.title }}"
                         data-paper-authors="{{ paper.author_text }}"
@@ -78,64 +96,66 @@
                         data-paper-reference-count="{{ paper.reference_count if paper.reference_count is not none else '' }}"
                         onclick="selectPaperResult(this)"
                     >
-                        <div class="paper-result-main">
-                            <div class="paper-result-citation">{{ paper.display_citation }}</div>
-                            <h2>{{ paper.title }}</h2>
-                            <div class="paper-result-venue">{{ paper.venue or paper.source or 'Paper' }}</div>
-                            <p>{{ paper.summary_short or 'No abstract available.' }}</p>
-                        </div>
-                        <span class="paper-result-radio" aria-hidden="true"></span>
+                        <div class="paper-item-modern-citation">{{ paper.display_citation }}</div>
+                        <div class="paper-item-modern-title">{{ paper.title }}</div>
+                        <div class="paper-item-modern-venue">{{ paper.venue or paper.source or 'Paper' }}</div>
+                        <div class="paper-item-modern-snippet">{{ paper.summary_short or 'No abstract available.' }}</div>
                     </article>
                     {% endfor %}
                 </div>
             {% elif current_query %}
-                <div class="paper-agent-empty">
-                    <h2>No articles found</h2>
-                    <p>Try a shorter query, a known author, or a broader topic.</p>
+                <div class="card-modern" style="text-align:center; padding:48px 20px;">
+                    <h3 style="font-family:var(--ff-display); font-size:20px; font-weight:600; color:var(--ink); margin:0 0 8px;">No articles found</h3>
+                    <p style="font-size:14px; color:var(--ink-3); margin:0;">Try a shorter query, a known author, or a broader topic.</p>
                 </div>
             {% else %}
-                <div class="paper-agent-empty">
-                    <h2>Search to get started</h2>
-                    <p>Enter a topic, author name, or paper title above.</p>
+                <div class="card-modern" style="text-align:center; padding:48px 20px;">
+                    <h3 style="font-family:var(--ff-display); font-size:20px; font-weight:600; color:var(--ink); margin:0 0 8px;">Search to get started</h3>
+                    <p style="font-size:14px; color:var(--ink-3); margin:0;">Enter a topic, author name, or paper title above.</p>
                 </div>
             {% endif %}
         </div>
 
-        <aside class="paper-preview-pane" id="paperPreviewPane">
-            <div class="preview-tabs">
-                <button class="preview-tab is-active" type="button">Article</button>
-                {# Notes tab hidden until Notes feature is implemented #}
-            </div>
-            <button class="preview-close" type="button" onclick="clearPaperPreview()" aria-label="Clear preview">×</button>
-            {% if selected_paper %}
-            <div id="paperPreviewContent">
-                <h2>{{ selected_paper.display_citation }}</h2>
-                <a class="preview-title" href="{{ paperAgentDetailUrl(selected_paper) }}">{{ selected_paper.title }}</a>
-                <div class="preview-source">{{ selected_paper.venue or selected_paper.source }}</div>
-                <div class="preview-authors">{{ selected_paper.author_text }}</div>
-                <div class="preview-section">
-                    <div class="preview-section-head">
-                        <strong>Next Step</strong>
-                        <button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Add to Reading</button>
+        <!-- Right: Preview Pane -->
+        <aside class="preview-pane-modern" id="paperPreviewPane">
+            <div class="card-modern">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                    <div style="display:flex; gap:4px;">
+                        <span style="font-size:12px; font-weight:600; color:var(--ink);">Article</span>
                     </div>
-                    <div class="preview-action-grid">
-                        <button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper('Inbox', 'Add to Reading')">Add to Reading</button>
-                        <button class="btn btn-ghost btn-sm" type="button" onclick="agentCreateWatchFromSearch()">Create Watch</button>
+                    <button style="background:none; border:none; font-size:18px; cursor:pointer; color:var(--ink-3);" type="button" onclick="clearPaperPreview()" aria-label="Clear preview">×</button>
+                </div>
+                {% if selected_paper %}
+                <div id="paperPreviewContent">
+                    <div class="paper-item-modern-citation">{{ selected_paper.display_citation }}</div>
+                    <a class="paper-item-modern-title" href="{{ paperAgentDetailUrl(selected_paper) }}" style="text-decoration:none; display:block; margin-bottom:8px;">{{ selected_paper.title }}</a>
+                    <div style="font-size:13px; color:var(--ink-3); margin-bottom:8px;">{{ selected_paper.venue or selected_paper.source }}</div>
+                    <div style="font-size:13px; color:var(--ink-2); margin-bottom:16px;">{{ selected_paper.author_text }}</div>
+
+                    <div style="border-top:1px solid var(--line-subtle); padding-top:16px; margin-bottom:16px;">
+                        <div style="display:flex; gap:8px; margin-bottom:12px;">
+                            <button class="btn-modern btn-modern-primary btn-modern-sm" style="flex:1;" type="button" onclick="agentSaveSelectedPaper()">Add to Reading</button>
+                            <button class="btn-modern btn-modern-ghost btn-modern-sm" style="flex:1;" type="button" onclick="agentCreateWatchFromSearch()">Create Watch</button>
+                        </div>
                     </div>
+
+                    <div style="border-top:1px solid var(--line-subtle); padding-top:16px;">
+                        <div style="font-size:11px; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Abstract</div>
+                        <p style="font-size:14px; color:var(--ink-2); line-height:1.55; margin:0 0 12px;">{{ selected_paper.abstract or selected_paper.summary or 'No abstract available.' }}</p>
+                        <a href="{{ paperAgentDetailUrl(selected_paper) }}" style="font-size:13px; color:var(--accent); text-decoration:none;">Open full detail →</a>
+                    </div>
+
+                    {% if selected_paper.citation_count is not none and selected_paper.citation_count != '' or selected_paper.reference_count is not none and selected_paper.reference_count != '' %}
+                    <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; border-top:1px solid var(--line-subtle); padding-top:16px;">
+                        {% if selected_paper.citation_count is not none and selected_paper.citation_count != '' %}<span class="chip-modern">Cited By {{ selected_paper.citation_count }}</span>{% endif %}
+                        {% if selected_paper.reference_count is not none and selected_paper.reference_count != '' %}<span class="chip-modern">Refs {{ selected_paper.reference_count }}</span>{% endif %}
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="preview-section">
-                    <strong>Abstract</strong>
-                    <p>{{ selected_paper.abstract or selected_paper.summary or 'No abstract available.' }}</p>
-                    <a class="text-link" href="{{ paperAgentDetailUrl(selected_paper) }}">Open full detail</a>
-                </div>
-                <div class="preview-deep-links">
-                    {% if selected_paper.citation_count is not none and selected_paper.citation_count != '' %}<span class="chip preview-meta-chip">Cited By {{ selected_paper.citation_count }}</span>{% endif %}
-                    {% if selected_paper.reference_count is not none and selected_paper.reference_count != '' %}<span class="chip preview-meta-chip">Refs {{ selected_paper.reference_count }}</span>{% endif %}
-                </div>
+                {% else %}
+                <div id="paperPreviewContent" style="text-align:center; padding:32px 0; color:var(--ink-3); font-size:14px;">Select an article to preview it.</div>
+                {% endif %}
             </div>
-            {% else %}
-            <div id="paperPreviewContent" class="preview-empty">Select an article to preview it.</div>
-            {% endif %}
         </aside>
     </div>
 </section>
@@ -167,7 +187,7 @@ function paperAgentSearch(event) {
 
 async function fetchPaperAgentResults(query) {
     const list = document.getElementById('paperResultList');
-    if (list) list.innerHTML = '<div class="paper-agent-empty"><p>Searching...</p></div>';
+    if (list) list.innerHTML = '<div style="text-align:center; padding:32px; color:var(--ink-3);">Searching...</div>';
     renderPaperAgentSourceStatus({arxiv: 'not_requested', semantic_scholar: 'not_requested', openalex: 'not_requested'}, [], []);
     try {
         const payload = await requestJson('/api/search', {
@@ -177,12 +197,11 @@ async function fetchPaperAgentResults(query) {
         });
         renderPaperAgentSourceStatus(payload.sources || {}, payload.warnings || [], payload.errors || []);
         renderPaperAgentResults(payload.papers || []);
-        // Show filter chips
         var filterBar = document.getElementById('searchFilterChips');
         if (filterBar) filterBar.hidden = !(payload.papers && payload.papers.length);
     } catch (error) {
         renderPaperAgentSourceStatus({arxiv: 'failed', semantic_scholar: 'failed', openalex: 'failed'}, [], [error.message]);
-        if (list) list.innerHTML = '<div class="paper-agent-empty"><h2>Search failed</h2><p>' + escapeHtml(error.message) + '</p></div>';
+        if (list) list.innerHTML = '<div style="text-align:center; padding:48px;"><h3 style="font-family:var(--ff-display); font-size:20px;">Search failed</h3><p style="color:var(--ink-3);">' + escapeHtml(error.message) + '</p></div>';
     }
 }
 
@@ -206,25 +225,28 @@ function renderPaperAgentSourceStatus(sources, warnings, errors) {
                 return String(item).indexOf(label) !== -1;
             }) || message;
         }
-        return '<div class="source-status-card is-' + escapeHtml(state) + '" data-source="' + key + '">' +
-            '<span class="source-status-dot" aria-hidden="true"></span>' +
-            '<div><strong>' + escapeHtml(label) + '</strong><span>' + escapeHtml(message) + '</span></div>' +
-            '</div>';
+        const dotClass = state === 'ok' ? 'status-dot--ok' : state === 'failed' ? 'status-dot--fail' : 'status-dot--warn';
+        return '<div style="display:flex; align-items:center; gap:6px; padding:4px 14px; background:#FFFFFF; border:1px solid var(--line); border-radius:100px; font-size:12px; color:var(--ink-2);">' +
+            '<span class="status-dot ' + dotClass + '" aria-hidden="true"></span>' +
+            '<strong>' + escapeHtml(label) + '</strong><span style="color:var(--ink-3);">' + escapeHtml(message) + '</span></div>';
     }).join('');
 }
 
 function renderPaperAgentResults(papers) {
-    const list = document.getElementById('paperResultList') || document.querySelector('.paper-results-pane');
+    const list = document.getElementById('paperResultList');
     if (!list) return;
     list.innerHTML = '';
     if (!papers.length) {
-        list.innerHTML = '<div class="paper-agent-empty"><h2>No articles found</h2><p>Try a broader query.</p></div>';
+        list.innerHTML = '<div style="text-align:center; padding:48px;"><h3 style="font-family:var(--ff-display); font-size:20px;">No articles found</h3><p style="color:var(--ink-3);">Try a broader query.</p></div>';
         clearPaperPreview();
         return;
     }
+    list.style.display = 'flex';
+    list.style.flexDirection = 'column';
+    list.style.gap = '12px';
     papers.forEach(function(paper, index) {
         const row = document.createElement('article');
-        row.className = 'paper-result-row' + (index === 0 ? ' is-selected' : '');
+        row.className = 'paper-item-modern' + (index === 0 ? ' is-selected' : '');
         row.dataset.paperId = paper.paper_id || paper.id || '';
         row.dataset.paperTitle = paper.title || '';
         row.dataset.paperAuthors = (paper.authors || []).join(', ');
@@ -240,12 +262,10 @@ function renderPaperAgentResults(papers) {
         const firstAuthor = row.dataset.paperAuthors.split(',')[0] || 'Paper';
         const citation = (firstAuthor.split(' ').slice(-1)[0] || 'Paper') + (paper.year ? ', ' + paper.year : '');
         row.innerHTML =
-            '<div class="paper-result-main">' +
-            '<div class="paper-result-citation">' + escapeHtml(citation) + '</div>' +
-            '<h2>' + escapeHtml(paper.title || 'Untitled') + '</h2>' +
-            '<div class="paper-result-venue">' + escapeHtml(paper.venue || paper.source || 'Paper') + '</div>' +
-            '<p>' + escapeHtml((paper.abstract || paper.summary || 'No abstract available.').slice(0, 520)) + '</p>' +
-            '</div><span class="paper-result-radio" aria-hidden="true"></span>';
+            '<div class="paper-item-modern-citation">' + escapeHtml(citation) + '</div>' +
+            '<div class="paper-item-modern-title">' + escapeHtml(paper.title || 'Untitled') + '</div>' +
+            '<div class="paper-item-modern-venue">' + escapeHtml(paper.venue || paper.source || 'Paper') + '</div>' +
+            '<div class="paper-item-modern-snippet">' + escapeHtml((paper.abstract || paper.summary || 'No abstract available.').slice(0, 520)) + '</div>';
         list.appendChild(row);
         if (index === 0) selectPaperResult(row);
     });
@@ -254,29 +274,34 @@ function renderPaperAgentResults(papers) {
 function selectPaperResult(row) {
     var ws = document.querySelector('.paper-agent-workspace');
     if (ws) ws.classList.add('has-selection');
-    document.querySelectorAll('.paper-result-row').forEach(function(item) {
+    document.querySelectorAll('.paper-item-modern').forEach(function(item) {
         item.classList.toggle('is-selected', item === row);
     });
     const pane = document.getElementById('paperPreviewContent');
     if (!pane) return;
     const query = document.getElementById('paperAgentSearchInput') ? document.getElementById('paperAgentSearchInput').value.trim() : '';
     const detailUrl = paperAgentDetailUrl(row.dataset.paperId || '', query);
-    const cited = row.dataset.paperCitationCount ? '<span class="chip preview-meta-chip">Cited By ' + escapeHtml(row.dataset.paperCitationCount) + '</span>' : '';
-    const refs = row.dataset.paperReferenceCount ? '<span class="chip preview-meta-chip">Refs ' + escapeHtml(row.dataset.paperReferenceCount) + '</span>' : '';
-    const deepLinks = refs || cited ? '<div class="preview-deep-links">' + refs + cited + '</div>' : '';
+    const cited = row.dataset.paperCitationCount ? '<span class="chip-modern" style="margin-right:6px;">Cited By ' + escapeHtml(row.dataset.paperCitationCount) + '</span>' : '';
+    const refs = row.dataset.paperReferenceCount ? '<span class="chip-modern">Refs ' + escapeHtml(row.dataset.paperReferenceCount) + '</span>' : '';
+    const deepLinks = refs || cited ? '<div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; border-top:1px solid var(--line-subtle); padding-top:16px;">' + cited + refs + '</div>' : '';
     var citation = previewCitation(row.dataset.paperAuthors, row.dataset.paperYear);
     pane.innerHTML =
-        '<h2>' + escapeHtml(citation) + '</h2>' +
-        '<a class="preview-title" href="' + detailUrl + '">' + escapeHtml(row.dataset.paperTitle || 'Untitled') + '</a>' +
-        '<div class="preview-source">' + escapeHtml(row.dataset.paperVenue || row.dataset.paperSource || '') + '</div>' +
-        '<div class="preview-authors">' + escapeHtml(row.dataset.paperAuthors || '') + '</div>' +
-        '<div class="preview-section"><div class="preview-section-head"><strong>Next Step</strong><button class="btn btn-primary btn-sm" type="button" onclick="agentSaveSelectedPaper()">Add to Reading</button></div>' +
-        '<div class="preview-action-grid"><button class="btn btn-ghost btn-sm" type="button" onclick="agentQueueSelectedPaper(&quot;Inbox&quot;, &quot;Add to Reading&quot;)">Add to Reading</button>' +
-        '<button class="btn btn-ghost btn-sm" type="button" onclick="agentCreateWatchFromSearch()">Create Watch</button></div></div>' +
-        '<div class="preview-section"><strong>Abstract</strong><p>' + escapeHtml(row.dataset.paperAbstract || 'No abstract available.') + '</p><a class="text-link" href="' + detailUrl + '">Open full detail</a></div>' +
+        '<div class="paper-item-modern-citation">' + escapeHtml(citation) + '</div>' +
+        '<a class="paper-item-modern-title" href="' + detailUrl + '" style="text-decoration:none; display:block; margin-bottom:8px;">' + escapeHtml(row.dataset.paperTitle || 'Untitled') + '</a>' +
+        '<div style="font-size:13px; color:var(--ink-3); margin-bottom:8px;">' + escapeHtml(row.dataset.paperVenue || row.dataset.paperSource || '') + '</div>' +
+        '<div style="font-size:13px; color:var(--ink-2); margin-bottom:16px;">' + escapeHtml(row.dataset.paperAuthors || '') + '</div>' +
+        '<div style="border-top:1px solid var(--line-subtle); padding-top:16px; margin-bottom:16px;">' +
+        '<div style="display:flex; gap:8px;">' +
+        '<button class="btn-modern btn-modern-primary btn-modern-sm" style="flex:1;" type="button" onclick="agentSaveSelectedPaper()">Add to Reading</button>' +
+        '<button class="btn-modern btn-modern-ghost btn-modern-sm" style="flex:1;" type="button" onclick="agentCreateWatchFromSearch()">Create Watch</button>' +
+        '</div></div>' +
+        '<div style="border-top:1px solid var(--line-subtle); padding-top:16px;">' +
+        '<div style="font-size:11px; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Abstract</div>' +
+        '<p style="font-size:14px; color:var(--ink-2); line-height:1.55; margin:0 0 12px;">' + escapeHtml(row.dataset.paperAbstract || 'No abstract available.') + '</p>' +
+        '<a href="' + detailUrl + '" style="font-size:13px; color:var(--accent); text-decoration:none;">Open full detail →</a></div>' +
         deepLinks;
     if (window.innerWidth <= 768) {
-        var previewEl = document.querySelector('.paper-preview-pane');
+        var previewEl = document.querySelector('.preview-pane-modern');
         if (previewEl) setTimeout(function() { previewEl.scrollIntoView({behavior: 'smooth', block: 'start'}); }, 50);
     }
 }
@@ -293,8 +318,16 @@ function previewCitation(authors, year) {
 
 function paperAgentDetailUrl(paperId, query) {
     let url = '/papers/' + encodeURIComponent(paperId || '');
+    var params = [];
     if (query) {
-        url += '?return_q=' + encodeURIComponent(query);
+        params.push('return_q=' + encodeURIComponent(query));
+    }
+    var rqInput = document.getElementById('researchQuestionId');
+    if (rqInput && rqInput.value) {
+        params.push('research_question_id=' + encodeURIComponent(rqInput.value));
+    }
+    if (params.length) {
+        url += '?' + params.join('&');
     }
     return url;
 }
@@ -303,33 +336,38 @@ function clearPaperPreview() {
     var ws = document.querySelector('.paper-agent-workspace');
     if (ws) ws.classList.remove('has-selection');
     const pane = document.getElementById('paperPreviewContent');
-    if (pane) pane.innerHTML = '<div class="preview-empty">Select an article to preview it.</div>';
+    if (pane) pane.innerHTML = '<div style="text-align:center; padding:32px 0; color:var(--ink-3); font-size:14px;">Select an article to preview it.</div>';
+}
+
+function searchWorkspaceContext() {
+    var rqInput = document.getElementById('researchQuestionId');
+    return rqInput && rqInput.value ? {research_question_id: Number(rqInput.value)} : {};
 }
 
 async function agentSaveSelectedPaper() {
-    const selected = document.querySelector('.paper-result-row.is-selected');
+    const selected = document.querySelector('.paper-item-modern.is-selected');
     if (!selected) return;
     const payload = await requestJson('/api/queue', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
+        body: JSON.stringify(Object.assign({
             paper_id: selected.dataset.paperId,
             status: 'Inbox'
-        })
+        }, searchWorkspaceContext()))
     });
     showToast('Added to Reading');
 }
 
 async function agentQueueSelectedPaper(status, label) {
-    const selected = document.querySelector('.paper-result-row.is-selected');
+    const selected = document.querySelector('.paper-item-modern.is-selected');
     if (!selected) return;
     const payload = await requestJson('/api/queue', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
+        body: JSON.stringify(Object.assign({
             paper_id: selected.dataset.paperId,
             status: status
-        })
+        }, searchWorkspaceContext()))
     });
     showToast('Added to Reading');
 }
@@ -352,30 +390,15 @@ async function agentCreateWatchFromSearch() {
     showToast('Watch created');
 }
 
-function confirmIntentAndSearch() {
-    const input = document.getElementById('paperAgentSearchInput');
-    if (input) paperAgentSearch({preventDefault: function(){}});
-}
-
-function createWorkspaceQuestion() {
-    showToast('Search directly from this workspace.');
-}
-
-function runWorkspacePlanner() {
-    showToast('Create a research question before running planner.');
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    if (document.querySelector('.paper-result-row.is-selected')) {
+    if (document.querySelector('.paper-item-modern.is-selected')) {
         var ws = document.querySelector('.paper-agent-workspace');
         if (ws) ws.classList.add('has-selection');
     }
-    // Show filter chips on page load if there are results
     var chips = document.getElementById('searchFilterChips');
-    if (chips && document.querySelectorAll('.paper-result-row').length > 0) {
+    if (chips && document.querySelectorAll('.paper-item-modern').length > 0) {
         chips.hidden = false;
     }
-    // Enable search button if there's already a query
     var searchInput = document.getElementById('paperAgentSearchInput');
     var searchBtn = document.getElementById('paperAgentSearchBtn');
     if (searchInput && searchBtn) {
@@ -387,12 +410,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function applySearchFilter(filter) {
-  var chips = document.querySelectorAll('#searchFilterChips .chip');
+  var chips = document.querySelectorAll('#searchFilterChips .chip-modern');
   chips.forEach(function (chip) {
-    chip.classList.toggle('chip-active', chip.dataset.filter === filter);
+    if (chip.dataset.filter === filter) {
+      chip.classList.add('is-active');
+    } else {
+      chip.classList.remove('is-active');
+    }
   });
 
-  var rows = document.querySelectorAll('.paper-result-row');
+  var rows = document.querySelectorAll('.paper-item-modern');
   rows.forEach(function (row) {
     if (filter === 'all') {
       row.hidden = false;

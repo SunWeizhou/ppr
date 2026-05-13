@@ -1,0 +1,175 @@
+{% extends "base_research.html" %}
+
+{% set body_class = (body_class or '') ~ ' page-review' %}
+
+{% block hero %}
+<div class="page-header">
+    <a href="/workspaces/{{ workspace_id }}" class="back-link">&larr; Back to Workspace</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="review-shell">
+    <div class="review-header">
+        <div>
+            <span class="section-kicker">Weekly Review</span>
+            <h1 class="review-title">{{ workspace.get('query_text', 'Untitled Workspace') }}</h1>
+            <p class="review-week">Week of {{ week_start }}</p>
+        </div>
+        <div class="review-header-meta">
+            {% if is_saved %}
+            <span class="chip is-sage js-saved-chip">Saved</span>
+            {% else %}
+            <span class="chip is-muted">Draft</span>
+            {% endif %}
+            <a href="/api/review/{{ workspace_id }}/export?week_start={{ week_start }}" class="btn btn-ghost btn-xs" download>Export .md</a>
+        </div>
+    </div>
+
+    <!-- Summary stats -->
+    {% if event_summary %}
+    <div class="review-stats-row">
+        <div class="review-stat">
+            <strong>{{ event_summary.get('papers_read', 0) }}</strong>
+            <span>read</span>
+        </div>
+        <div class="review-stat">
+            <strong>{{ event_summary.get('papers_added', 0) }}</strong>
+            <span>added</span>
+        </div>
+        <div class="review-stat">
+            <strong>{{ event_summary.get('takeaways_added', 0) }}</strong>
+            <span>takeaways</span>
+        </div>
+        <div class="review-stat">
+            <strong>{% if event_summary.get('memo_updated') %}Yes{% else %}No{% endif %}</strong>
+            <span>memo updated</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Review editor -->
+    <form method="POST" action="/workspaces/{{ workspace_id }}/review" class="review-form">
+        <input type="hidden" name="week_start" value="{{ week_start }}">
+
+        <div class="review-editor-section">
+            <div class="review-editor-toolbar">
+                <span class="toolbar-hint">Markdown supported</span>
+                <div class="review-toolbar-actions">
+                    <button type="submit" class="btn btn-primary btn-sm">Save Review</button>
+                </div>
+            </div>
+            <textarea name="content" class="review-textarea" spellcheck="true">{{ review_content }}</textarea>
+        </div>
+
+        <!-- Reflection prompts -->
+        <div class="review-reflection-section">
+            <h2>Reflection</h2>
+
+            <div class="reflection-prompt">
+                <label class="reflection-label">Which paper changed your understanding most?</label>
+                <input type="text" name="reflection_changing_paper" class="reflection-input"
+                    value="{{ reflection_answers.get('changing_paper', '') }}"
+                    placeholder="e.g., The paper on conformal prediction...">
+            </div>
+
+            <div class="reflection-prompt">
+                <label class="reflection-label">What uncertainty remains?</label>
+                <input type="text" name="reflection_remaining_uncertainty" class="reflection-input"
+                    value="{{ reflection_answers.get('remaining_uncertainty', '') }}"
+                    placeholder="e.g., I'm still unsure about...">
+            </div>
+
+            <div class="reflection-prompt">
+                <label class="reflection-label">What do you want to investigate next week?</label>
+                <input type="text" name="reflection_next_investigation" class="reflection-input"
+                    value="{{ reflection_answers.get('next_investigation', '') }}"
+                    placeholder="e.g., Look into the method section of...">
+            </div>
+        </div>
+
+        <div class="review-actions-bar">
+            <button type="submit" class="btn btn-primary">Save Review</button>
+        </div>
+    </form>
+
+    <!-- Writing Prep Section -->
+    <section class="workspace-section" aria-label="Writing Prep" style="margin-top: 36px;">
+        <div class="workspace-section-head">
+            <h2>Writing Prep</h2>
+        </div>
+        <p class="muted-copy" style="margin-bottom: 12px;">
+            Generate literature review outlines, progress summaries, and more from your workspace activity.
+        </p>
+        <div class="writing-prep-button-row" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+            <button class="btn btn-ghost btn-sm js-writing-prep-btn" data-type="literature-review">
+                Literature Review
+            </button>
+            <button class="btn btn-ghost btn-sm js-writing-prep-btn" data-type="related-work">
+                Related Work
+            </button>
+            <button class="btn btn-ghost btn-sm js-writing-prep-btn" data-type="progress-summary">
+                Progress Summary
+            </button>
+            <button class="btn btn-ghost btn-sm js-writing-prep-btn" data-type="supervisor-update">
+                Supervisor Update
+            </button>
+            <button class="btn btn-ghost btn-sm js-writing-prep-btn" data-type="memo-suggestions">
+                Memo Suggestions
+            </button>
+        </div>
+        <div id="js-writing-prep-output" class="writing-prep-output" style="display: none;">
+            <div class="writing-prep-output-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong id="js-writing-prep-title" class="section-kicker"></strong>
+                <button class="btn btn-ghost btn-xs" onclick="document.getElementById('js-writing-prep-output').style.display='none'">Close</button>
+            </div>
+            <div id="js-writing-prep-content" class="card card-spaced" style="white-space: pre-wrap; font-size: 0.9em;"></div>
+        </div>
+    </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const rqId = {{ workspace_id }};
+    const outputDiv = document.getElementById('js-writing-prep-output');
+    const outputContent = document.getElementById('js-writing-prep-content');
+    const outputTitle = document.getElementById('js-writing-prep-title');
+
+    const LABELS = {
+        'literature-review': 'Literature Review Outline',
+        'related-work': 'Related Work Skeleton',
+        'progress-summary': 'Progress Summary',
+        'supervisor-update': 'Supervisor Update Draft',
+        'memo-suggestions': 'Memo Suggestions',
+    };
+
+    document.querySelectorAll('.js-writing-prep-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const type = this.dataset.type;
+            const label = LABELS[type] || type;
+            outputTitle.textContent = label;
+            outputContent.textContent = 'Generating...';
+            outputDiv.style.display = 'block';
+
+            fetch('/api/writing-prep/' + rqId + '/' + type, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    outputContent.textContent = data.content || JSON.stringify(data, null, 2);
+                } else {
+                    outputContent.textContent = 'Error: ' + (data.error || 'Generation failed');
+                }
+            })
+            .catch(function(err) {
+                outputContent.textContent = 'Request failed: ' + err.message;
+            });
+        });
+    });
+})();
+</script>
+{% endblock %}

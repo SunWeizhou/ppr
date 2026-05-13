@@ -35,8 +35,10 @@ def manage_queue():
         research_question_id=data.get("research_question_id"),
         decision_context=data.get("decision_context", ""),
     )
+
+    store = _current_state_store()
     # Record queue status change interaction event
-    _current_state_store().record_event(
+    store.record_event(
         "queue_status_changed",
         paper_id,
         {
@@ -45,6 +47,16 @@ def manage_queue():
             "decision_context": data.get("decision_context", ""),
         },
     )
+    # Record reading_added event when moving to Inbox
+    if status == "Inbox":
+        store.record_event(
+            "reading_added",
+            paper_id,
+            {
+                "research_question_id": data.get("research_question_id"),
+                "source": data.get("source", "queue_api"),
+            },
+        )
     return jsonify({"success": True, "item": item, "event_id": event_id})
 
 

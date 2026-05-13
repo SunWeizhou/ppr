@@ -3,113 +3,136 @@
 {% set body_class = (body_class or '') ~ ' page-reading' %}
 
 {% block hero %}
-<section class="page-header">
-    <div class="lead">
-        <span class="section-kicker">Reading</span>
-        <h1 class="page-title">Reading</h1>
-        <div class="page-context">Your unified reading list. Mark papers as finished when done.</div>
-    </div>
-    <div class="actions">
-        <a href="/search" class="btn btn-primary btn-sm">Back to Search</a>
-    </div>
-</section>
 {% endblock %}
 
 {% block content %}
-<section>
-    <div class="tabs" role="tablist">
-        <a href="/reading" class="tab {% if tab == 'inbox' %}is-active{% endif %}">To Read ({{ inbox_count }})</a>
-        <a href="/reading?tab=completed" class="tab {% if tab == 'completed' %}is-active{% endif %}">Completed ({{ completed_count }})</a>
-        <a href="/reading?tab=collections" class="tab {% if tab == 'collections' %}is-active{% endif %}">Collections</a>
+<section class="page-content-modern">
+    <!-- Hero -->
+    <div class="hero-modern">
+        <h1 class="hero-modern-title">Reading</h1>
+        <p class="hero-modern-sub">Your unified reading list. Mark papers as finished when done.</p>
+    </div>
+
+    <!-- Workspace filter + tabs -->
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px;">
+        <div class="tabs-modern" role="tablist" style="margin-bottom:0;">
+            <a href="/reading{% if active_workspace_id %}?research_question_id={{ active_workspace_id }}{% endif %}" class="tab-modern {% if tab == 'inbox' %}is-active{% endif %}">To Read ({{ inbox_count }})</a>
+            <a href="/reading?tab=completed{% if active_workspace_id %}&research_question_id={{ active_workspace_id }}{% endif %}" class="tab-modern {% if tab == 'completed' %}is-active{% endif %}">Completed ({{ completed_count }})</a>
+            <a href="/reading?tab=collections" class="tab-modern {% if tab == 'collections' %}is-active{% endif %}">Collections</a>
+        </div>
+        {% if workspaces %}
+        <select class="select-modern" onchange="onWorkspaceFilterChange(this.value)">
+            <option value="">All workspaces</option>
+            {% for ws in workspaces %}
+            <option value="{{ ws.id }}" {% if active_workspace_id == ws.id %}selected{% endif %}>{{ ws.query_text }}</option>
+            {% endfor %}
+        </select>
+        {% endif %}
     </div>
 
     {% if tab == 'inbox' %}
         {% if inbox_items %}
-            <div class="paper-list" id="readingPaperList">
+            <div class="card-modern" style="padding:0; overflow:hidden;" id="readingPaperList">
             {% for paper in inbox_items %}
-                <article class="paper-list-item" data-href="{{ paper.detail_url or ('/papers/' ~ paper.id) }}" data-paper-id="{{ paper.id }}" data-queue-status="{{ paper.queue_status or 'Inbox' }}" data-research-question-id="{{ paper.research_question_id or '' }}" data-decision-context="{{ paper.decision_context or '' }}" data-detail-url="{{ paper.detail_url or ('/papers/' ~ paper.id) }}">
-                    <div class="reading-item-header">
-                        <div class="chip-row">
-                            <span class="chip is-muted">{{ paper.queue_status or 'Inbox' }}</span>
+                <article class="paper-list-item-modern" data-href="{{ paper.detail_url or ('/papers/' ~ paper.id) }}" data-paper-id="{{ paper.id }}" data-queue-status="{{ paper.queue_status or 'Inbox' }}" data-research-question-id="{{ paper.research_question_id or '' }}" data-decision-context="{{ paper.decision_context or '' }}" data-detail-url="{{ paper.detail_url or ('/papers/' ~ paper.id) }}" style="cursor:pointer;">
+                    <div class="paper-list-item-modern-main">
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+                            <span class="chip-modern is-muted" style="font-size:10px;">{{ paper.queue_status or 'Inbox' }}</span>
                             {% for label in paper.category_labels[:2] %}
-                                <span class="chip">{{ label }}</span>
+                                <span class="chip-modern is-muted" style="font-size:10px;">{{ label }}</span>
                             {% endfor %}
                             {% if paper.active_research_question %}
-                                <span class="chip">{{ paper.active_research_question.query_text }}</span>
+                                <span class="chip-modern is-muted" style="font-size:10px;">{{ paper.active_research_question.query_text }}</span>
                             {% endif %}
                             {% if paper.evidence_summary and paper.evidence_summary.total %}
-                                <span class="chip">{{ paper.evidence_summary.total }} evidence</span>
+                                <span class="chip-modern is-muted" style="font-size:10px;">{{ paper.evidence_summary.total }} evidence</span>
                             {% endif %}
                         </div>
-                        <div class="reading-item-actions">
-                            <button type="button" class="btn btn-sage btn-xs" onclick="finishReadingPaper(this, '{{ paper.id }}')">Finish</button>
-                        </div>
+                        <span class="paper-list-item-modern-title">{{ paper.title }}</span>
+                        <span class="paper-list-item-modern-authors">{{ paper.author_text }}</span>
+                        {% if paper.decision_context %}
+                        <span style="font-size:12px; color:var(--ink-3); display:block; margin-top:4px;">{{ paper.decision_context }}</span>
+                        {% endif %}
                     </div>
-                    <h3 class="paper-list-title">{{ paper.title }}</h3>
-                    <div class="paper-authors">{{ paper.author_text }}</div>
-                    {% if paper.decision_context %}
-                    <p class="muted-copy">{{ paper.decision_context }}</p>
-                    {% endif %}
+                    <div class="paper-item-actions-modern">
+                        <button type="button" class="btn-modern btn-modern-primary btn-modern-xs" onclick="event.stopPropagation(); finishReadingPaper(this, '{{ paper.id }}')">Mark as Read</button>
+                    </div>
                 </article>
             {% endfor %}
             </div>
         {% else %}
-            {{ ui.empty_state('Nothing to read yet', 'Build a candidate set from Search, then add papers to your Reading list.', '', '<a href="/search" class="btn btn-primary">Go to Search</a>') }}
+            <div class="card-modern" style="text-align:center; padding:48px 24px;">
+                <h3 style="font-family:var(--ff-display); font-size:18px; color:var(--ink); margin:0 0 8px;">Nothing to read yet</h3>
+                <p style="font-size:13px; color:var(--ink-3); margin:0 0 20px;">Build a candidate set from Search, then add papers to your Reading list.</p>
+                <a href="/search" class="btn-modern btn-modern-primary btn-modern-sm">Go to Search</a>
+            </div>
         {% endif %}
 
     {% elif tab == 'completed' %}
         {% if completed_items %}
-            <div class="paper-list">
+            <div class="card-modern" style="padding:0; overflow:hidden;">
             {% for paper in completed_items %}
-                <article class="paper-list-item" data-href="{{ paper.detail_url or ('/papers/' ~ paper.id) }}" data-paper-id="{{ paper.id }}" data-research-question-id="{{ paper.research_question_id or '' }}" data-decision-context="{{ paper.decision_context or '' }}" data-detail-url="{{ paper.detail_url or ('/papers/' ~ paper.id) }}">
-                    <div class="reading-item-header">
-                        <div class="chip-row">
-                            <span class="chip is-muted">Completed</span>
+                <article class="paper-list-item-modern" data-href="{{ paper.detail_url or ('/papers/' ~ paper.id) }}" data-paper-id="{{ paper.id }}" data-research-question-id="{{ paper.research_question_id or '' }}" data-decision-context="{{ paper.decision_context or '' }}" data-detail-url="{{ paper.detail_url or ('/papers/' ~ paper.id) }}" style="cursor:pointer;">
+                    <div class="paper-list-item-modern-main">
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+                            <span class="chip-modern is-muted" style="font-size:10px;">Completed</span>
                             {% for label in paper.category_labels[:2] %}
-                                <span class="chip">{{ label }}</span>
+                                <span class="chip-modern is-muted" style="font-size:10px;">{{ label }}</span>
                             {% endfor %}
                             {% if paper.active_research_question %}
-                                <span class="chip">{{ paper.active_research_question.query_text }}</span>
+                                <span class="chip-modern is-muted" style="font-size:10px;">{{ paper.active_research_question.query_text }}</span>
                             {% endif %}
                             {% if paper.evidence_summary and paper.evidence_summary.total %}
-                                <span class="chip">{{ paper.evidence_summary.total }} evidence</span>
+                                <span class="chip-modern is-muted" style="font-size:10px;">{{ paper.evidence_summary.total }} evidence</span>
                             {% endif %}
                         </div>
-                        <div class="reading-item-actions">
-                            <button type="button" class="btn btn-ghost btn-xs" onclick="unfinishReadingPaper(this, '{{ paper.id }}')">Move to Reading</button>
+                        <span class="paper-list-item-modern-title">{{ paper.title }}</span>
+                        <span class="paper-list-item-modern-authors">{{ paper.author_text }}</span>
+                        {% if paper.decision_context %}
+                        <span style="font-size:12px; color:var(--ink-3); display:block; margin-top:4px;">{{ paper.decision_context }}</span>
+                        {% endif %}
+                        {% if paper.takeaway %}
+                        <div style="font-size:12px; color:var(--accent); font-style:italic; margin-top:6px; padding:8px 12px; background:var(--bg); border-radius:8px;">
+                            {{ paper.takeaway.takeaway_text }}
                         </div>
+                        {% endif %}
                     </div>
-                    <h3 class="paper-list-title">{{ paper.title }}</h3>
-                    <div class="paper-authors">{{ paper.author_text }}</div>
-                    {% if paper.decision_context %}
-                    <p class="muted-copy">{{ paper.decision_context }}</p>
-                    {% endif %}
+                    <div class="paper-item-actions-modern">
+                        <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="event.stopPropagation(); unfinishReadingPaper(this, '{{ paper.id }}')">Move to Reading</button>
+                    </div>
                 </article>
             {% endfor %}
             </div>
         {% else %}
-            {{ ui.empty_state('No completed papers', 'Mark papers as finished when you have read them.', '', '<a href="/reading" class="btn btn-primary">Go to Reading</a>') }}
+            <div class="card-modern" style="text-align:center; padding:48px 24px;">
+                <h3 style="font-family:var(--ff-display); font-size:18px; color:var(--ink); margin:0 0 8px;">No completed papers</h3>
+                <p style="font-size:13px; color:var(--ink-3); margin:0 0 20px;">Mark papers as finished when you have read them.</p>
+                <a href="/reading" class="btn-modern btn-modern-primary btn-modern-sm">Go to Reading</a>
+            </div>
         {% endif %}
 
     {% elif tab == 'collections' %}
         {% if all_collections %}
-            <div class="card">
+            <div class="card-modern" style="padding:0; overflow:hidden;">
             {% for collection in all_collections %}
-                <a href="/reading?tab=collections&collection_id={{ collection.id }}" class="list-strip-item">
-                    <div>
-                        <div class="list-item-title">{{ collection.name }}</div>
+                <a href="/reading?tab=collections&collection_id={{ collection.id }}" class="paper-list-item-modern" style="text-decoration:none;">
+                    <div class="paper-list-item-modern-main">
+                        <span class="paper-list-item-modern-title">{{ collection.name }}</span>
                         {% if collection.description %}
-                            <div class="list-item-meta">{{ collection.description[:120] }}{% if collection.description|length > 120 %}…{% endif %}</div>
+                        <span class="paper-list-item-modern-authors">{{ collection.description[:120] }}{% if collection.description|length > 120 %}…{% endif %}</span>
                         {% endif %}
                     </div>
-                    <span class="chip is-muted">{{ collection.paper_count or 0 }}</span>
+                    <span class="chip-modern is-muted">{{ collection.paper_count or 0 }}</span>
                 </a>
             {% endfor %}
             </div>
         {% else %}
-            {{ ui.empty_state('No collections', 'Create a collection to organize papers by research topic.', '', '<a href="/reading?tab=collections" class="btn btn-primary">Manage</a>') }}
+            <div class="card-modern" style="text-align:center; padding:48px 24px;">
+                <h3 style="font-family:var(--ff-display); font-size:18px; color:var(--ink); margin:0 0 8px;">No collections</h3>
+                <p style="font-size:13px; color:var(--ink-3); margin:0 0 20px;">Create a collection to organize papers by research topic.</p>
+                <a href="/reading?tab=collections" class="btn-modern btn-modern-primary btn-modern-sm">Manage</a>
+            </div>
         {% endif %}
-
     {% endif %}
 </section>
 {% endblock %}
@@ -118,26 +141,43 @@
 {{ super() }}
 <script>
 function finishReadingPaper(button, paperId) {
-  const item = button.closest('.paper-list-item');
+  const item = button.closest('.paper-list-item-modern');
   const questionId = item?.dataset.researchQuestionId || '';
-  const decisionContext = item?.dataset.decisionContext || '';
-  return queuePaperStatus(paperId, 'Completed', {
-    source: 'reading_page',
-    research_question_id: questionId ? Number(questionId) : null,
-    decision_context: decisionContext
+  item?.classList.add('is-user-hidden');
+  fetch('/api/reading/mark-read', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      paper_id: paperId,
+      research_question_id: questionId ? Number(questionId) : null,
+      source: 'reading_page'
+    })
+  }).then(function(resp) { return resp.json(); }).then(function(data) {
+    if (!data.success) throw new Error(data.error || 'Failed');
+    var takeaway = prompt('Add a one-line takeaway? (optional — leave blank to skip)');
+    if (takeaway && takeaway.trim()) {
+      return fetch('/api/reading/takeaway', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          paper_id: paperId,
+          research_question_id: questionId ? Number(questionId) : null,
+          takeaway_text: takeaway.trim()
+        })
+      });
+    }
   }).then(function() {
     item?.remove();
-    showToast('Marked as finished');
+    showToast('Marked as read');
   }).catch(function(error) {
+    item?.classList.remove('is-user-hidden');
     showToast('Failed: ' + error.message, 'error');
   });
 }
 
 function unfinishReadingPaper(button, paperId) {
-  const item = button.closest('.paper-list-item');
-  return queuePaperStatus(paperId, 'Inbox', {
-    source: 'reading_page'
-  }).then(function() {
+  const item = button.closest('.paper-list-item-modern');
+  return queuePaperStatus(paperId, 'Inbox', {source: 'reading_page'}).then(function() {
     item?.remove();
     showToast('Moved back to Reading');
   }).catch(function(error) {
@@ -145,11 +185,16 @@ function unfinishReadingPaper(button, paperId) {
   });
 }
 
+function onWorkspaceFilterChange(workspaceId) {
+  var tab = new URLSearchParams(window.location.search).get('tab') || 'inbox';
+  var url = '/reading' + (workspaceId ? '?research_question_id=' + workspaceId + '&tab=' + tab : '?tab=' + tab);
+  window.location.href = url;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-  // Card clicks → navigate to paper detail
   document.getElementById('readingPaperList')?.addEventListener('click', function(e) {
     if (e.target.closest('button') || e.target.closest('a')) return;
-    var article = e.target.closest('.paper-list-item');
+    var article = e.target.closest('.paper-list-item-modern');
     if (article && article.dataset.href) {
       window.location.href = article.dataset.href;
     }

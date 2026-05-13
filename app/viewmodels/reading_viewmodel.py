@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from app.services.queue_service import QueueService
 from app.viewmodels.library_viewmodel import LibraryViewModel
 from app.viewmodels.shared import assemble_page_context, serialize_collection
@@ -14,7 +16,31 @@ class ReadingViewModel:
     def __init__(self, state_store):
         self._store = state_store
 
-    def to_template_context(self, *, tab: str = "inbox"):
+    def _decorate_with_takeaway(self, papers: list) -> list:
+        """Attach takeaway data to each paper in the list."""
+        for paper in papers:
+            rqid = paper.get("research_question_id")
+            takeaway = self._store.get_reading_takeaway(
+                paper.get("id", ""),
+                research_question_id=rqid,
+            )
+            paper["takeaway"] = takeaway
+        return papers
+
+    def _load_workspaces_for_filter(self) -> list:
+        """Load research questions as workspace filter options."""
+        questions = self._store.list_research_questions(status="active")
+        return [
+            {"id": q["id"], "query_text": q["query_text"]}
+            for q in (questions or [])
+        ]
+
+    def to_template_context(
+        self,
+        *,
+        tab: str = "inbox",
+        research_question_id: Optional[int] = None,
+    ):
         base = assemble_page_context(self._store, active_tab="reading")
         queue_service = QueueService(self._store)
         all_status_counts = queue_service.count_by_status()
@@ -22,11 +48,28 @@ class ReadingViewModel:
         def _valid(paper: dict) -> bool:
             return paper.get("source") != "placeholder"
 
-        inbox_items = [p for p in queue_service.resolve_papers(status="Inbox") if _valid(p)]
-        completed_items = [p for p in queue_service.resolve_papers(status="Completed") if _valid(p)]
+        inbox_items = [
+            p for p in queue_service.resolve_papers(status="Inbox")
+            if _valid(p) and (
+                research_question_id is None
+                or p.get("research_question_id") == research_question_id
+            )
+        ]
+        completed_items = [
+            p for p in queue_service.resolve_papers(status="Completed")
+            if _valid(p) and (
+                research_question_id is None
+                or p.get("research_question_id") == research_question_id
+            )
+        ]
 
         library_vm = LibraryViewModel(self._store)
         library_ctx = library_vm.to_template_context(tab="collections")
+
+        self._decorate_with_takeaway(inbox_items)
+        self._decorate_with_takeaway(completed_items)
+
+        workspaces = self._load_workspaces_for_filter()
 
         context = {
             "title": "Reading - Paper Agent",
@@ -41,6 +84,8 @@ class ReadingViewModel:
             "collections_raw": library_ctx.get("collections_raw", base.get("all_collections", [])),
             "inbox_count": len(inbox_items),
             "completed_count": len(completed_items),
+            "workspaces": workspaces,
+            "active_workspace_id": research_question_id,
         }
         context.update(base)
         return context

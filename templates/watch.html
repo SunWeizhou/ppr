@@ -4,481 +4,426 @@
 {% set body_class = (body_class or '') ~ ' page-watch' %}
 
 {% block hero %}
-<section class="page-header">
-    <div class="lead">
-        <span class="section-kicker" data-i18n="nav.subscriptions">Subscriptions</span>
-        <h1 class="page-title">Subscriptions</h1>
-        <div class="page-context">
-            Track journals, conferences, scholars, and fields across your subscriptions.
-        </div>
-    </div>
-    <div class="actions">
-        <a href="/search" class="btn btn-primary btn-sm">Back to Search</a>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="runAllSubscriptions()">
-            <span data-i18n="watch.refresh_all">Refresh</span>
-        </button>
-    </div>
-</section>
 {% endblock %}
 
 {% block content %}
-
-{# Tab navigation #}
-<div class="tabs watch-tabs" role="tablist">
-    <button class="tab-button is-active" data-tab="journals" role="tab" aria-selected="true" onclick="switchWatchTab('journals', this)">Journals</button>
-    <button class="tab-button" data-tab="conferences" role="tab" aria-selected="false" onclick="switchWatchTab('conferences', this)">Conferences</button>
-    <button class="tab-button" data-tab="scholars" role="tab" aria-selected="false" onclick="switchWatchTab('scholars', this)">Scholars</button>
-    <button class="tab-button" data-tab="fields" role="tab" aria-selected="false" onclick="switchWatchTab('fields', this)">Fields</button>
-</div>
-
-{# =============================================
-   Journals (includes saved searches + journal subscriptions)
-   ============================================= #}
-<section class="watch-section" data-watch-tab="journals">
-    {# Saved search subscriptions #}
-    <div class="watch-section-header">
-        <h2 class="section-heading">
-            Saved Searches
-            <span class="chip is-muted">Topic</span>
-        </h2>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="createQuerySubscription()">New</button>
+<section class="page-content-modern">
+    <!-- Hero -->
+    <div class="hero-modern">
+        <h1 class="hero-modern-title">Subscriptions</h1>
+        <p class="hero-modern-sub">Track journals, conferences, scholars, and fields across your subscriptions.</p>
     </div>
 
-    {% if query_subs %}
-    <div class="watch-sub-list">
-        {% for sub in query_subs %}
-        <div class="card watch-sub-card" data-sub-type="query">
-            <div class="watch-sub-card-header">
-                <div>
-                    <h3 class="watch-sub-card-name">{{ sub.name }}</h3>
-                    <div class="watch-sub-card-meta">
-                        {% if sub.query_text %}
-                        <span class="watch-sub-meta-item">
-                            <code>{{ sub.query_text[:80] }}{% if sub.query_text|length > 80 %}&hellip;{% endif %}</code>
-                        </span>
-                        {% endif %}
-                        <span class="watch-sub-meta-item">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
-                        <span class="chip is-muted">Source health: {{ sub.source_health.label }}</span>
-                        {% if not sub.enabled %}<span class="chip is-warn">disabled</span>{% endif %}
-                    </div>
-                </div>
-                <span class="chip">{{ sub.latest_hit_count }} hits</span>
-            </div>
+    {# Tab navigation #}
+    <div class="tabs-modern" role="tablist">
+        <button class="tab-modern is-active" data-tab="journals" role="tab" aria-selected="true" onclick="switchWatchTab('journals', this)">Journals</button>
+        <button class="tab-modern" data-tab="conferences" role="tab" aria-selected="false" onclick="switchWatchTab('conferences', this)">Conferences</button>
+        <button class="tab-modern" data-tab="scholars" role="tab" aria-selected="false" onclick="switchWatchTab('scholars', this)">Scholars</button>
+        <button class="tab-modern" data-tab="fields" role="tab" aria-selected="false" onclick="switchWatchTab('fields', this)">Fields</button>
+        <div style="margin-left:auto; display:flex; gap:8px;">
+            <button type="button" class="btn-modern btn-modern-ghost btn-modern-sm" onclick="runAllSubscriptions()">Refresh</button>
+        </div>
+    </div>
 
-            {% if sub.research_question %}
-            <div class="watch-sub-card-meta" style="padding: 0 var(--s-4) var(--s-2);">
-                <span class="chip is-muted">RQ: {{ sub.research_question.query_text[:48] }}{% if sub.research_question.query_text|length > 48 %}&hellip;{% endif %}</span>
-                {% if sub.workspace_stats %}
-                <span class="chip">{{ sub.workspace_stats.undecided_count }} Inbox</span>
-                <span class="chip is-muted">{{ sub.workspace_stats.active_reading_count }} Reading</span>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            {% if sub.recent_hits %}
-            <div class="watch-sub-hits">
-                {% for hit in sub.recent_hits %}
-                <div class="watch-sub-hit" data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}">
-                    <span class="watch-sub-hit-arrow">&#9656;</span>
-                    <a href="{{ hit.detail_url }}" class="watch-sub-hit-title">{{ hit.title }}</a>
-                    {% if hit.hit_status %}<span class="chip is-muted js-hit-status">{{ hit.hit_status }}</span>{% endif %}
-                    {% if hit.summary_short %}
-                    <div class="watch-sub-hit-summary">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
-                    {% endif %}
-                    {% if hit.matched_reason %}<span class="watch-sub-hit-reason">{{ hit.matched_reason }}</span>{% endif %}
-                    {% if hit.author_text %}
-                    <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
-                    {% endif %}
-                    <div class="watch-sub-hit-actions">
-                        <a class="btn btn-ghost btn-xs" href="{{ hit.detail_url }}">Preview</a>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs"
-                            data-hit-action="send-to-inbox"
-                            onclick="sendHitToInbox({{ hit.id }}, this)"
-                            {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}
-                        >Send to Reading</button>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs"
-                            onclick="ignoreSubscriptionHit({{ hit.id }}, this)"
-                            {% if hit.hit_status == 'ignored' %}disabled{% endif %}
-                        >Ignore</button>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs"
-                            onclick="createCollectionFromHit({{ hit.paper_id|tojson }}, {{ hit.title|tojson }})"
-                        >Create collection</button>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <div class="watch-sub-card-actions">
-                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
-                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }}, this)">Edit</button>
-                {% if sub.entity_id %}
-                <a href="/entities/{{ sub.entity_id }}" class="btn btn-ghost btn-xs">View Profile</a>
-                {% endif %}
+    {# =============================================
+       Journals (includes saved searches + journal subscriptions)
+       ============================================= #}
+    <section class="ws-section-modern" data-watch-tab="journals">
+        {# Saved search subscriptions #}
+        <div class="ws-section-head-modern">
+            <h2>Saved Searches</h2>
+            <div style="display:flex; gap:8px;">
+                <span class="chip-modern is-muted">Topic</span>
+                <button type="button" class="btn-modern btn-modern-ghost btn-modern-sm" onclick="createQuerySubscription()">New</button>
             </div>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    {{ ui.empty_state('No saved searches yet', 'Create a saved search from Search, or ask Paper Agent to monitor a topic.', '', '<button type="button" class="btn btn-primary btn-sm" onclick="window.location.href=\'/search\'">Create a search</button><button type="button" class="btn btn-ghost btn-sm" onclick="togglePaperAgent(true)">Ask Paper Agent to monitor</button>') }}
-    {% endif %}
 
-    {% if journal_subs %}
-    <div class="watch-section-header" style="margin-top:24px;">
-        <h2 class="section-heading">
-            Journals
-            <span class="chip is-muted">Journal</span>
-        </h2>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="createVenueSubscription()">New</button>
-    </div>
-    <div class="watch-sub-list">
-        {% for sub in journal_subs %}
-        <div class="card watch-sub-card" data-sub-type="venue">
-            <div class="watch-sub-card-header">
-                <div>
-                    <h3 class="watch-sub-card-name">{{ sub.name }}</h3>
-                    <div class="watch-sub-card-meta">
-                        <span class="watch-sub-meta-item chip is-muted">{{ sub.venue_type }}</span>
-                        <span class="watch-sub-meta-item">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
-                        <span class="chip is-muted">Source health: {{ sub.source_health.label }}</span>
-                        {% if not sub.enabled %}<span class="chip is-warn">disabled</span>{% endif %}
+        {% if query_subs %}
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            {% for sub in query_subs %}
+            <div class="card-modern" data-sub-type="query">
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px;">
+                    <div style="min-width:0;">
+                        <h3 style="font-family:var(--ff-display); font-size:16px; font-weight:600; color:var(--ink); margin:0 0 6px;">{{ sub.name }}</h3>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                            {% if sub.query_text %}
+                            <code style="font-size:11px; color:var(--ink-3); background:var(--bg); padding:2px 6px; border-radius:4px;">{{ sub.query_text[:80] }}{% if sub.query_text|length > 80 %}&hellip;{% endif %}</code>
+                            {% endif %}
+                            <span style="font-size:11px; color:var(--ink-3);">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
+                            <span class="chip-modern is-muted" style="font-size:10px;">{{ sub.source_health.label }}</span>
+                            {% if not sub.enabled %}<span class="chip-modern is-muted" style="font-size:10px;">disabled</span>{% endif %}
+                        </div>
                     </div>
+                    <span class="chip-modern" style="flex-shrink:0;">{{ sub.latest_hit_count }} hits</span>
                 </div>
-                <span class="chip">{{ sub.latest_hit_count }} hits</span>
-            </div>
 
-            {% if sub.research_question %}
-            <div class="watch-sub-card-meta" style="padding: 0 var(--s-4) var(--s-2);">
-                <span class="chip is-muted">RQ: {{ sub.research_question.query_text[:48] }}{% if sub.research_question.query_text|length > 48 %}&hellip;{% endif %}</span>
-                {% if sub.workspace_stats %}
-                <span class="chip">{{ sub.workspace_stats.undecided_count }} Inbox</span>
-                <span class="chip is-muted">{{ sub.workspace_stats.active_reading_count }} Reading</span>
+                {% if sub.research_question %}
+                <div style="display:flex; gap:6px; padding:0 0 8px;">
+                    <span class="chip-modern is-muted">RQ: {{ sub.research_question.query_text[:48] }}{% if sub.research_question.query_text|length > 48 %}&hellip;{% endif %}</span>
+                    {% if sub.workspace_stats %}
+                    <span class="chip-modern is-muted">{{ sub.workspace_stats.undecided_count }} Inbox</span>
+                    <span class="chip-modern is-muted">{{ sub.workspace_stats.active_reading_count }} Reading</span>
+                    {% endif %}
+                </div>
                 {% endif %}
-            </div>
-            {% endif %}
 
-            {% if sub.recent_hits %}
-            <div class="watch-sub-hits">
-                {% for hit in sub.recent_hits %}
-                <div class="watch-sub-hit" data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}">
-                    <span class="watch-sub-hit-arrow">&#9656;</span>
-                    <a href="{{ hit.detail_url }}" class="watch-sub-hit-title">{{ hit.title }}</a>
-                    {% if hit.hit_status %}<span class="chip is-muted js-hit-status">{{ hit.hit_status }}</span>{% endif %}
-                    {% if hit.summary_short %}
-                    <div class="watch-sub-hit-summary">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
-                    {% endif %}
-                    {% if hit.matched_reason %}<span class="watch-sub-hit-reason">{{ hit.matched_reason }}</span>{% endif %}
-                    {% if hit.author_text %}
-                    <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
-                    {% endif %}
-                    <div class="watch-sub-hit-actions">
-                        <a class="btn btn-ghost btn-xs" href="{{ hit.detail_url }}">Preview</a>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs"
-                            data-hit-action="send-to-inbox"
-                            onclick="sendHitToInbox({{ hit.id }}, this)"
-                            {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}
-                        >Send to Reading</button>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs"
-                            onclick="ignoreSubscriptionHit({{ hit.id }}, this)"
-                            {% if hit.hit_status == 'ignored' %}disabled{% endif %}
-                        >Ignore</button>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs"
-                            onclick="createCollectionFromHit({{ hit.paper_id|tojson }}, {{ hit.title|tojson }})"
-                        >Create collection</button>
+                {% if sub.recent_hits %}
+                <div style="border-top:1px solid var(--line-subtle); padding-top:10px;">
+                    {% for hit in sub.recent_hits %}
+                    <div data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}" style="display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--line-subtle);">
+                        <span style="color:var(--ink-3); font-size:11px; margin-top:2px;">&#9656;</span>
+                        <div style="min-width:0; flex:1;">
+                            <a href="{{ hit.detail_url }}" style="font-size:13px; font-weight:500; color:var(--ink); text-decoration:none;">{{ hit.title }}</a>
+                            {% if hit.hit_status %}<span class="chip-modern is-muted" style="font-size:10px;">{{ hit.hit_status }}</span>{% endif %}
+                            {% if hit.summary_short %}
+                            <div style="font-size:12px; color:var(--ink-3); margin-top:2px;">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
+                            {% endif %}
+                            {% if hit.matched_reason %}<span style="font-size:11px; color:var(--ink-3); display:block; margin-top:2px;">{{ hit.matched_reason }}</span>{% endif %}
+                            {% if hit.author_text %}
+                            <div style="font-size:11px; color:var(--ink-3); margin-top:2px;">{{ hit.author_text[:80] }}</div>
+                            {% endif %}
+                            <div style="display:flex; gap:6px; margin-top:6px;">
+                                <a class="btn-modern btn-modern-ghost btn-modern-xs" href="{{ hit.detail_url }}">Preview</a>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" data-hit-action="send-to-inbox" onclick="sendHitToInbox({{ hit.id }}, this)" {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}>Send to Reading</button>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="ignoreSubscriptionHit({{ hit.id }}, this)" {% if hit.hit_status == 'ignored' %}disabled{% endif %}>Ignore</button>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="createCollectionFromHit({{ hit.paper_id|tojson }}, {{ hit.title|tojson }})">Create collection</button>
+                            </div>
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-            {% endif %}
+                {% endif %}
 
-            <div class="watch-sub-card-actions">
-                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
-                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }}, this)">Edit</button>
-                {% if sub.homepage_url %}
-                <a href="{{ sub.homepage_url }}" target="_blank" class="btn btn-ghost btn-xs">Website</a>
-                {% endif %}
-                {% if sub.entity_id %}
-                <a href="/entities/{{ sub.entity_id }}" class="btn btn-ghost btn-xs">View Profile</a>
-                {% endif %}
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
+                    <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="editSubscription({{ sub.id }}, this)">Edit</button>
+                    {% if sub.entity_id %}
+                    <a href="/entities/{{ sub.entity_id }}" class="btn-modern btn-modern-ghost btn-modern-xs">View Profile</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-modern" style="text-align:center; padding:48px 24px;">
+            <h3 style="font-family:var(--ff-display); font-size:18px; color:var(--ink); margin:0 0 8px;">No saved searches yet</h3>
+            <p style="font-size:13px; color:var(--ink-3); margin:0 0 20px;">Create a saved search from Search, or ask Paper Agent to monitor a topic.</p>
+            <div style="display:flex; gap:8px; justify-content:center;">
+                <button type="button" class="btn-modern btn-modern-primary btn-modern-sm" onclick="window.location.href='/search'">Create a search</button>
+                <button type="button" class="btn-modern btn-modern-ghost btn-modern-sm" onclick="togglePaperAgent(true)">Ask Paper Agent to monitor</button>
             </div>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    {{ ui.empty_state('No journals tracked', 'Add a journal to track its new papers.', '', '<button type="button" class="btn btn-primary btn-sm" onclick="createVenueSubscription()">Add journal</button>') }}
-    {% endif %}
-</section>
+        {% endif %}
 
-{# =============================================
-   Conferences
-   ============================================= #}
-<section class="watch-section" data-watch-tab="conferences" hidden>
-    <div class="watch-section-header">
-        <h2 class="section-heading">
-            Conferences
-            <span class="chip is-muted">Conference</span>
-        </h2>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="createVenueSubscription()">New</button>
-    </div>
-
-    {% if conference_subs %}
-    <div class="watch-sub-list">
-        {% for sub in conference_subs %}
-        <div class="card watch-sub-card" data-sub-type="venue">
-            <div class="watch-sub-card-header">
-                <div>
-                    <h3 class="watch-sub-card-name">{{ sub.name }}</h3>
-                    <div class="watch-sub-card-meta">
-                        <span class="watch-sub-meta-item chip is-muted">{{ sub.venue_type }}</span>
-                        <span class="watch-sub-meta-item">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
-                        <span class="chip is-muted">Source health: {{ sub.source_health.label }}</span>
-                        {% if not sub.enabled %}<span class="chip is-warn">disabled</span>{% endif %}
-                    </div>
-                </div>
-                <span class="chip">{{ sub.latest_hit_count }} hits</span>
-            </div>
-
-            {% if sub.research_question %}
-            <div class="watch-sub-card-meta" style="padding: 0 var(--s-4) var(--s-2);">
-                <span class="chip is-muted">RQ: {{ sub.research_question.query_text[:48] }}{% if sub.research_question.query_text|length > 48 %}&hellip;{% endif %}</span>
-                {% if sub.workspace_stats %}
-                <span class="chip">{{ sub.workspace_stats.undecided_count }} Inbox</span>
-                <span class="chip is-muted">{{ sub.workspace_stats.active_reading_count }} Reading</span>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            {% if sub.recent_hits %}
-            <div class="watch-sub-hits">
-                {% for hit in sub.recent_hits %}
-                <div class="watch-sub-hit" data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}">
-                    <span class="watch-sub-hit-arrow">&#9656;</span>
-                    <a href="{{ hit.detail_url }}" class="watch-sub-hit-title">{{ hit.title }}</a>
-                    {% if hit.hit_status %}<span class="chip is-muted js-hit-status">{{ hit.hit_status }}</span>{% endif %}
-                    {% if hit.summary_short %}
-                    <div class="watch-sub-hit-summary">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
-                    {% endif %}
-                    {% if hit.matched_reason %}<span class="watch-sub-hit-reason">{{ hit.matched_reason }}</span>{% endif %}
-                    {% if hit.author_text %}
-                    <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
-                    {% endif %}
-                    <div class="watch-sub-hit-actions">
-                        <a class="btn btn-ghost btn-xs" href="{{ hit.detail_url }}">Preview</a>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs"
-                            data-hit-action="send-to-inbox"
-                            onclick="sendHitToInbox({{ hit.id }}, this)"
-                            {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}
-                        >Send to Reading</button>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs"
-                            onclick="ignoreSubscriptionHit({{ hit.id }}, this)"
-                            {% if hit.hit_status == 'ignored' %}disabled{% endif %}
-                        >Ignore</button>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs"
-                            onclick="createCollectionFromHit({{ hit.paper_id|tojson }}, {{ hit.title|tojson }})"
-                        >Create collection</button>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <div class="watch-sub-card-actions">
-                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
-                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }}, this)">Edit</button>
-                {% if sub.homepage_url %}
-                <a href="{{ sub.homepage_url }}" target="_blank" class="btn btn-ghost btn-xs">Website</a>
-                {% endif %}
-                {% if sub.entity_id %}
-                <a href="/entities/{{ sub.entity_id }}" class="btn btn-ghost btn-xs">View Profile</a>
-                {% endif %}
+        {% if journal_subs %}
+        <div class="ws-section-head-modern" style="margin-top:28px;">
+            <h2>Journals</h2>
+            <div style="display:flex; gap:8px;">
+                <span class="chip-modern is-muted">Journal</span>
+                <button type="button" class="btn-modern btn-modern-ghost btn-modern-sm" onclick="createVenueSubscription()">New</button>
             </div>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    {{ ui.empty_state('No conferences tracked', 'Add a conference to track its new papers.', '', '<button type="button" class="btn btn-primary btn-sm" onclick="createVenueSubscription()">Add conference</button>') }}
-    {% endif %}
-</section>
-
-{# =============================================
-   Scholars
-   ============================================= #}
-<section class="watch-section" data-watch-tab="scholars" hidden>
-    <div class="watch-section-header">
-        <h2 class="section-heading">
-            Scholars
-            <span class="chip is-muted">Scholar</span>
-        </h2>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="createAuthorSubscription()">New</button>
-    </div>
-
-    {% if author_subs %}
-    <div class="watch-sub-list">
-        {% for sub in author_subs %}
-        <div class="card watch-sub-card" data-sub-type="author">
-            <div class="watch-sub-card-header">
-                <div>
-                    <h3 class="watch-sub-card-name">{{ sub.name }}</h3>
-                    <div class="watch-sub-card-meta">
-                        {% if sub.affiliation %}<span class="watch-sub-meta-item">{{ sub.affiliation }}</span>{% endif %}
-                        {% if sub.focus %}<span class="watch-sub-meta-item">{{ sub.focus }}</span>{% endif %}
-                        <span class="watch-sub-meta-item">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
-                        <span class="chip is-muted">Source health: {{ sub.source_health.label }}</span>
-                        {% if not sub.enabled %}<span class="chip is-warn">disabled</span>{% endif %}
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            {% for sub in journal_subs %}
+            <div class="card-modern" data-sub-type="venue">
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px;">
+                    <div style="min-width:0;">
+                        <h3 style="font-family:var(--ff-display); font-size:16px; font-weight:600; color:var(--ink); margin:0 0 6px;">{{ sub.name }}</h3>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                            <span class="chip-modern is-muted" style="font-size:10px;">{{ sub.venue_type }}</span>
+                            <span style="font-size:11px; color:var(--ink-3);">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
+                            <span class="chip-modern is-muted" style="font-size:10px;">{{ sub.source_health.label }}</span>
+                            {% if not sub.enabled %}<span class="chip-modern is-muted" style="font-size:10px;">disabled</span>{% endif %}
+                        </div>
                     </div>
+                    <span class="chip-modern" style="flex-shrink:0;">{{ sub.latest_hit_count }} hits</span>
                 </div>
-                <span class="chip">{{ sub.latest_hit_count }} hits</span>
-            </div>
 
-            {% if sub.research_question %}
-            <div class="watch-sub-card-meta" style="padding: 0 var(--s-4) var(--s-2);">
-                <span class="chip is-muted">RQ: {{ sub.research_question.query_text[:48] }}{% if sub.research_question.query_text|length > 48 %}&hellip;{% endif %}</span>
-                {% if sub.workspace_stats %}
-                <span class="chip">{{ sub.workspace_stats.undecided_count }} Inbox</span>
-                <span class="chip is-muted">{{ sub.workspace_stats.active_reading_count }} Reading</span>
+                {% if sub.research_question %}
+                <div style="display:flex; gap:6px; padding:0 0 8px;">
+                    <span class="chip-modern is-muted">RQ: {{ sub.research_question.query_text[:48] }}{% if sub.research_question.query_text|length > 48 %}&hellip;{% endif %}</span>
+                    {% if sub.workspace_stats %}
+                    <span class="chip-modern is-muted">{{ sub.workspace_stats.undecided_count }} Inbox</span>
+                    <span class="chip-modern is-muted">{{ sub.workspace_stats.active_reading_count }} Reading</span>
+                    {% endif %}
+                </div>
                 {% endif %}
-            </div>
-            {% endif %}
 
-            {% if sub.recent_hits %}
-            <div class="watch-sub-hits">
-                {% for hit in sub.recent_hits %}
-                <div class="watch-sub-hit" data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}">
-                    <span class="watch-sub-hit-arrow">&#9656;</span>
-                    <a href="{{ hit.detail_url }}" class="watch-sub-hit-title">{{ hit.title }}</a>
-                    {% if hit.hit_status %}<span class="chip is-muted js-hit-status">{{ hit.hit_status }}</span>{% endif %}
-                    {% if hit.summary_short %}
-                    <div class="watch-sub-hit-summary">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
-                    {% endif %}
-                    {% if hit.matched_reason %}<span class="watch-sub-hit-reason">{{ hit.matched_reason }}</span>{% endif %}
-                    {% if hit.author_text %}
-                    <div class="watch-sub-hit-authors muted-copy">{{ hit.author_text[:80] }}</div>
-                    {% endif %}
-                    <div class="watch-sub-hit-actions">
-                        <a class="btn btn-ghost btn-xs" href="{{ hit.detail_url }}">Preview</a>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs"
-                            data-hit-action="send-to-inbox"
-                            onclick="sendHitToInbox({{ hit.id }}, this)"
-                            {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}
-                        >Send to Reading</button>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs"
-                            onclick="ignoreSubscriptionHit({{ hit.id }}, this)"
-                            {% if hit.hit_status == 'ignored' %}disabled{% endif %}
-                        >Ignore</button>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs"
-                            onclick="createCollectionFromHit({{ hit.paper_id|tojson }}, {{ hit.title|tojson }})"
-                        >Create collection</button>
+                {% if sub.recent_hits %}
+                <div style="border-top:1px solid var(--line-subtle); padding-top:10px;">
+                    {% for hit in sub.recent_hits %}
+                    <div data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}" style="display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--line-subtle);">
+                        <span style="color:var(--ink-3); font-size:11px; margin-top:2px;">&#9656;</span>
+                        <div style="min-width:0; flex:1;">
+                            <a href="{{ hit.detail_url }}" style="font-size:13px; font-weight:500; color:var(--ink); text-decoration:none;">{{ hit.title }}</a>
+                            {% if hit.hit_status %}<span class="chip-modern is-muted" style="font-size:10px;">{{ hit.hit_status }}</span>{% endif %}
+                            {% if hit.summary_short %}
+                            <div style="font-size:12px; color:var(--ink-3); margin-top:2px;">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
+                            {% endif %}
+                            {% if hit.matched_reason %}<span style="font-size:11px; color:var(--ink-3); display:block; margin-top:2px;">{{ hit.matched_reason }}</span>{% endif %}
+                            {% if hit.author_text %}
+                            <div style="font-size:11px; color:var(--ink-3); margin-top:2px;">{{ hit.author_text[:80] }}</div>
+                            {% endif %}
+                            <div style="display:flex; gap:6px; margin-top:6px;">
+                                <a class="btn-modern btn-modern-ghost btn-modern-xs" href="{{ hit.detail_url }}">Preview</a>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" data-hit-action="send-to-inbox" onclick="sendHitToInbox({{ hit.id }}, this)" {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}>Send to Reading</button>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="ignoreSubscriptionHit({{ hit.id }}, this)" {% if hit.hit_status == 'ignored' %}disabled{% endif %}>Ignore</button>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="createCollectionFromHit({{ hit.paper_id|tojson }}, {{ hit.title|tojson }})">Create collection</button>
+                            </div>
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="watch-sub-no-hits muted-copy">No new hits</div>
-            {% endif %}
-
-            <div class="watch-sub-card-actions">
-                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
-                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }}, this)">Edit</button>
-                {% for link in sub.links %}
-                <a href="{{ link.href }}" target="_blank" class="btn btn-ghost btn-xs">{{ link.label }}</a>
-                {% endfor %}
-                {% if sub.entity_id %}
-                <a href="/entities/{{ sub.entity_id }}" class="btn btn-ghost btn-xs">View Profile</a>
                 {% endif %}
+
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
+                    <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="editSubscription({{ sub.id }}, this)">Edit</button>
+                    {% if sub.homepage_url %}
+                    <a href="{{ sub.homepage_url }}" target="_blank" class="btn-modern btn-modern-ghost btn-modern-xs">Website</a>
+                    {% endif %}
+                    {% if sub.entity_id %}
+                    <a href="/entities/{{ sub.entity_id }}" class="btn-modern btn-modern-ghost btn-modern-xs">View Profile</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-modern" style="text-align:center; padding:48px 24px; margin-top:16px;">
+            <h3 style="font-family:var(--ff-display); font-size:18px; color:var(--ink); margin:0 0 8px;">No journals tracked</h3>
+            <p style="font-size:13px; color:var(--ink-3); margin:0 0 20px;">Add a journal to track its new papers.</p>
+            <button type="button" class="btn-modern btn-modern-primary btn-modern-sm" onclick="createVenueSubscription()">Add journal</button>
+        </div>
+        {% endif %}
+    </section>
+
+    {# =============================================
+       Conferences
+       ============================================= #}
+    <section class="ws-section-modern" data-watch-tab="conferences" hidden>
+        <div class="ws-section-head-modern">
+            <h2>Conferences</h2>
+            <div style="display:flex; gap:8px;">
+                <span class="chip-modern is-muted">Conference</span>
+                <button type="button" class="btn-modern btn-modern-ghost btn-modern-sm" onclick="createVenueSubscription()">New</button>
             </div>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    {{ ui.empty_state('No scholars watched', 'Add a scholar to track new papers from them.', '', '<button type="button" class="btn btn-primary btn-sm" onclick="createAuthorSubscription()">Add scholar</button>') }}
-    {% endif %}
-</section>
 
-{# =============================================
-   Fields
-   ============================================= #}
-<section class="watch-section" data-watch-tab="fields" hidden>
-    <div class="watch-section-header">
-        <h2 class="section-heading">
-            Fields
-            <span class="chip is-muted">Field</span>
-        </h2>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="createFieldSubscription()">New</button>
-    </div>
-
-    {% if field_subs %}
-    <div class="watch-sub-list">
-        {% for sub in field_subs %}
-        <div class="card watch-sub-card" data-sub-type="field">
-            <div class="watch-sub-card-header">
-                <div>
-                    <h3 class="watch-sub-card-name">{{ sub.name }}</h3>
-                    <div class="watch-sub-card-meta">
-                        {% if sub.query_text %}<span class="watch-sub-meta-item"><code>{{ sub.query_text }}</code></span>{% endif %}
-                        <span class="watch-sub-meta-item">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
-                        {% if not sub.enabled %}<span class="chip is-warn">disabled</span>{% endif %}
+        {% if conference_subs %}
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            {% for sub in conference_subs %}
+            <div class="card-modern" data-sub-type="venue">
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px;">
+                    <div style="min-width:0;">
+                        <h3 style="font-family:var(--ff-display); font-size:16px; font-weight:600; color:var(--ink); margin:0 0 6px;">{{ sub.name }}</h3>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                            <span class="chip-modern is-muted" style="font-size:10px;">{{ sub.venue_type }}</span>
+                            <span style="font-size:11px; color:var(--ink-3);">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
+                            <span class="chip-modern is-muted" style="font-size:10px;">{{ sub.source_health.label }}</span>
+                            {% if not sub.enabled %}<span class="chip-modern is-muted" style="font-size:10px;">disabled</span>{% endif %}
+                        </div>
                     </div>
+                    <span class="chip-modern" style="flex-shrink:0;">{{ sub.latest_hit_count }} hits</span>
                 </div>
-                <span class="chip">{{ sub.latest_hit_count }} hits</span>
-            </div>
 
-            {% if sub.recent_hits %}
-            <div class="watch-sub-hits">
-                {% for hit in sub.recent_hits %}
-                <div class="watch-sub-hit" data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}">
-                    <span class="watch-sub-hit-arrow">&#9656;</span>
-                    <a href="{{ hit.detail_url }}" class="watch-sub-hit-title">{{ hit.title }}</a>
-                    {% if hit.hit_status %}<span class="chip is-muted js-hit-status">{{ hit.hit_status }}</span>{% endif %}
-                    <div class="watch-sub-hit-actions">
-                        <a class="btn btn-ghost btn-xs" href="{{ hit.detail_url }}">Preview</a>
-                        <button type="button" class="btn btn-ghost btn-xs" data-hit-action="send-to-inbox" onclick="sendHitToInbox({{ hit.id }}, this)" {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}>Send to Reading</button>
-                        <button type="button" class="btn btn-ghost btn-xs" onclick="ignoreSubscriptionHit({{ hit.id }}, this)" {% if hit.hit_status == 'ignored' %}disabled{% endif %}>Ignore</button>
+                {% if sub.recent_hits %}
+                <div style="border-top:1px solid var(--line-subtle); padding-top:10px;">
+                    {% for hit in sub.recent_hits %}
+                    <div data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}" style="display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--line-subtle);">
+                        <span style="color:var(--ink-3); font-size:11px; margin-top:2px;">&#9656;</span>
+                        <div style="min-width:0; flex:1;">
+                            <a href="{{ hit.detail_url }}" style="font-size:13px; font-weight:500; color:var(--ink); text-decoration:none;">{{ hit.title }}</a>
+                            {% if hit.hit_status %}<span class="chip-modern is-muted" style="font-size:10px;">{{ hit.hit_status }}</span>{% endif %}
+                            {% if hit.summary_short %}
+                            <div style="font-size:12px; color:var(--ink-3); margin-top:2px;">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
+                            {% endif %}
+                            {% if hit.matched_reason %}<span style="font-size:11px; color:var(--ink-3); margin-top:2px;">{{ hit.matched_reason }}</span>{% endif %}
+                            {% if hit.author_text %}
+                            <div style="font-size:11px; color:var(--ink-3); margin-top:2px;">{{ hit.author_text[:80] }}</div>
+                            {% endif %}
+                            <div style="display:flex; gap:6px; margin-top:6px;">
+                                <a class="btn-modern btn-modern-ghost btn-modern-xs" href="{{ hit.detail_url }}">Preview</a>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" data-hit-action="send-to-inbox" onclick="sendHitToInbox({{ hit.id }}, this)" {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}>Send to Reading</button>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="ignoreSubscriptionHit({{ hit.id }}, this)" {% if hit.hit_status == 'ignored' %}disabled{% endif %}>Ignore</button>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="createCollectionFromHit({{ hit.paper_id|tojson }}, {{ hit.title|tojson }})">Create collection</button>
+                            </div>
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <div class="watch-sub-card-actions">
-                <button type="button" class="btn btn-ghost btn-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
-                <button type="button" class="btn btn-ghost btn-xs" onclick="editSubscription({{ sub.id }}, this)">Edit</button>
-                {% if sub.entity_id %}
-                <a href="/entities/{{ sub.entity_id }}" class="btn btn-ghost btn-xs">View Profile</a>
                 {% endif %}
+
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
+                    <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="editSubscription({{ sub.id }}, this)">Edit</button>
+                    {% if sub.homepage_url %}
+                    <a href="{{ sub.homepage_url }}" target="_blank" class="btn-modern btn-modern-ghost btn-modern-xs">Website</a>
+                    {% endif %}
+                    {% if sub.entity_id %}
+                    <a href="/entities/{{ sub.entity_id }}" class="btn-modern btn-modern-ghost btn-modern-xs">View Profile</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-modern" style="text-align:center; padding:48px 24px;">
+            <h3 style="font-family:var(--ff-display); font-size:18px; color:var(--ink); margin:0 0 8px;">No conferences tracked</h3>
+            <p style="font-size:13px; color:var(--ink-3); margin:0 0 20px;">Add a conference to track its new papers.</p>
+            <button type="button" class="btn-modern btn-modern-primary btn-modern-sm" onclick="createVenueSubscription()">Add conference</button>
+        </div>
+        {% endif %}
+    </section>
+
+    {# =============================================
+       Scholars
+       ============================================= #}
+    <section class="ws-section-modern" data-watch-tab="scholars" hidden>
+        <div class="ws-section-head-modern">
+            <h2>Scholars</h2>
+            <div style="display:flex; gap:8px;">
+                <span class="chip-modern is-muted">Scholar</span>
+                <button type="button" class="btn-modern btn-modern-ghost btn-modern-sm" onclick="createAuthorSubscription()">New</button>
             </div>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    {{ ui.empty_state('No fields watched', 'Add a research field to track papers by arXiv category.', '', '<button type="button" class="btn btn-primary btn-sm" onclick="createFieldSubscription()">Add field</button>') }}
-    {% endif %}
-</section>
+
+        {% if author_subs %}
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            {% for sub in author_subs %}
+            <div class="card-modern" data-sub-type="author">
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px;">
+                    <div style="min-width:0;">
+                        <h3 style="font-family:var(--ff-display); font-size:16px; font-weight:600; color:var(--ink); margin:0 0 6px;">{{ sub.name }}</h3>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                            {% if sub.affiliation %}<span style="font-size:11px; color:var(--ink-3);">{{ sub.affiliation }}</span>{% endif %}
+                            {% if sub.focus %}<span style="font-size:11px; color:var(--ink-3);">{{ sub.focus }}</span>{% endif %}
+                            <span style="font-size:11px; color:var(--ink-3);">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
+                            <span class="chip-modern is-muted" style="font-size:10px;">{{ sub.source_health.label }}</span>
+                            {% if not sub.enabled %}<span class="chip-modern is-muted" style="font-size:10px;">disabled</span>{% endif %}
+                        </div>
+                    </div>
+                    <span class="chip-modern" style="flex-shrink:0;">{{ sub.latest_hit_count }} hits</span>
+                </div>
+
+                {% if sub.recent_hits %}
+                <div style="border-top:1px solid var(--line-subtle); padding-top:10px;">
+                    {% for hit in sub.recent_hits %}
+                    <div data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}" style="display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--line-subtle);">
+                        <span style="color:var(--ink-3); font-size:11px; margin-top:2px;">&#9656;</span>
+                        <div style="min-width:0; flex:1;">
+                            <a href="{{ hit.detail_url }}" style="font-size:13px; font-weight:500; color:var(--ink); text-decoration:none;">{{ hit.title }}</a>
+                            {% if hit.hit_status %}<span class="chip-modern is-muted" style="font-size:10px;">{{ hit.hit_status }}</span>{% endif %}
+                            {% if hit.summary_short %}
+                            <div style="font-size:12px; color:var(--ink-3); margin-top:2px;">{{ hit.summary_short[:160] }}{% if hit.summary_short|length > 160 %}&hellip;{% endif %}</div>
+                            {% endif %}
+                            {% if hit.matched_reason %}<span style="font-size:11px; color:var(--ink-3); margin-top:2px;">{{ hit.matched_reason }}</span>{% endif %}
+                            {% if hit.author_text %}
+                            <div style="font-size:11px; color:var(--ink-3); margin-top:2px;">{{ hit.author_text[:80] }}</div>
+                            {% endif %}
+                            <div style="display:flex; gap:6px; margin-top:6px;">
+                                <a class="btn-modern btn-modern-ghost btn-modern-xs" href="{{ hit.detail_url }}">Preview</a>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" data-hit-action="send-to-inbox" onclick="sendHitToInbox({{ hit.id }}, this)" {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}>Send to Reading</button>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="ignoreSubscriptionHit({{ hit.id }}, this)" {% if hit.hit_status == 'ignored' %}disabled{% endif %}>Ignore</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="font-size:12px; color:var(--ink-3); padding:8px 0;">No new hits</div>
+                {% endif %}
+
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
+                    <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="editSubscription({{ sub.id }}, this)">Edit</button>
+                    {% for link in sub.links %}
+                    <a href="{{ link.href }}" target="_blank" class="btn-modern btn-modern-ghost btn-modern-xs">{{ link.label }}</a>
+                    {% endfor %}
+                    {% if sub.entity_id %}
+                    <a href="/entities/{{ sub.entity_id }}" class="btn-modern btn-modern-ghost btn-modern-xs">View Profile</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-modern" style="text-align:center; padding:48px 24px;">
+            <h3 style="font-family:var(--ff-display); font-size:18px; color:var(--ink); margin:0 0 8px;">No scholars watched</h3>
+            <p style="font-size:13px; color:var(--ink-3); margin:0 0 20px;">Add a scholar to track new papers from them.</p>
+            <button type="button" class="btn-modern btn-modern-primary btn-modern-sm" onclick="createAuthorSubscription()">Add scholar</button>
+        </div>
+        {% endif %}
+    </section>
+
+    {# =============================================
+       Fields
+       ============================================= #}
+    <section class="ws-section-modern" data-watch-tab="fields" hidden>
+        <div class="ws-section-head-modern">
+            <h2>Fields</h2>
+            <div style="display:flex; gap:8px;">
+                <span class="chip-modern is-muted">Field</span>
+                <button type="button" class="btn-modern btn-modern-ghost btn-modern-sm" onclick="createFieldSubscription()">New</button>
+            </div>
+        </div>
+
+        {% if field_subs %}
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            {% for sub in field_subs %}
+            <div class="card-modern" data-sub-type="field">
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px;">
+                    <div style="min-width:0;">
+                        <h3 style="font-family:var(--ff-display); font-size:16px; font-weight:600; color:var(--ink); margin:0 0 6px;">{{ sub.name }}</h3>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                            {% if sub.query_text %}<code style="font-size:11px; color:var(--ink-3); background:var(--bg); padding:2px 6px; border-radius:4px;">{{ sub.query_text }}</code>{% endif %}
+                            <span style="font-size:11px; color:var(--ink-3);">Last checked: <time datetime="{{ sub._raw.last_checked_at }}">{{ sub.last_checked_at or "not checked" }}</time></span>
+                            {% if not sub.enabled %}<span class="chip-modern is-muted" style="font-size:10px;">disabled</span>{% endif %}
+                        </div>
+                    </div>
+                    <span class="chip-modern" style="flex-shrink:0;">{{ sub.latest_hit_count }} hits</span>
+                </div>
+
+                {% if sub.recent_hits %}
+                <div style="border-top:1px solid var(--line-subtle); padding-top:10px;">
+                    {% for hit in sub.recent_hits %}
+                    <div data-hit-id="{{ hit.id }}" data-hit-status="{{ hit.hit_status }}" style="display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--line-subtle);">
+                        <span style="color:var(--ink-3); font-size:11px; margin-top:2px;">&#9656;</span>
+                        <div style="min-width:0; flex:1;">
+                            <a href="{{ hit.detail_url }}" style="font-size:13px; font-weight:500; color:var(--ink); text-decoration:none;">{{ hit.title }}</a>
+                            {% if hit.hit_status %}<span class="chip-modern is-muted" style="font-size:10px;">{{ hit.hit_status }}</span>{% endif %}
+                            <div style="display:flex; gap:6px; margin-top:6px;">
+                                <a class="btn-modern btn-modern-ghost btn-modern-xs" href="{{ hit.detail_url }}">Preview</a>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" data-hit-action="send-to-inbox" onclick="sendHitToInbox({{ hit.id }}, this)" {% if hit.hit_status == 'sent_to_inbox' %}disabled{% endif %}>Send to Reading</button>
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="ignoreSubscriptionHit({{ hit.id }}, this)" {% if hit.hit_status == 'ignored' %}disabled{% endif %}>Ignore</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="runSubscription({{ sub.id }})">Refresh</button>
+                    <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" onclick="editSubscription({{ sub.id }}, this)">Edit</button>
+                    {% if sub.entity_id %}
+                    <a href="/entities/{{ sub.entity_id }}" class="btn-modern btn-modern-ghost btn-modern-xs">View Profile</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-modern" style="text-align:center; padding:48px 24px;">
+            <h3 style="font-family:var(--ff-display); font-size:18px; color:var(--ink); margin:0 0 8px;">No fields watched</h3>
+            <p style="font-size:13px; color:var(--ink-3); margin:0 0 20px;">Add a research field to track papers by arXiv category.</p>
+            <button type="button" class="btn-modern btn-modern-primary btn-modern-sm" onclick="createFieldSubscription()">Add field</button>
+        </div>
+        {% endif %}
+    </section>
 
 {% endblock %}
+</section>
 
 {% block scripts %}
 <script id="watchSubsData" type="application/json">{{ unified_subs | tojson }}</script>
@@ -502,8 +447,7 @@ function humanTime(isoString) {
 }
 
 function switchWatchTab(tabId, button) {
-  // Update tab buttons
-  document.querySelectorAll('.watch-tabs .tab-button').forEach(function(btn) {
+  document.querySelectorAll('.tabs-modern .tab-modern').forEach(function(btn) {
     btn.classList.remove('is-active');
     btn.setAttribute('aria-selected', 'false');
   });
@@ -511,22 +455,19 @@ function switchWatchTab(tabId, button) {
     button.classList.add('is-active');
     button.setAttribute('aria-selected', 'true');
   }
-  // Update sections
   document.querySelectorAll('[data-watch-tab]').forEach(function(section) {
     section.hidden = section.getAttribute('data-watch-tab') !== tabId;
   });
-  // Update hash without scroll
   history.replaceState(null, '', '#watch-' + tabId);
 }
 
-// Restore tab from URL hash on load
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('time[datetime]').forEach(function(el) {
     el.textContent = humanTime(el.getAttribute('datetime'));
   });
   var hash = window.location.hash.replace('#watch-', '');
   if (hash) {
-    var tab = document.querySelector('.watch-tabs .tab-button[data-tab="' + hash + '"]');
+    var tab = document.querySelector('.tabs-modern .tab-modern[data-tab="' + hash + '"]');
     if (tab) switchWatchTab(hash, tab);
   }
 });

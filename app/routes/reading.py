@@ -12,16 +12,17 @@ bp = Blueprint("reading", __name__)
 STATE_STORE = get_state_store()
 
 
-_VALID_TABS = {"active", "saved", "collections"}
+_VALID_TABS = {"inbox", "completed", "collections"}
 
 
 @bp.get("/reading")
 def reading_page():
-    tab = request.args.get("tab", "active")
+    tab = request.args.get("tab", "inbox")
     if tab not in _VALID_TABS:
-        tab = "active"
+        tab = "inbox"
+    research_question_id = request.args.get("research_question_id", type=int)
     vm = ReadingViewModel(STATE_STORE)
     return render_template(
         "reading.html",
-        **vm.to_template_context(tab=tab),
+        **vm.to_template_context(tab=tab, research_question_id=research_question_id),
     )

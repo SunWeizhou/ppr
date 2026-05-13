@@ -1,0 +1,220 @@
+{% extends "base_research.html" %}
+
+{% set body_class = (body_class or '') ~ ' page-workspace-overview' %}
+
+{% block hero %}
+{% endblock %}
+
+{% block content %}
+<section class="page-content-modern">
+    <!-- Back link -->
+    <div style="margin-bottom:20px;">
+        <a href="/" class="btn-modern btn-modern-ghost btn-modern-xs">&larr; Back to Home</a>
+    </div>
+
+    <!-- Workspace Header -->
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:28px; flex-wrap:wrap;">
+        <div style="min-width:0; flex:1;">
+            <h1 class="hero-modern-title" style="margin-bottom:4px;">{{ workspace.title }}</h1>
+            {% if workspace.intent_statement and workspace.intent_statement != workspace.title %}
+            <p class="hero-modern-sub">{{ workspace.intent_statement }}</p>
+            {% endif %}
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-shrink:0;">
+            <span class="chip-modern {% if workspace.status == 'active' %}is-muted{% endif %}" style="{% if workspace.status == 'active' %}border-color:#34C759; color:#34C759;{% endif %}">{{ workspace.status | capitalize }}</span>
+            {% if workspace.created_at %}
+            <span style="font-size:11px; color:var(--ink-3);">Created {{ workspace.created_at[:10] }}</span>
+            {% endif %}
+            {% if workspace.updated_at %}
+            <span style="font-size:11px; color:var(--ink-3);">Updated {{ workspace.updated_at[:10] }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-grid-modern">
+        <div class="stat-card-modern">
+            <div class="stat-card-modern-value">{{ inbox_count }}</div>
+            <div class="stat-card-modern-label">To review</div>
+        </div>
+        <div class="stat-card-modern">
+            <div class="stat-card-modern-value">{{ completed_count }}</div>
+            <div class="stat-card-modern-label">Read</div>
+        </div>
+        <div class="stat-card-modern">
+            <div class="stat-card-modern-value">{{ subscription_count }}</div>
+            <div class="stat-card-modern-label">Watches</div>
+        </div>
+    </div>
+
+    <!-- Workspace Memory -->
+    <section class="ws-section-modern">
+        <div class="ws-section-head-modern">
+            <h2>Workspace Memory</h2>
+        </div>
+        <div class="card-modern">
+            <div class="memory-stats-grid-modern">
+                <div class="stat-card-modern" style="border:none; padding:12px; background:transparent;">
+                    <div class="stat-card-modern-value" style="font-size:22px;">{{ memory_stats.get('reading', 0) }}</div>
+                    <div class="stat-card-modern-label">Reading</div>
+                </div>
+                <div class="stat-card-modern" style="border:none; padding:12px; background:transparent;">
+                    <div class="stat-card-modern-value" style="font-size:22px;">{{ memory_stats.get('read', 0) }}</div>
+                    <div class="stat-card-modern-label">Read</div>
+                </div>
+                <div class="stat-card-modern" style="border:none; padding:12px; background:transparent;">
+                    <div class="stat-card-modern-value" style="font-size:22px;">{{ memory_stats.get('key_confirmed', 0) }}</div>
+                    <div class="stat-card-modern-label">Key papers</div>
+                </div>
+                <div class="stat-card-modern" style="border:none; padding:12px; background:transparent;">
+                    <div class="stat-card-modern-value" style="font-size:22px;">{{ memory_stats.get('candidate', 0) }}</div>
+                    <div class="stat-card-modern-label">Candidates</div>
+                </div>
+            </div>
+            {% if has_key_suggestions %}
+            <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line-subtle);">
+                <div class="field-label-modern" style="margin-bottom:8px;">Suggested key papers</div>
+                {% for paper in key_suggestions %}
+                <a class="paper-list-item-modern" href="/papers/{{ paper.paper_id | urlencode }}?return_to=/workspaces/{{ workspace_id }}">
+                    <div class="paper-list-item-modern-main">
+                        <span class="paper-list-item-modern-title">{{ paper.title }}</span>
+                        <span class="paper-list-item-modern-authors">{{ paper.author_text }}</span>
+                        <span class="paper-list-item-modern-meta">{{ paper.reason }}</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Nudge cards -->
+    {% if nudges %}
+    <section class="ws-section-modern">
+        <div class="ws-section-head-modern">
+            <h2>Suggestions</h2>
+        </div>
+        <div class="nudge-list-modern">
+        {% for nudge in nudges %}
+            <div class="nudge-card-modern {% if nudge.priority == 'high' %}is-high{% else %}is-low{% endif %}">
+                <span>{{ nudge.message }}</span>
+                {% if nudge.action_url %}
+                <a href="{{ nudge.action_url }}" class="btn-modern btn-modern-ghost btn-modern-xs">{{ nudge.action_label }}</a>
+                {% endif %}
+            </div>
+        {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Actions -->
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:32px;">
+        <a href="/search?research_question_id={{ workspace_id }}&q={{ workspace.title | urlencode }}" class="btn-modern btn-modern-primary btn-modern-sm">
+            Search within this workspace
+        </a>
+        <a href="/recommendations?q={{ workspace.title | urlencode }}" class="btn-modern btn-modern-ghost btn-modern-sm">
+            Continue discovery
+        </a>
+        <a href="/reading" class="btn-modern btn-modern-ghost btn-modern-sm">
+            Go to Reading →
+        </a>
+    </div>
+
+    <!-- Recent Papers -->
+    <section class="ws-section-modern">
+        <div class="ws-section-head-modern">
+            <h2>Recent papers</h2>
+            {% if recent_papers %}
+            <span class="chip-modern is-muted">{{ recent_papers | length }} papers</span>
+            {% endif %}
+        </div>
+
+        {% if recent_papers %}
+        <div class="card-modern" style="padding:0; overflow:hidden;">
+            {% for paper in recent_papers %}
+            <a class="paper-list-item-modern" href="/papers/{{ paper.paper_id | urlencode }}?return_to=/workspaces/{{ workspace_id }}" style="padding:14px 20px;">
+                <div class="paper-list-item-modern-main">
+                    <span class="paper-list-item-modern-title">{{ paper.title }}</span>
+                    {% if paper.author_text %}
+                    <span class="paper-list-item-modern-authors">{{ paper.author_text }}</span>
+                    {% endif %}
+                    <span class="paper-list-item-modern-meta">
+                        {{ paper.venue or 'Paper' }}{% if paper.year %}, {{ paper.year }}{% endif %}
+                        &middot; <span class="chip-modern is-muted" style="font-size:10px;">{{ paper.status }}</span>
+                    </span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-modern" style="text-align:center; padding:32px;">
+            <p style="color:var(--ink-2); margin:0 0 4px;">No papers linked to this workspace yet.</p>
+            <p style="font-size:13px; color:var(--ink-3); margin:0;">Search a topic and add papers to reading to see them here.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Subscriptions -->
+    {% if subscriptions %}
+    <section class="ws-section-modern">
+        <div class="ws-section-head-modern">
+            <h2>Watches</h2>
+            <span class="chip-modern is-muted">{{ subscription_count }}</span>
+        </div>
+        <div class="card-modern" style="padding:0; overflow:hidden;">
+            {% for sub in subscriptions %}
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 20px; border-bottom:1px solid var(--line-subtle);">
+                <div>
+                    <div style="font-size:13px; font-weight:500; color:var(--ink);">{{ sub.get('name', sub.get('query_text', 'Watch')) }}</div>
+                    <div style="font-size:11px; color:var(--ink-3);">{{ sub.get('type', 'query') | capitalize }} watch</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div style="margin-top:10px;">
+            <a href="/watch" class="btn-modern btn-modern-ghost btn-modern-xs">Manage watches →</a>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Research Memo -->
+    <section class="ws-section-modern">
+        <div class="ws-section-head-modern">
+            <h2>Research Memo</h2>
+            <div style="display:flex; gap:8px; align-items:center;">
+                {% if has_memo %}
+                <span class="chip-modern is-muted">Saved {{ memo.get('updated_at', '')[:10] }}</span>
+                {% endif %}
+                <a href="/workspaces/{{ workspace_id }}/memo" class="btn-modern btn-modern-ghost btn-modern-xs">
+                    {% if has_memo %}Edit{% else %}Create{% endif %}
+                </a>
+            </div>
+        </div>
+        {% if has_memo and memo.get('content', '').strip() %}
+        <div class="card-modern card-modern--inset">
+            <div style="font-size:13px; color:var(--ink-2); line-height:1.6;">{{ memo.get('content', '')[:500] | replace('\n', '<br>') | safe }}</div>
+            {% if memo.get('content', '') | length > 500 %}
+            <div style="margin-top:10px;"><a href="/workspaces/{{ workspace_id }}/memo" class="btn-modern btn-modern-ghost btn-modern-xs">Read full memo →</a></div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="card-modern card-modern--inset" style="text-align:center; padding:32px;">
+            <p style="color:var(--ink-2); margin:0 0 4px;">Start your research memo — a living document that grows with your workspace.</p>
+            <p style="font-size:13px; color:var(--ink-3); margin:0;"><a href="/workspaces/{{ workspace_id }}/memo" class="text-link">Create your first memo entry</a></p>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Weekly Review -->
+    <section class="ws-section-modern">
+        <div class="ws-section-head-modern">
+            <h2>Weekly Review</h2>
+            <a href="/workspaces/{{ workspace_id }}/review" class="btn-modern btn-modern-ghost btn-modern-xs">Open review</a>
+        </div>
+        <div class="card-modern card-modern--inset" style="text-align:center; padding:32px; cursor:pointer;" onclick="window.location.href='/workspaces/{{ workspace_id }}/review'">
+            <p style="color:var(--ink-2); margin:0 0 4px;">Generate a weekly review to reflect on reading activity, takeaways, and memo changes.</p>
+            <p style="font-size:13px; color:var(--ink-3); margin:0;"><a href="/workspaces/{{ workspace_id }}/review" class="text-link">Open weekly review →</a></p>
+        </div>
+    </section>
+</section>
+{% endblock %}

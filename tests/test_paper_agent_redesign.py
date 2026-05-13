@@ -34,15 +34,14 @@ class PaperAgentSearchTests(unittest.TestCase):
         html = response.get_data(as_text=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn("Paper Agent", html)
-        self.assertIn("Research Workspace", html)
-        self.assertIn("Ask a research question", html)
+        self.assertIn("Research Desk", html)
         self.assertNotIn("Explore", html)
 
     def test_top_navigation_uses_paper_agent_information_architecture(self):
         import web_server
 
         labels = [item["label"] for item in web_server.NAV_ITEM_CONFIG]
-        self.assertEqual(labels[0:4], ["Search", "Recommendations", "Subscriptions", "Reading"])
+        self.assertEqual(labels[0:3], ["Home", "Search", "Workspaces"])
 
     def test_search_api_returns_unified_dual_source_shape(self):
         import app.routes.api.keywords as keyword_routes
@@ -468,9 +467,9 @@ class PaperAgentProviderAndAgentTests(unittest.TestCase):
         prd = Path("docs/PRD.md").read_text(encoding="utf-8")
 
         self.assertIn("# Paper Agent", prd)
-        self.assertIn("search-first", prd)
-        self.assertIn("AI Agent drawer", prd)
-        self.assertIn("Current Implementation Gaps", prd)
+        self.assertIn("Research-question-driven", prd)
+        self.assertIn("AI Agent", prd)
+        self.assertIn("Product Surfaces", prd)
         self.assertNotIn("Agent Literature Research Assistant", prd)
 
     def test_reading_and_watch_offer_explicit_back_to_search_actions(self):

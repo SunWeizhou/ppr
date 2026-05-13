@@ -117,6 +117,15 @@ class QueueService:
                 "decision_context": decision_context,
             },
         )
+        # Sync workspace-paper relationship
+        if research_question_id is not None:
+            ws_rel = "reading" if status == "Inbox" else "read" if status == "Completed" else "candidate"
+            self.state_store.upsert_workspace_paper(
+                item["paper_id"],
+                research_question_id,
+                ws_rel,
+                reason=f"queue status: {status}",
+            )
         return item, event_id
 
     def bulk_update(self, paper_ids, status: str, *, source: str = "queue_service", note: str = ""):
@@ -136,6 +145,63 @@ class QueueService:
             item, _ = self.update_status(paper_id, status, source=source, note=note)
             updated.append(item)
         return updated
+
+    def record_reading_event(
+        self,
+        event_type: str,
+        paper_id: str,
+        *,
+        research_question_id: Optional[int] = None,
+        detail: str = "",
+    ) -> int:
+        """Record a reading behavior event (reading_added, paper_opened,
+        reading_completed, takeaway_added, etc.)."""
+        return self.state_store.record_event(
+            event_type,
+            paper_id,
+            {
+                "research_question_id": research_question_id,
+                "detail": detail,
+            },
+        )
+
+    def mark_paper_as_read(
+        self,
+        paper_id: str,
+        *,
+        research_question_id: Optional[int] = None,
+        takeaway: str = "",
+        source: str = "reading_page",
+    ) -> Dict:
+        """Mark a paper as Completed, record reading_completed event,
+        and optionally save a takeaway."""
+        canonical_id = _canonical_paper_id(paper_id)
+        item = self.update_item(
+            canonical_id, "Completed", source=source,
+            research_question_id=research_question_id,
+        )
+        self.record_reading_event(
+            "reading_completed", canonical_id,
+            research_question_id=research_question_id,
+            detail="takeaway" if takeaway else "skip",
+        )
+        # Track workspace-paper relationship
+        if research_question_id is not None:
+            self.state_store.upsert_workspace_paper(
+                canonical_id, research_question_id, "read",
+                reason="marked as read",
+            )
+        if takeaway:
+            self.state_store.save_reading_takeaway(
+                canonical_id, takeaway,
+                research_question_id=research_question_id,
+            )
+            self.record_reading_event(
+                "takeaway_added", canonical_id,
+                research_question_id=research_question_id,
+                detail=takeaway[:200],
+            )
+        return item
 
     def count_by_status(self):
         counts = dict.fromkeys(QUEUE_STATUS_VALUES, 0)

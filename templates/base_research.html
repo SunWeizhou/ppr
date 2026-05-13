@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
+    <title>{{ title }} — {{ paper_agent_tagline or "Paper Agent" }}</title>
     <meta name="theme-color" content="#fafaf8">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231a1a1a'/><path d='M9 5.5h9.25L24 11.25V26.5H9z' fill='none' stroke='white' stroke-width='2.2' stroke-linejoin='round'/><path d='M18.25 5.5v6h5.75' fill='none' stroke='white' stroke-width='2.2' stroke-linejoin='round'/><circle cx='22.5' cy='22.5' r='2.6' fill='%23d97757'/></svg>">
+    <link rel="icon" href="{{ url_for('static', filename='img/alpaca-logo.svg', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/typography.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css', v=static_version) }}">
@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/motion.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='research_ui.css', v=static_version) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/apple-claude.css', v=static_version) }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='dist/agent-panel.css', v=static_version) }}">
     {% block head %}{% endblock %}
 </head>
@@ -34,11 +35,7 @@
         <nav class="sidebar" id="sidebar" data-collapsed="false" aria-label="Main navigation">
             <div class="sidebar-header">
                 <a href="/" class="sidebar-brand" aria-label="Paper Agent home">
-                    <svg class="sidebar-logo" width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
-                        <path d="M9 5.5h9.25L24 11.25V26.5H9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-                        <path d="M18.25 5.5v6h5.75" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-                        <circle cx="22.5" cy="22.5" r="2.6" fill="#d97757"/>
-                    </svg>
+                    <img src="{{ url_for('static', filename='img/alpaca-logo.svg', v=static_version) }}" width="24" height="24" alt="" class="sidebar-logo" style="color:var(--accent);">
                     <span class="sidebar-brand-text">Paper Agent</span>
                 </a>
                 <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
@@ -65,7 +62,6 @@
 
             <!-- Subscriptions section -->
             <div class="sidebar-section">
-                <div class="sidebar-section-title">Subscriptions</div>
                 {% for item in nav_items if item.section == 'subscriptions' %}
                 <a class="sidebar-item {% if item.active %}is-active{% endif %}"
                    href="{{ item.href }}"

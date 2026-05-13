@@ -13,8 +13,8 @@ def test_root_renders_paper_agent_search_workspace():
 
     assert response.status_code == 200
     assert "Paper Agent" in html
-    assert "Research Workspace" in html
-    assert "Ask a research question" in html
+    assert "Research Desk" in html
+    assert "Continue a workspace, review today's papers, or start something new" in html
     assert "/queue?status=Inbox" not in (response.location or "")
 
 
@@ -24,12 +24,14 @@ def test_top_navigation_uses_workspace_information_architecture():
     keys = [item["key"] for item in web_server.NAV_ITEM_CONFIG]
     labels = [item["label"] for item in web_server.NAV_ITEM_CONFIG]
 
+    assert "home" in keys
     assert "search" in keys
+    assert "workspaces" in keys
     assert "recommendations" in keys
     assert "subscriptions" in keys
     assert "reading" in keys
     assert "settings" in keys
-    assert labels[0:4] == ["Search", "Recommendations", "Subscriptions", "Reading"]
+    assert labels[0:3] == ["Home", "Search", "Workspaces"]
 
 
 def test_base_shell_defaults_to_english_and_loads_local_alpine():
@@ -45,7 +47,7 @@ def test_base_shell_defaults_to_english_and_loads_local_alpine():
 
 def test_active_product_surfaces_remove_engineering_copy():
     paths = [
-        Path("templates/home_workspace.html"),
+        Path("templates/home.html"),
         Path("templates/search_research.html"),
         Path("templates/queue_research.html"),
         Path("templates/reading.html"),

@@ -1,7 +1,7 @@
 # Deployment Guide
 
-Paper Agent is a local-first paper discovery and research workspace. Three
-deployment options are supported.
+Paper Agent is a local-first research workspace. Three deployment options are
+supported.
 
 ## Option 1: Source Run
 
@@ -9,13 +9,13 @@ Recommended for daily local use.
 
 ```bash
 git clone <repo-url> && cd arxiv_recommender
-python -m pip install -r requirements.txt -c constraints.txt
-cd frontend/agent && npm ci && npm run build && cd ../..
-bash scripts/start_local.sh
+python -m pip install -r requirements.txt
+npm install && npm run build
+python web_server.py
 ```
 
-Open http://localhost:5555, complete onboarding, then search from the Paper
-Agent workspace.
+Open http://localhost:5555. The onboarding wizard will guide you through
+first-time setup.
 
 Stop with `Ctrl+C`.
 
@@ -23,7 +23,7 @@ Stop with `Ctrl+C`.
 
 ```bash
 pip install .
-cd frontend/agent && npm ci && npm run build && cd ../..
+npm install && npm run build
 arxiv-recommender
 ```
 
@@ -45,14 +45,17 @@ docker compose down
 
 ## First Run
 
-On first launch, the onboarding wizard at `/onboarding` guides you through:
+On first launch (no SQLite database found), the app redirects to `/onboarding`.
+The wizard walks through:
 
-1. Research topics and priority keywords.
-2. Optional scholar profiles (Google Scholar author IDs).
-3. First research question — creates an initial query subscription.
+1. Research topics and broad research areas (Step 1)
+2. Daily paper count (Step 2)
+3. Optional Zotero library path (Step 3)
+4. Optional AI provider configuration (Step 4)
+5. First research question query (Step 5)
 
-After onboarding, you land on the Search workspace (`/`). All configuration can
-be changed later in Settings.
+After completing setup, you land on the Research Desk home page (`/`).
+All configuration can be changed later in Settings.
 
 ## Frontend Assets
 
@@ -63,11 +66,11 @@ into `static/dist/agent-panel.js` and `static/dist/agent-panel.css`.
 Build the Agent panel after cloning or updating:
 
 ```bash
-cd frontend/agent && npm ci && npm run build
+npm install && npm run build
 ```
 
 The build produces a single JS + CSS bundle (~50KB gzip). Jinja2 templates
-load these assets automatically. Rebuild whenever files under `frontend/agent/`
+load these assets automatically. Rebuild whenever files under `frontend/agent-panel/`
 change.
 
 ## Environment Variables
@@ -90,11 +93,10 @@ configured.
 
 AI is optional. The core workflow functions without an API key.
 
-1. Go to Settings.
-2. Open the AI Provider tab.
-3. Select `none` or OpenAI-compatible.
-4. Enter the API key (or set via environment variable).
-5. Save and test the connection.
+1. Go to Settings → AI Provider tab.
+2. Select `none` or OpenAI-compatible.
+3. Enter the API key (or set via environment variable).
+4. Save and test the connection.
 
 Key precedence (first found wins):
 
@@ -137,7 +139,7 @@ pool).
 
 1. Try a shorter query with concrete method, task, author, or paper keywords.
 2. Check network access to arxiv.org and semanticscholar.org.
-3. Inspect `/settings?tab=diagnostics` for source health.
+3. Inspect Settings → Diagnostics for source health.
 
 ### Entity profiles show no data
 

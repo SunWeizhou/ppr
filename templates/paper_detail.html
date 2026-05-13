@@ -2,360 +2,376 @@
 
 {% set body_class = (body_class or '') ~ ' page-paper-detail' %}
 
-{% block head %}
-{{ super() }}
-{% endblock %}
-
 {% block hero %}
-<div class="page-header">
+<div style="max-width:1280px; margin:0 auto; padding:16px 24px 0;">
     {% set back_rq = paper.get('active_research_question_id') %}
     {% set return_q = request.args.get('return_q', '') %}
     {% set return_to = request.args.get('return_to', '') %}
-    <a href="{% if return_q %}/search?q={{ return_q|urlencode }}{% elif return_to and return_to.startswith('/') and not return_to.startswith('//') %}{{ return_to }}{% elif back_rq %}/search?research_question_id={{ back_rq }}{% else %}/{% endif %}" class="back-link">&larr; {% if return_to and '/recommendations' in return_to %}Back to Recommendations{% else %}Back to Search{% endif %}</a>
+    <a href="{% if return_q %}/search?q={{ return_q|urlencode }}{% elif return_to and return_to.startswith('/') and not return_to.startswith('//') %}{{ return_to }}{% elif back_rq %}/search?research_question_id={{ back_rq }}{% else %}/{% endif %}" style="display:inline-flex; align-items:center; gap:6px; font-size:14px; font-weight:500; color:var(--ink-2); text-decoration:none; transition:color 160ms ease;">
+        <span>←</span>
+        <span>{% if return_to and '/recommendations' in return_to %}Back to Recommendations{% else %}Back to Search{% endif %}</span>
+    </a>
 </div>
 {% endblock %}
 
 {% block content %}
 {% if error %}
-<div class="page-content">
-    <div class="card card-spaced">
-        <p>{{ error }}</p>
-        <a href="/queue?status=Inbox" class="btn btn-secondary">Back to Inbox</a>
+<div class="page-content-modern">
+    <div class="card-modern" style="text-align:center; padding:32px;">
+        <p style="color:var(--danger); margin-bottom:16px;">{{ error }}</p>
+        <a href="/queue?status=Inbox" class="btn-modern btn-modern-ghost btn-modern-sm">Back to Inbox</a>
     </div>
 </div>
 {% else %}
 <div
-    class="page-content paper-evidence-page"
+    class="page-content-wide"
     id="paperWorkspaceContext"
     data-research-question-id="{{ paper.get('active_research_question_id') or '' }}"
 >
-    <div class="split split--rail-right paper-detail-layout">
+    <div class="detail-layout-modern">
         <!-- ============================================================ -->
-        <!-- Left: Primary content -->
+        <!-- Left: Primary Content -->
         <!-- ============================================================ -->
-        <div class="split-main">
+        <div style="display:flex; flex-direction:column; gap:20px;">
 
             {% if paper.get('active_research_question') %}
             {% set rq = paper.get('active_research_question') %}
-            <div class="card card-spaced workspace-context-card">
-                <div class="workspace-context-eyebrow">Active research question</div>
-                <h2 class="workspace-context-title">{{ rq.get('query_text') }}</h2>
+            <div class="card-modern card-modern--inset" style="border-style:dashed;">
+                <div style="font-size:10px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Active Research Question</div>
+                <div style="font-family:var(--ff-display); font-size:17px; font-style:italic; color:var(--ink); line-height:1.4;">{{ rq.get('query_text') }}</div>
                 {% if rq.get('intent_statement') %}
-                <p class="muted-copy">{{ rq.get('intent_statement') }}</p>
+                <p style="font-size:13px; color:var(--ink-3); margin:8px 0 0;">{{ rq.get('intent_statement') }}</p>
                 {% endif %}
             </div>
             {% endif %}
 
-            <h1 class="paper-detail-title">{{ paper.get('title', 'Untitled') }}</h1>
-            <div class="paper-meta">
-                <div>{{ paper.get('author_text', 'Unknown authors') }}</div>
-                <div>
+            <!-- Title & Meta -->
+            <div>
+                <h1 class="hero-modern-title">{{ paper.get('title', 'Untitled') }}</h1>
+                <div style="font-size:14px; color:var(--ink-2); margin-bottom:6px;">{{ paper.get('author_text', 'Unknown authors') }}</div>
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
                     {% for cat in paper.get('category_labels', []) %}
-                    <span class="meta-tag">{{ cat }}</span>
+                    <span class="meta-tag-modern">{{ cat }}</span>
                     {% endfor %}
-                </div>
-                <div class="paper-meta-links">
+                    <span style="color:var(--line);">|</span>
                     {% if paper.get('link') %}
-                    <a href="{{ paper.get('link') }}" target="_blank">arXiv</a>
+                    <a href="{{ paper.get('link') }}" target="_blank" style="font-size:12px; font-weight:600; color:var(--ink-2); text-decoration:none;">arXiv</a>
                     {% endif %}
                     {% if paper.get('id') %}
-                    &middot; <a href="/api/pdf/{{ paper.get('id') }}" target="_blank">PDF</a>
-                    &middot; <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank">BibTeX</a>
+                    <a href="/api/pdf/{{ paper.get('id') }}" target="_blank" style="font-size:12px; font-weight:600; color:var(--ink-2); text-decoration:none;">PDF</a>
+                    <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank" style="font-size:12px; font-weight:600; color:var(--ink-2); text-decoration:none;">BibTeX</a>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Abstract -->
-            <div class="card card-spaced">
-                <h2 class="panel-title">Abstract</h2>
-                <p class="abstract-text">{{ paper.get('abstract') or paper.get('summary') or 'No abstract available.' }}</p>
+            <div class="card-modern">
+                <div style="font-size:10px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Abstract</div>
+                <div class="reading-text">{{ paper.get('abstract') or paper.get('summary') or 'No abstract available.' }}</div>
             </div>
 
             <!-- AI Analysis -->
-            <div class="card card-spaced ai-section" id="aiAnalysisSection">
-                <h2 class="panel-title">AI Analysis
-                    {% set analysis = paper.get('ai_analysis') %}
-                    {% if analysis and analysis.get('status') == 'ok' %}
-                    <span class="status-badge ok">Ready</span>
-                    {% elif analysis %}
-                    <span class="status-badge pending">Failed</span>
-                    {% endif %}
-                </h2>
-                <div id="aiAnalysisContent">
-                {% if analysis and analysis.get('status') == 'ok' %}
-                    <div class="ai-result" id="aiResultDisplay">
-                        <p><strong>Summary:</strong> <span>{{ analysis.get('one_sentence_summary', '') }}</span></p>
-                        <p><strong>Problem:</strong> <span>{{ analysis.get('problem', '') }}</span></p>
-                        <p><strong>Method:</strong> <span>{{ analysis.get('method', '') }}</span></p>
-                        <p><strong>Contribution:</strong> <span>{{ analysis.get('contribution', '') }}</span></p>
-                        {% if analysis.get('limitations') %}<p><strong>Limitations:</strong> <span>{{ analysis.get('limitations', '') }}</span></p>{% endif %}
-                        {% if analysis.get('why_it_matters') %}<p><strong>Why It Matters:</strong> <span>{{ analysis.get('why_it_matters', '') }}</span></p>{% endif %}
-                        {% if analysis.get('recommended_reading_level') %}
-                        <p class="reading-level-row">
-                            <strong>Reading Level:</strong>
-                            {% set rl = analysis.get('recommended_reading_level', 'inbox')|string|lower|replace('-', '_')|replace(' ', '_') %}
-                            {% if rl == 'inbox' %}
-                            <span class="reading-level-chip chip sage">To Read</span>
-                            {% elif rl == 'ignore' %}
-                            <span class="reading-level-chip chip" style="background: var(--line); color: var(--ink-3);">Skip</span>
-                            {% else %}
-                            <span class="reading-level-chip chip">{{ analysis.get('recommended_reading_level', '') }}</span>
-                            {% endif %}
-                        </p>
+            <div class="card-modern" id="aiAnalysisSection">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:10px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em;">AI Analysis</span>
+                        {% set analysis = paper.get('ai_analysis') %}
+                        {% if analysis and analysis.get('status') == 'ok' %}
+                        <span class="chip-modern is-active" style="font-size:10px;">Ready</span>
+                        {% elif analysis %}
+                        <span class="chip-modern" style="font-size:10px; border-color:var(--danger); color:var(--danger);">Failed</span>
                         {% endif %}
                     </div>
+                </div>
+                <div id="aiAnalysisContent">
+                {% if analysis and analysis.get('status') == 'ok' %}
+                    <div class="analysis-grid">
+                        {% if analysis.get('one_sentence_summary') %}
+                        <div class="analysis-field"><strong>Summary</strong><span>{{ analysis.get('one_sentence_summary', '') }}</span></div>
+                        {% endif %}
+                        {% if analysis.get('problem') %}
+                        <div class="analysis-field"><strong>Problem</strong><span>{{ analysis.get('problem', '') }}</span></div>
+                        {% endif %}
+                        {% if analysis.get('method') %}
+                        <div class="analysis-field"><strong>Method</strong><span>{{ analysis.get('method', '') }}</span></div>
+                        {% endif %}
+                        {% if analysis.get('contribution') %}
+                        <div class="analysis-field"><strong>Contribution</strong><span>{{ analysis.get('contribution', '') }}</span></div>
+                        {% endif %}
+                        {% if analysis.get('limitations') %}
+                        <div class="analysis-field"><strong>Limitations</strong><span>{{ analysis.get('limitations', '') }}</span></div>
+                        {% endif %}
+                        {% if analysis.get('why_it_matters') %}
+                        <div class="analysis-field"><strong>Why It Matters</strong><span>{{ analysis.get('why_it_matters', '') }}</span></div>
+                        {% endif %}
+                    </div>
+                    {% if analysis.get('recommended_reading_level') %}
+                    <div style="margin-top:16px; display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:11px; font-weight:600; color:var(--ink-3);">Reading Level:</span>
+                        {% set rl = analysis.get('recommended_reading_level', 'inbox')|string|lower|replace('-', '_')|replace(' ', '_') %}
+                        <span class="chip-modern {% if rl == 'inbox' %}is-active{% endif %}">{{ analysis.get('recommended_reading_level', '') }}</span>
+                    </div>
+                    {% endif %}
                 {% elif not has_ai %}
-                    <div class="empty-state">
-                        <p><strong>Rule-based reading support is active.</strong></p>
-                        <p>Configure an AI provider only if you want deeper method, limitation, and contribution analysis.</p>
+                    <div style="text-align:center; padding:20px;">
+                        <p style="font-size:14px; color:var(--ink-2); margin:0 0 8px;">Rule-based reading support is active.</p>
+                        <p style="font-size:12px; color:var(--ink-3); margin:0;">Configure an AI provider for deeper analysis.</p>
                     </div>
                 {% elif analysis and analysis.get('status') == 'failed' %}
-                    <p class="empty-state">AI analysis generation failed: {{ analysis.get('error_text', 'Unknown error') }}</p>
-                    <button class="btn btn-primary btn-sm" id="aiGenerateBtn" onclick="generateAIAnalysis('{{ paper.get('id') }}')">Retry AI Analysis</button>
+                    <p style="text-align:center; color:var(--danger); font-size:13px;">Analysis failed: {{ analysis.get('error_text', 'Unknown error') }}</p>
+                    <div style="text-align:center; margin-top:12px;">
+                        <button class="btn-modern btn-modern-primary btn-modern-sm" id="aiGenerateBtn" onclick="generateAIAnalysis('{{ paper.get('id') }}')">Retry</button>
+                    </div>
                 {% else %}
-                    <p class="empty-state" id="aiPlaceholder">Click the button below to generate an AI analysis of this paper.</p>
+                    <p style="text-align:center; color:var(--ink-3); font-size:13px;" id="aiPlaceholder">Run AI analysis to get a structured breakdown.</p>
                 {% endif %}
                 </div>
 
-                <div class="evidence-center" id="evidenceClaimsContent">
-                    <div class="evidence-center-head">
-                        <h3 class="panel-title">Evidence-Linked Claims</h3>
-                        {% set evidence_summary = paper.get('evidence_summary') or {} %}
+                <!-- Evidence Claims -->
+                <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--line-subtle);" id="evidenceClaimsContent">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                        <span style="font-size:10px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em;">Evidence-Linked Claims</span>
                         {% set ec = paper.get('evidence_claims') %}
-                        <span class="chip">{{ evidence_summary.get('total', ec|length if ec else 0) }} claims</span>
+                        {% set evidence_summary = paper.get('evidence_summary') or {} %}
+                        <span class="chip-modern is-muted">{{ evidence_summary.get('total', ec|length if ec else 0) }} claims</span>
                     </div>
                     {% if ec %}
-                    <div class="evidence-claim-list">
+                    <div>
                         {% for claim in ec %}
-                        <article class="evidence-claim-card">
-                            <div class="evidence-claim-meta">
-                                <span class="tag">{{ claim.get('claim_type', 'factual') }}</span>
-                                <span class="tag">{{ claim.get('evidence_source', 'other') }}</span>
-                                <span class="muted-copy">{{ claim.get('analyst', 'rule') }}</span>
+                        <div class="claim-card-modern">
+                            <div style="width:32px; height:32px; border-radius:8px; background:var(--accent-alpha); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--accent); font-weight:700; font-size:12px;">✓</div>
+                            <div style="min-width:0;">
+                                <p style="font-size:13px; font-weight:500; color:var(--ink); margin:0 0 4px;">{{ claim.get('claim') }}</p>
+                                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                    {% if claim.get('claim_type') %}<span class="meta-tag-modern">{{ claim.get('claim_type') }}</span>{% endif %}
+                                    {% if claim.get('evidence_source') %}<span style="font-size:11px; color:var(--ink-3);">Source: {{ claim.get('evidence_source') }}</span>{% endif %}
+                                    {% if claim.get('analyst') %}<span style="font-size:11px; color:var(--ink-3); font-style:italic;">· {{ claim.get('analyst') }}</span>{% endif %}
+                                </div>
                             </div>
-                            <p class="evidence-claim-text">{{ claim.get('claim') }}</p>
-                            {% if claim.get('evidence_text') %}
-                            <details class="evidence-source">
-                                <summary>Evidence</summary>
-                                <p>{{ claim.get('evidence_text') }}</p>
-                            </details>
-                            {% endif %}
-                        </article>
+                        </div>
                         {% endfor %}
                     </div>
                     {% elif not has_ai and paper.get('active_research_question') %}
-                    <p class="empty-state" id="evidenceClaimsPlaceholder">
-                        No evidence could be extracted from this abstract — the paper metadata may be too sparse for rule-based matching.
-                    </p>
+                    <p style="text-align:center; font-size:13px; color:var(--ink-3);">No evidence could be extracted — metadata may be too sparse.</p>
                     {% elif not has_ai %}
-                    <p class="empty-state" id="evidenceClaimsPlaceholder">
-                        Rule-based evidence claims are only generated when a research question context is active.
-                        <a href="/search">Create or select a research question</a>.
-                    </p>
+                    <p style="text-align:center; font-size:13px; color:var(--ink-3);">Evidence claims need active research question context.</p>
                     {% else %}
-                    <p class="empty-state" id="evidenceClaimsPlaceholder">No evidence claims generated yet. Run AI analysis to generate claims.</p>
+                    <p style="text-align:center; font-size:13px; color:var(--ink-3);" id="evidenceClaimsPlaceholder">Run AI analysis to generate claims.</p>
                     {% endif %}
                 </div>
 
-                <div id="aiSpinner" hidden>
-                    <div class="spinner"></div>
-                    <p class="t-muted" style="text-align:center;">Generating AI analysis...</p>
+                <div id="aiSpinner" hidden style="text-align:center; padding:20px;">
+                    <div style="width:24px; height:24px; border:2px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 8px;"></div>
+                    <p style="font-size:12px; color:var(--ink-3);">Generating analysis...</p>
                 </div>
-                <div id="aiError" hidden class="ai-error-msg"></div>
+                <div id="aiError" hidden style="color:var(--danger); font-size:13px; text-align:center;"></div>
             </div>
 
-            <!-- Score & Recommendation -->
-            <div class="card card-spaced">
-                <h2 class="panel-title">Recommendation Score</h2>
-                {% set raw_score = paper.get('workspace_score') or paper.get('score', 0) or 0 %}
-                {% if raw_score > 0 %}
-                {% if raw_score > 1.0 %}
-                <div class="score-simple">
-                    <div class="score-simple-value">Score {{ '%.1f'|format(raw_score) }}</div>
-                </div>
-                {% else %}
-                {% set pct = "%.0f"|format(raw_score * 100) %}
-                <div class="score-simple">
-                    <div class="score-simple-value">{{ pct }}%</div>
-                    <div class="score-simple-track">
-                        <div class="score-simple-fill" style="width: {{ pct }}%;"></div>
-                    </div>
-                </div>
-                {% endif %}
-                {% else %}
-                <p class="t-muted">Not scored</p>
-                {% endif %}
-                {% if paper.get('relevance_reason') %}
-                <p class="t-muted" style="margin-top: 12px;">{{ paper.get('relevance_reason') }}</p>
-                {% endif %}
-
-                {# Legacy fallback for v1 papers with score_details #}
-                {% if paper.get('score_details') and not paper.get('relevance_reason') %}
-                {% set sd = paper.get('score_details') %}
-                <div class="score-bar" style="margin-top: 12px;">
-                    {% for dim in ['relevance', 'semantic', 'author', 'depth', 'affinity'] %}
-                    {% if sd.get(dim, 0) != 0 %}
-                    <div class="score-item">
-                        <div class="value">{{ "%.1f"|format(sd.get(dim, 0)) }}</div>
-                        <div class="label">{{ dim|capitalize }}</div>
-                    </div>
-                    {% endif %}
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Related Papers -->
-            {% if paper.get('related_papers') %}
-            <div class="card card-spaced">
-                <h2 class="panel-title">Related Papers</h2>
-                <div class="list-stack">
-                    {% for rp in paper.get('related_papers', [])[:8] %}
-                    <a href="/papers/{{ rp.get('id') }}" class="list-item list-item-link">
-                        <span class="list-item-title">{{ rp.get('title', 'Untitled')[:120] }}</span>
-                        <span class="list-item-trailing t-muted">{{ rp.get('date', '')[:10] }}</span>
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-        </div><!-- /.split-main -->
-
-        <!-- ============================================================ -->
-        <!-- Right: Sticky sidebar -->
-        <!-- ============================================================ -->
-        <aside class="rail paper-detail-rail">
-
-            <!-- Actions -->
-            <div class="card card-spaced">
-                <h2 class="panel-title">Actions</h2>
-
-                <!-- Primary actions -->
-                <div class="action-group">
-                    <div class="action-group-label">Actions</div>
-                    <div class="action-buttons">
-                        <button class="btn btn-primary btn-sm" onclick="paperDetailAction('addtoreading', '{{ paper.get('id') }}')">Add to Reading</button>
-                        <button class="btn btn-ghost btn-sm" data-feedback="relevant" onclick="paperDetailAction('relevant', '{{ paper.get('id') }}', null, this)">Relevant</button>
-                        <button class="btn btn-ghost btn-sm" data-feedback="ignore" onclick="paperDetailAction('ignore', '{{ paper.get('id') }}', null, this)">Ignore</button>
-                        <button class="btn btn-ghost btn-sm" onclick="paperDetailAction('collect', '{{ paper.get('id') }}')">Add to Collection</button>
-                        {% if paper.get('first_author') %}
-                        <button class="btn btn-ghost btn-sm follow-author-action" title="Follow {{ paper.get('first_author') }}" onclick="paperDetailAction('follow', '{{ paper.get('id') }}', '{{ paper.get('first_author') }}')">Follow {{ paper.get('first_author') }}</button>
+            <!-- Score & Related -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                <!-- Score Card -->
+                <div class="card-modern" style="text-align:center;">
+                    <div style="font-size:10px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:16px;">Recommendation Score</div>
+                    {% set raw_score = paper.get('workspace_score') or paper.get('score', 0) or 0 %}
+                    {% if raw_score > 0 %}
+                    <div style="font-family:var(--ff-display); font-size:48px; font-weight:600; color:var(--accent);">
+                        {% if raw_score > 1.0 %}
+                        {{ '%.1f'|format(raw_score) }}
+                        {% else %}
+                        {{ "%.0f"|format(raw_score * 100) }}%
                         {% endif %}
                     </div>
+                    {% else %}
+                    <p style="color:var(--ink-3);">Not scored</p>
+                    {% endif %}
+                    {% if paper.get('relevance_reason') %}
+                    <p style="font-size:12px; color:var(--ink-3); margin:12px 0 0; max-width:200px; margin-left:auto; margin-right:auto;">{{ paper.get('relevance_reason') }}</p>
+                    {% endif %}
                 </div>
 
-                {% if has_ai %}
-                <div class="action-group">
-                    <div class="action-group-label">Analysis</div>
-                    <div class="action-buttons">
-                        <button class="btn btn-ghost btn-sm" id="aiGenerateBtn" onclick="generateAIAnalysis('{{ paper.get('id') }}')">
+                <!-- Related Papers -->
+                {% if paper.get('related_papers') %}
+                <div class="card-modern">
+                    <div style="font-size:10px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Related Papers</div>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        {% for rp in paper.get('related_papers', [])[:5] %}
+                        <a href="/papers/{{ rp.get('id') }}" style="font-size:13px; font-weight:500; color:var(--accent); text-decoration:none; transition:opacity 160ms ease;">
+                            {{ rp.get('title', 'Untitled')[:100] }}
+                            <span style="display:block; font-size:11px; color:var(--ink-3); font-weight:400;">{{ rp.get('date', '')[:10] }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Right: Sticky Sidebar -->
+        <!-- ============================================================ -->
+        <aside>
+            <div style="position:sticky; top:98px; display:flex; flex-direction:column; gap:16px;">
+
+                <!-- Actions Card -->
+                <div class="card-modern">
+                    <div class="action-group-modern">
+                        <span class="action-group-modern-label">Reading</span>
+                        {% if paper.get('is_read') %}
+                            <button class="btn-modern btn-modern-sm" disabled style="width:100%; justify-content:space-between; background:var(--sage-tint, #E8EDE9); color:var(--sage, #607368); border:1px solid var(--sage-tint, #E8EDE9);">
+                                <span>✓ Read</span>
+                            </button>
+                            {% if paper.get('takeaway') %}
+                            <button class="btn-modern btn-modern-ghost btn-modern-xs" onclick="showReadingTakeaway('{{ paper.get('id') }}')" style="width:100%;">View takeaway</button>
+                            {% endif %}
+                        {% else %}
+                            <button class="btn-modern btn-modern-primary btn-modern-sm" onclick="markPaperAsRead('{{ paper.get('id') }}')" style="width:100%; justify-content:space-between;">
+                                Mark as Read <span>✓</span>
+                            </button>
+                            <button class="btn-modern btn-modern-ghost btn-modern-sm" onclick="paperDetailAction('addtoreading', '{{ paper.get('id') }}')" style="width:100%;">Add to Reading</button>
+                        {% endif %}
+                    </div>
+
+                    <div class="action-group-modern">
+                        <span class="action-group-modern-label">Actions</span>
+                        <button class="btn-modern btn-modern-ghost btn-modern-sm" data-feedback="relevant" onclick="paperDetailAction('relevant', '{{ paper.get('id') }}', null, this)" style="width:100%;">Relevant</button>
+                        <button class="btn-modern btn-modern-ghost btn-modern-sm" data-feedback="ignore" onclick="paperDetailAction('ignore', '{{ paper.get('id') }}', null, this)" style="width:100%;">Ignore</button>
+                        <button class="btn-modern btn-modern-ghost btn-modern-sm" onclick="paperDetailAction('collect', '{{ paper.get('id') }}')" style="width:100%;">Add to Collection</button>
+                        {% if paper.get('first_author') %}
+                        <button class="btn-modern btn-modern-ghost btn-modern-sm" onclick="paperDetailAction('follow', '{{ paper.get('id') }}', '{{ paper.get('first_author') }}')" style="width:100%;">Follow {{ paper.get('first_author') }}</button>
+                        {% endif %}
+                    </div>
+
+                    {% if has_ai %}
+                    <div class="action-group-modern">
+                        <span class="action-group-modern-label">Analysis</span>
+                        <button class="btn-modern btn-modern-ghost btn-modern-sm" id="aiGenerateBtn" onclick="generateAIAnalysis('{{ paper.get('id') }}')" style="width:100%;">
                             {% if paper.get('ai_analysis') and paper.get('ai_analysis').get('status') == 'ok' %}
-                            Regenerate AI Analysis
+                            Regenerate Analysis
                             {% else %}
                             Generate AI Analysis
                             {% endif %}
                         </button>
                     </div>
-                </div>
-                {% endif %}
+                    {% endif %}
 
-                <!-- External/export actions -->
-                {% if paper.get('id') %}
-                <div class="action-group">
-                    <div class="action-group-label">Export</div>
-                    <div class="action-buttons">
-                        {% if paper.get('link') %}
-                        <a href="{{ paper.get('link', 'https://arxiv.org/abs/' + paper.get('id', '')) }}" target="_blank" class="btn btn-ghost btn-sm">Open arXiv</a>
-                        <a href="/api/pdf/{{ paper.get('id') }}" target="_blank" class="btn btn-ghost btn-sm">Download PDF</a>
-                        <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank" class="btn btn-ghost btn-sm">Export BibTeX</a>
-                        {% endif %}
+                    {% if paper.get('id') %}
+                    <div class="action-group-modern">
+                        <span class="action-group-modern-label">Export</span>
+                        <div style="display:flex; gap:4px;">
+                            {% if paper.get('link') %}
+                            <a href="{{ paper.get('link', 'https://arxiv.org/abs/' + paper.get('id', '')) }}" target="_blank" class="btn-modern btn-modern-ghost btn-modern-xs" style="flex:1;">arXiv</a>
+                            <a href="/api/pdf/{{ paper.get('id') }}" target="_blank" class="btn-modern btn-modern-ghost btn-modern-xs" style="flex:1;">PDF</a>
+                            <a href="/api/export/bibtex/{{ paper.get('id') }}" target="_blank" class="btn-modern btn-modern-ghost btn-modern-xs" style="flex:1;">BibTeX</a>
+                            {% endif %}
+                        </div>
                     </div>
+                    {% endif %}
                 </div>
-                {% endif %}
-            </div>
 
-            <!-- Status -->
-            {% if paper.get('queue_status') or paper.get('collections') %}
-            <div class="card card-spaced">
-                <h2 class="panel-title">Status</h2>
-                {% if paper.get('queue_status') %}
-                <p class="t-muted action-status">Queue status: <strong>{{ paper.get('queue_status') }}</strong></p>
-                {% endif %}
-                {% if paper.get('decision_context') %}
-                <p class="t-muted action-status" id="paperDecisionContext" data-decision-context="{{ paper.get('decision_context') }}">
-                    Decision context: <strong>{{ paper.get('decision_context') }}</strong>
-                </p>
-                {% else %}
-                <p class="t-muted action-status" id="paperDecisionContext" data-decision-context="" hidden></p>
-                {% endif %}
-                {% if paper.get('collections') %}
-                <h3 class="t-muted collection-heading">Collections</h3>
-                <ul class="collection-list">
-                    {% for col in paper.get('collections', []) %}
-                    <li class="t-muted collection-item">{{ col.get('name', 'Unnamed') }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            <!-- Subscription Matches -->
-            {% if paper.get('subscription_matches') %}
-            <div class="card card-spaced">
-                <h2 class="panel-title">Why this appeared</h2>
-                <div class="list-stack">
-                    {% for match in paper.get('subscription_matches', []) %}
-                    <div class="list-item">
-                        <span class="list-item-title">{{ match.get('name', 'Subscription') }}</span>
-                        <span class="tag">{{ match.get('type', '') }}</span>
+                <!-- Status Card -->
+                <div class="card-modern">
+                    <div style="font-size:10px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Status</div>
+                    {% if paper.get('queue_status') %}
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:12px;">
+                        <span class="status-dot status-dot--ok"></span>
+                        <span style="font-size:12px; color:var(--ink-2);">Queue: <strong>{{ paper.get('queue_status') }}</strong></span>
                     </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Interaction Activity -->
-            {% if paper.get('interaction_history') %}
-            <div class="card card-spaced">
-                <details>
-                    <summary class="detail-disclosure-summary">
-                        <h2 class="panel-title" style="margin:0;">Activity</h2>
-                        <span class="detail-disclosure-copy">{{ paper.get('interaction_history', [])|length }} events</span>
-                    </summary>
-                    <div class="detail-disclosure-body">
-                        <div class="history-list">
-                            {% for event in paper.get('interaction_history', []) %}
-                            <div class="history-item">
-                                <div class="history-title">{{ event.display_label }}</div>
-                                {% if event.display_detail %}
-                                <div class="history-meta">{{ event.display_detail }}</div>
-                                {% endif %}
-                                <div class="history-time">{{ event.display_time }}</div>
-                            </div>
+                    {% endif %}
+                    {% if paper.get('takeaway') %}
+                    <div class="card-modern card-modern--inset" style="margin-bottom:12px;">
+                        <p style="font-size:12px; color:var(--ink-2); font-style:italic; margin:0 0 4px;">{{ paper.get('takeaway').get('takeaway_text', '') }}</p>
+                        <span class="chip-modern is-muted" style="font-size:10px;">saved {{ paper.get('takeaway').get('updated_at', '')[:10] }}</span>
+                    </div>
+                    {% endif %}
+                    {% if paper.get('decision_context') %}
+                    <p style="font-size:12px; color:var(--ink-3);" id="paperDecisionContext" data-decision-context="{{ paper.get('decision_context') }}">
+                        Context: <strong style="color:var(--ink-2);">{{ paper.get('decision_context') }}</strong>
+                    </p>
+                    {% endif %}
+                    {% if paper.get('collections') %}
+                    <div style="margin-top:8px;">
+                        <span style="font-size:10px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em;">Collections</span>
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:6px;">
+                            {% for col in paper.get('collections', []) %}
+                            <span class="chip-modern">{{ col.get('name', 'Unnamed') }}</span>
                             {% endfor %}
                         </div>
                     </div>
-                </details>
-            </div>
-            {% endif %}
+                    {% endif %}
+                </div>
 
+                <!-- Workspace Memory -->
+                {% if paper.get('active_research_question_id') and paper.get('workspace_paper') %}
+                <div class="card-modern" style="background:var(--accent); color:#FFFFFF; border:none;">
+                    <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Workspace Memory</div>
+                    {% if paper.get('is_key_paper') %}
+                    <p style="font-size:12px; margin:0 0 12px;">
+                        {% if paper.get('is_key_confirmed') %}⭐ Key Paper{% else %}💡 Suggested as key paper{% endif %}
+                    </p>
+                    {% if not paper.get('is_key_confirmed') %}
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn-modern btn-modern-sm" onclick="setKeyPaper('{{ paper.get('id') }}', 'accept')" style="flex:1; background:#FFFFFF; color:var(--accent);">Accept</button>
+                        <button class="btn-modern btn-modern-ghost btn-modern-xs" onclick="setKeyPaper('{{ paper.get('id') }}', 'dismiss')" style="flex:1; border-color:rgba(255,255,255,0.3); color:#FFFFFF;">Dismiss</button>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <p style="font-size:12px; color:rgba(255,255,255,0.8); margin:0;">Relationship: <strong>{{ paper.get('workspace_paper').get('relationship', 'candidate') }}</strong></p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Subscription Matches -->
+                {% if paper.get('subscription_matches') %}
+                <div class="card-modern">
+                    <div style="font-size:10px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Why This Appeared</div>
+                    {% for match in paper.get('subscription_matches', []) %}
+                    <div style="display:flex; align-items:center; gap:6px; padding:6px 0;">
+                        <span style="font-size:12px; font-weight:500; color:var(--ink);">{{ match.get('name', 'Subscription') }}</span>
+                        <span class="meta-tag-modern">{{ match.get('type', '') }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Activity -->
+                {% if paper.get('interaction_history') %}
+                <div class="card-modern">
+                    <details>
+                        <summary style="cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between;">
+                            <span style="font-size:10px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em;">Activity</span>
+                            <span class="chip-modern is-muted">{{ paper.get('interaction_history', [])|length }} events</span>
+                        </summary>
+                        <div style="margin-top:12px; display:flex; flex-direction:column; gap:12px;">
+                            {% for event in paper.get('interaction_history', []) %}
+                            <div style="font-size:11px;">
+                                <div style="font-weight:500; color:var(--ink);">{{ event.display_label }}</div>
+                                {% if event.display_detail %}
+                                <div style="color:var(--ink-3);">{{ event.display_detail }}</div>
+                                {% endif %}
+                                <div style="color:var(--ink-3); font-size:10px;">{{ event.display_time }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                </div>
+                {% endif %}
+
+            </div>
         </aside>
-    </div><!-- /.split.split--rail-right -->
-</div><!-- /.page-content -->
+    </div>
+</div>
 {% endif %}
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
 <script>
-// Abstract enrichment — try to recover full abstract if current one is short
+// Abstract enrichment
 document.addEventListener('DOMContentLoaded', function() {
-    var abstractEl = document.querySelector('.abstract-text');
+    var abstractEl = document.querySelector('.reading-text');
     if (!abstractEl) return;
     var abstractText = (abstractEl.textContent || '').trim();
-    // If abstract is missing, very short, or is a fallback message, try enrichment
-    if (!abstractText || abstractText.length < 100 || abstractText === 'No abstract available.' || abstractText.indexOf('Details for this paper') >= 0) {
+    if (!abstractText || abstractText.length < 100 || abstractText === 'No abstract available.') {
         var paperId = window.location.pathname.split('/').pop();
         if (paperId && paperId.length > 5) {
             fetch('/api/fetch_paper/' + encodeURIComponent(paperId))
@@ -365,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         abstractEl.textContent = data.metadata.abstract;
                     }
                 })
-                .catch(function() { /* enrichment not critical */ });
+                .catch(function() {});
         }
     }
 });
@@ -373,61 +389,30 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 function buildReadingLevelChip(level) {
     var chip = document.createElement('span');
-    chip.className = 'reading-level-chip';
+    chip.className = 'chip-modern';
     var normalized = String(level || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
     if (normalized === 'inbox') {
-        chip.className += ' chip sage';
-        chip.textContent = 'To Read';
-    } else if (normalized === 'ignore') {
-        chip.className += ' chip';
-        chip.style.background = 'var(--line)';
-        chip.style.color = 'var(--ink-3)';
-        chip.textContent = 'Skip';
-    } else {
-        chip.className += ' chip';
-        chip.style.color = 'var(--ink-muted)';
-        chip.textContent = level || 'Unknown';
+        chip.classList.add('is-active');
     }
+    chip.textContent = level || 'Unknown';
     return chip;
 }
 
 function createEvidenceClaimsDOM(claims) {
     var wrapper = document.createElement('div');
-    wrapper.className = 'evidence-claim-list';
     (claims || []).forEach(function(claim) {
-        var article = document.createElement('article');
-        article.className = 'evidence-claim-card';
-
-        var meta = document.createElement('div');
-        meta.className = 'evidence-claim-meta';
-        ['claim_type', 'evidence_source', 'analyst'].forEach(function(key) {
-            if (claim[key]) {
-                var chip = document.createElement('span');
-                chip.className = key === 'analyst' ? 'muted-copy' : 'tag';
-                chip.textContent = claim[key];
-                meta.appendChild(chip);
-            }
-        });
-        article.appendChild(meta);
-
-        var text = document.createElement('p');
-        text.className = 'evidence-claim-text';
-        text.textContent = claim.claim || '';
-        article.appendChild(text);
-
-        if (claim.evidence_text) {
-            var details = document.createElement('details');
-            details.className = 'evidence-source';
-            var summary = document.createElement('summary');
-            summary.textContent = 'Evidence';
-            var evidence = document.createElement('p');
-            evidence.textContent = claim.evidence_text;
-            details.appendChild(summary);
-            details.appendChild(evidence);
-            article.appendChild(details);
-        }
-
-        wrapper.appendChild(article);
+        var div = document.createElement('div');
+        div.className = 'claim-card-modern';
+        var types = [];
+        if (claim.claim_type) types.push('<span class="meta-tag-modern">' + escapeHtml(claim.claim_type) + '</span>');
+        if (claim.evidence_source) types.push('<span style="font-size:11px; color:var(--ink-3);">Source: ' + escapeHtml(claim.evidence_source) + '</span>');
+        if (claim.analyst) types.push('<span style="font-size:11px; color:var(--ink-3); font-style:italic;">· ' + escapeHtml(claim.analyst) + '</span>');
+        div.innerHTML =
+            '<div style="width:28px; height:28px; border-radius:6px; background:var(--accent-alpha); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--accent); font-weight:700; font-size:11px;">✓</div>' +
+            '<div style="min-width:0;">' +
+            '<p style="font-size:13px; font-weight:500; color:var(--ink); margin:0 0 4px;">' + escapeHtml(claim.claim || '') + '</p>' +
+            '<div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">' + types.join('') + '</div></div>';
+        wrapper.appendChild(div);
     });
     return wrapper;
 }
@@ -435,27 +420,19 @@ function createEvidenceClaimsDOM(claims) {
 function refreshEvidenceClaims(claims) {
     var content = document.getElementById('evidenceClaimsContent');
     if (!content || !claims || claims.length === 0) return;
-    while (content.firstChild) {
-        content.removeChild(content.firstChild);
-    }
+    while (content.firstChild) content.removeChild(content.firstChild);
     var head = document.createElement('div');
-    head.className = 'evidence-center-head';
-    var title = document.createElement('h3');
-    title.className = 'panel-title';
-    title.textContent = 'Evidence-Linked Claims';
-    var count = document.createElement('span');
-    count.className = 'chip';
-    count.textContent = claims.length + ' claims';
-    head.appendChild(title);
-    head.appendChild(count);
+    head.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;';
+    head.innerHTML =
+        '<span style="font-size:10px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em;">Evidence-Linked Claims</span>' +
+        '<span class="chip-modern is-muted">' + claims.length + ' claims</span>';
     content.appendChild(head);
     content.appendChild(createEvidenceClaimsDOM(claims));
 }
 
 function createAIAnalysisDOM(analysis) {
     var container = document.createElement('div');
-    container.className = 'ai-result';
-
+    container.className = 'analysis-grid';
     var fields = [
         {key: 'one_sentence_summary', label: 'Summary'},
         {key: 'problem', label: 'Problem'},
@@ -464,31 +441,21 @@ function createAIAnalysisDOM(analysis) {
         {key: 'limitations', label: 'Limitations'},
         {key: 'why_it_matters', label: 'Why It Matters'}
     ];
-
     fields.forEach(function(f) {
         if (analysis[f.key]) {
-            var p = document.createElement('p');
-            var strong = document.createElement('strong');
-            strong.textContent = f.label + ': ';
-            p.appendChild(strong);
-            var span = document.createElement('span');
-            span.textContent = analysis[f.key];
-            p.appendChild(span);
-            container.appendChild(p);
+            var div = document.createElement('div');
+            div.className = 'analysis-field';
+            div.innerHTML = '<strong>' + f.label + '</strong><span>' + escapeHtml(analysis[f.key]) + '</span>';
+            container.appendChild(div);
         }
     });
-
-    // Reading level chip
     if (analysis.recommended_reading_level) {
-        var p = document.createElement('p');
-        p.className = 'reading-level-row';
-        var strong = document.createElement('strong');
-        strong.textContent = 'Reading Level: ';
-        p.appendChild(strong);
-        p.appendChild(buildReadingLevelChip(analysis.recommended_reading_level));
-        container.appendChild(p);
+        var row = document.createElement('div');
+        row.style.cssText = 'margin-top:16px; display:flex; align-items:center; gap:8px;';
+        row.innerHTML = '<span style="font-size:11px; font-weight:600; color:var(--ink-3);">Reading Level:</span>';
+        row.appendChild(buildReadingLevelChip(analysis.recommended_reading_level));
+        container.appendChild(row);
     }
-
     return container;
 }
 
@@ -497,9 +464,7 @@ function paperDetailWorkspaceOptions(source) {
     var decisionEl = document.getElementById('paperDecisionContext');
     var questionId = contextEl ? contextEl.dataset.researchQuestionId : '';
     var decisionContext = decisionEl ? decisionEl.dataset.decisionContext : '';
-    if (!decisionContext) {
-        decisionContext = 'Decision from Paper Detail';
-    }
+    if (!decisionContext) decisionContext = 'Decision from Paper Detail';
     return {
         source: source || 'paper_detail',
         research_question_id: questionId ? Number(questionId) : null,
@@ -548,14 +513,10 @@ async function generateAIAnalysis(paperId) {
     var spinner = document.getElementById('aiSpinner');
     var errorEl = document.getElementById('aiError');
     var content = document.getElementById('aiAnalysisContent');
-    var placeholder = document.getElementById('aiPlaceholder');
-
     if (!btn) return;
-
     btn.disabled = true;
-    spinner.hidden = false;
+    if (spinner) spinner.hidden = false;
     if (errorEl) errorEl.hidden = true;
-
     try {
         var workspaceOptions = paperDetailWorkspaceOptions('paper_detail_analysis');
         var resp = await fetch('/api/papers/' + encodeURIComponent(paperId) + '/analysis/generate', {
@@ -563,22 +524,15 @@ async function generateAIAnalysis(paperId) {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 research_question_id: workspaceOptions.research_question_id,
-                recommendation_context: {
-                    research_question_id: workspaceOptions.research_question_id
-                }
+                recommendation_context: { research_question_id: workspaceOptions.research_question_id }
             })
         });
         var data = await resp.json();
         if (data.success && data.analysis) {
-            // Clear placeholder/old content and render analysis using DOM API
-            while (content.firstChild) {
-                content.removeChild(content.firstChild);
-            }
+            while (content.firstChild) content.removeChild(content.firstChild);
             content.appendChild(createAIAnalysisDOM(data.analysis));
             refreshEvidenceClaims(data.evidence_claims || []);
-            // Update button to "Regenerate"
-            btn.textContent = 'Regenerate AI Analysis';
-            btn.className = 'btn btn-secondary btn-sm';
+            btn.textContent = 'Regenerate Analysis';
         } else {
             if (errorEl) {
                 errorEl.textContent = data.error || 'Analysis generation failed';
@@ -592,8 +546,68 @@ async function generateAIAnalysis(paperId) {
         }
     } finally {
         btn.disabled = false;
-        spinner.hidden = true;
+        if (spinner) spinner.hidden = true;
     }
+}
+
+async function markPaperAsRead(paperId) {
+  var opts = paperDetailWorkspaceOptions('paper_detail');
+  try {
+    var resp = await fetch('/api/reading/mark-read', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        paper_id: paperId,
+        research_question_id: opts.research_question_id,
+        source: 'paper_detail'
+      })
+    });
+    var data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'Failed to mark as read');
+    var takeaway = prompt('Add a one-line takeaway? (optional)');
+    if (takeaway && takeaway.trim()) {
+      await fetch('/api/reading/takeaway', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          paper_id: paperId,
+          research_question_id: opts.research_question_id,
+          takeaway_text: takeaway.trim()
+        })
+      });
+    }
+    showToast('Marked as read');
+    setTimeout(function() { window.location.reload(); }, 500);
+  } catch (err) {
+    showToast('Failed: ' + err.message, 'error');
+  }
+}
+
+function showReadingTakeaway(paperId) {
+  var container = document.querySelector('.card-modern--inset');
+  if (container) container.scrollIntoView({behavior: 'smooth'});
+}
+
+async function setKeyPaper(paperId, action) {
+  var contextEl = document.getElementById('paperWorkspaceContext');
+  var questionId = contextEl ? contextEl.dataset.researchQuestionId : '';
+  try {
+    var resp = await fetch('/api/reading/key-paper', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        paper_id: paperId,
+        research_question_id: questionId ? Number(questionId) : null,
+        action: action
+      })
+    });
+    var data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'Failed');
+    showToast(action === 'accept' ? 'Marked as key paper' : 'Dismissed');
+    setTimeout(function() { window.location.reload(); }, 300);
+  } catch (err) {
+    showToast('Failed: ' + err.message, 'error');
+  }
 }
 </script>
 {% endblock %}

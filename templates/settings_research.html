@@ -1,265 +1,187 @@
 {% extends "base_research.html" %}
 
 {% block hero %}
-<section class="page-header">
-    <div class="lead">
-        <span class="section-kicker">Preferences</span>
-        <h1 class="page-title">Settings</h1>
-        <div class="page-context">Profile, sources, AI provider, and diagnostics.</div>
-    </div>
-    <div class="actions">
-        <button type="button" class="btn btn-secondary" onclick="saveSettings(false)">Save settings</button>
-        <button type="button" class="btn btn-primary" onclick="saveAndRegenerate()">Save and refresh</button>
-    </div>
-</section>
 {% endblock %}
 
 {% block content %}
-<section class="settings-frame">
-    <nav class="settings-nav">
-        <a href="/settings?tab=profile" class="settings-nav-link {% if tab == 'profile' %}is-active{% endif %}"><span>Profile</span></a>
-        <a href="/settings?tab=sources" class="settings-nav-link {% if tab == 'sources' %}is-active{% endif %}"><span>Sources</span></a>
-        <a href="/settings?tab=ranking" class="settings-nav-link {% if tab == 'ranking' %}is-active{% endif %}"><span>Ranking</span></a>
-        <a href="/settings?tab=ai" class="settings-nav-link {% if tab == 'ai' %}is-active{% endif %}"><span>AI Provider</span></a>
-        <a href="/settings?tab=diagnostics" class="settings-nav-link {% if tab == 'diagnostics' %}is-active{% endif %}"><span>Diagnostics</span></a>
-    </nav>
+<section class="page-content-modern">
+    <!-- Hero -->
+    <div class="hero-modern">
+        <h1 class="hero-modern-title">Settings</h1>
+        <p class="hero-modern-sub">Profile, sources, AI provider, and diagnostics.</p>
+    </div>
 
-    <div class="settings-panel">
-        {% if tab == 'profile' %}
-            <form id="settingsForm" class="settings-panel">
-                <section class="form-card">
-                    <div class="section-kicker">Keyword Profile</div>
-                    <h2 class="panel-title">Research profile</h2>
-                    <p class="field-help">Tell the assistant which topics matter most and which papers deserve deeper review.</p>
+    <div class="settings-frame-modern">
+        <nav class="settings-nav-modern">
+            <a href="/settings?tab=profile" class="settings-nav-modern-link {% if tab == 'profile' %}is-active{% endif %}">Profile</a>
+            <a href="/settings?tab=sources" class="settings-nav-modern-link {% if tab == 'sources' %}is-active{% endif %}">Sources</a>
+            <a href="/settings?tab=ranking" class="settings-nav-modern-link {% if tab == 'ranking' %}is-active{% endif %}">Ranking</a>
+            <a href="/settings?tab=ai" class="settings-nav-modern-link {% if tab == 'ai' %}is-active{% endif %}">AI Provider</a>
+            <a href="/settings?tab=diagnostics" class="settings-nav-modern-link {% if tab == 'diagnostics' %}is-active{% endif %}">Diagnostics</a>
+        </nav>
 
-                    <div class="keyword-section-label">Core Topics</div>
-                    <div id="coreKeywords" class="keyword-list">
-                        {% for kw in core_keywords %}
-                        <div class="keyword-chip" data-keyword="{{ kw.keyword }}">
-                            <span class="keyword-label">{{ kw.keyword }}</span>
-                            <span class="keyword-weight">w={{ '%.1f'|format(kw.weight) }}</span>
-                            <span class="keyword-remove" onclick="removeKeyword('{{ kw.keyword }}', 'core')">×</span>
+        <div class="settings-panel-modern">
+            {% if tab == 'profile' %}
+                <form id="settingsForm">
+                    <div class="form-card-modern">
+                        <h2 class="hero-modern-title" style="font-size:20px; margin-bottom:6px;">Research Profile</h2>
+                        <p style="font-size:13px; color:var(--ink-3); margin:0 0 20px;">Tell the assistant which topics matter most and which papers deserve deeper review.</p>
+
+                        <div class="field-label-modern">Core Topics</div>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;">
+                            {% for kw in core_keywords %}
+                            <span class="chip-modern" style="cursor:default;" data-keyword="{{ kw.keyword }}">
+                                {{ kw.keyword }}
+                                <span style="color:var(--ink-3); font-weight:400;">w={{ '%.1f'|format(kw.weight) }}</span>
+                                <span style="margin-left:4px; cursor:pointer; color:var(--ink-3);" onclick="removeKeyword('{{ kw.keyword }}', 'core')">&times;</span>
+                            </span>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
-                    <div class="keyword-add-row">
-                        <div>
-                            <label for="newKeyword" class="field-label">New keyword</label>
-                            <input type="text" id="newKeyword" placeholder="Add a keyword..." onkeypress="if(event.key==='Enter'){event.preventDefault();addKeyword();}">
-                        </div>
-                        <button type="button" class="btn btn-primary" onclick="addKeyword()">Add</button>
-                    </div>
-                </section>
-            </form>
 
-        {% elif tab == 'ai' %}
-            <div class="form-grid">
-                <section class="form-card full-span">
-                    <div class="section-kicker">AI Provider</div>
-                    <h2 class="panel-title">Agent analysis provider</h2>
-                    <p class="field-help">
+                        <div style="display:flex; gap:8px; align-items:flex-end;">
+                            <div style="flex:1;">
+                                <label for="newKeyword" class="field-label-modern">New keyword</label>
+                                <input type="text" id="newKeyword" class="input-modern" placeholder="Add a keyword..." onkeypress="if(event.key==='Enter'){event.preventDefault();addKeyword();}">
+                            </div>
+                            <button type="button" class="btn-modern btn-modern-primary btn-modern-sm" onclick="addKeyword()" style="flex-shrink:0;">Add</button>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="btn-modern btn-modern-primary btn-modern-sm" onclick="saveSettings(false)">Save settings</button>
+                        <button type="button" class="btn-modern btn-modern-ghost btn-modern-sm" onclick="saveAndRegenerate()">Save and refresh</button>
+                    </div>
+                </form>
+
+            {% elif tab == 'ai' %}
+                <div class="form-card-modern">
+                    <h2 class="hero-modern-title" style="font-size:20px; margin-bottom:6px;">AI Provider</h2>
+                    <p style="font-size:13px; color:var(--ink-3); margin:0 0 20px;">
                         AI is optional. Without a provider, the system still works with rule-based evidence and local workflow state.
                     </p>
 
-                    <div class="list-stack mb-4">
-                        <div class="list-item">
-                            <div>
-                                <span class="list-item-title">Effective status</span>
-                                <span class="list-item-subtitle">
-                                    {% if ai_config.provider == 'none' %}
-                                        No provider selected
-                                    {% elif ai_config.using_env_var %}
-                                        Key source: {{ ai_config.env_var }}
-                                    {% elif ai_config.has_key %}
-                                        Key source: stored profile
-                                    {% else %}
-                                        No API key configured
-                                    {% endif %}
-                                </span>
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--bg); border-radius:8px; margin-bottom:16px;">
+                        <div>
+                            <div style="font-size:13px; font-weight:500; color:var(--ink);">Effective status</div>
+                            <div style="font-size:12px; color:var(--ink-3);">
+                                {% if ai_config.provider == 'none' %}
+                                    No provider selected
+                                {% elif ai_config.using_env_var %}
+                                    Key source: {{ ai_config.env_var }}
+                                {% elif ai_config.has_key %}
+                                    Key source: stored profile
+                                {% else %}
+                                    No API key configured
+                                {% endif %}
                             </div>
-                            <span class="state-chip {% if ai_config.effective_enabled %}status-saved{% else %}job-degraded{% endif %}">
-                                {% if ai_config.effective_enabled %}ready{% else %}optional{% endif %}
-                            </span>
                         </div>
+                        <span class="chip-modern {% if ai_config.effective_enabled %}is-muted{% else %}is-muted{% endif %}" style="{% if ai_config.effective_enabled %}border-color:#34C759; color:#34C759;{% endif %}">
+                            {% if ai_config.effective_enabled %}ready{% else %}optional{% endif %}
+                        </span>
                     </div>
 
-                    <label class="field-label" for="aiProvider">Provider</label>
-                    <select class="form-input" id="aiProvider" onchange="onAIProviderChanged()">
+                    <div class="field-label-modern" for="aiProvider">Provider</div>
+                    <select class="input-modern" id="aiProvider" onchange="onAIProviderChanged()" style="margin-bottom:16px;">
                         <option value="none" {% if ai_config.provider == 'none' %}selected{% endif %}>None</option>
                         <option value="openai_compatible" {% if ai_config.provider == 'openai_compatible' %}selected{% endif %}>OpenAI-compatible</option>
                     </select>
 
                     <div id="aiProviderFields" {% if ai_config.provider == 'none' %}style="display: none;"{% endif %}>
-                        <label class="field-label" for="aiApiKey">API Key</label>
+                        <div class="field-label-modern" for="aiApiKey">API Key</div>
                         {% if ai_config.using_env_var %}
-                            <div class="field-help" style="margin-bottom:8px;">Using environment variable <code>{{ ai_config.env_var }}</code></div>
-                            <input type="password" class="form-input" id="aiApiKey" value="__env_var__" placeholder="sk-..." readonly>
+                            <div class="field-help-modern">Using environment variable <code>{{ ai_config.env_var }}</code></div>
+                            <input type="password" class="input-modern" id="aiApiKey" value="__env_var__" placeholder="sk-..." readonly style="margin-bottom:16px;">
                         {% else %}
-                            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                <input type="password" class="form-input" id="aiApiKey" value="{{ ai_config.api_key or '' }}" placeholder="sk-..." style="flex:1;">
-                                <button type="button" class="btn btn-tertiary btn-sm" id="aiApiKeyToggle" onclick="toggleAIApiKeyVisibility()">Show</button>
+                            <div style="display:flex; gap:8px; align-items:center; margin-bottom:16px;">
+                                <input type="password" class="input-modern" id="aiApiKey" value="{{ ai_config.api_key or '' }}" placeholder="sk-..." style="flex:1;">
+                                <button type="button" class="btn-modern btn-modern-ghost btn-modern-xs" id="aiApiKeyToggle" onclick="toggleAIApiKeyVisibility()">Show</button>
                             </div>
                         {% endif %}
 
-                        <label class="field-label" for="aiBaseUrl">Base URL</label>
-                        <input type="text" class="form-input" id="aiBaseUrl" value="{{ ai_config.base_url or 'https://api.deepseek.com' }}" placeholder="https://api.deepseek.com">
+                        <div class="field-label-modern" for="aiBaseUrl">Base URL</div>
+                        <input type="text" class="input-modern" id="aiBaseUrl" value="{{ ai_config.base_url or 'https://api.deepseek.com' }}" placeholder="https://api.deepseek.com" style="margin-bottom:16px;">
 
-                        <label class="field-label" for="aiModel">Model</label>
-                        <input type="text" class="form-input" id="aiModel" value="{{ ai_config.model or 'deepseek-chat' }}" placeholder="deepseek-chat">
+                        <div class="field-label-modern" for="aiModel">Model</div>
+                        <input type="text" class="input-modern" id="aiModel" value="{{ ai_config.model or 'deepseek-chat' }}" placeholder="deepseek-chat" style="margin-bottom:20px;">
                     </div>
 
-                    <div class="button-row mt-4">
-                        <button type="button" class="btn btn-secondary" id="aiTestBtn" onclick="testAIConnection()">Test Connection</button>
-                        <button type="button" class="btn btn-primary" id="aiSaveBtn" onclick="saveAISettings()">Save</button>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="btn-modern btn-modern-ghost btn-modern-sm" id="aiTestBtn" onclick="testAIConnection()">Test Connection</button>
+                        <button type="button" class="btn-modern btn-modern-primary btn-modern-sm" id="aiSaveBtn" onclick="saveAISettings()">Save</button>
                     </div>
-                    <p class="field-help" id="aiStatusMsg"></p>
-                </section>
-            </div>
+                    <p style="font-size:12px; color:var(--ink-3); margin-top:8px;" id="aiStatusMsg"></p>
+                </div>
 
-        {% elif tab == 'sources' %}
-            <div class="form-grid">
-                <section class="form-card">
-                    <div class="section-kicker">arXiv Categories</div>
-                    <h2 class="panel-title">Source categories</h2>
-                    <label class="checkbox-row">
+            {% elif tab == 'sources' %}
+                <div class="form-card-modern">
+                    <h2 class="hero-modern-title" style="font-size:20px; margin-bottom:6px;">Source categories</h2>
+                    <p style="font-size:13px; color:var(--ink-3); margin:0 0 16px;">Configure which sources to use for paper discovery.</p>
+
+                    <label class="checkbox-row-modern">
                         <input type="checkbox" id="arxivEnabled" {% if sources.arxiv_enabled %}checked{% endif %}>
                         <span>Enable arXiv discovery</span>
                     </label>
-                    <label class="checkbox-row">
+                    <label class="checkbox-row-modern">
                         <input type="checkbox" id="journalEnabled" {% if sources.journal_enabled %}checked{% endif %}>
                         <span>Enable journal updates</span>
                     </label>
-                    <label class="checkbox-row">
+                    <label class="checkbox-row-modern">
                         <input type="checkbox" id="scholarEnabled" {% if sources.scholar_enabled %}checked{% endif %}>
                         <span>Enable author sources</span>
                     </label>
-                    <label class="field-label" for="lookbackDays">Lookback days</label>
-                    <input type="number" class="form-input" id="lookbackDays" value="{{ sources.lookback_days }}" min="3" max="60">
-                </section>
-            </div>
 
-        {% elif tab == 'ranking' %}
-            <form id="settingsForm" class="form-grid">
-                <section class="form-card">
-                    <div class="section-kicker">Recommendation Volume</div>
-                    <h2 class="panel-title">Daily output</h2>
-                    <label class="field-label" for="papersPerDay">Papers per day</label>
-                    <input type="number" class="form-input" id="papersPerDay" name="papersPerDay" value="{{ papers_per_day }}" min="5" max="50">
-                    <p class="field-help">Higher numbers widen exploration; lower numbers make the inbox more selective.</p>
-                </section>
-
-            </form>
-
-        {% elif tab == 'diagnostics' %}
-            <div class="form-grid">
-                <section class="form-card full-span">
-                    <div class="section-kicker">System Health</div>
-                    <h2 class="panel-title">{{ system_diagnostics.product_name }}</h2>
-                    <div class="list-stack">
-                        <div class="list-item">
-                            <div>
-                                <span class="list-item-title">{{ system_diagnostics.product_name }}</span>
-                                <span class="list-item-subtitle">
-                                    Profile: {% if system_diagnostics.profile.exists %}configured{% else %}missing{% endif %}
-                                </span>
-                            </div>
-                            <span class="state-chip {% if system_diagnostics.profile.exists %}status-saved{% else %}job-degraded{% endif %}">
-                                local-first
-                            </span>
-                        </div>
-                        <div class="list-item">
-                            <div>
-                                <span class="list-item-title">AI Provider</span>
-                                <span class="list-item-subtitle">
-                                    {{ system_diagnostics.ai.provider }} · {{ system_diagnostics.ai.key_source }}
-                                </span>
-                            </div>
-                            <span class="state-chip {% if system_diagnostics.ai.effective_enabled %}status-saved{% else %}job-degraded{% endif %}">
-                                {% if system_diagnostics.ai.effective_enabled %}ready{% else %}optional{% endif %}
-                            </span>
-                        </div>
-                        <div class="list-item">
-                            <div>
-                                <span class="list-item-title">Workspace</span>
-                                <span class="list-item-subtitle">
-                                    {{ system_diagnostics.workspace.research_question_count }} questions ·
-                                    {{ system_diagnostics.workspace.subscription_count }} subscriptions
-                                </span>
-                            </div>
-                            <span class="list-item-trailing">{{ system_diagnostics.workspace.queue_total }}</span>
-                        </div>
-                        <div class="list-item">
-                            <div>
-                                <span class="list-item-title">Search Sources</span>
-                                <span class="list-item-subtitle">
-                                    {% for source in system_diagnostics.source_health.values() %}
-                                        {{ source.label }}: {{ source.state }}{% if not loop.last %} · {% endif %}
-                                    {% endfor %}
-                                </span>
-                            </div>
-                            <span class="state-chip status-saved">fallback-ready</span>
-                        </div>
-                        <div class="list-item">
-                            <div>
-                                <span class="list-item-title">Latest Job</span>
-                                <span class="list-item-subtitle">
-                                    {% if system_diagnostics.jobs.latest %}
-                                        {{ system_diagnostics.jobs.latest.trigger_source }} · {{ system_diagnostics.jobs.latest.updated_at or system_diagnostics.jobs.latest.created_at }}
-                                    {% else %}
-                                        No job records
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <span class="state-chip">
-                                {% if system_diagnostics.jobs.latest %}{{ system_diagnostics.jobs.latest.status }}{% else %}idle{% endif %}
-                            </span>
-                        </div>
-                        <div class="list-item">
-                            <div><span class="list-item-title">Queue Total</span></div>
-                            <span class="list-item-trailing">{{ queue_counts.values() | list | sum }}</span>
-                        </div>
-                        <div class="list-item">
-                            <div><span class="list-item-title">Collections</span></div>
-                            <span class="list-item-trailing">{{ all_collections|length }}</span>
-                        </div>
-                        <div class="list-item">
-                            <div>
-                                <span class="list-item-title">Recommendation Profile</span>
-                                <span class="list-item-subtitle">
-                                    {{ recommendation_health.core_keyword_count }} core · {{ recommendation_health.secondary_keyword_count }} secondary
-                                </span>
-                            </div>
-                            <span class="state-chip {% if recommendation_health.has_positive_profile %}status-saved{% else %}job-failed{% endif %}">
-                                {% if recommendation_health.has_positive_profile %}healthy{% else %}needs topics{% endif %}
-                            </span>
-                        </div>
-                        <div class="list-item">
-                            <div>
-                                <span class="list-item-title">Zotero</span>
-                                <span class="list-item-subtitle">
-                                    {% if recommendation_health.zotero.configured_path %}
-                                        {{ recommendation_health.zotero.configured_path }}
-                                    {% else %}
-                                        Auto-detect enabled; no explicit path configured
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <span class="state-chip {% if recommendation_health.zotero.path_exists %}status-saved{% else %}job-degraded{% endif %}">
-                                {% if recommendation_health.zotero.path_exists %}connected{% else %}keyword mode{% endif %}
-                            </span>
-                        </div>
+                    <div style="margin-top:16px;">
+                        <div class="field-label-modern" for="lookbackDays">Lookback days</div>
+                        <input type="number" class="input-modern" id="lookbackDays" value="{{ sources.lookback_days }}" min="3" max="60" style="max-width:200px;">
                     </div>
-                </section>
+                </div>
 
-                <section class="form-card full-span">
-                    <div class="section-kicker">Evaluation</div>
-                    <h2 class="panel-title">Recommendation Quality</h2>
-                    <p class="field-help">Evaluate the quality of your recommendation pipeline against labeled datasets.</p>
-                    <a href="/evaluation" class="btn btn-primary">Full evaluation panel →</a>
-                </section>
-            </div>
+            {% elif tab == 'ranking' %}
+                <form id="settingsForm">
+                    <div class="form-card-modern">
+                        <h2 class="hero-modern-title" style="font-size:20px; margin-bottom:6px;">Daily output</h2>
+                        <p style="font-size:13px; color:var(--ink-3); margin:0 0 16px;">Control the volume of daily paper recommendations.</p>
 
-        {% endif %}
+                        <div class="field-label-modern" for="papersPerDay">Papers per day</div>
+                        <input type="number" class="input-modern" id="papersPerDay" name="papersPerDay" value="{{ papers_per_day }}" min="5" max="50" style="max-width:200px; margin-bottom:8px;">
+                        <p class="field-help-modern">Higher numbers widen exploration; lower numbers make the inbox more selective.</p>
+                    </div>
+                </form>
+
+            {% elif tab == 'diagnostics' %}
+                <div class="form-card-modern">
+                    <h2 class="hero-modern-title" style="font-size:20px; margin-bottom:16px;">System Health</h2>
+
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        {% macro diag_item(title, subtitle, value, status_class) %}
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:var(--bg); border-radius:8px;">
+                            <div>
+                                <div style="font-size:13px; font-weight:500; color:var(--ink);">{{ title }}</div>
+                                <div style="font-size:11px; color:var(--ink-3);">{{ subtitle }}</div>
+                            </div>
+                            <span class="chip-modern is-muted" style="font-size:10px; {% if status_class == 'healthy' %}border-color:#34C759; color:#34C759;{% elif status_class == 'warn' %}border-color:#FF9500; color:#FF9500;{% endif %}">{{ value }}</span>
+                        </div>
+                        {% endmacro %}
+
+                        {{ diag_item(system_diagnostics.product_name, 'Profile: ' + ('configured' if system_diagnostics.profile.exists else 'missing'), 'local-first', 'healthy') }}
+                        {{ diag_item('AI Provider', system_diagnostics.ai.provider + ' · ' + system_diagnostics.ai.key_source, 'ready' if system_diagnostics.ai.effective_enabled else 'optional', 'healthy' if system_diagnostics.ai.effective_enabled else 'warn') }}
+                        {{ diag_item('Workspace', system_diagnostics.workspace.research_question_count + ' questions · ' + system_diagnostics.workspace.subscription_count + ' subscriptions', system_diagnostics.workspace.queue_total) }}
+                        {{ diag_item('Search Sources', system_diagnostics.source_health.values()|map(attribute='state')|join(' · '), 'fallback-ready', 'healthy') }}
+                        {{ diag_item('Latest Job', system_diagnostics.jobs.latest.trigger_source + ' · ' + (system_diagnostics.jobs.latest.updated_at or system_diagnostics.jobs.latest.created_at) if system_diagnostics.jobs.latest else 'No job records', system_diagnostics.jobs.latest.status if system_diagnostics.jobs.latest else 'idle') }}
+                        {{ diag_item('Collections', '', all_collections|length|string) }}
+                        {{ diag_item('Queue Total', '', (queue_counts.values()|list|sum)|string) }}
+                        {{ diag_item('Recommendation Profile', recommendation_health.core_keyword_count + ' core · ' + recommendation_health.secondary_keyword_count + ' secondary', 'healthy' if recommendation_health.has_positive_profile else 'needs topics', 'healthy' if recommendation_health.has_positive_profile else 'warn') }}
+                        {{ diag_item('Zotero', recommendation_health.zotero.configured_path if recommendation_health.zotero.configured_path else 'Auto-detect enabled; no explicit path configured', 'connected' if recommendation_health.zotero.path_exists else 'keyword mode', 'healthy' if recommendation_health.zotero.path_exists else 'warn') }}
+                    </div>
+                </div>
+
+                <div class="form-card-modern" style="margin-top:20px;">
+                    <h2 class="hero-modern-title" style="font-size:18px; margin-bottom:6px;">Recommendation Quality</h2>
+                    <p class="field-help-modern">Evaluate the quality of your recommendation pipeline against labeled datasets.</p>
+                    <a href="/evaluation" class="btn-modern btn-modern-primary btn-modern-sm">Full evaluation panel →</a>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </section>
 {% endblock %}
@@ -292,7 +214,6 @@ function toggleAIApiKeyVisibility() {
 function _getAIConfigPayload() {
     const provider = document.getElementById('aiProvider') ? document.getElementById('aiProvider').value : 'none';
     const raw = document.getElementById('aiApiKey') ? document.getElementById('aiApiKey').value.trim() : '';
-    // Detect masked or env-var placeholder — send sentinel to keep existing key
     const api_key = (raw === '__env_var__' || raw.indexOf('...') !== -1) ? (raw === '__env_var__' ? '__env_var__' : '__keep__') : raw;
     const enabled = provider !== 'none' && api_key !== '';
     return {

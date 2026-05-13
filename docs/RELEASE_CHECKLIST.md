@@ -11,7 +11,7 @@ Run before every release.
 
 ## 2. Lint and Security
 
-- [ ] `ruff check app/ state_store.py config_manager.py web_server.py utils.py`
+- [ ] `ruff check app/ state_store.py web_server.py utils.py`
 - [ ] `bandit -r app/ -ll -x tests/`
 - [ ] `pip-audit -r requirements.txt`
 
@@ -24,7 +24,7 @@ Run before every release.
 ## 4. Paper Agent Acceptance
 
 - [ ] Onboarding completes without editing local JSON by hand.
-- [ ] `/` renders the Search workspace with a single search bar, result list, and right preview.
+- [ ] `/` renders the Research Desk home page with quick-start bar, workspace cards, and today's papers.
 - [ ] Search accepts a paper, author, or topic query and returns persisted paper candidates.
 - [ ] arXiv and Semantic Scholar degraded states are shown independently.
 - [ ] Clicking a result updates the right preview without navigation.
@@ -44,7 +44,7 @@ Run before every release.
 - [ ] Agent with no selected paper returns a helpful fallback (not an error or crash).
 - [ ] The app works with no AI provider configured.
 - [ ] API keys and secrets are never rendered in full, exported, or logged.
-- [ ] Left sidebar navigation renders with all sections (Search, Library, Recommendations, Watch, Reading, Subscriptions, Settings, Agent Sessions).
+- [ ] Left sidebar navigation renders with all sections (Home, Search, Workspaces, Recommendations, Subscriptions, Reading, Settings, dark mode toggle).
 - [ ] Light/dark mode toggle works on all pages with consistent design tokens.
 - [ ] Breathing grid background animates in light and dark modes, and is static with prefers-reduced-motion.
 

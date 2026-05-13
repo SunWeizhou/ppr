@@ -40,9 +40,15 @@ class RecommendationWorkspaceService:
             return []
         return runs[0]["items"]
 
-    def run(self, *, mode: str = "for_you", query: str = "", max_results: int = 20) -> dict:
+    def run(self, *, mode: str = "for_you", query: str = "", max_results: int = 20, research_question_id: int | None = None) -> dict:
         """Run the multi-strategy recommendation engine and persist results."""
         query_text = self._query_for_mode(mode, query)
+
+        # Enrich query with workspace context when no explicit query is given
+        if research_question_id is not None and not query_text:
+            ws = self.state_store.get_research_question(research_question_id)
+            if ws:
+                query_text = ws.get("query_text", "")
         if not query_text:
             # No personalization signal available — return early with empty state
             return {

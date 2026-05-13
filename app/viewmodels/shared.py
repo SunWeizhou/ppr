@@ -5,23 +5,25 @@ Extracted from web_server.py and queue_viewmodel.py to eliminate duplication.
 
 from __future__ import annotations
 
+# Brand identity (Section 9)
+PAPER_AGENT_TAGLINE = "Your research-question-driven AI literature workspace"
+
 NAV_ITEM_CONFIG = [
     # Main section
+    {"key": "home", "label": "Home", "href": "/", "icon": "home", "section": "main"},
     {"key": "search", "label": "Search", "href": "/search", "icon": "search", "section": "main"},
+    {"key": "workspaces", "label": "Workspaces", "href": "/", "icon": "workspaces", "section": "main"},
     {"key": "recommendations", "label": "Recommendations", "href": "/recommendations", "icon": "star", "section": "main"},
     {"key": "subscriptions", "label": "Subscriptions", "href": "/watch", "icon": "eye", "section": "main"},
     {"key": "reading", "label": "Reading", "href": "/reading", "icon": "book", "section": "main"},
-    # Subscriptions section
-    {"key": "sub_journals", "label": "Journals", "href": "/watch#watch-journals", "icon": "journal", "section": "subscriptions"},
-    {"key": "sub_conferences", "label": "Conferences", "href": "/watch#watch-conferences", "icon": "conference", "section": "subscriptions"},
-    {"key": "sub_scholars", "label": "Scholars", "href": "/watch#watch-scholars", "icon": "scholar", "section": "subscriptions"},
-    {"key": "sub_fields", "label": "Fields", "href": "/watch#watch-fields", "icon": "field", "section": "subscriptions"},
     # Footer section
     {"key": "settings", "label": "Settings", "href": "/settings", "icon": "settings", "section": "footer"},
 ]
 
 # SVG icons for sidebar items
 _ICON_SVG = {
+    "home": '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 7l6-5 6 5v7a1 1 0 01-1 1H3a1 1 0 01-1-1V7z"/><path d="M6 14V8h4v6"/></svg>',
+    "workspaces": '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="6" height="10" rx="1"/><rect x="9" y="3" width="6" height="10" rx="1"/><path d="M1 7h6M9 7h6"/></svg>',
     "search": '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>',
     "star": '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2l1.5 3.5 3.5.5-2.5 2.5.5 3.5L8 10.5 5 12l.5-3.5L3 6l3.5-.5z"/></svg>',
     "eye": '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>',
@@ -102,6 +104,7 @@ def assemble_page_context(state_store, *, active_tab: str, feedback: dict | None
 
     return {
         "feedback": feedback,
+        "paper_agent_tagline": PAPER_AGENT_TAGLINE,
         "liked_count": liked_count,
         "nav_items": nav_items,
         "collections": collections[:6],

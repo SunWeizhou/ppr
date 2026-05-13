@@ -21,6 +21,7 @@ DESTRUCTIVE_TERMS = ("delete", "remove all", "overwrite api key", "bulk archive"
 VALID_INTENTS = frozenset({
     "answer", "search", "save", "watch",
     "collection", "planner", "analysis", "summarize", "recommendations",
+    "read_next", "memo_update", "generate_review", "suggest_coverage", "key_paper_why",
 })
 
 
@@ -350,6 +351,30 @@ class AgentService:
         if plan.intent == "summarize" and selected_paper_id:
             return self._summarize_selected_paper(selected_paper_id, selected_title, actions, tool_results)
 
+        # ---- New research-assistant behaviors (F-AGENT-2) ----
+        rq_id = page_context.get("research_question_id")
+
+        if plan.intent == "read_next" and rq_id:
+            return self._exec_read_next(int(rq_id), actions, tool_results)
+
+        if plan.intent == "memo_update" and rq_id:
+            return self._exec_memo_update_suggestions(int(rq_id), actions, tool_results)
+
+        if plan.intent == "generate_review" and rq_id:
+            return self._exec_generate_review(int(rq_id), actions, tool_results)
+
+        if plan.intent == "suggest_coverage" and rq_id:
+            return self._exec_suggest_coverage(int(rq_id), actions, tool_results)
+
+        if plan.intent == "key_paper_why" and rq_id and selected_paper_id:
+            return self._exec_key_paper_why(int(rq_id), selected_paper_id, selected_title, actions, tool_results)
+
+        if plan.intent in ("read_next", "memo_update", "generate_review", "suggest_coverage", "key_paper_why"):
+            return (
+                "I need a workspace context to help with that. "
+                "Open a research question workspace first, then ask me again."
+            )
+
         return self._answer_chat(message, page_context, tool_results, history)
 
     def _exec_queue(self, plan, paper_id, title, message, actions, tool_results) -> str:
@@ -478,6 +503,17 @@ class AgentService:
             return AgentPlan("watch", query=str(page_context.get("query") or message).strip())
         if any(word in text for word in ("planner", "plan")):
             return AgentPlan("planner")
+        # New research-assistant intents
+        if any(phrase in text for phrase in ("read next", "what should i read", "what to read")):
+            return AgentPlan("read_next")
+        if any(phrase in text for phrase in ("memo update", "update memo", "memo section", "update my memo")):
+            return AgentPlan("memo_update")
+        if any(phrase in text for phrase in ("generate review", "weekly review", "this week review", "create review")):
+            return AgentPlan("generate_review")
+        if any(phrase in text for phrase in ("suggest coverage", "missing coverage", "literature gap", "what am i missing")):
+            return AgentPlan("suggest_coverage")
+        if any(phrase in text for phrase in ("key paper", "why is this key", "why key", "为什么是重要论文")):
+            return AgentPlan("key_paper_why")
         if any(word in text for word in ("search", "find", "look for", "检索", "搜索", "查找")):
             query = message
             for token in ("search", "find", "look for", "检索", "搜索", "查找"):
@@ -536,6 +572,150 @@ class AgentService:
         tool_results.append({"tool": "summarize_selected_paper", "status": "succeeded", "paper_id": selected_paper_id})
         return reply
 
+    # ------------------------------------------------------------------
+    # New research-assistant behaviors (F-AGENT-2)
+    # ------------------------------------------------------------------
+
+    def _exec_read_next(self, rq_id: int, actions: list, tool_results: list) -> str:
+        """Suggest what to read next based on workspace state and RAG retrieval."""
+        ws = self.state_store.get_research_question(rq_id) or {}
+        query_text = ws.get("query_text", "")
+
+        # Use RAG to find most relevant read papers
+        try:
+            from app.services.rag_service import RagRetrievalService
+            rag = RagRetrievalService(self.state_store)
+            rag_results = rag.query(rq_id, query_text, max_results=3)
+        except Exception:
+            rag_results = []
+
+        # Get inbox / reading papers
+        queue = self.state_store.list_queue_items(research_question_id=rq_id) or []
+        reading_items = [q for q in queue if q.get("status") == "Inbox"]
+        read_items = [q for q in queue if q.get("status") == "Completed"]
+
+        key_papers = self.state_store.list_workspace_papers(rq_id, relationship="key_confirmed") or []
+
+        actions.append({"type": "read_next", "research_question_id": rq_id})
+        tool_results.append({"tool": "read_next_suggestion", "status": "succeeded", "research_question_id": rq_id})
+
+        lines = [f"### What to read next for: {query_text}", ""]
+        if reading_items:
+            lines.append(f"You have **{len(reading_items)}** papers in your reading queue:")
+            for item in reading_items[:5]:
+                meta = self.state_store.get_paper_metadata(item["paper_id"]) or {}
+                title = meta.get("title", item["paper_id"])
+                lines.append(f"- [{title}](/papers/{item['paper_id']})")
+            lines.append("")
+        if rag_results:
+            lines.append("**Most relevant papers already read (via semantic search):**")
+            for p in rag_results:
+                lines.append(f"- [{p['title']}](/papers/{p['paper_id']}) — "
+                             f"score: {p['score']:.2f}")
+            lines.append("")
+        if key_papers:
+            lines.append(f"**{len(key_papers)}** key papers identified. "
+                         f"Consider comparing these in your memo.")
+        if not reading_items and not read_items:
+            lines.append("No papers yet. Try searching for your topic first.")
+        return "\n".join(lines)
+
+    def _exec_memo_update_suggestions(self, rq_id: int, actions: list, tool_results: list) -> str:
+        """Suggest which memo sections need updating."""
+        from app.services.writing_prep_service import WritingPrepService
+
+        service = WritingPrepService(self.state_store)
+        result = service.generate_memo_suggestions(rq_id)
+
+        ws = self.state_store.get_research_question(rq_id) or {}
+        query_text = ws.get("query_text", "")
+
+        actions.append({"type": "memo_update_suggestions", "research_question_id": rq_id})
+        tool_results.append({"tool": "memo_update_suggestion", "status": "succeeded", "research_question_id": rq_id})
+
+        lines = [f"### Suggested Memo Updates: {query_text}", ""]
+        for sec in result.get("suggested_sections", []):
+            lines.append(f"**{sec['section']}**")
+            lines.append(f"> {sec['suggestion']}")
+            lines.append("")
+        lines.append("**Open questions to consider:**")
+        for q in result.get("open_questions", []):
+            lines.append(f"- {q}")
+        lines.append("")
+        lines.append("**Next directions:**")
+        for d in result.get("next_directions", []):
+            lines.append(f"- {d}")
+        return "\n".join(lines)
+
+    def _exec_generate_review(self, rq_id: int, actions: list, tool_results: list) -> str:
+        """Generate this week's review."""
+        from app.services.weekly_review_service import WeeklyReviewService
+
+        ws = self.state_store.get_research_question(rq_id) or {}
+        query_text = ws.get("query_text", "")
+
+        service = WeeklyReviewService(self.state_store)
+        review = service.generate_review(rq_id)
+
+        actions.append({"type": "generate_review", "research_question_id": rq_id})
+        tool_results.append({"tool": "generate_review", "status": "succeeded", "research_question_id": rq_id})
+
+        lines = [
+            f"### Weekly Review Generated for: {query_text}",
+            "",
+            review.get("content", ""),
+            "",
+            f"You can [edit and save this review](/workspaces/{rq_id}/review?week_start={review['week_start']}).",
+        ]
+        return "\n".join(lines)
+
+    def _exec_suggest_coverage(self, rq_id: int, actions: list, tool_results: list) -> str:
+        """Suggest missing literature coverage."""
+        ws = self.state_store.get_research_question(rq_id) or {}
+        query_text = ws.get("query_text", "")
+
+        key_papers = self.state_store.list_workspace_papers(rq_id, relationship="key_confirmed") or []
+        read_papers = self.state_store.list_workspace_papers(rq_id, relationship="read") or []
+
+        actions.append({"type": "suggest_coverage", "research_question_id": rq_id})
+        tool_results.append({"tool": "suggest_coverage", "status": "succeeded", "research_question_id": rq_id})
+
+        lines = [f"### Literature Coverage: {query_text}", ""]
+        lines.append(f"**Key papers identified:** {len(key_papers)}")
+        lines.append(f"**Read papers:** {len(read_papers)}")
+        lines.append("")
+        lines.append("**Suggestions to expand coverage:**")
+        lines.append("1. Search for recent survey papers on this topic")
+        lines.append("2. Check the references cited by your key papers")
+        lines.append("3. Look for benchmark datasets and evaluation papers")
+        lines.append("4. Consider adjacent sub-fields that might have relevant methods")
+        lines.append("")
+        if read_papers:
+            lines.append("Use **Search** to find more papers on this topic, "
+                         f"or try the [Recommendations](/recommendations?q={query_text}) page.")
+        return "\n".join(lines)
+
+    def _exec_key_paper_why(self, rq_id: int, paper_id: str, title: str, actions: list, tool_results: list) -> str:
+        """Explain why a paper is marked as a key paper."""
+        wp = self.state_store.get_workspace_paper(paper_id, rq_id)
+        meta = self.state_store.get_paper_metadata(paper_id) or {}
+        title = meta.get("title", title)
+        abstract = meta.get("abstract", "")[:300]
+
+        actions.append({"type": "key_paper_why", "paper_id": paper_id, "research_question_id": rq_id})
+        tool_results.append({"tool": "key_paper_explanation", "status": "succeeded", "paper_id": paper_id})
+
+        lines = [f"### Why is \"{title}\" a Key Paper?", ""]
+        if wp:
+            lines.append(f"**Relationship:** {wp.get('relationship', 'unknown')}")
+            lines.append(f"**Reason:** {wp.get('reason', 'Not specified')}")
+        lines.append("")
+        if abstract:
+            lines.append(f"**Abstract preview:** {abstract}...")
+            lines.append("")
+        lines.append(f"[View full paper details](/papers/{paper_id}?research_question_id={rq_id})")
+        return "\n".join(lines)
+
     def _answer_chat(self, message: str, page_context: dict, tool_results: list[dict], history: list[dict] = None) -> str:
         try:
             provider = self.provider_factory()
@@ -555,8 +735,7 @@ class AgentService:
             tool_results.append({"tool": "chat", "status": "degraded", "error": str(exc)})
         return self._fallback_chat_reply(message, page_context)
 
-    @staticmethod
-    def _chat_messages(message: str, page_context: dict, history: list[dict] = None) -> list[dict]:
+    def _chat_messages(self, message: str, page_context: dict, history: list[dict] = None) -> list[dict]:
         route = str(page_context.get("route") or "/")
         query = str(page_context.get("query") or "").strip()
         selected_title = str(page_context.get("selected_paper_title") or "").strip()
@@ -565,6 +744,25 @@ class AgentService:
             context_lines.append(f"Current search query: {query}")
         if selected_title:
             context_lines.append(f"Selected paper: {selected_title}")
+        # Inject workspace context when a research_question_id is present
+        rq_id = page_context.get("research_question_id")
+        if rq_id is not None:
+            try:
+                ws = self.state_store.get_research_question(int(rq_id))
+                if ws:
+                    context_lines.append(f"Workspace: {ws.get('title', ws.get('query_text', ''))}")
+                    context_lines.append(f"Workspace intent: {ws.get('intent_statement', 'Not specified')}")
+                    # Reading stats for this workspace
+                    queue = self.state_store.list_queue_items(research_question_id=int(rq_id))
+                    reading_count = sum(1 for q in queue if q.get("status") == "Inbox")
+                    completed_count = sum(1 for q in queue if q.get("status") == "Completed")
+                    context_lines.append(f"Workspace has {reading_count} papers in reading, {completed_count} read")
+                    # Memo status
+                    memo = self.state_store.get_memo(int(rq_id))
+                    has_memo = memo is not None and bool(memo.get("content", "").strip())
+                    context_lines.append(f"Research memo: {'written' if has_memo else 'not yet created'}")
+            except Exception:
+                pass
         msgs = [
             {
                 "role": "system",

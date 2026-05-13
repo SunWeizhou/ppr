@@ -30,6 +30,8 @@ from . import workspaces  # noqa: F401
 from . import agent  # noqa: F401
 from . import recommendations  # noqa: F401
 from . import entities  # noqa: F401
+from . import reading  # noqa: F401
+from . import writing_prep  # noqa: F401
 
 
 # Re-export selected route functions for test backward compat

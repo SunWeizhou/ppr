@@ -308,6 +308,20 @@ class StateStore:
                     UNIQUE(source_id, target_id, relation_type)
                 );
 
+                CREATE TABLE IF NOT EXISTS reading_takeaways (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    paper_id TEXT NOT NULL,
+                    research_question_id INTEGER,
+                    takeaway_text TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (research_question_id) REFERENCES research_questions(id),
+                    UNIQUE(paper_id, research_question_id)
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_reading_takeaways_paper
+                    ON reading_takeaways(paper_id);
+
                 CREATE TABLE IF NOT EXISTS user_profile (
                     id                INTEGER PRIMARY KEY DEFAULT 1,
                     interest_vector   TEXT DEFAULT '[]',
@@ -505,6 +519,92 @@ class StateStore:
                     """)
                 conn.execute(
                     "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '7')"
+                )
+
+            # Sprint 2: Reading Memory Foundation — reading_takeaways + reading events columns
+            if current_version < 8:
+                self._add_column_if_missing(
+                    conn, "reading_queue_items", "reading_completed_at",
+                    "reading_completed_at TEXT",
+                )
+                self._add_column_if_missing(
+                    conn, "reading_queue_items", "reading_started_at",
+                    "reading_started_at TEXT",
+                )
+                conn.execute(
+                    "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '8')"
+                )
+
+            # Sprint 3: Research Memo Foundation — research_memos table
+            if current_version < 9:
+                conn.executescript(
+                    """
+                    CREATE TABLE IF NOT EXISTS research_memos (
+                        research_question_id INTEGER PRIMARY KEY,
+                        content TEXT NOT NULL DEFAULT '',
+                        created_at TEXT NOT NULL,
+                        updated_at TEXT NOT NULL,
+                        FOREIGN KEY (research_question_id) REFERENCES research_questions(id)
+                    );
+                    """
+                )
+                conn.execute(
+                    "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '9')"
+                )
+
+            # Sprint 4: Workspace Memory / RAG — workspace_papers table
+            if current_version < 10:
+                conn.executescript(
+                    """
+                    CREATE TABLE IF NOT EXISTS workspace_papers (
+                        paper_id TEXT NOT NULL,
+                        research_question_id INTEGER NOT NULL,
+                        relationship TEXT NOT NULL
+                            CHECK(relationship IN (
+                                'candidate', 'reading', 'read',
+                                'key_suggested', 'key_confirmed', 'dismissed'
+                            )),
+                        reason TEXT NOT NULL DEFAULT '',
+                        created_at TEXT NOT NULL,
+                        updated_at TEXT NOT NULL,
+                        PRIMARY KEY (paper_id, research_question_id),
+                        FOREIGN KEY (research_question_id) REFERENCES research_questions(id)
+                    );
+
+                    CREATE INDEX IF NOT EXISTS idx_workspace_papers_rq
+                        ON workspace_papers(research_question_id);
+                    CREATE INDEX IF NOT EXISTS idx_workspace_papers_paper
+                        ON workspace_papers(paper_id);
+                    """
+                )
+                conn.execute(
+                    "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '10')"
+                )
+
+            # Sprint 5: Weekly Review & Writing Prep — weekly_reviews table
+            if current_version < 11:
+                conn.executescript(
+                    """
+                    CREATE TABLE IF NOT EXISTS weekly_reviews (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        research_question_id INTEGER,
+                        week_start TEXT NOT NULL,
+                        content TEXT NOT NULL DEFAULT '',
+                        event_summary_json TEXT NOT NULL DEFAULT '{}',
+                        reflection_answers_json TEXT NOT NULL DEFAULT '{}',
+                        created_at TEXT NOT NULL,
+                        updated_at TEXT NOT NULL,
+                        FOREIGN KEY (research_question_id) REFERENCES research_questions(id)
+                    );
+
+                    CREATE INDEX IF NOT EXISTS idx_weekly_reviews_rq
+                        ON weekly_reviews(research_question_id);
+                    CREATE INDEX IF NOT EXISTS idx_weekly_reviews_week
+                        ON weekly_reviews(week_start);
+                    """
+                )
+                conn.execute(
+                    "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '11')"
                 )
 
     def _migrate_arxiv_paper_ids(self, conn: sqlite3.Connection) -> None:
@@ -1916,12 +2016,21 @@ class StateStore:
             ).fetchone()
         return self._row_to_dict(row)
 
-    def list_queue_items(self, status: Optional[str] = None) -> List[Dict]:
-        query = "SELECT * FROM reading_queue_items"
+    def list_queue_items(
+        self, status: Optional[str] = None,
+        research_question_id: Optional[int] = None,
+    ) -> List[Dict]:
+        clauses: List[str] = []
         params: List[object] = []
         if status:
-            query += " WHERE status = ?"
+            clauses.append("status = ?")
             params.append(status)
+        if research_question_id is not None:
+            clauses.append("research_question_id = ?")
+            params.append(research_question_id)
+        query = "SELECT * FROM reading_queue_items"
+        if clauses:
+            query += " WHERE " + " AND ".join(clauses)
         query += " ORDER BY updated_at DESC"
         with self._connect() as conn:
             rows = conn.execute(query, params).fetchall()
@@ -1942,6 +2051,264 @@ class StateStore:
         item = self.upsert_queue_item(paper_id, "Completed", source=source)
         self.record_event("queue_status_changed", paper_id, {"status": "Completed", "source": source})
         return item
+
+    def save_reading_takeaway(
+        self,
+        paper_id: str,
+        takeaway_text: str,
+        research_question_id: Optional[int] = None,
+    ) -> Dict:
+        """Save a one-line takeaway for a paper+workspace combination."""
+        paper_id = _canonical_paper_id(paper_id)
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO reading_takeaways(paper_id, research_question_id, takeaway_text, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(paper_id, research_question_id) DO UPDATE SET
+                    takeaway_text = excluded.takeaway_text,
+                    updated_at = excluded.updated_at
+                """,
+                (paper_id, research_question_id, takeaway_text, now, now),
+            )
+            row = conn.execute(
+                "SELECT * FROM reading_takeaways WHERE paper_id = ? AND "
+                "(research_question_id IS ? OR (research_question_id IS NULL AND ? IS NULL))",
+                (paper_id, research_question_id, research_question_id),
+            ).fetchone()
+        return self._row_to_dict(row)
+
+    def get_reading_takeaway(
+        self,
+        paper_id: str,
+        research_question_id: Optional[int] = None,
+    ) -> Optional[Dict]:
+        """Get the takeaway for a paper+workspace combination."""
+        paper_id = _canonical_paper_id(paper_id)
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM reading_takeaways WHERE paper_id = ? AND "
+                "(research_question_id IS ? OR (research_question_id IS NULL AND ? IS NULL))",
+                (paper_id, research_question_id, research_question_id),
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    def list_reading_takeaways(
+        self,
+        research_question_id: Optional[int] = None,
+        paper_id: Optional[str] = None,
+    ) -> List[Dict]:
+        """List reading takeaways, optionally filtered by workspace or paper."""
+        clauses: List[str] = []
+        params: List[object] = []
+        if research_question_id is not None:
+            clauses.append("research_question_id = ?")
+            params.append(research_question_id)
+        if paper_id:
+            paper_id = _canonical_paper_id(paper_id)
+            clauses.append("paper_id = ?")
+            params.append(paper_id)
+        query = "SELECT * FROM reading_takeaways"
+        if clauses:
+            query += " WHERE " + " AND ".join(clauses)
+        query += " ORDER BY updated_at DESC"
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+    # ------------------------------------------------------------------
+    #  Research Memo methods
+    # ------------------------------------------------------------------
+
+    def save_memo(self, research_question_id: int, content: str) -> Dict:
+        """Save or update a research memo."""
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            existing = conn.execute(
+                "SELECT created_at FROM research_memos WHERE research_question_id = ?",
+                (research_question_id,),
+            ).fetchone()
+            created_at = existing["created_at"] if existing else now
+            conn.execute(
+                """
+                INSERT INTO research_memos(research_question_id, content, created_at, updated_at)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(research_question_id) DO UPDATE SET
+                    content = excluded.content,
+                    updated_at = excluded.updated_at
+                """,
+                (research_question_id, content, created_at, now),
+            )
+            row = conn.execute(
+                "SELECT * FROM research_memos WHERE research_question_id = ?",
+                (research_question_id,),
+            ).fetchone()
+        return self._row_to_dict(row)
+
+    def get_memo(self, research_question_id: int) -> Optional[Dict]:
+        """Get the research memo for a workspace."""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM research_memos WHERE research_question_id = ?",
+                (research_question_id,),
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    # ------------------------------------------------------------------
+    #  Workspace-Paper relationship methods
+    # ------------------------------------------------------------------
+
+    def upsert_workspace_paper(
+        self,
+        paper_id: str,
+        research_question_id: int,
+        relationship: str,
+        reason: str = "",
+    ) -> Dict:
+        """Set the relationship between a paper and a workspace."""
+        paper_id = _canonical_paper_id(paper_id)
+        valid = ("candidate", "reading", "read", "key_suggested", "key_confirmed", "dismissed")
+        if relationship not in valid:
+            raise ValueError(f"Invalid relationship: {relationship}")
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO workspace_papers(paper_id, research_question_id, relationship, reason, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(paper_id, research_question_id) DO UPDATE SET
+                    relationship = excluded.relationship,
+                    reason = excluded.reason,
+                    updated_at = excluded.updated_at
+                """,
+                (paper_id, research_question_id, relationship, reason, now, now),
+            )
+            row = conn.execute(
+                "SELECT * FROM workspace_papers WHERE paper_id = ? AND research_question_id = ?",
+                (paper_id, research_question_id),
+            ).fetchone()
+        return self._row_to_dict(row)
+
+    def get_workspace_paper(
+        self,
+        paper_id: str,
+        research_question_id: int,
+    ) -> Optional[Dict]:
+        """Get the relationship between a paper and a workspace."""
+        paper_id = _canonical_paper_id(paper_id)
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM workspace_papers WHERE paper_id = ? AND research_question_id = ?",
+                (paper_id, research_question_id),
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    def list_workspace_papers(
+        self,
+        research_question_id: int,
+        relationship: Optional[str] = None,
+    ) -> List[Dict]:
+        """List papers linked to a workspace, optionally by relationship."""
+        clauses = ["research_question_id = ?"]
+        params: List[object] = [research_question_id]
+        if relationship:
+            clauses.append("relationship = ?")
+            params.append(relationship)
+        query = "SELECT * FROM workspace_papers WHERE " + " AND ".join(clauses)
+        query += " ORDER BY updated_at DESC"
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+    # ------------------------------------------------------------------
+    #  Weekly Review methods
+    # ------------------------------------------------------------------
+
+    def save_weekly_review(
+        self,
+        *,
+        research_question_id: Optional[int] = None,
+        week_start: str,
+        content: str = "",
+        event_summary: Optional[Dict] = None,
+        reflection_answers: Optional[Dict] = None,
+    ) -> Dict:
+        """Save or update a weekly review."""
+        now = _utc_now()
+        with self._lock, self._connect() as conn:
+            existing = conn.execute(
+                "SELECT id, created_at FROM weekly_reviews "
+                "WHERE week_start = ? AND (research_question_id IS ? OR (research_question_id IS NULL AND ? IS NULL))",
+                (week_start, research_question_id, research_question_id),
+            ).fetchone()
+            if existing:
+                conn.execute(
+                    """
+                    UPDATE weekly_reviews
+                    SET content = ?, event_summary_json = ?, reflection_answers_json = ?,
+                        updated_at = ?
+                    WHERE id = ?
+                    """,
+                    (content, _to_json(event_summary, {}), _to_json(reflection_answers, {}), now, existing["id"]),
+                )
+                row = conn.execute("SELECT * FROM weekly_reviews WHERE id = ?", (existing["id"],)).fetchone()
+            else:
+                cursor = conn.execute(
+                    """
+                    INSERT INTO weekly_reviews(research_question_id, week_start, content,
+                        event_summary_json, reflection_answers_json, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (research_question_id, week_start, content,
+                     _to_json(event_summary, {}), _to_json(reflection_answers, {}), now, now),
+                )
+                row = conn.execute(
+                    "SELECT * FROM weekly_reviews WHERE id = ?", (cursor.lastrowid,)
+                ).fetchone()
+        return self._row_to_dict(row)
+
+    def get_weekly_review(self, review_id: int) -> Optional[Dict]:
+        """Get a weekly review by id."""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM weekly_reviews WHERE id = ?", (review_id,)
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    def get_weekly_review_by_week(
+        self,
+        week_start: str,
+        research_question_id: Optional[int] = None,
+    ) -> Optional[Dict]:
+        """Get a weekly review for a specific week and workspace."""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM weekly_reviews "
+                "WHERE week_start = ? AND (research_question_id IS ? OR (research_question_id IS NULL AND ? IS NULL))",
+                (week_start, research_question_id, research_question_id),
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
+    def list_weekly_reviews(
+        self,
+        research_question_id: Optional[int] = None,
+        limit: int = 10,
+    ) -> List[Dict]:
+        """List weekly reviews for a workspace."""
+        with self._connect() as conn:
+            if research_question_id is not None:
+                rows = conn.execute(
+                    "SELECT * FROM weekly_reviews WHERE research_question_id = ? "
+                    "ORDER BY week_start DESC LIMIT ?",
+                    (research_question_id, limit),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM weekly_reviews ORDER BY week_start DESC LIMIT ?",
+                    (limit,),
+                ).fetchall()
+        return [self._row_to_dict(row) for row in rows]
 
     def get_inbox_progress(self, date_str: str) -> Dict:
         """Return queue workflow progress for a given date.

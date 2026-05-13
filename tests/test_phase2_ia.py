@@ -11,7 +11,7 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
         self.assertIn("search", keys)
         self.assertIn("subscriptions", keys)
         self.assertIn("reading", keys)
-        self.assertNotIn("home", keys)
+        self.assertIn("home", keys)
         self.assertNotIn("explore", keys)
 
     def test_inbox_template_is_strict_triage_surface(self):
@@ -48,7 +48,7 @@ class Phase2InformationArchitectureTests(unittest.TestCase):
         # / now renders the Paper Agent search workspace.
         response = web_server.app.test_client().get("/?skip_onboarding=1")
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Research Workspace", response.get_data(as_text=True))
+        self.assertIn("Research Desk", response.get_data(as_text=True))
 
     def test_evaluation_page_serves_200(self):
         import web_server

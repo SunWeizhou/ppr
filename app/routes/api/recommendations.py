@@ -22,11 +22,22 @@ def list_recommendations():
 @bp.post("/api/recommendations/runs")
 def create_recommendation_run():
     data = request.get_json() or {}
-    service = RecommendationWorkspaceService(_current_state_store())
+    store = _current_state_store()
+    service = RecommendationWorkspaceService(store)
+    research_question_id = data.get("research_question_id")
+
+    # Enrich query with workspace context if available
+    query = str(data.get("query") or data.get("q") or "")
+    if research_question_id and not query:
+        ws = store.get_research_question(int(research_question_id))
+        if ws:
+            query = ws.get("query_text", "")
+
     result = service.run(
         mode=str(data.get("mode") or "for_you"),
-        query=str(data.get("query") or data.get("q") or ""),
+        query=query,
         max_results=int(data.get("max_results") or 20),
+        research_question_id=research_question_id,
     )
     # Serialize sections: convert Candidate objects to dicts
     sections = []

@@ -47,7 +47,7 @@ def index():
     store = get_state_store()
     vm = HomeViewModel(store)
     context = vm.to_template_context()
-    return render_template("home_workspace.html", **context)
+    return render_template("home.html", **context)
 
 
 @bp.get("/daily")
@@ -161,10 +161,44 @@ def paper_detail(paper_id):
     from app.viewmodels.paper_viewmodel import PaperViewModel
     store = get_state_store()
     vm = PaperViewModel(store)
+    research_qid = _request_research_question_id()
     context = vm.to_detail_context(
         paper_id,
-        research_question_id=_request_research_question_id(),
+        research_question_id=research_qid,
     )
+
+    # Record paper_opened event
+    if "error" not in context:
+        store.record_event(
+            "paper_opened", paper_id,
+            {"research_question_id": research_qid},
+        )
+
+    # Attach takeaway data
+    takeaway = store.get_reading_takeaway(paper_id, research_question_id=research_qid)
+    context["paper"]["takeaway"] = takeaway
+
+    # Reading state — is the paper already marked as read?
+    queue_item = store.get_queue_item(paper_id)
+    context["paper"]["is_read"] = (
+        queue_item and queue_item.get("status") == "Completed"
+    )
+    context["paper"]["reading_completed_at"] = (
+        (queue_item or {}).get("reading_completed_at") or ""
+    )
+
+    # Workspace-paper relationship
+    ws_paper = None
+    if research_qid is not None:
+        ws_paper = store.get_workspace_paper(paper_id, research_qid)
+    context["paper"]["workspace_paper"] = ws_paper
+    context["paper"]["is_key_paper"] = (
+        ws_paper and ws_paper.get("relationship") in ("key_confirmed", "key_suggested")
+    )
+    context["paper"]["is_key_confirmed"] = (
+        ws_paper and ws_paper.get("relationship") == "key_confirmed"
+    )
+
     if "error" in context:
         return render_template("paper_detail.html", **context), 404
     return render_template("paper_detail.html", **context)

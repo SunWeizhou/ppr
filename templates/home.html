@@ -1,0 +1,177 @@
+{% extends "base_research.html" %}
+
+{% set body_class = (body_class or '') ~ ' page-home' %}
+
+{% block content %}
+<section class="page-content-modern">
+    <!-- Hero -->
+    <div class="hero-modern">
+        <h1 class="hero-modern-title">Research Desk</h1>
+        <p class="hero-modern-sub">Continue a workspace, review today's papers, or start something new.</p>
+    </div>
+
+    <!-- Quick Start -->
+    <section class="section-modern" aria-label="Quick Start">
+        <div x-data="workspaceComposer()" class="card-modern">
+            <label class="sr-only" for="homeResearchQuestion">Research question</label>
+            <textarea
+                id="homeResearchQuestion"
+                x-model="query"
+                rows="3"
+                placeholder="What do you want to understand, compare, or decide?"
+                aria-label="Research question"
+                style="width:100%; border:none; background:transparent; font-size:16px; resize:none; font-family:var(--ff-body); color:var(--ink); line-height:1.55; padding:0; outline:none; margin-bottom:16px;"
+            ></textarea>
+            <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px;">
+                <button type="button" class="btn-modern btn-modern-ghost btn-modern-sm" @click="runPlanner" :disabled="busy || !query.trim()">Run planner</button>
+                <button type="submit" class="btn-modern btn-modern-primary btn-modern-sm" @click="startResearch" :disabled="busy || !query.trim()">Start research</button>
+                <span style="font-size:12px; color:var(--ink-3);" x-text="status"></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Continue Research -->
+    <section class="section-modern" aria-label="Continue Research">
+        <div class="section-head-modern">
+            <h2>Continue Research</h2>
+            {% if active_workspaces %}
+            <span class="chip-modern is-muted">{{ workspace_count }} workspaces</span>
+            {% endif %}
+        </div>
+
+        {% if active_workspaces %}
+        <div class="workspace-grid-modern">
+            {% for ws in active_workspaces %}
+            <a class="card-modern workspace-card-modern" href="/workspaces/{{ ws.id }}" style="text-decoration:none; color:inherit;">
+                <div>
+                    <h3 class="workspace-card-modern-title">{{ ws.title }}</h3>
+                    {% if ws.intent_statement and ws.intent_statement != ws.title %}
+                    <p class="workspace-card-modern-intent">{{ ws.intent_statement[:120] }}{% if ws.intent_statement|length > 120 %}…{% endif %}</p>
+                    {% endif %}
+                </div>
+                <div class="workspace-card-modern-stats">
+                    <span><strong>{{ ws.inbox_count }}</strong> to review</span>
+                    <span><strong>{{ ws.completed_count }}</strong> read</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-modern" style="text-align:center; padding:32px;">
+            <p style="color:var(--ink-2); margin:0 0 8px;">No active workspaces yet.</p>
+            <p style="color:var(--ink-3); font-size:13px; margin:0;">Start by asking a research question above.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Today's Papers -->
+    <section class="section-modern" aria-label="Today's Papers">
+        <div class="section-head-modern">
+            <h2>Today's Papers</h2>
+            {% if today_total > 0 %}
+            <span class="chip-modern is-muted">{{ today_total }} items</span>
+            {% endif %}
+        </div>
+
+        {% if today_papers or today_hits %}
+        <div style="display:flex; flex-direction:column; gap:32px;">
+            {% if today_papers %}
+            <div>
+                <div style="font-size:11px; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px; padding-left:4px;">In your reading queue</div>
+                <div class="card-modern" style="padding:0; overflow:hidden;">
+                    {% for paper in today_papers %}
+                    <a href="/papers/{{ paper.paper_id | urlencode }}" style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px; text-decoration:none; color:inherit; transition:background 160ms ease; border-bottom:1px solid var(--line-subtle);">
+                        <div style="min-width:0;">
+                            <div style="font-size:14px; font-weight:500; color:var(--ink); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ paper.title }}</div>
+                            <div style="font-size:12px; color:var(--ink-3);">{{ paper.venue or paper.source or 'Paper' }}{% if paper.year %}, {{ paper.year }}{% endif %}</div>
+                        </div>
+                    </a>
+                    {% if not loop.last %}{% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% if today_hits %}
+            <div>
+                <div style="font-size:11px; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px; padding-left:4px;">New from watch</div>
+                <div class="card-modern" style="padding:0; overflow:hidden;">
+                    {% for hit in today_hits %}
+                    <a href="/papers/{{ hit.paper_id | urlencode }}" style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px; text-decoration:none; color:inherit; transition:background 160ms ease; border-bottom:1px solid var(--line-subtle);">
+                        <div style="min-width:0;">
+                            <div style="font-size:14px; font-weight:500; color:var(--ink); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ hit.title }}</div>
+                            <div style="font-size:12px; color:var(--ink-3);">{{ hit.subscription_name }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="card-modern" style="text-align:center; padding:32px;">
+            <p style="color:var(--ink-2); margin:0 0 8px;">Nothing new today yet.</p>
+            <p style="color:var(--ink-3); font-size:13px; margin:0;">Try searching a topic to discover papers.</p>
+        </div>
+        {% endif %}
+
+        <div style="display:flex; gap:24px; margin-top:20px;">
+            <a href="/reading" style="font-size:14px; color:var(--accent); text-decoration:none;">View all reading →</a>
+            <a href="/watch" style="font-size:14px; color:var(--accent); text-decoration:none;">View watch hits →</a>
+        </div>
+    </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function workspaceComposer() {
+  return {
+    query: '',
+    busy: false,
+    status: '',
+    async createQuestion() {
+      const query = this.query.trim();
+      const result = await requestJson('/api/workspaces/questions', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({query_text: query, intent_statement: query})
+      });
+      return result.question;
+    },
+    async startResearch() {
+      if (!this.query.trim()) return;
+      this.busy = true;
+      this.status = 'Creating workspace...';
+      try {
+        const question = await this.createQuestion();
+        const q = encodeURIComponent(this.query.trim());
+        window.location.href = '/search?research_question_id=' + encodeURIComponent(question.id) + '&q=' + q;
+      } catch (error) {
+        this.status = error.message || 'Unable to start research.';
+      } finally {
+        this.busy = false;
+      }
+    },
+    async runPlanner() {
+      if (!this.query.trim()) return;
+      this.busy = true;
+      this.status = 'Running planner...';
+      try {
+        const question = await this.createQuestion();
+        await requestJson('/api/workspaces/questions/' + encodeURIComponent(question.id) + '/planner-runs', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({trigger: 'home'})
+        });
+        window.location.href = '/workspaces/' + encodeURIComponent(question.id);
+      } catch (error) {
+        this.status = error.message || 'Planner could not run.';
+      } finally {
+        this.busy = false;
+      }
+    }
+  };
+}
+</script>
+{% endblock %}

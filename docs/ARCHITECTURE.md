@@ -1,9 +1,10 @@
 # Architecture
 
-This project is Paper Agent, a local-first paper discovery and research
-workspace. The runtime architecture supports search, selected-paper preview,
-paper analysis, reading decisions, saved assets, watches, background jobs, and
-local Agent actions.
+This project is Paper Agent, a **research-question-driven AI literature
+workspace** for graduate students and PhD researchers. The runtime architecture
+supports workspace management, search, selected-paper preview, paper analysis,
+reading decisions, saved assets, watches, background jobs, and local Agent
+actions — all organized around Research Question Workspaces.
 
 ## Product Overview
 
@@ -31,22 +32,18 @@ The application:
 
 - `web_server.py` — thin Flask entrypoint: app initialization, middleware,
   blueprint registration, and server startup.
-- `arxiv_recommender_v5.py` — backward-compatible re-export hub for service
-  imports.
-- `config_manager.py` — user profile adapter for `user_profile.json`, with
-  compatibility migration from older local config files.
 - `state_store.py` — SQLite adapter for workflow and recommendation state.
-- `app/services/` — business logic, external sources, unified search,
-  scoring, queue/library operations, monitoring, AI provider integration,
-  Agent support, entity management, digest generation, subscription running,
-  workspace planning, and evaluation support.
-- `frontend/agent/` — Preact-based Agent panel (sessions, message flow, Markdown
-  rendering). Built to `static/dist/`.
-- `app/routes/` — Flask blueprints for Search/Detail, Reading, Library
-  compatibility, Watch, Settings, API (agent, collections, subscriptions,
-  feedback, state, evaluation), and Onboarding.
-- `app/viewmodels/` — template-ready context builders for page surfaces.
-- `templates/` and `static/` — Jinja2 templates, CSS, and JavaScript.
+- `app/services/` — business logic: paper discovery, ranking, AI analysis,
+  subscriptions, workspace planning, Agent dispatch, entity management,
+  RAG retrieval, weekly review, key paper service, and more.
+- `frontend/agent-panel/` — Preact-based Agent panel (sessions, message flow,
+  Markdown rendering). Built to `static/dist/` via root-level Vite config.
+- `app/routes/` — Flask blueprints for Home, Workspaces, Search, Reading,
+  Watch, Settings, Entities, Recommendations, Evaluation, Onboarding, and API.
+- `app/viewmodels/` — template-ready context builders for each page surface.
+- `templates/` — Jinja2 templates extending `base_research.html`.
+- `static/` — CSS design tokens, Apple/Claude component styles, JS modules,
+  Vite-built Agent panel bundle.
 - `evaluation/` — offline evaluation support for ranking metrics and reports.
 - `tests/` — unit, integration, productization, and visual regression tests.
 
@@ -98,29 +95,36 @@ The application:
 
 ## Runtime Surfaces
 
-- **Search** (`/`): home workspace with result list, selected-paper preview,
-  source status, and quick actions.
+- **Home** (`/`): Research Desk with quick-start bar, active workspace cards,
+  and today's papers section.
+- **Workspace Overview** (`/workspaces/<id>`): dedicated page per Research Question
+  with stats grid, workspace memory, suggestions, recent papers, Research Memo,
+  and Weekly Review.
+- **Workspace Memo** (`/workspaces/<id>/memo`): living document that grows with
+  the workspace.
+- **Workspace Review** (`/workspaces/<id>/review`): AI-generated weekly reading
+  summary.
+- **Search** (`/search`): workspace-aware paper discovery across arXiv, Semantic
+  Scholar, and OpenAlex with split-panel preview and source status indicators.
 - **Recommendations** (`/recommendations`): profile and research-context
   candidate-set workspace with why-recommended explanations.
 - **Paper Detail** (`/papers/<id>`): structured paper context, analysis,
   evidence, notes, and actions.
-- **Reading** (`/reading`): lightweight library for skim, deep-read, saved,
-  archived, and collection states.
-- **Watch** (`/watch`): research question, author, and venue monitors with
-  recent hits and source health.
+- **Reading** (`/reading`): unified reading list with To Read / Completed /
+  Collections tabs and workspace filter.
+- **Watch** (`/watch`): journal, conference, scholar, and field monitors with
+  saved query searches and hit lists.
 - **Entity Profiles** (`/entities/<id>`): browsable pages for journals,
   conferences, scholars, and research fields with metadata, related papers,
   and subscribe actions.
-- **Settings** (`/settings`): profile, OpenAI-compatible provider, source health,
-  backup, restore, and diagnostics.
+- **Settings** (`/settings`): profile, sources, ranking weights, AI provider,
+  and diagnostics tabs.
 - **Evaluation** (`/evaluation`): offline ranking reports and quality checks.
-- **Onboarding** (`/onboarding`): first-time setup wizard for profile, keywords,
-  and initial research question.
-- **Agent Panel**: Preact-based side panel with persistent conversation
+- **Onboarding** (`/onboarding`): first-time setup wizard for topics, paper count,
+  Zotero path, AI provider, and initial research question.
+- **Agent Panel**: Preact-based side drawer with persistent conversation
   sessions, multi-turn context, multi-step execution, Markdown rendering,
-  and action chips. Accessed via Notion AI-style floating button from any page.
-- **Queue** (`/queue`): compatibility route for internal Inbox state and existing
-  tests.
+  and action chips. Accessed via floating button from any page.
 
 ## Agent Subsystem
 
