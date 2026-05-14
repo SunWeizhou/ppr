@@ -136,45 +136,42 @@ class PaperDetailEvidenceViewModelTests(unittest.TestCase):
         """Provider deepseek with no API key and enabled=false → not usable."""
         from app.viewmodels.paper_viewmodel import PaperViewModel
 
+        ai_config = {"provider": "deepseek", "enabled": False, "api_key": ""}
         fake_config = mock.Mock()
-        fake_config._ai.provider = "deepseek"
-        fake_config._ai.enabled = False
-        fake_config._ai.api_key = ""
+        fake_config.get_ai_config.return_value = ai_config
 
         with mock.patch(
             "config_manager.get_config",
             return_value=fake_config,
-        ):
+        ), mock.patch("os.getenv", return_value=None):
             self.assertFalse(PaperViewModel._has_ai_configured())
 
     def test_has_ai_configured_false_when_provider_deepseek_no_key_enabled(self):
         """Provider deepseek, enabled=true but no API key → not usable."""
         from app.viewmodels.paper_viewmodel import PaperViewModel
 
+        ai_config = {"provider": "deepseek", "enabled": True, "api_key": ""}
         fake_config = mock.Mock()
-        fake_config._ai.provider = "deepseek"
-        fake_config._ai.enabled = True
-        fake_config._ai.api_key = ""
+        fake_config.get_ai_config.return_value = ai_config
 
         with mock.patch(
             "config_manager.get_config",
             return_value=fake_config,
-        ), mock.patch.dict("os.environ", {}, clear=True):
+        ), mock.patch("os.getenv", return_value=None):
             self.assertFalse(PaperViewModel._has_ai_configured())
 
     def test_deepseek_without_key_still_generates_rule_evidence(self):
         """Provider deepseek with no API key should still generate rule-based evidence fallback."""
         from app.viewmodels.paper_viewmodel import PaperViewModel
 
+        ai_config = {"provider": "deepseek", "enabled": True, "api_key": ""}
         fake_config = mock.Mock()
-        fake_config._ai.provider = "deepseek"
-        fake_config._ai.enabled = True
-        fake_config._ai.api_key = ""
+        fake_config.get_ai_config.return_value = ai_config
 
         with mock.patch(
             "config_manager.get_config",
             return_value=fake_config,
-        ), mock.patch.dict("os.environ", {}, clear=True):
+        ), mock.patch("os.getenv", return_value=None):
             ctx = PaperViewModel(self.store).to_detail_context(
                 self.paper_id,
                 research_question_id=self.question["id"],

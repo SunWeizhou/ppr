@@ -607,6 +607,16 @@ class StateStore:
                     "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '11')"
                 )
 
+            # Sprint 6: RAG Q&A — rag_enabled flag on workspace_papers
+            if current_version < 12:
+                self._add_column_if_missing(
+                    conn, "workspace_papers", "rag_enabled",
+                    "rag_enabled INTEGER DEFAULT 0",
+                )
+                conn.execute(
+                    "INSERT OR REPLACE INTO schema_meta(key, value) VALUES('schema_version', '12')"
+                )
+
     def _migrate_arxiv_paper_ids(self, conn: sqlite3.Connection) -> None:
         queue_rows = conn.execute(
             "SELECT paper_id, status, source, note, tags_json, updated_at FROM reading_queue_items"
@@ -2189,13 +2199,41 @@ class StateStore:
         relationship: str,
         reason: str = "",
     ) -> Dict:
-        """Set the relationship between a paper and a workspace."""
+        """Set the relationship between a paper and a workspace.
+
+        Relationship priority (strongest to weakest):
+          key_confirmed > key_suggested > read > reading > candidate
+
+        A weaker incoming relationship will NOT overwrite a stronger
+        existing one.  'dismissed' is treated as a user-level negative
+        signal — only explicit re-promotion can change it.
+        """
         paper_id = _canonical_paper_id(paper_id)
         valid = ("candidate", "reading", "read", "key_suggested", "key_confirmed", "dismissed")
         if relationship not in valid:
             raise ValueError(f"Invalid relationship: {relationship}")
+
+        _REL_PRIORITY = {"candidate": 0, "reading": 1, "read": 2, "key_suggested": 3, "key_confirmed": 4}
+
         now = _utc_now()
         with self._lock, self._connect() as conn:
+            existing = conn.execute(
+                "SELECT relationship, reason FROM workspace_papers WHERE paper_id = ? AND research_question_id = ?",
+                (paper_id, research_question_id),
+            ).fetchone()
+
+            if existing:
+                existing_rel = existing["relationship"]
+                # Don't downgrade strong relationships
+                if existing_rel in _REL_PRIORITY and relationship in _REL_PRIORITY:
+                    if _REL_PRIORITY[existing_rel] > _REL_PRIORITY[relationship]:
+                        # Keep the stronger existing relationship
+                        return dict(existing)
+                # dismissed relationships are only changed by explicit user action,
+                # not by automatic pipeline operations
+                if existing_rel == "dismissed" and relationship == "candidate":
+                    return dict(existing)
+
             conn.execute(
                 """
                 INSERT INTO workspace_papers(paper_id, research_question_id, relationship, reason, created_at, updated_at)
@@ -2231,18 +2269,51 @@ class StateStore:
         self,
         research_question_id: int,
         relationship: Optional[str] = None,
+        *,
+        rag_enabled: Optional[bool] = None,
     ) -> List[Dict]:
-        """List papers linked to a workspace, optionally by relationship."""
+        """List papers linked to a workspace, optionally by relationship.
+
+        Set rag_enabled=True to only return RAG-selected papers.
+        """
         clauses = ["research_question_id = ?"]
         params: List[object] = [research_question_id]
         if relationship:
             clauses.append("relationship = ?")
             params.append(relationship)
+        if rag_enabled is not None:
+            clauses.append("rag_enabled = ?")
+            params.append(1 if rag_enabled else 0)
         query = "SELECT * FROM workspace_papers WHERE " + " AND ".join(clauses)
         query += " ORDER BY updated_at DESC"
         with self._connect() as conn:
             rows = conn.execute(query, params).fetchall()
         return [self._row_to_dict(row) for row in rows]
+
+    def toggle_rag_paper(
+        self,
+        paper_id: str,
+        research_question_id: int,
+        rag_enabled: bool,
+    ) -> bool:
+        """Enable or disable a paper for RAG indexing in a workspace.
+
+        Returns True if the paper exists in the workspace, False otherwise.
+        Does NOT change the relationship field.
+        """
+        paper_id = _canonical_paper_id(paper_id)
+        with self._connect() as conn:
+            existing = conn.execute(
+                "SELECT 1 FROM workspace_papers WHERE paper_id = ? AND research_question_id = ?",
+                (paper_id, research_question_id),
+            ).fetchone()
+            if not existing:
+                return False
+            conn.execute(
+                "UPDATE workspace_papers SET rag_enabled = ?, updated_at = ? WHERE paper_id = ? AND research_question_id = ?",
+                (1 if rag_enabled else 0, _utc_now(), paper_id, research_question_id),
+            )
+        return True
 
     # ------------------------------------------------------------------
     #  Weekly Review methods

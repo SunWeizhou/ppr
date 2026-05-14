@@ -132,19 +132,9 @@ def api_search():
                         "external_ids": paper.get("external_ids", {}),
                         "source": paper.get("source", ""),
                     },
-                    source="api_search",
-                    source_run_id="paper-agent-search",
+                    source="search_workspace" if rq_id is not None else "search",
+                    source_run_id=f"research-question-{rq_id}" if rq_id is not None else "ad-hoc-search",
                 )
-                # Link to workspace as candidate (search result)
-                if rq_id is not None:
-                    try:
-                        store.upsert_workspace_paper(
-                            paper_id, rq_id,
-                            relationship="candidate",
-                            reason="search_result",
-                        )
-                    except Exception:
-                        pass  # Non-critical workspace link failure
         return jsonify({
             "success": True,
             "papers": papers,

@@ -97,8 +97,7 @@ class SearchWorkspaceRouteTests(unittest.TestCase):
             response = self.client().get(f"/search?research_question_id={question['id']}")
 
         self.assertEqual(response.status_code, 200)
-        # Route correctly forwards research_question_id to template context;
-        # full intent_card rendering requires Task 5 template retrofit.
+        # Route correctly forwards research_question_id to template context.
 
     def test_search_keywords_with_question_context_saves_workspace_metadata(self):
         import app.routes.inbox as inbox_routes

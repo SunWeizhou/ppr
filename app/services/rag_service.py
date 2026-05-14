@@ -175,31 +175,57 @@ class RagRetrievalService:
         query_text: str,
         *,
         max_results: int = 5,
+        paper_ids: Optional[list] = None,
     ) -> list[dict]:
-        """Retrieve the most relevant read/key papers for a query."""
+        """Retrieve the most relevant read/key papers for a query.
+
+        If paper_ids is provided, only those papers are considered (RAG Q&A mode).
+        Otherwise falls back to all read + key_confirmed workspace papers.
+        """
         query_text = query_text.strip()
         if not query_text:
             return []
 
         query_tokens = set(query_text.lower().split())
 
-        # Collect candidate papers (read + key_confirmed)
+        # Collect candidate papers
         candidates: list[dict] = []
-        for rel in ("read", "key_confirmed"):
-            for wp in (self._store.list_workspace_papers(research_question_id, relationship=rel) or []):
-                meta = self._store.get_paper_metadata(wp["paper_id"]) or {}
-                candidates.append({
-                    "paper_id": wp["paper_id"],
-                    "title": meta.get("title", wp["paper_id"]),
-                    "authors": meta.get("authors", []),
-                    "author_text": ", ".join((meta.get("authors") or [])[:3]) or "Unknown",
-                    "abstract": meta.get("abstract") or meta.get("summary", ""),
-                    "relationship": rel,
-                    "score": 0.0,
-                })
+        if paper_ids is not None:
+            # RAG Q&A mode: only the user-selected papers
+            target_ids = set(paper_ids)
+            for pid in target_ids:
+                meta = self._store.get_paper_metadata(pid) or {}
+                if meta:
+                    candidates.append({
+                        "paper_id": pid,
+                        "title": meta.get("title", pid),
+                        "authors": meta.get("authors", []),
+                        "author_text": ", ".join((meta.get("authors") or [])[:3]) or "Unknown",
+                        "abstract": meta.get("abstract") or meta.get("summary", ""),
+                        "relationship": "rag_selected",
+                        "score": 0.0,
+                    })
+        else:
+            for rel in ("read", "key_confirmed"):
+                for wp in (self._store.list_workspace_papers(research_question_id, relationship=rel) or []):
+                    meta = self._store.get_paper_metadata(wp["paper_id"]) or {}
+                    candidates.append({
+                        "paper_id": wp["paper_id"],
+                        "title": meta.get("title", wp["paper_id"]),
+                        "authors": meta.get("authors", []),
+                        "author_text": ", ".join((meta.get("authors") or [])[:3]) or "Unknown",
+                        "abstract": meta.get("abstract") or meta.get("summary", ""),
+                        "relationship": wp.get("relationship", rel),
+                        "score": 0.0,
+                    })
 
         if not candidates:
             return []
+
+        # Build enriched text for scoring (memo has higher weight)
+        for c in candidates:
+            enriched = self._build_rag_context(c["paper_id"])
+            c["_rag_context"] = enriched
 
         # Try embedding similarity
         query_embedding = self._make_query_fingerprint(query_text)
@@ -208,10 +234,58 @@ class RagRetrievalService:
             if emb and emb[0]:
                 c["score"] = self._cosine_similarity(query_embedding, emb[0])
             else:
-                c["score"] = self._keyword_score(c, query_tokens)
+                c["score"] = self._keyword_score_enriched(c, query_tokens)
 
         candidates.sort(key=lambda c: c["score"], reverse=True)
         return candidates[:max_results]
+
+    def _build_rag_context(self, paper_id: str) -> str:
+        """Build enriched text for a paper for RAG retrieval.
+
+        Memo / takeaway text is weighted higher (duplicated) because it's
+        the most valuable content for literature review.
+        """
+        meta = self._store.get_paper_metadata(paper_id) or {}
+        parts = []
+
+        title = meta.get("title", "")
+        if title:
+            parts.append(f"Title: {title}")
+
+        abstract = meta.get("abstract") or meta.get("summary", "")
+        if abstract:
+            parts.append(f"Abstract: {abstract}")
+
+        # AI analysis fields
+        analysis = self._store.get_paper_ai_analysis(paper_id) or {}
+        for field in ("one_sentence_summary", "problem", "method", "contribution"):
+            val = analysis.get(field, "")
+            if val:
+                parts.append(f"{field}: {val}")
+
+        # Memo / takeaway — duplicated for higher TF weight
+        takeaway = self._store.get_reading_takeaway(paper_id)
+        if takeaway and takeaway.get("takeaway_text", "").strip():
+            memo_text = f"Memo: {takeaway['takeaway_text']}"
+            parts.append(memo_text)
+            parts.append(memo_text)  # duplicate for 2x weight
+
+        return "\n\n".join(parts)
+
+    @staticmethod
+    def _keyword_score_enriched(paper: dict, query_tokens: set) -> float:
+        """Keyword overlap using enriched RAG context (includes memo dupe)."""
+        if not query_tokens:
+            return 0.0
+        text = (
+            (paper.get("title") or "").lower() + " " +
+            (paper.get("_rag_context") or paper.get("abstract") or "")[:2000].lower()
+        )
+        text_tokens = set(text.split())
+        overlap = query_tokens & text_tokens
+        if not overlap:
+            return 0.0
+        return min(1.0, len(overlap) / max(len(query_tokens), 1))
 
     @staticmethod
     def _make_query_fingerprint(text: str) -> bytes:

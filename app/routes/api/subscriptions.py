@@ -4,7 +4,7 @@ import json
 from flask import jsonify, request
 
 from . import bp
-from .helpers import _current_state_store
+from .helpers import _current_state_store, _queue_service
 
 
 def _serialize_subscription(sub):
@@ -140,12 +140,13 @@ def list_subscription_hits(sub_id):
 def run_subscription(sub_id):
     from app.services.subscription_runner import SubscriptionRunner
 
-    runner = SubscriptionRunner(_current_state_store())
+    runner = SubscriptionRunner(_current_state_store(), queue_service=_queue_service())
     result = runner.run_subscription(sub_id)
 
     if not result.get("success"):
         error = result.get("error", "Unknown error")
-        return jsonify({"success": False, "error": error}), 500
+        status_code = 404 if "not found" in str(error).lower() else 500
+        return jsonify({"success": False, "error": error}), status_code
 
     sub = _current_state_store().get_subscription(sub_id)
     return jsonify({
@@ -159,7 +160,7 @@ def run_subscription(sub_id):
 def run_all_subscriptions():
     from app.services.subscription_runner import SubscriptionRunner
 
-    runner = SubscriptionRunner(_current_state_store())
+    runner = SubscriptionRunner(_current_state_store(), queue_service=_queue_service())
     result = runner.run_all_subscriptions()
 
     return jsonify({
@@ -180,9 +181,9 @@ def send_hit_to_inbox(hit_id):
     """Send a subscription hit to the reading queue."""
     from app.services.subscription_runner import SubscriptionRunner
 
-    runner = SubscriptionRunner(_current_state_store())
+    runner = SubscriptionRunner(_current_state_store(), queue_service=_queue_service())
     ok = runner.send_hit_to_inbox(hit_id)
-    return jsonify({"success": ok})
+    return jsonify({"success": ok}) if ok else (jsonify({"success": False, "error": "Hit not found"}), 404)
 
 
 @bp.post("/api/subscription-hits/<int:hit_id>/ignore")
@@ -190,6 +191,6 @@ def ignore_hit(hit_id):
     """Ignore a subscription hit."""
     from app.services.subscription_runner import SubscriptionRunner
 
-    runner = SubscriptionRunner(_current_state_store())
+    runner = SubscriptionRunner(_current_state_store(), queue_service=_queue_service())
     ok = runner.ignore_hit(hit_id)
-    return jsonify({"success": ok})
+    return jsonify({"success": ok}) if ok else (jsonify({"success": False, "error": "Hit not found"}), 404)

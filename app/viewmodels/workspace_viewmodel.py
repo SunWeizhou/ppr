@@ -29,6 +29,7 @@ class WorkspaceOverviewViewModel:
         memory_stats = self._load_memory_stats(workspace_id)
         key_suggestions = self._load_key_suggestions(workspace_id)
         nudges = self._load_nudges(workspace_id)
+        rag_papers = self._load_rag_papers(workspace_id)
 
         context = {
             "title": f"{workspace.get('title', 'Workspace')} - Paper Agent",
@@ -46,11 +47,14 @@ class WorkspaceOverviewViewModel:
             "watch_count": len(subscriptions),
             "memo": memo,
             "has_memo": memo is not None,
-            "has_reviews": False,  # Future: Weekly Reviews not yet implemented
+            "has_reviews": bool(memo and memo.get("review_sections")),
             "memory_stats": memory_stats,
             "key_suggestions": key_suggestions,
             "has_key_suggestions": len(key_suggestions) > 0,
             "nudges": nudges,
+            "rag_papers": rag_papers,
+            "rag_paper_ids": [p["paper_id"] for p in rag_papers],
+            "has_rag_papers": len(rag_papers) > 0,
         }
         # Shared page context
         base = assemble_page_context(self._store, active_tab="workspaces")
@@ -104,7 +108,7 @@ class WorkspaceOverviewViewModel:
         except Exception:
             return []
         ws_items = [i for i in items if i.get("research_question_id") == workspace_id]
-        ws_items.sort(key=lambda i: i.get("created_at", "") or "", reverse=True)
+        ws_items.sort(key=lambda i: i.get("reading_started_at") or i.get("updated_at", "") or "", reverse=True)
         papers = []
         for item in ws_items[:8]:
             pid = item.get("paper_id") or ""
@@ -183,5 +187,21 @@ class WorkspaceOverviewViewModel:
             if i.get("research_question_id") == workspace_id
             and i.get("status") == "Completed"
         ]
-        completed.sort(key=lambda i: i.get("created_at", "") or "", reverse=True)
+        completed.sort(key=lambda i: i.get("reading_completed_at") or i.get("updated_at", "") or "", reverse=True)
         return completed
+
+    def _load_rag_papers(self, workspace_id: int) -> list[dict]:
+        """Return papers that are enabled for RAG in this workspace."""
+        try:
+            wps = self._store.list_workspace_papers(workspace_id, rag_enabled=True) or []
+        except Exception:
+            return []
+        papers = []
+        for wp in wps:
+            meta = self._store.get_paper_metadata(wp["paper_id"]) or {}
+            papers.append({
+                "paper_id": wp["paper_id"],
+                "title": meta.get("title", wp["paper_id"]),
+                "author_text": ", ".join((meta.get("authors") or [])[:2]) or "",
+            })
+        return papers

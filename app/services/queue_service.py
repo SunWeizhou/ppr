@@ -97,6 +97,12 @@ class QueueService:
         research_question_id=None,
         decision_context: str = "",
     ):
+        # Read previous status for idempotency check
+        previous = self.state_store.get_queue_item(paper_id)
+        previous_status = previous.get("status") if previous else None
+        status_changed = previous_status != status
+        is_new_inbox = status == "Inbox" and previous_status != "Inbox"
+
         item = self.update_item(
             paper_id,
             status,
@@ -106,19 +112,24 @@ class QueueService:
             research_question_id=research_question_id,
             decision_context=decision_context,
         )
-        event_id = self.state_store.record_event(
-            "queue_status_changed",
-            item["paper_id"],
-            {
-                "status": status,
-                "source": source,
-                "note": item.get("note", ""),
-                "research_question_id": research_question_id,
-                "decision_context": decision_context,
-            },
-        )
-        # Record reading_added event when moving to Inbox
-        if status == "Inbox":
+
+        event_id = None
+        if status_changed:
+            event_id = self.state_store.record_event(
+                "queue_status_changed",
+                item["paper_id"],
+                {
+                    "status": status,
+                    "previous_status": previous_status,
+                    "source": source,
+                    "note": item.get("note", ""),
+                    "research_question_id": research_question_id,
+                    "decision_context": decision_context,
+                },
+            )
+
+        # Record reading_added event only on first transition to Inbox
+        if is_new_inbox:
             self.state_store.record_event(
                 "reading_added",
                 item["paper_id"],
@@ -206,12 +217,18 @@ class QueueService:
         source: str = "reading_page",
     ) -> Dict:
         """Mark a paper as Completed, record reading_completed event,
-        and optionally save a takeaway."""
+        and optionally save a takeaway.
+
+        Reuses update_status() for the standard transition logic
+        (queue_status_changed is recorded there if status changes).
+        """
         canonical_id = _canonical_paper_id(paper_id)
-        item = self.update_item(
+        item, _ = self.update_status(
             canonical_id, "Completed", source=source,
             research_question_id=research_question_id,
         )
+        # reading_completed is an additional behavior event beyond the
+        # standard queue_status_changed that update_status() records.
         self.record_reading_event(
             "reading_completed", canonical_id,
             research_question_id=research_question_id,

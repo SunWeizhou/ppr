@@ -45,10 +45,11 @@ class AgentSafetyPolicy:
 
 
 class AgentService:
-    def __init__(self, state_store, *, provider_factory=build_ai_provider_from_env):
+    def __init__(self, state_store, *, provider_factory=build_ai_provider_from_env, queue_service=None):
         self.state_store = state_store
         self.provider_factory = provider_factory
         self.safety = AgentSafetyPolicy()
+        self._queue_service = queue_service
 
     def handle_message(
         self,
@@ -344,7 +345,10 @@ class AgentService:
 
         if plan.intent == "analysis" and selected_paper_id:
             actions.append({"type": "analysis", "paper_id": selected_paper_id, "status": "available_on_detail"})
-            state_updates["navigate"] = f"/papers/{quote(selected_paper_id)}"
+            nav = f"/papers/{quote(selected_paper_id)}"
+            if page_context.get("research_question_id"):
+                nav += f"?research_question_id={int(page_context['research_question_id'])}"
+            state_updates["navigate"] = nav
             tool_results.append({"tool": "generate_paper_analysis", "status": "scheduled", "paper_id": selected_paper_id})
             return f"I can generate analysis for **{selected_title}** on the detail page."
 
@@ -379,12 +383,34 @@ class AgentService:
 
     def _exec_queue(self, plan, paper_id, title, message, actions, tool_results, page_context=None) -> str:
         rq_id = (page_context or {}).get("research_question_id")
-        self.state_store.upsert_queue_item(
-            paper_id, "Inbox",
-            source="paper_agent",
-            decision_context=f"Paper Agent request: {message}",
-            research_question_id=int(rq_id) if rq_id is not None else None,
-        )
+        if self._queue_service is not None:
+            self._queue_service.add_to_reading(
+                paper_id,
+                source="paper_agent",
+                decision_context=f"Paper Agent request: {message}",
+                research_question_id=int(rq_id) if rq_id is not None else None,
+            )
+        else:
+            # Fallback: write through state_store directly with full event chain
+            self.state_store.upsert_queue_item(
+                paper_id, "Inbox",
+                source="paper_agent",
+                decision_context=f"Paper Agent request: {message}",
+                research_question_id=int(rq_id) if rq_id is not None else None,
+            )
+            self.state_store.record_event("reading_added", paper_id, {
+                "research_question_id": int(rq_id) if rq_id is not None else None,
+                "source": "paper_agent",
+            })
+            self.state_store.record_event("queue_status_changed", paper_id, {
+                "status": "Inbox", "source": "paper_agent",
+                "research_question_id": int(rq_id) if rq_id is not None else None,
+            })
+            if rq_id is not None:
+                self.state_store.upsert_workspace_paper(
+                    paper_id, int(rq_id), "reading",
+                    reason="Paper Agent save",
+                )
         actions.append({"type": "queue", "paper_id": paper_id, "status": "Inbox"})
         tool_results.append({
             "tool": "mark_reading_decision", "status": "succeeded",
@@ -704,7 +730,7 @@ class AgentService:
         lines.append("")
         if read_papers:
             lines.append("Use **Search** to find more papers on this topic, "
-                         f"or try the [Recommendations](/recommendations?q={query_text}) page.")
+                         f"or try the [Recommendations](/recommendations?q={quote(query_text)}) page.")
         return "\n".join(lines)
 
     def _exec_key_paper_why(self, rq_id: int, paper_id: str, title: str, actions: list, tool_results: list) -> str:

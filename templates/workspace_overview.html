@@ -132,18 +132,28 @@
         {% if recent_papers %}
         <div class="card-modern" style="padding:0; overflow:hidden;">
             {% for paper in recent_papers %}
-            <a class="paper-list-item-modern" href="/papers/{{ paper.paper_id | urlencode }}?return_to=/workspaces/{{ workspace_id }}" style="padding:14px 20px;">
-                <div class="paper-list-item-modern-main">
-                    <span class="paper-list-item-modern-title">{{ paper.title }}</span>
-                    {% if paper.author_text %}
-                    <span class="paper-list-item-modern-authors">{{ paper.author_text }}</span>
-                    {% endif %}
-                    <span class="paper-list-item-modern-meta">
-                        {{ paper.venue or 'Paper' }}{% if paper.year %}, {{ paper.year }}{% endif %}
-                        &middot; <span class="chip-modern is-muted" style="font-size:10px;">{{ paper.status }}</span>
-                    </span>
-                </div>
-            </a>
+            <div class="paper-list-item-modern" style="display:flex; align-items:flex-start; gap:12px; padding:14px 20px;">
+                <input
+                    type="checkbox"
+                    data-paper-id="{{ paper.paper_id }}"
+                    data-rag-flag="1"
+                    style="margin-top:3px; flex-shrink:0; width:16px; height:16px; cursor:pointer;"
+                    onchange="toggleRagPaper('{{ paper.paper_id }}', this.checked)"
+                    {% if paper.paper_id in rag_paper_ids %}checked{% endif %}
+                />
+                <a href="/papers/{{ paper.paper_id | urlencode }}?return_to=/workspaces/{{ workspace_id }}" style="flex:1; text-decoration:none; color:inherit;">
+                    <div class="paper-list-item-modern-main">
+                        <span class="paper-list-item-modern-title">{{ paper.title }}</span>
+                        {% if paper.author_text %}
+                        <span class="paper-list-item-modern-authors">{{ paper.author_text }}</span>
+                        {% endif %}
+                        <span class="paper-list-item-modern-meta">
+                            {{ paper.venue or 'Paper' }}{% if paper.year %}, {{ paper.year }}{% endif %}
+                            &middot; <span class="chip-modern is-muted" style="font-size:10px;">{{ paper.status }}</span>
+                        </span>
+                    </div>
+                </a>
+            </div>
             {% endfor %}
         </div>
         {% else %}
@@ -205,6 +215,30 @@
         {% endif %}
     </section>
 
+    <!-- RAG Q&A -->
+    <section class="ws-section-modern" id="rag-qa-section">
+        <div class="ws-section-head-modern">
+            <h2>Ask about these papers</h2>
+            <span id="rag-paper-count" class="chip-modern {% if not has_rag_papers %}is-muted{% endif %}">{{ rag_papers | length }} selected</span>
+            <input type="hidden" id="researchQuestionId" value="{{ workspace_id }}">
+        </div>
+        <div id="rag-question-form" style="display:flex; gap:8px; margin-bottom:12px;">
+            <input
+                id="rag-question-input"
+                type="text"
+                placeholder="Ask a question about your selected papers..."
+                autocomplete="off"
+                style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:13px; font-family:inherit; background:var(--surface); color:var(--ink);"
+            />
+            <button id="rag-ask-btn" class="btn-modern btn-modern-primary btn-modern-sm" onclick="askRagQuestion()">Ask</button>
+        </div>
+        <div id="rag-answers" style="display:flex; flex-direction:column; gap:12px;"></div>
+        <div class="card-modern card-modern--inset" id="rag-empty-hint" style="text-align:center; padding:24px;">
+            <p style="color:var(--ink-2); margin:0 0 4px;">Select papers below to enable RAG Q&A.</p>
+            <p style="font-size:12px; color:var(--ink-3); margin:0;">Tick the checkbox on papers you want to ask questions about.</p>
+        </div>
+    </section>
+
     <!-- Weekly Review -->
     <section class="ws-section-modern">
         <div class="ws-section-head-modern">
@@ -217,4 +251,140 @@
         </div>
     </section>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── RAG helper ──
+async function requestJson(url, opts) {
+    const res = await fetch(url, opts);
+    if (!res.ok) {
+        const body = await res.json().catch(function() { return {}; });
+        throw new Error(body.error || 'Request failed (' + res.status + ')');
+    }
+    return res.json();
+}
+
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+}
+
+// ── RAG Paper Toggle ──
+async function toggleRagPaper(paperId, checked) {
+    var rqId = document.getElementById('researchQuestionId').value;
+    try {
+        await requestJson('/api/rag/toggle', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                paper_id: paperId,
+                research_question_id: Number(rqId),
+                rag_enabled: checked
+            })
+        });
+        updateRagCount();
+    } catch (e) {
+        var cb = document.querySelector('input[data-paper-id="' + paperId + '"]');
+        if (cb) cb.checked = !checked;
+        showRagError(e.message);
+    }
+}
+
+function updateRagCount() {
+    var checked = document.querySelectorAll('input[data-rag-flag]:checked');
+    var countEl = document.getElementById('rag-paper-count');
+    var hintEl = document.getElementById('rag-empty-hint');
+    if (countEl) countEl.textContent = checked.length + ' selected';
+    if (hintEl) hintEl.style.display = checked.length === 0 ? '' : 'none';
+}
+
+function showRagError(msg) {
+    var answers = document.getElementById('rag-answers');
+    if (answers) {
+        var errDiv = document.createElement('div');
+        errDiv.className = 'card-modern';
+        errDiv.style.cssText = 'padding:12px; color:#FF3B30; font-size:13px;';
+        errDiv.textContent = 'Error: ' + escapeHtml(msg);
+        answers.insertBefore(errDiv, answers.firstChild);
+    }
+}
+
+async function askRagQuestion() {
+    var input = document.getElementById('rag-question-input');
+    var btn = document.getElementById('rag-ask-btn');
+    var answers = document.getElementById('rag-answers');
+    var question = input.value.trim();
+    if (!question) return;
+
+    var rqId = document.getElementById('researchQuestionId').value;
+    btn.disabled = true;
+    btn.textContent = 'Thinking...';
+
+    // Show question immediately
+    var qDiv = document.createElement('div');
+    qDiv.className = 'card-modern';
+    qDiv.style.cssText = 'padding:12px;';
+    qDiv.innerHTML = '<div style="font-size:11px; color:var(--ink-3); margin-bottom:4px;">You asked:</div><div style="font-size:13px; color:var(--ink);">' + escapeHtml(question) + '</div>';
+    answers.insertBefore(qDiv, answers.firstChild);
+
+    try {
+        var result = await requestJson('/api/rag/ask', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                research_question_id: Number(rqId),
+                question: question
+            })
+        });
+
+        var aDiv = document.createElement('div');
+        aDiv.className = 'card-modern';
+        aDiv.style.cssText = 'padding:12px;';
+
+        var html = '<div style="font-size:11px; color:var(--ink-3); margin-bottom:4px;">Answer</div>';
+        if (result.answer) {
+            html += '<div style="font-size:13px; color:var(--ink); line-height:1.6; white-space:pre-wrap;">' + escapeHtml(result.answer) + '</div>';
+        }
+        if (result.sources && result.sources.length) {
+            html += '<div style="margin-top:12px; padding-top:8px; border-top:1px solid var(--line-subtle);">';
+            html += '<div style="font-size:11px; color:var(--ink-3); margin-bottom:4px;">Sources (' + (result.rag_stats ? result.rag_stats.papers_retrieved : result.sources.length) + ' of ' + (result.rag_stats ? result.rag_stats.papers_indexed : result.sources.length) + ' selected papers)</div>';
+            for (var i = 0; i < result.sources.length; i++) {
+                var s = result.sources[i];
+                html += '<div style="font-size:11px; color:var(--ink-2); margin-top:4px;">';
+                html += '<a href="/papers/' + encodeURIComponent(s.paper_id) + '?research_question_id=' + rqId + '" style="color:var(--accent);">' + escapeHtml(s.title) + '</a>';
+                html += ' <span style="color:var(--ink-3);">(score: ' + s.score.toFixed(2) + ')</span>';
+                if (s.memo_preview) {
+                    html += '<span style="color:var(--accent-2); margin-left:4px;">📝 has memo</span>';
+                }
+                html += '</div>';
+            }
+            html += '</div>';
+        } else if (!result.answer) {
+            html += '<div style="font-size:13px; color:var(--ink-3);">No relevant content found in selected papers. Try a different question.</div>';
+        }
+        aDiv.innerHTML = html;
+        answers.insertBefore(aDiv, answers.firstChild);
+
+        input.value = '';
+    } catch (e) {
+        showRagError(e.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Ask';
+    }
+}
+
+// Enter key submits
+document.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('rag-question-input');
+    if (input) {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') askRagQuestion();
+        });
+    }
+    updateRagCount();
+});
+</script>
 {% endblock %}

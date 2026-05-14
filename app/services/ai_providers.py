@@ -317,3 +317,46 @@ def build_ai_provider_from_env():
         )
 
     return NoProvider()
+
+
+def resolve_effective_ai_capability() -> dict:
+    """Unified AI capability check — single source of truth.
+
+    Used by UI indicators (has_ai), provider construction, and diagnostics.
+    Returns a dict with keys: enabled, provider_name, has_key, source.
+    Source values: "env" | "profile" | "none".
+    """
+    # Check environment variables first
+    env_key = (
+        os.getenv("OPENAI_COMPATIBLE_API_KEY")
+        or os.getenv("DEEPSEEK_API_KEY")
+        or os.getenv("STATDESK_AI_API_KEY")
+    )
+    if env_key:
+        return {
+            "enabled": True,
+            "provider_name": "openai_compatible",
+            "has_key": True,
+            "source": "env",
+        }
+
+    # Check user_profile.json config
+    try:
+        from config_manager import get_config
+        ai_config = get_config().get_ai_config()
+        provider = ai_config.get("provider", "none")
+        api_key = ai_config.get("api_key", "")
+        if provider not in ("none", "") and api_key:
+            return {
+                "enabled": ai_config.get("enabled", True),
+                "provider_name": provider,
+                "has_key": bool(api_key),
+                "source": "profile",
+            }
+    except Exception:
+        import logging
+        logging.getLogger(__name__).debug(
+            "Could not resolve AI capability from profile", exc_info=True
+        )
+
+    return {"enabled": False, "provider_name": "none", "has_key": False, "source": "none"}

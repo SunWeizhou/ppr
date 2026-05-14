@@ -164,8 +164,9 @@ def _handle_queue_action(service, data, event_payload):
     source = data.get("source", "web_feedback")
     status = QUEUE_ACTIONS[action]
 
+    # Normalized queue domain events via QueueService
     if service._queue is not None:
-        queue_item, event_id = service._queue.update_status(
+        queue_item, queue_event_id = service._queue.update_status(
             paper_id, status, source=source,
             note=data.get("note", ""), tags=data.get("tags"),
         )
@@ -174,8 +175,10 @@ def _handle_queue_action(service, data, event_payload):
             paper_id, status,
             source=source, note=data.get("note", ""), tags=data.get("tags"),
         )
-        event_id = service.state_store.record_event(action, paper_id, event_payload)
-    return {"success": True, "queue_item": queue_item, "event_id": event_id}, 200
+        queue_event_id = service.state_store.record_event("queue_status_changed", paper_id, {"status": status, "source": source})
+    # Always record the feedback action event for analytics
+    action_event_id = service.state_store.record_event(action, paper_id, event_payload)
+    return {"success": True, "queue_item": queue_item, "event_id": action_event_id}, 200
 
 
 for _action in QUEUE_ACTIONS:

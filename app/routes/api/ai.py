@@ -80,14 +80,23 @@ def generate_paper_analysis(paper_id):
 
 
 def _resolve_paper_context(paper_id: str) -> dict | None:
-    """Resolve full paper context from SQLite recommendation_items or Markdown history fallback."""
-    from state_store import get_state_store
+    """Resolve full paper context — unified priority order matching Paper Detail."""
+    from .helpers import _current_state_store
 
-    store = get_state_store()
+    store = _current_state_store()
 
-    # 1) Search SQLite recommendation_items (primary)
     from app.data._constants import canonical_paper_id as _canonical_paper_id
 
+    # 1) Primary: paper_metadata — Search and preview write full abstracts
+    #    here, so this is the best source for ad-hoc discovered papers.
+    try:
+        meta = store.get_paper_metadata(paper_id)
+        if meta:
+            return _build_paper_dict(meta)
+    except Exception:
+        pass
+
+    # 2) Fallback: SQLite recommendation_items
     try:
         runs = store.list_recommendation_runs(limit=10)
         for run in runs:
@@ -96,15 +105,6 @@ def _resolve_paper_context(paper_id: str) -> dict | None:
                 stored_id = _canonical_paper_id(item.get("paper_id") or item.get("id") or "")
                 if stored_id == paper_id:
                     return _build_paper_dict(item)
-    except Exception:
-        pass
-
-    # 2) Fallback to SQLite paper metadata. Search and preview write full
-    # abstracts here, so this is the best source for ad-hoc discovered papers.
-    try:
-        meta = store.get_paper_metadata(paper_id)
-        if meta:
-            return _build_paper_dict(meta)
     except Exception:
         pass
 

@@ -16,8 +16,13 @@ declare global {
 }
 
 function collectPageContext(): PageContext {
+  // Selected paper: try Search page selector first, then legacy, then
+  // generic .is-selected, and only as a last resort fall back to the
+  // first visible paper on the page.
   const selected =
+    document.querySelector<HTMLElement>(".paper-item-modern.is-selected") ||
     document.querySelector<HTMLElement>(".paper-result-row.is-selected") ||
+    document.querySelector<HTMLElement>("[data-paper-id].is-selected") ||
     document.querySelector<HTMLElement>("[data-paper-id]");
   const queryInput =
     (document.getElementById("paperAgentSearchInput") as HTMLInputElement | null) ||

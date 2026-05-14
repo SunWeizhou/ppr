@@ -5,7 +5,7 @@ from __future__ import annotations
 from flask import jsonify, request
 
 from . import bp
-from .helpers import _current_state_store
+from .helpers import _current_state_store, _queue_service
 from app.services.agent_service import AgentService
 from app.services.ai_providers import build_ai_provider_from_env
 
@@ -14,6 +14,7 @@ def _agent_service():
     return AgentService(
         _current_state_store(),
         provider_factory=build_ai_provider_from_env,
+        queue_service=_queue_service(),
     )
 
 

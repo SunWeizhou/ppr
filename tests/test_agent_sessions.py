@@ -282,13 +282,14 @@ class TestSessionAwareAgentService(unittest.TestCase):
 
     # ── Confirmation Flow Tests ──
 
-    def test_confirmation_flow_accept(self):
-        """Destructive request → confirmation token → confirm → action executes.
+    def test_confirmation_token_round_trip(self):
+        """Confirmation token lifecycle: create → confirm → consume.
 
-        Verifies that the confirmed action:
-        - Does not re-require confirmation
-        - Returns a non-empty reply (the plan was restored and executed)
-        - Produces valid response fields
+        Verifies that the confirmation round-trip works for a destructive
+        message (token is issued, confirm consumes it, session advances).
+        Does NOT assert a real destructive side effect — the current system
+        confirms the plan was restored and executed rather than validating
+        that a specific tool was run.
         """
         result = self.service.handle_message("delete all saved papers")
         self.assertTrue(result.get("requires_confirmation"))
