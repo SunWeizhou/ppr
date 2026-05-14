@@ -146,7 +146,7 @@ class Phase6ProductAcceptanceTests(unittest.TestCase):
             self.addCleanup(setattr, queue_routes, "STATE_STORE", original_queue_store)
 
             client = web_server.app.test_client()
-            with mock.patch("arxiv_recommender_v5.search_by_keywords") as mock_search:
+            with mock.patch("app.services.arxiv_source.search_by_keywords") as mock_search:
                 routes = [
                     "/daily",
                     "/search",

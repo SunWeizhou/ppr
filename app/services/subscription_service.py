@@ -12,8 +12,9 @@ class SubscriptionService:
     Execution logic lives in SubscriptionRunner.
     """
 
-    def __init__(self, state_store):
+    def __init__(self, state_store, *, queue_service=None):
         self._store = state_store
+        self._queue = queue_service
 
     def recent_hits(self, limit: int = 50) -> List[Dict]:
         """Get recent hits with subscription metadata."""
@@ -60,14 +61,36 @@ class SubscriptionService:
             decision_context_parts.append(f"Match: {matched_reason}")
         decision_context = " | ".join(decision_context_parts)
 
-        self._store.upsert_queue_item(
-            paper_id=paper_id,
-            status="Inbox",
-            source=f"subscription:{sub_id}",
-            note=matched_reason,
-            research_question_id=research_question_id,
-            decision_context=decision_context,
-        )
+        if self._queue is not None:
+            self._queue.add_to_reading(
+                paper_id=paper_id,
+                source=f"subscription:{sub_id}",
+                note=matched_reason,
+                research_question_id=research_question_id,
+                decision_context=decision_context,
+            )
+        else:
+            self._store.upsert_queue_item(
+                paper_id=paper_id,
+                status="Inbox",
+                source=f"subscription:{sub_id}",
+                note=matched_reason,
+                research_question_id=research_question_id,
+                decision_context=decision_context,
+            )
+            self._store.record_event(
+                "reading_added", paper_id,
+                {"research_question_id": research_question_id, "source": f"subscription:{sub_id}"},
+            )
+            self._store.record_event(
+                "queue_status_changed", paper_id,
+                {"status": "Inbox", "source": f"subscription:{sub_id}", "research_question_id": research_question_id},
+            )
+            if research_question_id is not None:
+                self._store.upsert_workspace_paper(
+                    paper_id, research_question_id, "reading",
+                    reason="subscription hit sent to inbox",
+                )
         return True
 
     def ignore_hit(self, hit_id: int) -> bool:

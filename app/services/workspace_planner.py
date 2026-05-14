@@ -12,7 +12,7 @@ from app.data._constants import canonical_paper_id as _canonical_paper_id
 
 
 def _default_search_fn(keywords, *, max_results: int, days_back: int) -> List[Dict]:
-    from arxiv_recommender_v5 import search_by_keywords
+    from app.services.arxiv_source import search_by_keywords
 
     return search_by_keywords(keywords, max_results=max_results, days_back=days_back)
 

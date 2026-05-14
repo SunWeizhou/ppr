@@ -111,9 +111,15 @@ class QueueVerticalSliceTests(unittest.TestCase):
         self.assertEqual(item["paper_id"], "2604.44444")
         self.assertIsInstance(event_id, int)
         self.assertEqual([item["paper_id"] for item in bulk_items], ["2604.55555", "2604.66666"])
-        self.assertEqual([event["event_type"] for event in events], ["queue_status_changed"] * 3)
+        event_types = [event["event_type"] for event in events]
+        # Single Inbox item generates: queue_status_changed + reading_added
+        # Two Completed items each generate: queue_status_changed
+        self.assertEqual(event_types.count("queue_status_changed"), 3)
+        self.assertEqual(event_types.count("reading_added"), 1)
         self.assertEqual(events[0]["payload_json"]["note"], "single")
-        self.assertEqual(events[1]["payload_json"]["status"], "Completed")
+        # events[1] is reading_added; events[2] and events[3] are the bulk Completed items
+        completed_events = [e for e in events if e["payload_json"].get("status") == "Completed"]
+        self.assertEqual(len(completed_events), 2)
 
     def test_queue_routes_no_longer_forward_to_web_server_queue_handlers(self):
         import app.routes.api as api_routes

@@ -49,17 +49,22 @@ class NudgeService:
     def _find_stagnant_papers(
         self, queue_items: list[dict], now: datetime,
     ) -> list[dict]:
-        """Papers added to reading more than N days ago with no progress."""
+        """Papers added to reading more than N days ago with no progress.
+
+        Uses reading_started_at as the primary timestamp; falls back to
+        updated_at for legacy records. Does not rely on created_at which
+        may not exist on all queue items.
+        """
         nudges = []
         threshold = now - timedelta(days=NUDGE_THRESHOLD_DAYS)
         for item in queue_items:
             if item.get("status") != "Inbox":
                 continue
-            created = item.get("created_at", "")
-            if not created:
+            timestamp = item.get("reading_started_at") or item.get("updated_at") or ""
+            if not timestamp:
                 continue
             try:
-                added_dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
+                added_dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
             except (ValueError, TypeError):
                 continue
             if added_dt < threshold:
@@ -80,12 +85,40 @@ class NudgeService:
     def _find_untaken_insights(
         self, queue_items: list[dict], events: list[dict], rq_id: int,
     ) -> list[dict]:
-        """Papers opened multiple times without a takeaway."""
+        """Papers opened multiple times without a takeaway.
+
+        Only counts paper_opened events that are attributed to the current
+        workspace (via payload.research_question_id). Falls back to paper
+        membership for legacy events without payload attribution.
+        """
+        import json
+
+        workspace_papers = self._store.list_workspace_papers(rq_id) or []
+        ws_paper_ids = {wp["paper_id"] for wp in workspace_papers}
+
         nudges = []
         paper_opens: dict[str, int] = {}
         for ev in events:
-            if ev["event_type"] == "paper_opened":
-                paper_opens[ev["paper_id"]] = paper_opens.get(ev["paper_id"], 0) + 1
+            if ev["event_type"] != "paper_opened":
+                continue
+            pid = ev["paper_id"]
+            # Check payload for workspace attribution
+            payload_raw = ev.get("payload_json", {})
+            if isinstance(payload_raw, str):
+                try:
+                    payload = json.loads(payload_raw)
+                except Exception:
+                    payload = {}
+            else:
+                payload = payload_raw
+            if isinstance(payload, dict):
+                e_rq = payload.get("research_question_id")
+                if e_rq is not None and int(e_rq) == rq_id:
+                    paper_opens[pid] = paper_opens.get(pid, 0) + 1
+                    continue
+            # Fallback: if paper belongs to this workspace, count it
+            if pid in ws_paper_ids:
+                paper_opens[pid] = paper_opens.get(pid, 0) + 1
 
         for pid, count in paper_opens.items():
             if count < NUDGE_OPEN_COUNT:

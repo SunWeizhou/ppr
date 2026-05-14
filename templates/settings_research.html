@@ -165,7 +165,7 @@
 
                         {{ diag_item(system_diagnostics.product_name, 'Profile: ' + ('configured' if system_diagnostics.profile.exists else 'missing'), 'local-first', 'healthy') }}
                         {{ diag_item('AI Provider', system_diagnostics.ai.provider + ' · ' + system_diagnostics.ai.key_source, 'ready' if system_diagnostics.ai.effective_enabled else 'optional', 'healthy' if system_diagnostics.ai.effective_enabled else 'warn') }}
-                        {{ diag_item('Workspace', system_diagnostics.workspace.research_question_count + ' questions · ' + system_diagnostics.workspace.subscription_count + ' subscriptions', system_diagnostics.workspace.queue_total) }}
+                        {{ diag_item('Workspace', system_diagnostics.workspace.research_question_count|string + ' questions · ' + system_diagnostics.workspace.subscription_count|string + ' subscriptions', system_diagnostics.workspace.queue_total) }}
                         {{ diag_item('Search Sources', system_diagnostics.source_health.values()|map(attribute='state')|join(' · '), 'fallback-ready', 'healthy') }}
                         {{ diag_item('Latest Job', system_diagnostics.jobs.latest.trigger_source + ' · ' + (system_diagnostics.jobs.latest.updated_at or system_diagnostics.jobs.latest.created_at) if system_diagnostics.jobs.latest else 'No job records', system_diagnostics.jobs.latest.status if system_diagnostics.jobs.latest else 'idle') }}
                         {{ diag_item('Collections', '', all_collections|length|string) }}

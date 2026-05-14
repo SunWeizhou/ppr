@@ -225,7 +225,7 @@ class WatchCockpitTests(unittest.TestCase):
             "conformal prediction",
         )
 
-        with patch("arxiv_recommender_v5.search_by_keywords") as mock_search:
+        with patch("app.services.arxiv_source.search_by_keywords") as mock_search:
             context = MonitorViewModel(self.store).to_template_context()
 
         self.assertEqual(context["recent_hits"], [])
@@ -312,7 +312,7 @@ class WatchCockpitTests(unittest.TestCase):
         with patch(
             "app.routes.watch.get_state_store",
             return_value=self.store,
-        ), patch("arxiv_recommender_v5.search_by_keywords") as mock_search:
+        ), patch("app.services.arxiv_source.search_by_keywords") as mock_search:
             response = web_server.app.test_client().get("/watch")
 
         self.assertEqual(response.status_code, 200)
@@ -456,7 +456,7 @@ class WatchCockpitTests(unittest.TestCase):
         with (
             mock.patch("app.routes.watch.get_state_store", return_value=self.store),
             mock.patch.object(MonitorViewModel, "_resolve_path", return_value=str(cache_file)),
-            mock.patch("arxiv_recommender_v5.search_by_keywords") as mock_search,
+            mock.patch("app.services.arxiv_source.search_by_keywords") as mock_search,
         ):
             response = web_server.app.test_client().get("/watch")
 

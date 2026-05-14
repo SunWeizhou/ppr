@@ -117,6 +117,16 @@ class QueueService:
                 "decision_context": decision_context,
             },
         )
+        # Record reading_added event when moving to Inbox
+        if status == "Inbox":
+            self.state_store.record_event(
+                "reading_added",
+                item["paper_id"],
+                {
+                    "research_question_id": research_question_id,
+                    "source": source,
+                },
+            )
         # Sync workspace-paper relationship
         if research_question_id is not None:
             ws_rel = "reading" if status == "Inbox" else "read" if status == "Completed" else "candidate"
@@ -145,6 +155,28 @@ class QueueService:
             item, _ = self.update_status(paper_id, status, source=source, note=note)
             updated.append(item)
         return updated
+
+    def add_to_reading(
+        self,
+        paper_id: str,
+        *,
+        source: str = "queue_service",
+        note: str = "",
+        research_question_id: Optional[int] = None,
+        decision_context: str = "",
+    ):
+        """Unified entry point for adding a paper to the reading queue.
+
+        Produces: queue item upsert, reading_added event,
+        queue_status_changed event, and workspace_papers relation sync.
+        """
+        return self.update_status(
+            paper_id, "Inbox",
+            source=source,
+            note=note,
+            research_question_id=research_question_id,
+            decision_context=decision_context,
+        )
 
     def record_reading_event(
         self,

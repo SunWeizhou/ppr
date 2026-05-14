@@ -57,7 +57,7 @@ def get_dates():
 def get_citation(paper_id):
     """Get citation data for a paper."""
     try:
-        from arxiv_recommender_v5 import CitationAnalyzer
+        from app.services.citation_service import CitationAnalyzer
 
         analyzer = CitationAnalyzer(str(CACHE_DIR))
         data = analyzer.fetch_citation_data(paper_id)
@@ -192,7 +192,7 @@ def get_related_papers(paper_id):
         keywords = [k[0] for k in top_keywords]
 
         # Search for related papers
-        from arxiv_recommender_v5 import search_by_keywords
+        from app.services.arxiv_source import search_by_keywords
 
         related = search_by_keywords(keywords, max_results=10, days_back=180)
 

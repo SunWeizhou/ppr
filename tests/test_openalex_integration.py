@@ -67,10 +67,10 @@ class TestSearchOpenAlex(unittest.TestCase):
         self.assertEqual(papers[0]["source"], "openalex")
 
     @patch("app.services.unified_search_service._openalex_request")
-    def test_returns_empty_on_error(self, mock_req):
+    def test_raises_on_error(self, mock_req):
         mock_req.side_effect = Exception("network error")
-        papers = search_openalex("test", max_results=5)
-        self.assertEqual(papers, [])
+        with self.assertRaises(RuntimeError):
+            search_openalex("test", max_results=5)
 
 
 class TestDeduplicationWithOpenAlex(unittest.TestCase):

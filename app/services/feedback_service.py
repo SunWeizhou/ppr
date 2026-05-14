@@ -143,10 +143,18 @@ def _handle_dislike(service, data, event_payload):
 @_register("finish")
 def _handle_finish(service, data, event_payload):
     paper_id = _canonical_paper_id(data.get("paper_id", ""))
-    item = service.state_store.mark_as_completed(
-        paper_id, source=data.get("source", "web_feedback"),
-    )
-    event_id = service.state_store.record_event("finish", paper_id, event_payload)
+    if service._queue is not None:
+        item = service._queue.mark_paper_as_read(
+            paper_id,
+            research_question_id=data.get("research_question_id"),
+            source=data.get("source", "web_feedback"),
+        )
+        event_id = service.state_store.record_event("finish", paper_id, event_payload)
+    else:
+        item = service.state_store.mark_as_completed(
+            paper_id, source=data.get("source", "web_feedback"),
+        )
+        event_id = service.state_store.record_event("finish", paper_id, event_payload)
     return {"success": True, "queue_item": item, "event_id": event_id}, 200
 
 
@@ -154,11 +162,19 @@ def _handle_queue_action(service, data, event_payload):
     paper_id = _canonical_paper_id(data.get("paper_id", ""))
     action = data.get("action", "inbox")
     source = data.get("source", "web_feedback")
-    queue_item = service.state_store.upsert_queue_item(
-        paper_id, QUEUE_ACTIONS[action],
-        source=source, note=data.get("note", ""), tags=data.get("tags"),
-    )
-    event_id = service.state_store.record_event(action, paper_id, event_payload)
+    status = QUEUE_ACTIONS[action]
+
+    if service._queue is not None:
+        queue_item, event_id = service._queue.update_status(
+            paper_id, status, source=source,
+            note=data.get("note", ""), tags=data.get("tags"),
+        )
+    else:
+        queue_item = service.state_store.upsert_queue_item(
+            paper_id, status,
+            source=source, note=data.get("note", ""), tags=data.get("tags"),
+        )
+        event_id = service.state_store.record_event(action, paper_id, event_payload)
     return {"success": True, "queue_item": queue_item, "event_id": event_id}, 200
 
 
@@ -235,6 +251,7 @@ class FeedbackService:
         scholar_service=None,
         keywords_loader=None,
         keywords_saver=None,
+        queue_service=None,
     ):
         self.state_store = state_store
         self.feedback_file = Path(feedback_file)
@@ -244,6 +261,7 @@ class FeedbackService:
         self._scholar_service = scholar_service
         self._keywords_loader = keywords_loader
         self._keywords_saver = keywords_saver
+        self._queue = queue_service
 
     # ---- feedback ----
 

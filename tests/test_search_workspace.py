@@ -65,14 +65,12 @@ class SearchWorkspaceViewModelTests(unittest.TestCase):
     def test_search_template_has_workspace_shell(self):
         template = Path("templates/search_research.html").read_text(encoding="utf-8")
 
-        self.assertIn("workspacePrompt", template)
-        self.assertIn("intentStatement", template)
         self.assertIn("researchQuestionId", template)
-        self.assertIn("createWorkspaceQuestion", template)
-        self.assertIn("runWorkspacePlanner", template)
-        self.assertIn("paper-agent-workspace", template)
-        self.assertIn("paper-preview-pane", template)
         self.assertIn("data-research-question-id", template)
+        self.assertIn("paperAgentSearchInput", template)
+        self.assertIn("paperResultList", template)
+        self.assertIn("agentSaveSelectedPaper", template)
+        self.assertIn("agentCreateWatchFromSearch", template)
 
 
 class SearchWorkspaceRouteTests(unittest.TestCase):
@@ -161,7 +159,7 @@ class SearchWorkspaceRouteTests(unittest.TestCase):
     def test_search_template_uses_planner_result_counts(self):
         template = Path("templates/search_research.html").read_text(encoding="utf-8")
 
-        self.assertIn("paper-agent-searchbar", template)
+        self.assertIn("paperAgentSearchInput", template)
         self.assertIn("Search papers, authors, topics...", template)
         self.assertIn("/api/search", template)
         self.assertIn("agentSaveSelectedPaper", template)

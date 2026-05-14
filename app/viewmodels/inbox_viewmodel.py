@@ -499,10 +499,7 @@ class InboxViewModel:
 
     def _run_pipeline_background(self, run_id=None, force_refresh=False):
         try:
-            import sys
-
-            sys.path.insert(0, str(PROJECT_ROOT))
-            from arxiv_recommender_v5 import run_pipeline
+            from app.services.daily_pipeline import run_pipeline
 
             if run_id:
                 self._store.update_job(run_id, "running")

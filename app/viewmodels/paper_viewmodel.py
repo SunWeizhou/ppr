@@ -38,7 +38,9 @@ def _format_event(event: dict) -> dict:
         },
         "feedback_relevant": "Marked as Relevant",
         "feedback_ignored": "Ignored",
-        "paper_opened": "Opened on arXiv",
+        "like": "Marked as Relevant",
+        "dislike": "Ignored",
+        "paper_opened": "Opened paper detail",
         "export_to_zotero": "Exported to Zotero",
     }
 

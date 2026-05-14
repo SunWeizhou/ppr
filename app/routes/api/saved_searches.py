@@ -117,7 +117,7 @@ def run_saved_search(search_id):
     if not saved_search:
         return jsonify({"success": False, "error": "Saved search not found"}), 404
     try:
-        from arxiv_recommender_v5 import search_by_keywords
+        from app.services.arxiv_source import search_by_keywords
 
         query_terms = split_query_terms(saved_search.get("query_text", ""))
         results = search_by_keywords(query_terms, max_results=10, days_back=90)

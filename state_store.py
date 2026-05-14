@@ -1984,12 +1984,31 @@ class StateStore:
                         (eid,),
                     )
 
+            # Check if row already exists to decide timestamp values
+            existing_row = conn.execute(
+                "SELECT status, reading_started_at FROM reading_queue_items WHERE paper_id = ?",
+                (paper_id,),
+            ).fetchone()
+
+            reading_started_at = None
+            reading_completed_at = None
+
+            if existing_row:
+                if existing_row["reading_started_at"]:
+                    reading_started_at = existing_row["reading_started_at"]
+                if status == "Completed":
+                    reading_completed_at = now
+            else:
+                if status in ("Inbox", "In Progress"):
+                    reading_started_at = now
+
             conn.execute(
                 """
                 INSERT INTO reading_queue_items(
                     paper_id, status, source, note, tags_json, updated_at,
-                    research_question_id, decision_context
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    research_question_id, decision_context,
+                    reading_started_at, reading_completed_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(paper_id) DO UPDATE SET
                     status = excluded.status,
                     source = excluded.source,
@@ -1997,7 +2016,9 @@ class StateStore:
                     tags_json = excluded.tags_json,
                     updated_at = excluded.updated_at,
                     research_question_id = excluded.research_question_id,
-                    decision_context = excluded.decision_context
+                    decision_context = excluded.decision_context,
+                    reading_started_at = excluded.reading_started_at,
+                    reading_completed_at = excluded.reading_completed_at
                 """,
                 (
                     paper_id,
@@ -2008,6 +2029,8 @@ class StateStore:
                     now,
                     research_question_id,
                     str(decision_context or "").strip(),
+                    reading_started_at,
+                    reading_completed_at,
                 ),
             )
             row = conn.execute(

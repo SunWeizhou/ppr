@@ -112,7 +112,7 @@ def search_arxiv(query: str, *, max_results: int = 25, search_fn: Callable | Non
     if not terms:
         return []
     if search_fn is None:
-        from arxiv_recommender_v5 import search_by_keywords
+        from app.services.arxiv_source import search_by_keywords
 
         search_fn = search_by_keywords
     return [normalize_arxiv_paper(paper) for paper in search_fn(terms, max_results=max_results, days_back=365)]
@@ -302,8 +302,8 @@ def search_openalex(query: str, *, max_results: int = 25) -> list[dict]:
         data = _openalex_request(url)
         results = data.get("results") or []
         return [normalize_openalex_paper(r) for r in results if r.get("title")]
-    except Exception:
-        return []
+    except Exception as exc:
+        raise RuntimeError(f"OpenAlex API request failed: {exc}")
 
 
 # ─────────────────────────────────────────
@@ -425,15 +425,16 @@ def _async_extract_entities(papers: list) -> None:
 
     def _run():
         try:
-            from state_store import get_state_store
+            from state_store import get_state_store as _get_store
             from app.services.entity_service import EntityService
-            store = get_state_store()
+            store = _get_store()
             svc = EntityService(store)
             svc.extract_entities_from_results(papers)
         except Exception:
             import logging
-            logging.getLogger(__name__).debug(
-                "Async entity extraction failed", exc_info=True
+            import traceback
+            logging.getLogger(__name__).warning(
+                "Async entity extraction failed: %s", traceback.format_exc()
             )
 
     thread = threading.Thread(target=_run, daemon=True)

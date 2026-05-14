@@ -283,7 +283,13 @@ class TestSessionAwareAgentService(unittest.TestCase):
     # ── Confirmation Flow Tests ──
 
     def test_confirmation_flow_accept(self):
-        """Destructive request → confirmation token → confirm → action executes."""
+        """Destructive request → confirmation token → confirm → action executes.
+
+        Verifies that the confirmed action:
+        - Does not re-require confirmation
+        - Returns a non-empty reply (the plan was restored and executed)
+        - Produces valid response fields
+        """
         result = self.service.handle_message("delete all saved papers")
         self.assertTrue(result.get("requires_confirmation"))
         self.assertIn("confirmation_token", result)
@@ -295,8 +301,11 @@ class TestSessionAwareAgentService(unittest.TestCase):
         )
         self.assertTrue(confirmed["success"])
         self.assertFalse(confirmed.get("requires_confirmation"))
-        # A reply indicates the action was executed
+        # The action was at least planned and executed (reply not empty)
         self.assertTrue(len(confirmed.get("reply", "")) > 0)
+        # Must include a valid session with message count incremented
+        self.assertIn("session", confirmed)
+        self.assertGreater(confirmed["session"].get("message_count", 0), 0)
 
     def test_confirmation_invalid_token_rejected(self):
         """Invalid confirmation token should be rejected with error message."""

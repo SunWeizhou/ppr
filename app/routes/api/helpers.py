@@ -144,6 +144,7 @@ def _feedback_service():
         scholar_service=ScholarService(_resolve_path("SCHOLARS_DATA_FILE", SCHOLARS_DATA_FILE)),
         keywords_loader=svc.load_keywords_config,
         keywords_saver=svc.save_keywords_config,
+        queue_service=_queue_service(),
     )
 
 

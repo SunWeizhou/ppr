@@ -47,11 +47,9 @@ class EmbeddingService:
             content = self._build_embedding_text(pid, research_question_id)
             if not content:
                 continue
-            embedding = self._generate_embedding(content, provider=provider)
+            embedding, model_name = self._generate_embedding(content, provider=provider)
             if embedding:
-                self._store.save_paper_embedding(
-                    pid, embedding, model_name="keyword-fallback",
-                )
+                self._store.save_paper_embedding(pid, embedding, model_name=model_name)
                 count += 1
         return count
 
@@ -85,12 +83,14 @@ class EmbeddingService:
 
         return "\n\n".join(parts)
 
-    def _generate_embedding(self, text: str, *, provider=None) -> Optional[bytes]:
+    def _generate_embedding(self, text: str, *, provider=None) -> tuple[Optional[bytes], str]:
         """Generate an embedding vector. Falls back to keyword fingerprint.
 
         When an AI provider is available, generates via API. Otherwise
         creates a deterministic keyword-frequency fingerprint that supports
         basic similarity search.
+
+        Returns (embedding_bytes, model_name).
         """
         if provider is not None and hasattr(provider, "chat"):
             try:
@@ -108,12 +108,13 @@ class EmbeddingService:
                 if result:
                     vec = json.loads(result.strip())
                     if isinstance(vec, list) and len(vec) == 128:
-                        return struct.pack(f"{len(vec)}f", *vec)
+                        provider_name = getattr(provider, "model_name", "unknown")
+                        return struct.pack(f"{len(vec)}f", *vec), f"provider:{provider_name}"
             except Exception:
                 pass
 
         # Deterministic keyword-frequency fallback fingerprint
-        return self._keyword_fingerprint(text)
+        return self._keyword_fingerprint(text), "keyword-fallback-v1"
 
     @staticmethod
     def _keyword_fingerprint(text: str) -> bytes:
@@ -155,7 +156,7 @@ class EmbeddingService:
         # Pad to 256 dimensions
         while len(vec) < 256:
             vec.append(0.0)
-        return struct.pack(f"{len(vec)}f", vec)
+        return struct.pack(f"{len(vec)}f", *vec)
 
 
 class RagRetrievalService:
@@ -234,10 +235,18 @@ class RagRetrievalService:
 
     @staticmethod
     def _cosine_similarity(vec1_bytes: bytes, vec2_bytes: bytes) -> float:
-        """Compute cosine similarity between two packed float vectors."""
+        """Compute cosine similarity between two packed float vectors.
+
+        If the vectors have incompatible dimensions the result is 0.0
+        to avoid silently producing meaningless scores.
+        """
         try:
-            v1 = list(struct.unpack(f"{len(vec1_bytes) // 4}f", vec1_bytes))
-            v2 = list(struct.unpack(f"{len(vec2_bytes) // 4}f", vec2_bytes))
+            dim1 = len(vec1_bytes) // 4
+            dim2 = len(vec2_bytes) // 4
+            if dim1 != dim2:
+                return 0.0
+            v1 = list(struct.unpack(f"{dim1}f", vec1_bytes))
+            v2 = list(struct.unpack(f"{dim2}f", vec2_bytes))
         except struct.error:
             return 0.0
         dot = sum(a * b for a, b in zip(v1, v2))

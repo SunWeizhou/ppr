@@ -189,11 +189,15 @@ async function fetchPaperAgentResults(query) {
     const list = document.getElementById('paperResultList');
     if (list) list.innerHTML = '<div style="text-align:center; padding:32px; color:var(--ink-3);">Searching...</div>';
     renderPaperAgentSourceStatus({arxiv: 'not_requested', semantic_scholar: 'not_requested', openalex: 'not_requested'}, [], []);
+    const rqInput = document.getElementById('researchQuestionId');
+    const rqId = rqInput && rqInput.value ? Number(rqInput.value) : null;
+    const reqBody = {q: query};
+    if (rqId) reqBody.research_question_id = rqId;
     try {
         const payload = await requestJson('/api/search', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({q: query})
+            body: JSON.stringify(reqBody)
         });
         renderPaperAgentSourceStatus(payload.sources || {}, payload.warnings || [], payload.errors || []);
         renderPaperAgentResults(payload.papers || []);
@@ -381,11 +385,11 @@ async function agentCreateWatchFromSearch() {
     const payload = await requestJson('/api/subscriptions', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
+        body: JSON.stringify(Object.assign({
             type: 'query',
             name: 'Search: ' + query,
             query_text: query
-        })
+        }, searchWorkspaceContext()))
     });
     showToast('Watch created');
 }

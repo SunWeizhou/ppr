@@ -319,7 +319,7 @@ class AgentService:
         )
 
         if plan.intent == "save" and selected_paper_id:
-            return self._exec_queue(plan, selected_paper_id, selected_title, message, actions, tool_results)
+            return self._exec_queue(plan, selected_paper_id, selected_title, message, actions, tool_results, page_context=page_context)
 
         if plan.intent == "collection" and selected_paper_id:
             return self._create_collection(message, page_context, selected_paper_id, selected_title, actions, tool_results)
@@ -377,11 +377,13 @@ class AgentService:
 
         return self._answer_chat(message, page_context, tool_results, history)
 
-    def _exec_queue(self, plan, paper_id, title, message, actions, tool_results) -> str:
+    def _exec_queue(self, plan, paper_id, title, message, actions, tool_results, page_context=None) -> str:
+        rq_id = (page_context or {}).get("research_question_id")
         self.state_store.upsert_queue_item(
             paper_id, "Inbox",
             source="paper_agent",
             decision_context=f"Paper Agent request: {message}",
+            research_question_id=int(rq_id) if rq_id is not None else None,
         )
         actions.append({"type": "queue", "paper_id": paper_id, "status": "Inbox"})
         tool_results.append({
@@ -392,11 +394,13 @@ class AgentService:
 
     def _exec_watch(self, plan, page_context, message, actions, tool_results) -> str:
         query = plan.query or str(page_context.get("query") or message).strip()
+        rq_id = page_context.get("research_question_id")
         sub = self.state_store.create_subscription(
             "query",
             query[:48] or "Paper Agent watch",
             query,
             payload_json={"source": "paper_agent", "description": "Created by Paper Agent"},
+            research_question_id=int(rq_id) if rq_id is not None else None,
         )
         actions.append({"type": "watch", "subscription_id": sub["id"], "query": query})
         tool_results.append({"tool": "create_watch", "status": "succeeded", "subscription_id": sub["id"], "query": query})
@@ -406,7 +410,14 @@ class AgentService:
         query = plan.query or str(page_context.get("query") or "").strip()
         actions.append({"type": "search", "query": query})
         tool_results.append({"tool": "search_papers", "status": "scheduled", "query": query})
-        state_updates["navigate"] = f"/search?q={quote(query)}" if query else "/search"
+        if query:
+            nav = f"/search?q={quote(query)}"
+            rq_id = page_context.get("research_question_id")
+            if rq_id is not None:
+                nav += f"&research_question_id={int(rq_id)}"
+            state_updates["navigate"] = nav
+        else:
+            state_updates["navigate"] = "/search"
         return f"Searching for **{query}**." if query else "Tell me what to search for."
 
     # ------------------------------------------------------------------
@@ -448,7 +459,8 @@ class AgentService:
                         "Classify a Paper Agent user request. Return JSON only with keys "
                         "intent and query. Valid intents: answer, search, save, "
                         "watch, collection, planner, analysis, summarize, "
-                        "recommendations. Do not execute tools."
+                        "recommendations, read_next, memo_update, generate_review, "
+                        "suggest_coverage, key_paper_why. Do not execute tools."
                     ),
                 },
                 {"role": "system", "content": json.dumps(page_context, ensure_ascii=False, sort_keys=True)},

@@ -192,7 +192,7 @@
         </div>
         {% if has_memo and memo.get('content', '').strip() %}
         <div class="card-modern card-modern--inset">
-            <div style="font-size:13px; color:var(--ink-2); line-height:1.6;">{{ memo.get('content', '')[:500] | replace('\n', '<br>') | safe }}</div>
+            <div style="font-size:13px; color:var(--ink-2); line-height:1.6; white-space:pre-wrap;">{{ memo.get('content', '')[:500] | e }}</div>
             {% if memo.get('content', '') | length > 500 %}
             <div style="margin-top:10px;"><a href="/workspaces/{{ workspace_id }}/memo" class="btn-modern btn-modern-ghost btn-modern-xs">Read full memo →</a></div>
             {% endif %}

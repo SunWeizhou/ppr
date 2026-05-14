@@ -27,12 +27,29 @@ function collectPageContext(): PageContext {
     .map((node) => node.dataset.paperId || "")
     .filter(Boolean)
     .slice(0, 25);
+
+  // Collect workspace research_question_id from page context
+  let rqId: string | undefined;
+  const rqInput = document.getElementById("researchQuestionId") as HTMLInputElement | null;
+  if (rqInput && rqInput.value) {
+    rqId = rqInput.value;
+  } else {
+    const rqContainer = document.querySelector<HTMLElement>("[data-research-question-id]");
+    if (rqContainer && rqContainer.dataset.researchQuestionId) {
+      rqId = rqContainer.dataset.researchQuestionId;
+    } else {
+      const urlParams = new URLSearchParams(window.location.search);
+      rqId = urlParams.get("research_question_id") || undefined;
+    }
+  }
+
   return {
     route: window.location.pathname,
     query: queryInput ? queryInput.value : "",
     selected_paper_id: selected ? selected.dataset.paperId || "" : "",
     selected_paper_title: selected ? selected.dataset.paperTitle || "" : "",
     visible_result_ids: visible,
+    research_question_id: rqId,
   };
 }
 

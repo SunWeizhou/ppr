@@ -21,9 +21,9 @@ logger = get_logger(__name__)
 class SubscriptionRunner:
     """High-level subscription runner used by CLI, scheduler, and API routes."""
 
-    def __init__(self, state_store):
+    def __init__(self, state_store, *, queue_service=None):
         self._store = state_store
-        self._svc = SubscriptionService(state_store)
+        self._svc = SubscriptionService(state_store, queue_service=queue_service)
 
     # ------------------------------------------------------------------
     # Top-level delegation
@@ -364,8 +364,8 @@ class SubscriptionRunner:
             if not metadata:
                 filtered.append(pid)
                 continue
-            title = str((metadata.get("metadata_json") or {}).get("title", "")).lower()
-            abstract = str((metadata.get("metadata_json") or {}).get("abstract", "")).lower()
+            title = str(metadata.get("title", "")).lower()
+            abstract = str(metadata.get("abstract") or metadata.get("summary", "")).lower()
             if any(kw.lower() in title or kw.lower() in abstract for kw in keywords):
                 filtered.append(pid)
         return filtered

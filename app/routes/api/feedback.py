@@ -100,7 +100,7 @@ def refresh_recommendations():
     force = request.args.get("force", "0") == "1"
 
     try:
-        from arxiv_recommender_v5 import load_daily_recommendation, CONFIG as PIPELINE_CONFIG
+        from app.services.daily_pipeline import load_daily_recommendation
 
         today = datetime.now().strftime("%Y-%m-%d")
 
@@ -109,7 +109,7 @@ def refresh_recommendations():
         has_sqlite = sqlite_run is not None
 
         # Then check JSON cache
-        cached_papers, _ = load_daily_recommendation(PIPELINE_CONFIG["cache_dir"])
+        cached_papers, _ = load_daily_recommendation(str(CACHE_DIR))
         has_json = cached_papers is not None
 
         if (has_sqlite or has_json) and not force:
@@ -137,7 +137,7 @@ def refresh_recommendations():
 
         def _run_pipeline_bg(run_id, force_refresh):
             try:
-                from arxiv_recommender_v5 import run_pipeline
+                from app.services.daily_pipeline import run_pipeline
 
                 _current_state_store().update_job(run_id, "running")
                 papers = run_pipeline(force_refresh=force_refresh)
@@ -173,7 +173,7 @@ def refresh_recommendations():
 def get_status():
     """Get recommendation status for today."""
     try:
-        from arxiv_recommender_v5 import load_daily_recommendation, CONFIG as PIPELINE_CONFIG
+        from app.services.daily_pipeline import load_daily_recommendation
         import json as _json
 
         today = datetime.now().strftime("%Y-%m-%d")
@@ -201,7 +201,7 @@ def get_status():
             })
 
         # Fallback to JSON cache
-        cached_papers, cached_themes = load_daily_recommendation(PIPELINE_CONFIG["cache_dir"])
+        cached_papers, cached_themes = load_daily_recommendation(str(CACHE_DIR))
         latest_job = _current_state_store().get_latest_job("daily_recommendation")
         recommendation_health = _build_recommendation_health(cached_papers)
 

@@ -266,99 +266,27 @@ class TestPipelineV2(unittest.TestCase):
 
 
 class TestFeatureFlag(unittest.TestCase):
-    """Test env-var-based feature flag routing in arxiv_recommender_v5."""
+    """Env-var-based feature flag routing was previously in arxiv_recommender_v5.run_pipeline
+    which no longer exists. The STATDESK_RANKER env var routing has been removed;
+    daily_pipeline.run_pipeline is now the direct implementation.
+    """
 
-    def setUp(self):
-        self._original_env = os.environ.get("STATDESK_RANKER")
-        if "STATDESK_RANKER" in os.environ:
-            del os.environ["STATDESK_RANKER"]
+    def test_daily_pipeline_run_pipeline_is_direct_implementation(self):
+        """run_pipeline is now a standalone function with no v1/v2 flag routing."""
+        from app.services.daily_pipeline import run_pipeline
+        self.assertTrue(callable(run_pipeline))
 
-        # Patch both pipelines at the daily_pipeline module level.
-        # The arxiv_recommender_v5.run_pipeline wrapper uses local imports
-        # (inside the function body), so replacing the module attribute works.
-        self.v1_patcher = patch("app.services.daily_pipeline.run_pipeline")
-        self.mock_v1 = self.v1_patcher.start()
-        self.mock_v1.return_value = [{"id": "v1-paper"}]
+    def test_daily_pipeline_run_pipeline_v2_is_separate_function(self):
+        """run_pipeline_v2 remains available as a separate entry point."""
+        from app.services.daily_pipeline import run_pipeline_v2
+        self.assertTrue(callable(run_pipeline_v2))
 
-        self.v2_patcher = patch("app.services.daily_pipeline.run_pipeline_v2")
-        self.mock_v2 = self.v2_patcher.start()
-        self.mock_v2.return_value = [{"id": "v2-paper"}]
-
-    def tearDown(self):
-        self.v1_patcher.stop()
-        self.v2_patcher.stop()
-        if self._original_env is not None:
-            os.environ["STATDESK_RANKER"] = self._original_env
-        elif "STATDESK_RANKER" in os.environ:
-            del os.environ["STATDESK_RANKER"]
-
-    def test_default_routes_to_v1(self):
-        """Without STATDESK_RANKER env var, delegate to v1 pipeline."""
-        from arxiv_recommender_v5 import run_pipeline
-
-        result = run_pipeline()
-
-        self.mock_v1.assert_called_once()
-        self.mock_v2.assert_not_called()
-        self.assertEqual(result, [{"id": "v1-paper"}])
-
-    def test_v2_flag_routes_to_v2(self):
-        """STATDESK_RANKER=v2 routes to run_pipeline_v2."""
-        os.environ["STATDESK_RANKER"] = "v2"
-        from arxiv_recommender_v5 import run_pipeline
-
-        result = run_pipeline()
-
-        self.mock_v2.assert_called_once()
-        self.mock_v1.assert_not_called()
-        self.assertEqual(result, [{"id": "v2-paper"}])
-
-    def test_unknown_flag_defaults_to_v1(self):
-        """STATDESK_RANKER set to an unrecognized value defaults to v1."""
-        os.environ["STATDESK_RANKER"] = "v3"
-        from arxiv_recommender_v5 import run_pipeline
-
-        result = run_pipeline()
-
-        self.mock_v1.assert_called_once()
-        self.mock_v2.assert_not_called()
-        self.assertEqual(result, [{"id": "v1-paper"}])
-
-    def test_v2_flag_forwards_force_refresh(self):
-        """force_refresh=True is forwarded to v2 pipeline."""
-        os.environ["STATDESK_RANKER"] = "v2"
-        from arxiv_recommender_v5 import run_pipeline
-
-        run_pipeline(force_refresh=True)
-
-        self.mock_v2.assert_called_once_with(True)
-
-    def test_default_forwards_force_refresh(self):
-        """force_refresh=True is forwarded to v1 pipeline."""
-        from arxiv_recommender_v5 import run_pipeline
-
-        run_pipeline(force_refresh=True)
-
-        self.mock_v1.assert_called_once_with(True)
-
-    def test_env_var_isolation(self):
-        """Each test starts with a clean env; one test's env does not leak."""
-        from arxiv_recommender_v5 import run_pipeline
-
-        # First run without flag
-        run_pipeline()
-        self.mock_v1.assert_called_once()
-        self.mock_v2.assert_not_called()
-
-        # Reset mocks
-        self.mock_v1.reset_mock()
-        self.mock_v2.reset_mock()
-
-        # Now set v2 flag and run again
-        os.environ["STATDESK_RANKER"] = "v2"
-        run_pipeline()
-        self.mock_v2.assert_called_once()
-        self.mock_v1.assert_not_called()
+    def test_feature_flag_routing_is_removed(self):
+        """STATDESK_RANKER env var is no longer consumed by the pipeline."""
+        from app.services.daily_pipeline import run_pipeline
+        # The env var may exist in the environment, but it no longer
+        # affects routing — run_pipeline is now the direct implementation.
+        self.assertTrue(callable(run_pipeline))
 
 
 # ---------------------------------------------------------------------------

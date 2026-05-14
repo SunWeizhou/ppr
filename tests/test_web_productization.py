@@ -86,7 +86,7 @@ class WebProductizationTests(unittest.TestCase):
         self.assertIn("zotero", payload["recommendation_health"])
 
     def test_citation_api_uses_analyzer_without_missing_class_error(self):
-        import arxiv_recommender_v5
+        from app.services import citation_service
         import web_server
 
         class FakeCitationAnalyzer:
@@ -96,7 +96,7 @@ class WebProductizationTests(unittest.TestCase):
             def fetch_citation_data(self, paper_id):
                 return {"citations": 7, "influential_citations": 2, "references": 11}
 
-        with mock.patch.object(arxiv_recommender_v5, "CitationAnalyzer", FakeCitationAnalyzer):
+        with mock.patch.object(citation_service, "CitationAnalyzer", FakeCitationAnalyzer):
             response = web_server.app.test_client().get("/api/citation/2604.12345v2")
 
         self.assertEqual(response.status_code, 200)
@@ -298,7 +298,7 @@ class WebProductizationTests(unittest.TestCase):
             with (
                 mock.patch("app.routes.inbox.get_state_store", return_value=store),
                 mock.patch(
-                    "arxiv_recommender_v5.search_by_keywords",
+                    "app.services.arxiv_source.search_by_keywords",
                     return_value=fake_papers,
                 ),
             ):

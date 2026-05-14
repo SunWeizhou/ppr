@@ -62,11 +62,32 @@ class WeeklyReviewService:
         events = self._store.list_interaction_events(limit=200) or []
 
         # Filter events relevant to this workspace and week
+        # Priority: use payload.research_question_id when present,
+        # fall back to paper membership for legacy data.
         ws_paper_ids = {wp["paper_id"] for wp in workspace_papers}
+
+        def _event_in_workspace(event, rq_id, paper_ids, ws_start, ws_end):
+            event_date = (event.get("created_at", "") or "")[:10]
+            if not (ws_start <= event_date < ws_end):
+                return False
+            # Prefer payload research_question_id for precise attribution
+            payload = event.get("payload_json", {})
+            if isinstance(payload, str):
+                try:
+                    import json
+                    payload = json.loads(payload)
+                except Exception:
+                    payload = {}
+            if payload and isinstance(payload, dict):
+                e_rq = payload.get("research_question_id")
+                if e_rq is not None and int(e_rq) == rq_id:
+                    return True
+            # Fallback to paper membership for legacy events
+            return event["paper_id"] in paper_ids
+
         week_events = [
             e for e in events
-            if e["paper_id"] in ws_paper_ids
-            and week_start <= (e.get("created_at", "") or "")[:10] < week_end
+            if _event_in_workspace(e, research_question_id, ws_paper_ids, week_start, week_end)
         ]
 
         # Categorize events
@@ -85,12 +106,22 @@ class WeeklyReviewService:
                 "read_at": event.get("created_at", "")[:10],
             })
 
-        # Load takeaways
-        takeaways = self._store.list_reading_takeaways(research_question_id=research_question_id) or []
+        # Load takeaways — only those added this week
+        all_takeaways = self._store.list_reading_takeaways(research_question_id=research_question_id) or []
+        takeaways = [
+            t for t in all_takeaways
+            if len(t.get("created_at", "") or "") >= 10
+            and week_start <= t["created_at"][:10] < week_end
+        ]
 
-        # Check memo update
+        # Check memo update (must be within the week boundaries)
         memo = self._store.get_memo(research_question_id)
-        memo_updated = bool(memo and memo.get("updated_at", "")[:10] >= week_start)
+        memo_updated = bool(
+            memo
+            and memo.get("updated_at", "")
+            and len(memo["updated_at"]) >= 10
+            and week_start <= memo["updated_at"][:10] < week_end
+        )
 
         # Counts
         event_summary = {

@@ -55,7 +55,6 @@ class EngineeringProductizationTests(unittest.TestCase):
 
     def test_core_network_clients_do_not_disable_tls_verification(self):
         paths = [
-            Path("arxiv_recommender_v5.py"),
             Path("web_server.py"),
             Path("journal_tracker.py"),
             Path("update_journals.py"),

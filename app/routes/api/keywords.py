@@ -100,6 +100,19 @@ def api_search():
         result = search_papers(query, max_results=int(data.get("max_results", 25) or 25))
         papers = result["papers"]
         store = _current_state_store()
+
+        # Workspace-aware: read and validate research_question_id
+        rq_id_raw = data.get("research_question_id")
+        rq_id = None
+        if rq_id_raw is not None:
+            try:
+                rq_id = int(rq_id_raw)
+                rq = store.get_research_question(rq_id)
+                if rq is None:
+                    rq_id = None  # Invalid ID, ignore
+            except (ValueError, TypeError):
+                rq_id = None
+
         for paper in papers:
             paper_id = paper.get("paper_id") or paper.get("id") or ""
             if paper_id:
@@ -122,6 +135,16 @@ def api_search():
                     source="api_search",
                     source_run_id="paper-agent-search",
                 )
+                # Link to workspace as candidate (search result)
+                if rq_id is not None:
+                    try:
+                        store.upsert_workspace_paper(
+                            paper_id, rq_id,
+                            relationship="candidate",
+                            reason="search_result",
+                        )
+                    except Exception:
+                        pass  # Non-critical workspace link failure
         return jsonify({
             "success": True,
             "papers": papers,
@@ -142,7 +165,7 @@ def api_search():
 def _run_pipeline_bg(run_id, force_refresh):
     """Background task to run the recommendation pipeline."""
     try:
-        from arxiv_recommender_v5 import run_pipeline
+        from app.services.daily_pipeline import run_pipeline
 
         _current_state_store().update_job(run_id, "running")
         papers = run_pipeline(force_refresh=force_refresh)
